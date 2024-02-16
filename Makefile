@@ -15,6 +15,7 @@ fclean: stop down
 	-docker rm -f $$(docker ps -a -q)
 	-docker image rm $$(docker images -aq)
 	-docker volume rm $$(docker volume ls -q)
+	-rm -rf pgadmin_data/*
 
 stop:
 	-docker stop $$(docker ps -qa)
