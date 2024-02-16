@@ -5,5 +5,3 @@ WORKDIR /backend
 RUN python -m pip install Django
 
 RUN pip install psycopg
-
-COPY . .
