@@ -10,7 +10,7 @@ export default async function Home() {
     <>
       {session ? (
         <>
-          <h1>Hello {session.user.name}</h1>
+          <h1>Hello {session.user && session.user.name}</h1>
           <Link href="/api/auth/signout">Sign Out</Link>
         </>
       ) : (
