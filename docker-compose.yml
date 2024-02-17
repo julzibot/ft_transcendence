@@ -1,16 +1,16 @@
 version: '3.8'
 
 services:
-  frontend:
-    container_name: frontend
-    build:
-      context: frontend
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - 3000:3000
-    volumes: 
-      - frontend-dev:/app
+  # frontend:
+  #   container_name: frontend
+  #   build:
+  #     context: frontend
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - 3000:3000
+  #   volumes: 
+  #     - frontend-dev:/app
 
   db:
     container_name: database
@@ -22,8 +22,6 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=postgres
-    volumes:
-      - db-data:/var/lib/postgresql/data
 
   pgadmin:
     container_name: pgadmin4
@@ -38,45 +36,25 @@ services:
     ports:
       - 5050:80
     volumes:
-      - pgadmin-data:/var/lib/pgadmin
       - ./servers.json:/pgadmin4/servers.json 
 
-  backend:
-    container_name: backend
-    build:
-      context: backend
-      dockerfile: Dockerfile
-    restart: always
-    command: python manage.py runserver 0.0.0.0:8000
-    ports:
-      - 8000:8000
-    depends_on:
-      - db
-    volumes:
-      - backend-dev:/backend
-
-volumes:
-  db-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: database
-      o: bind
-  pgadmin-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: pgadmin_data
-      o: bind
-  backend-dev:
-    driver: local
-    driver_opts:
-      type: none
-      device: backend
-      o: bind
-  frontend-dev:
-    driver: local
-    driver_opts:
-      type: none
-      device: frontend
-      o: bind
+  # backend:
+  #   container_name: backend
+  #   build:
+  #     context: backend
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   command: python manage.py runserver 0.0.0.0:8000
+  #   ports:
+  #     - 8000:8000
+  #   depends_on:
+  #     - db
+  #   volumes:
+  #     - backend-dev:/backend
+# volumes:
+#   frontend-dev:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: frontend
+#       o: bind
