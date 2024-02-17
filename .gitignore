@@ -40,5 +40,4 @@ frontend/next-env.d.ts
 
 pgadmin_data/*
 database/*
-backend/backend/__pycache__/
-backend/**/__pycache__/
+__pycache__/
