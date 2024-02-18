@@ -4,4 +4,6 @@ WORKDIR /backend
 
 RUN python -m pip install Django
 
+RUN pip install djangorestframework
+
 RUN pip install psycopg
