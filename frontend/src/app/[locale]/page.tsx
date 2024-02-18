@@ -1,16 +1,22 @@
-import { options } from "./api/auth/[...nextauth]/options"
-import { getServerSession } from "next-auth/next"
+//'use client';
 import Link from 'next/link'
 import Image from "next/image"
+// import { useTranslations } from 'next-intl';
+
+import { getServerSession } from 'next-auth/next';
+import { options } from "../api/auth/[...nextauth]/options"
 
 export default async function Home() {
-  const session = await getServerSession(options)
+  // const t = useTranslations('Index');
+  const session = getServerSession(options);
 
   return (
     <>
+      {/* <h1>{t('title')}</h1> */}
       {session ? (
         <>
-          <h1>Hello {session.user && session.user.name}</h1>
+          {/* <h1>{t('title')}</h1> */}
+          <h1>Hello {session?.user?.name}</h1>
           <Link href="/api/auth/signout">Sign Out</Link>
         </>
       ) : (
