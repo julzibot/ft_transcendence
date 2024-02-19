@@ -8,7 +8,7 @@ import { options } from "../api/auth/[...nextauth]/options"
 
 export default async function Home() {
   // const t = useTranslations('Index');
-  const session = getServerSession(options);
+  const session = await getServerSession(options);
 
   return (
     <>
