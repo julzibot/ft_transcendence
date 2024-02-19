@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { MaxEquation } from 'three';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 
 const GAMEWIDTH = 45;
 const GAMEHEIGHT = 30;
@@ -7,11 +10,18 @@ const BALLRADIUS = 0.6;
 const SPEEDINCREMENT = 1.07;
 const BALLMAXSPEED = 0.75;
 const MINREBOUNDANGLE = 40;
+const FONTPATH = "./node_modules/three/examples/fonts/";
+const FONTNAME = "Norwester_Regular.json";
 
 const playerSpeed = 0.65;
+let	p1Score = 0;
+let p2Score = 0;
+let scoreString = "";
+let	endString = "";
 let ballSpeed = 0.35;
 let adjustedBallSpeed = 0.35;
 let	dotProduct = 0;
+let	stopGame = false;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -73,6 +83,32 @@ document.addEventListener('keyup', function(event) {
     keys[event.code] = false;
 });
 
+// SET UP SCORE TEXTS
+// ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
+const loader = new FontLoader();
+let p1textMesh = new THREE.Mesh();
+let p2textMesh = new THREE.Mesh();
+let scoreMsg = new THREE.Mesh();
+
+loader.load( FONTPATH + FONTNAME, function ( font )
+{
+	const textGeo = new TextGeometry( '0',
+	{
+		font: font,
+		size: 4,
+		height: 0.2
+	});
+	const textMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+	p1textMesh.geometry = textGeo;
+	p1textMesh.material = textMaterial;
+	p2textMesh.geometry = textGeo;
+	p2textMesh.material = textMaterial;
+    scene.add(p1textMesh);
+    scene.add(p2textMesh);
+    p1textMesh.position.set(GAMEWIDTH / 5 - GAMEWIDTH / 2, GAMEHEIGHT / 3.5, 0);
+    p2textMesh.position.set(GAMEWIDTH / 5, GAMEHEIGHT / 3.5, 0);
+});
+
 function update()
 {
     if (keys['ArrowUp'] && player2.position.y < GAMEHEIGHT / 2 - PLAYERLEN / 2) {
@@ -92,7 +128,7 @@ function update()
 
 function animate()
 {
-	requestAnimationFrame( animate );
+	// console.log("hey");
 	isRebound = 0;
     let p1HB = new THREE.Box3().setFromObject(player1);
     let p2HB = new THREE.Box3().setFromObject(player2);
@@ -147,12 +183,56 @@ function animate()
 		ballVect.y *= -1;
 	
 	// RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
-    if (ball.position.x > GAMEWIDTH / 2 + 2 || ball.position.x < -(GAMEWIDTH / 2 + 2))
+    if (ball.position.x > GAMEWIDTH / 2 + 4 || ball.position.x < -(GAMEWIDTH / 2 + 4))
     {
-        if (ball.position.x > GAMEWIDTH / 2 + 2)
-            ballVect.set(1, 0, 0);
-        else
+        if (ball.position.x > GAMEWIDTH / 2 + 4)
+		{
             ballVect.set(-1, 0, 0);
+			p1Score += 1;
+			scoreString = p1Score.toString();
+			loader.load( FONTPATH + FONTNAME, function ( font )
+			{
+				let updatedScoreGeo = new TextGeometry(scoreString, {font: font, size: 4, height: 0.5});
+				p1textMesh.geometry.dispose();
+				p1textMesh.geometry = updatedScoreGeo;
+			});
+		}
+        else
+		{
+            ballVect.set(1, 0, 0);
+			p2Score += 1;
+			scoreString = p2Score.toString();
+			loader.load( FONTPATH + FONTNAME, function ( font )
+			{
+				let updatedScoreGeo = new TextGeometry(scoreString, {font: font, size: 4, height: 0.5});
+				p2textMesh.geometry.dispose();
+				p2textMesh.geometry = updatedScoreGeo;
+			});
+		}
+
+		if (Math.max(p1Score, p2Score) == 7)
+		{
+			if (p1Score > p2Score)
+				endString = "PLAYER 1 WINS";
+			else
+				endString = "PLAYER 2 WINS";
+			loader.load( FONTPATH + FONTNAME, function ( font )
+			{
+				const textGeo = new TextGeometry( 'GAME ENDED\n' + endString,
+				{
+					font: font,
+					size: 3,
+					height: 0.5
+				});
+				const textMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+				scoreMsg.geometry = textGeo;
+				scoreMsg.material = textMaterial;
+				scene.add(scoreMsg);
+				scoreMsg.position.set(-11.5, -7 , 0);
+			});
+			stopGame = true;
+			requestAnimationFrame( animate );
+		}
         ball.position.set(0, 0, 0);
 		ballSpeed = 0.35;
 		adjustedBallSpeed = 0.35;
@@ -161,6 +241,8 @@ function animate()
     ball.position.x += ballVect.x * adjustedBallSpeed;
     ball.position.y += ballVect.y * adjustedBallSpeed;
 	renderer.render( scene, camera );
+	if (stopGame == false)
+		requestAnimationFrame( animate );
 }
 
 update();
