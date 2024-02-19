@@ -8,7 +8,7 @@ export const config = {
   matcher: ['/', '/(en|fr|jp)/:path*']
 };
 
-const publicPages = ['/login'];
+const publicPages = ['/en', '/fr', '/jp'];
 
 const intlMiddleware = createMiddleware({
   // A list of all locales that are supported
@@ -31,7 +31,7 @@ const authMiddleware = withAuth(
       authorized: ({token}) => token != null
     },
     pages: {
-      signIn: '/login'
+      signIn: '/en'
     }
   }
 );
