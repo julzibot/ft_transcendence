@@ -32,7 +32,7 @@ class UserAccountManager(BaseUserManager):
 
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=60, unique=True)
+    name = models.CharField(max_length=60, unique=True)
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
@@ -49,7 +49,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     objects = UserAccountManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username"]
+    REQUIRED_FIELDS = ["name"]
 
     def __str__(self):
         return self.email
