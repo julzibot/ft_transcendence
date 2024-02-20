@@ -15,7 +15,7 @@ const ThreeScene = () => {
     const SPEEDINCREMENT = 1.07;
     const BALLMAXSPEED = 0.75;
     const MINREBOUNDANGLE = 40;
-    const FONTPATH = "";
+    const FONTPATH = "fonts/";
     const FONTNAME = "Norwester_Regular.json";
     
     const playerSpeed = 0.65;
@@ -30,7 +30,7 @@ const ThreeScene = () => {
     
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
     
@@ -103,7 +103,7 @@ const ThreeScene = () => {
         size: 4,
         height: 0.2
       });
-      const textMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+      const textMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
       p1textMesh.geometry = textGeo;
       p1textMesh.material = textMaterial;
       p2textMesh.geometry = textGeo;
@@ -215,7 +215,7 @@ const ThreeScene = () => {
           });
         }
     
-        if (Math.max(p1Score, p2Score) == 7)
+        if (Math.max(p1Score, p2Score) == 3)
         {
           if (p1Score > p2Score)
             endString = "PLAYER 1 WINS";
@@ -229,31 +229,30 @@ const ThreeScene = () => {
               size: 3,
               height: 0.5
             });
-            const textMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+            const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
             scoreMsg.geometry = textGeo;
             scoreMsg.material = textMaterial;
             scene.add(scoreMsg);
             scoreMsg.position.set(-11.5, -7 , 0);
           });
           stopGame = true;
-          requestAnimationFrame( animate );
         }
             ball.position.set(0, 0, 0);
         ballSpeed = 0.35;
         adjustedBallSpeed = 0.35;
         }
     
-        ball.position.x += ballVect.x * adjustedBallSpeed;
-        ball.position.y += ballVect.y * adjustedBallSpeed;
+      if (stopGame == true)
+        ballVect.set(0, 0);
+      ball.position.x += ballVect.x * adjustedBallSpeed;
+      ball.position.y += ballVect.y * adjustedBallSpeed;
       renderer.render( scene, camera );
-      if (stopGame == false)
-        requestAnimationFrame( animate );
+      requestAnimationFrame( animate );
     }
     
     update();
     animate();
   }, []);
-  return <div ref={containerRef} />;
+  return <canvas className='fixed-top' ref={containerRef} />;
 };
-
 export default ThreeScene;
