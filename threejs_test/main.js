@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { MaxEquation } from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 
@@ -210,6 +209,7 @@ function animate()
 			});
 		}
 
+		// IF GAME ENDS, PRINT APPROPRIATE MSG AND STOP THE GAME
 		if (Math.max(p1Score, p2Score) == 7)
 		{
 			if (p1Score > p2Score)
@@ -231,18 +231,18 @@ function animate()
 				scoreMsg.position.set(-11.5, -7 , 0);
 			});
 			stopGame = true;
-			requestAnimationFrame( animate );
 		}
         ball.position.set(0, 0, 0);
 		ballSpeed = 0.35;
 		adjustedBallSpeed = 0.35;
     }
 
+	if (stopGame == true)
+		ballVect.set(0, 0);
     ball.position.x += ballVect.x * adjustedBallSpeed;
     ball.position.y += ballVect.y * adjustedBallSpeed;
 	renderer.render( scene, camera );
-	if (stopGame == false)
-		requestAnimationFrame( animate );
+	requestAnimationFrame( animate );
 }
 
 update();
