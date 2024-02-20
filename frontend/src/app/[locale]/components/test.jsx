@@ -13,8 +13,9 @@ const ThreeScene = () => {
     const PLAYERLEN = 4.5;
     const BALLRADIUS = 0.6;
     const SPEEDINCREMENT = 1.07;
-    const BALLMAXSPEED = 0.75;
+    const BALLMAXSPEED = 0.8;
     const MINREBOUNDANGLE = 40;
+    const WINSCORE = 7;
     const FONTPATH = "fonts/";
     const FONTNAME = "Norwester_Regular.json";
     
@@ -108,10 +109,10 @@ const ThreeScene = () => {
       p1textMesh.material = textMaterial;
       p2textMesh.geometry = textGeo;
       p2textMesh.material = textMaterial;
-        scene.add(p1textMesh);
-        scene.add(p2textMesh);
-        p1textMesh.position.set(GAMEWIDTH / 5 - GAMEWIDTH / 2, GAMEHEIGHT / 3.5, 0);
-        p2textMesh.position.set(GAMEWIDTH / 5, GAMEHEIGHT / 3.5, 0);
+      scene.add(p1textMesh);
+      scene.add(p2textMesh);
+      p1textMesh.position.set(GAMEWIDTH / 5 - GAMEWIDTH / 2, GAMEHEIGHT / 3.5, 0);
+      p2textMesh.position.set(GAMEWIDTH / 5, GAMEHEIGHT / 3.5, 0);
     });
     
     function update()
@@ -135,17 +136,17 @@ const ThreeScene = () => {
     {
       // console.log("hey");
       isRebound = 0;
-        let p1HB = new THREE.Box3().setFromObject(player1);
-        let p2HB = new THREE.Box3().setFromObject(player2);
-        let sph = new THREE.Box3().setFromObject(ball);
+      let p1HB = new THREE.Box3().setFromObject(player1);
+      let p2HB = new THREE.Box3().setFromObject(player2);
+      let sph = new THREE.Box3().setFromObject(ball);
     
       // CHECK PLAYER COLLISIONS
-        if (p1HB.intersectsBox(sph))
+      if (p1HB.intersectsBox(sph))
         isRebound = 1;
-        else if (p2HB.intersectsBox(sph))
+      else if (p2HB.intersectsBox(sph))
         isRebound = 2;
-        if (isRebound != 0)
-        {
+      if (isRebound != 0)
+      {
         // COMPUTE THE NORMALIZED REBOUND VECTOR
         if (isRebound == 1)
           reboundDiff = player1.position.y - ball.position.y;
@@ -182,65 +183,65 @@ const ThreeScene = () => {
           adjustedBallSpeed = ballSpeed;
         else if (adjustedBallSpeed > BALLMAXSPEED)
           adjustedBallSpeed = BALLMAXSPEED;
-        }
-      // CHECK TOP AND BOT BOUNDARY COLLISIONS
-        if (topHB.intersectsBox(sph) || botHB.intersectsBox(sph))
-        ballVect.y *= -1;
-      
-      // RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
-        if (ball.position.x > GAMEWIDTH / 2 + 4 || ball.position.x < -(GAMEWIDTH / 2 + 4))
-        {
-            if (ball.position.x > GAMEWIDTH / 2 + 4)
-        {
-                ballVect.set(-1, 0, 0);
-          p1Score += 1;
-          scoreString = p1Score.toString();
-          loader.load( FONTPATH + FONTNAME, function ( font )
-          {
-            let updatedScoreGeo = new TextGeometry(scoreString, {font: font, size: 4, height: 0.5});
-            p1textMesh.geometry.dispose();
-            p1textMesh.geometry = updatedScoreGeo;
-          });
-        }
-            else
-        {
-                ballVect.set(1, 0, 0);
-          p2Score += 1;
-          scoreString = p2Score.toString();
-          loader.load( FONTPATH + FONTNAME, function ( font )
-          {
-            let updatedScoreGeo = new TextGeometry(scoreString, {font: font, size: 4, height: 0.5});
-            p2textMesh.geometry.dispose();
-            p2textMesh.geometry = updatedScoreGeo;
-          });
-        }
+      }
+    // CHECK TOP AND BOT BOUNDARY COLLISIONS
+      if (topHB.intersectsBox(sph) || botHB.intersectsBox(sph))
+      ballVect.y *= -1;
     
-        if (Math.max(p1Score, p2Score) == 3)
+    // RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
+      if (ball.position.x > GAMEWIDTH / 2 + 4 || ball.position.x < -(GAMEWIDTH / 2 + 4))
+      {
+          if (ball.position.x > GAMEWIDTH / 2 + 4)
+      {
+        ballVect.set(-1, 0, 0);
+        p1Score += 1;
+        scoreString = p1Score.toString();
+        loader.load( FONTPATH + FONTNAME, function ( font )
         {
-          if (p1Score > p2Score)
-            endString = "PLAYER 1 WINS";
+          let updatedScoreGeo = new TextGeometry(scoreString, {font: font, size: 4, height: 0.5});
+          p1textMesh.geometry.dispose();
+          p1textMesh.geometry = updatedScoreGeo;
+        });
+      }
           else
-            endString = "PLAYER 2 WINS";
-          loader.load( FONTPATH + FONTNAME, function ( font )
+      {
+        ballVect.set(1, 0, 0);
+        p2Score += 1;
+        scoreString = p2Score.toString();
+        loader.load( FONTPATH + FONTNAME, function ( font )
+        {
+          let updatedScoreGeo = new TextGeometry(scoreString, {font: font, size: 4, height: 0.5});
+          p2textMesh.geometry.dispose();
+          p2textMesh.geometry = updatedScoreGeo;
+        });
+      }
+  
+      if (Math.max(p1Score, p2Score) == WINSCORE)
+      {
+        if (p1Score > p2Score)
+          endString = "PLAYER 1 WINS";
+        else
+          endString = "PLAYER 2 WINS";
+        loader.load( FONTPATH + FONTNAME, function ( font )
+        {
+          const textGeo = new TextGeometry( 'GAME ENDED\n' + endString,
           {
-            const textGeo = new TextGeometry( 'GAME ENDED\n' + endString,
-            {
-              font: font,
-              size: 3,
-              height: 0.5
-            });
-            const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-            scoreMsg.geometry = textGeo;
-            scoreMsg.material = textMaterial;
-            scene.add(scoreMsg);
-            scoreMsg.position.set(-11.5, -7 , 0);
+            font: font,
+            size: 3,
+            height: 0.5
           });
-          stopGame = true;
-        }
-            ball.position.set(0, 0, 0);
-        ballSpeed = 0.35;
-        adjustedBallSpeed = 0.35;
-        }
+          const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+          scoreMsg.geometry = textGeo;
+          scoreMsg.material = textMaterial;
+          scene.add(scoreMsg);
+          scoreMsg.position.set(-11.5, -7 , 0);
+        });
+        stopGame = true;
+      }
+      ball.position.set(0, 0, 0);
+      ballSpeed = 0.35;
+      adjustedBallSpeed = 0.35;
+      }
     
       if (stopGame == true)
         ballVect.set(0, 0);
