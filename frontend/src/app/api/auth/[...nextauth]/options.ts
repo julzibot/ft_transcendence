@@ -1,9 +1,5 @@
 import type {NextAuthOptions} from 'next-auth'
-import FortyTwo from 'next-auth/providers/42-school';
 import FortyTwoProvider from "next-auth/providers/42-school";
-import Email from 'next-auth/providers/email';
-import { notFound } from 'next/navigation';
-//import CredentialsProvider from 'next-auth/providers/credentials';
 
 export const options: NextAuthOptions = {
   providers: [
@@ -15,14 +11,13 @@ export const options: NextAuthOptions = {
 
   callbacks: {
     async signIn({user}) {
-      const userName = user.name
-      const userEmail = user.email
+     const {name, email} = user
       let response = await fetch('http://localhost:8000/api/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: userName, email: userEmail}),
+        body: JSON.stringify({ name, email}),
       });
 
       if(response.status === 401) {
@@ -31,13 +26,17 @@ export const options: NextAuthOptions = {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ name: userName, email: userEmail}),
+          body: JSON.stringify({ name, email}),
         });
       }
-      if(response.ok)
-        return true;
-      else
-        return false;
+      user = await response.json();
+      console.log(user)
+      return user
+    },
+
+    async jwt({token, user}) {
+      // console.log(user)
+      return token
     }
   }
 }
