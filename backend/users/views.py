@@ -7,7 +7,7 @@ import datetime, jwt
 from .serializers import UserAccoutSerializer
 from django.conf import settings
 
-
+# Register New User in Database
 class RegisterView(APIView):
   def post(self, request):
     serializer = UserAccoutSerializer(data=request.data)
@@ -15,9 +15,11 @@ class RegisterView(APIView):
     serializer.save()
     return Response(serializer.data)
 
+# Fecths User in Database and returns its tokens
 class LoginView(APIView):
   def post(self, request):
     email = request.data['email']
+    name = request.data['name']
     # password = request.data['password']
 
     user = UserAccount.objects.filter(email=email).first()
@@ -35,8 +37,15 @@ class LoginView(APIView):
     # response.set_cookie(key='jwt-access', value = access_token, httponly=True)
     # response.set_cookie(key='jwt-refresh', value = refresh_token, httponly=True)
     response.data = {
-      'access-token': str(access_token),
-      'refresh-token': str(refresh_token)
+      'user': {
+        'id': user.id,
+        'name': str(name),
+        'email': str(email)
+      },
+      'backendTokens': {
+      'accessToken': str(access_token),
+      'refreshToken': str(refresh_token)
+      }
     }
     return response
   
