@@ -25,27 +25,11 @@ export const authOptions: NextAuthOptions = {
       },
       body: JSON.stringify({name, email}),
       });
-      if(response.status === 401) {
-        response = await fetch('http://localhost:8000/api/register/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({name, email}),
-      });
-      if(response.ok) {
-        response = await fetch('http://localhost:8000/api/login/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ name, email}),
-        });
-      }
+      if(!response.ok) {
+        return null
       }
       const newRes = await response.json()
-      session.user = newRes.user
-      session.backendTokens = newRes.backendTokens
+      session = newRes
       return session
     }
   }
