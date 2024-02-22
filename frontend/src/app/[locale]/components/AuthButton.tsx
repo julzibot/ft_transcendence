@@ -2,18 +2,25 @@
 
 import { signIn, signOut, useSession} from "next-auth/react"
 import Link from "next/link";
+import { useEffect } from "react";
 
 export default function AuthButton() {
   const { data: session} = useSession();
 
+  useEffect(() => {
+    require("bootstrap/dist/js/bootstrap.bundle.min.js")
+  }, []);
+
   if(session && session.user) {
     return (
       <>
-        <h1 className="text-light"> Hello {session.user.name} </h1>
-        <Link href="/en/dashboard">Dashboard</Link>
-        <button className="btn btn-primary" onClick={() => signOut()}>
-          Sign Out
-        </button>
+        <div className="dropdown">
+          <button className="btn btn-primary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">{session.user.name}</button>
+          <ul className="dropdown-menu">
+            <li><Link className="dropdown-item" href="/en/account">Account</Link></li>
+            <li><Link className="dropdown-item text-primary" href="/api/auth/signout">Sign Out</Link></li>
+          </ul>
+        </div>
       </>
     );
   }
