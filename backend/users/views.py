@@ -35,20 +35,25 @@ class LoginView(APIView):
     
     if not user:
       user = registerUser(data)
-    return Response({
+    response = Response({
       'user': {
         'id': user.id,
         'name': name,
         'email': email
       },
       'backendTokens': get_tokens_for_user(user)})
+    return response
   
 class UserView(APIView):
   def get(self, request):
     access_token = request.META.get('HTTP_AUTHORIZATION')
-    access_token = access_token.split(' ')[1]
+    if not access_token:
+      return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
+    access_token = access_token.split(' ')
+    if access_token[0] != 'Bearer':
+      return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-
+    access_token = access_token[1]
     if not access_token:
       raise AuthenticationFailed('Unauthenticated')
     try:
@@ -65,10 +70,10 @@ class RefreshView(APIView):
   def post(self, request):
     refresh_token = request.META.get('HTTP_AUTHORIZATION')
     if not refresh_token:
-      return Response({'error': 'Authorization: refresh is required'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'error': 'Authorization: Refresh is required'}, status=status.HTTP_400_BAD_REQUEST)
     refresh_token = refresh_token.split(' ')
     if refresh_token[0] != 'Refresh':
-      return Response({'error': 'Authorization: refresh is required'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'error': 'Authorization: Refresh is required'}, status=status.HTTP_400_BAD_REQUEST)
     
     refresh_token = refresh_token[1]
     if not refresh_token:

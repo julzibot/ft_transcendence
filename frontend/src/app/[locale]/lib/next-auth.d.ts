@@ -9,8 +9,8 @@ declare module "next-auth"{
       email: string;
     };
     backendTokens: {
-      accessToken: string;
-      refreshToken:string;
+      access: string;
+      refresh:string;
     };
   }
 }
@@ -26,8 +26,8 @@ declare module "next-auth/jwt" {
       email: string;
     };
     backendTokens: {
-      accessToken: string;
-      refreshToken:string;
+      access: string;
+      refresh:string;
     };
   }
 }

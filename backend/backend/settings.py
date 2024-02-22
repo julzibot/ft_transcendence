@@ -131,17 +131,17 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=20),
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=10),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': False,
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': False,
 
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': os.getenv('TOKEN_SIGNING_KEY'),
     'VERIFYING_KEY': None,
 
-    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_TYPES': ('Bearer', 'Refresh', ),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'id',
 

@@ -1,4 +1,4 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { authOptions } from "@/api/auth/[...nextauth]/options";
 import { getServerSession } from "next-auth";
 
 type Props = {
@@ -12,7 +12,7 @@ async function ProfilePage(props: Props){
   const response = await fetch(`http://localhost:8000/api/user/`, {
     method: "GET",
     headers: {
-      authorization: `Bearer ${session?.backendTokens.accessToken}`,
+      authorization: `Bearer ${session?.backendTokens.access}`,
       "Content-Type": "application/json",
     },
   });
@@ -26,8 +26,9 @@ async function ProfilePage(props: Props){
       </>
     );
   }
-  else
+  else {
     return(<h1>Error</h1>)
+  }
 };
 
 export default ProfilePage;
