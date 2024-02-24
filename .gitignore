@@ -38,7 +38,7 @@ frontend/next-env.d.ts
 frontend/.vite/
 .vite/
 .env
-frontend/src/app/[locale]/components/node_modules/
+frontend/src/app/\[locale\]/components/node_modules/
 
 pgadmin_data/*
 database/*
