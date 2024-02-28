@@ -1,6 +1,7 @@
 import Link from "next/link"
 import AuthButton from "./AuthButton"
 import Image from "next/image"
+import LocaleSwitcher from "./LocaleSwitcher"
 
 export default function Navbar() {
 
@@ -17,6 +18,7 @@ export default function Navbar() {
           />
         <span className="ms-2 text-light fw-bold">Transcendence</span>
         </Link>
+        <LocaleSwitcher />
         <AuthButton/>
       </nav>
     </>)

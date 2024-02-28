@@ -26,14 +26,14 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body className={inter.className}>
-        {/* <NextIntlClientProvider locale={locale} messages={messages}> */}
-          <SessionProvider session={session}>
+        <SessionProvider session={session}>
+          {/* <NextIntlClientProvider locale={locale} messages={messages}> */}
             <main>
               <Navbar />
               {children}
             </main>
-          </SessionProvider>
-        {/* </NextIntlClientProvider> */}
+          {/* </NextIntlClientProvider> */}
+        </SessionProvider>
       </body>
     </html>
   );
