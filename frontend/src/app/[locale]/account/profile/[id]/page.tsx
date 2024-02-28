@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 
 type Props = {
   params: {

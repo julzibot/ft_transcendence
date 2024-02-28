@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css"
 // import { NextIntlClientProvider, useMessages } from 'next-intl';
-import SessionProvider from "./components/SessionProvider";
+import SessionProvider from "../../components/SessionProvider";
 import { getServerSession } from "next-auth";
-import AppNav from "./components/AppNav";
+import Navbar from "@/components/ui/navbar/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,8 +28,10 @@ export default async function RootLayout({
       <body className={inter.className}>
         {/* <NextIntlClientProvider locale={locale} messages={messages}> */}
           <SessionProvider session={session}>
-            <AppNav />
-            {children}
+            <main>
+              <Navbar />
+              {children}
+            </main>
           </SessionProvider>
         {/* </NextIntlClientProvider> */}
       </body>
