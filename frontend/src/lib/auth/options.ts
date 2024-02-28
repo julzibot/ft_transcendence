@@ -1,7 +1,5 @@
-import { log } from 'console';
-import type {NextAuthOptions} from 'next-auth'
+import { NextAuthOptions } from "next-auth";
 import FortyTwoProvider from "next-auth/providers/42-school";
-import { signOut } from 'next-auth/react';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -18,7 +16,9 @@ export const authOptions: NextAuthOptions = {
       }
     }),
   ],
-
+  pages: {
+    signIn: '/en/(auth)/sign-in',
+  },
   callbacks: {
     async jwt({token, trigger, session, user}) {
       // if user is loging in, call backend api that returns user info and backend token

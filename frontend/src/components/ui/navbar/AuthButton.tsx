@@ -16,7 +16,7 @@ export default function AuthButton() {
     return (
       <>
         <div className="dropdown">
-          <button className="btn btn-primary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <button className="btn btn-light dropdown-toggle me-2" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <Image className="rounded-circle me-2"
               src={session.user.image}
               width={28}
@@ -35,7 +35,7 @@ export default function AuthButton() {
   }
   return (
     <>
-      <button className="btn btn-primary" onClick={() => signIn()}>
+      <button className="btn btn-light me-2" onClick={() => signIn()}>
         Sign In
       </button>
     </>
