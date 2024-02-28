@@ -16,9 +16,6 @@ export const authOptions: NextAuthOptions = {
       }
     }),
   ],
-  pages: {
-    signIn: '/en/(auth)/sign-in',
-  },
   callbacks: {
     async jwt({token, trigger, session, user}) {
       // if user is loging in, call backend api that returns user info and backend token
