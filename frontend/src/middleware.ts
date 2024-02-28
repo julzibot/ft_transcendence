@@ -5,7 +5,7 @@ import  { locales } from './i18n';
 
 export const config = {
   // Match only internationalized pathnames
-  matcher: ['/', '/(en|fr|jp)/:path*']
+  matcher: ['/account', '/(en|fr|jp)/:path*']
 };
 
 const publicPages = ['/en', '/fr', '/jp'];

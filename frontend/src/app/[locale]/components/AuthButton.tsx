@@ -1,8 +1,9 @@
 'use client';
 
-import { signIn, signOut, useSession} from "next-auth/react"
+import { signIn,  useSession} from "next-auth/react"
 import Link from "next/link";
 import { useEffect } from "react";
+import Image from "next/image";
 
 export default function AuthButton() {
   const { data: session} = useSession();
@@ -15,7 +16,15 @@ export default function AuthButton() {
     return (
       <>
         <div className="dropdown">
-          <button className="btn btn-primary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">{session.user.name}</button>
+          <button className="btn btn-primary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <Image className="rounded-circle me-2"
+              src={session.user.image}
+              width={28}
+              height={25}
+              alt="session picture"
+            />
+            {session.user.name}
+            </button>
           <ul className="dropdown-menu">
             <li><Link className="dropdown-item" href="/en/account">Account</Link></li>
             <li><Link className="dropdown-item text-primary" href="/api/auth/signout">Sign Out</Link></li>
