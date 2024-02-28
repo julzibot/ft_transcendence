@@ -1,5 +1,8 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import { getServerSession } from "next-auth";
+"use client";
+
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import { useState, ChangeEvent, FormEvent } from "react";
 
 type Props = {
   params: {
@@ -7,22 +10,46 @@ type Props = {
   };
 };
 
-async function ProfilePage(props: Props){
-  const session = await getServerSession(authOptions);
-  const response = await fetch(`http://localhost:8000/api/user/`, {
-    method: "GET",
-    headers: {
-      authorization: `Bearer ${session?.backendTokens.access}`,
-      "Content-Type": "application/json",
-    },
-  });
-  if(response.ok) {
-    const user = await response.json();
+function ProfilePage(props: Props){
+  const { data: session, update} = useSession();
+  const [isEditing, setIsEditing] = useState(false)
+  const [username, setUsername] = useState("")
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>){
+    event.preventDefault();
+
+    const response = await fetch('http://localhost:8000/api/update/name/', {
+      method: 'PUT',
+      headers: {'Content-type': 'application/json'},
+      body: JSON.stringify({
+        'email': session?.user.email,
+        'name': username
+      })
+    })
+    update({name: username})
+    setIsEditing(false);
+  }
+
+  if(session) {
     return (
       <>
         <h1>Profile</h1>
-        <p>{user.name}</p>
-        <p>{user.email}</p>
+        <h2>{session.user.name}</h2>
+        {isEditing ? (
+          <form onSubmit={handleSubmit}>
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+            <button type="submit" className="btn btn-primary">Submit</button>
+            <button type="button" onClick={() => setIsEditing(false)} className="btn btn-primary">Cancel</button>
+          </form>
+        ) : (
+          <button className="btn btn-primary" onClick={() => setIsEditing(true)}>Edit Username</button>
+        )}
+        <p>{session.user.email}</p>
+        <Image 
+          src={session.user.image}
+          width={120}
+          height={80}
+          alt="session picture"/>
       </>
     );
   }

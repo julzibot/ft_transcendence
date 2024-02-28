@@ -1,15 +1,27 @@
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework import status
-from .models import UserAccount
-from rest_framework_simplejwt.tokens import RefreshToken
-import jwt
-from .serializers import UserAccoutSerializer
-import os
-from dotenv import load_dotenv
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 
-load_dotenv()
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponseBadRequest
+
+import jwt, os, requests
+
+from .models import UserAccount
+from .serializers import UserAccountSerializer
+
+
+def test_token(token):
+  if token:
+    headers = {
+      'Authorization': 'Bearer ' + token
+    }
+    response = requests.get('https://api.intra.42.fr/v2/me', headers=headers)
+    if response.status_code == 200:
+      return True
+  return False
 
 def get_tokens_for_user(user):
   refresh = RefreshToken.for_user(user)
@@ -19,29 +31,32 @@ def get_tokens_for_user(user):
     'access': str(refresh.access_token),
   }
 
-def registerUser(data):
-  serializer = UserAccoutSerializer(data=data)
-  serializer.is_valid(raise_exception=True)
-  serializer.save()
-  return Response(serializer.data)
-
-
-class LoginView(APIView):
+class SigninView(APIView):
   def post(self, request):
-    data = request.data
-    name = data['name']
-    email = data['email']
-    user = UserAccount.objects.filter(email=email).first()
-    
-    if not user:
-      user = registerUser(data)
+    data = request.data['user']
+
+    # fetch user in database
+    try:
+      if 'email' not in data:
+        return HttpResponseBadRequest({'Bad Request: email field is required'})
+      user = UserAccount.objects.get(email=data['email'])
+    except ObjectDoesNotExist:
+      if 'id' in data:
+        user = UserAccount.objects.filter(id=data['id']).first()
+        if user:
+          return Response({'Conflict': 'user id already exists'}, status=status.HTTP_409_CONFLICT)
+      serializer = UserAccountSerializer(data=data)
+      serializer.is_valid(raise_exception=True)
+      user = UserAccount.objects.create(**data)
     response = Response({
       'user': {
         'id': user.id,
-        'name': name,
-        'email': email
+        'name': user.name,
+        'email': user.email,
+        'image': user.image,
       },
-      'backendTokens': get_tokens_for_user(user)})
+      'backendTokens': get_tokens_for_user(user)
+    })
     return response
   
 class UserView(APIView):
@@ -62,31 +77,23 @@ class UserView(APIView):
       raise AuthenticationFailed('Unauthenticated')
     
     user = UserAccount.objects.filter(id=payload['id']).first()
-    serializer = UserAccoutSerializer(user)
+    serializer = UserAccountSerializer(user)
   
     return Response(serializer.data)
 
-class RefreshView(APIView):
-  def post(self, request):
-    refresh_token = request.META.get('HTTP_AUTHORIZATION')
-    if not refresh_token:
-      return Response({'error': 'Authorization: Refresh is required'}, status=status.HTTP_400_BAD_REQUEST)
-    refresh_token = refresh_token.split(' ')
-    if refresh_token[0] != 'Refresh':
-      return Response({'error': 'Authorization: Refresh is required'}, status=status.HTTP_400_BAD_REQUEST)
+class UpdateNameView(APIView):
+  def put(self, request):
+    print(request.data)
+    instance = UserAccount.objects.get(email=request.data['email'])
+    newName = request.data.get('name', None)
+    if newName is not None:
+      try:
+        instance.name = newName
+        instance.save()
+        return Response({'message': 'username updated successfully'})
+      except:
+        return Response({'error': 'name already exists'}, status=409)
+    else:
+      return Response({'error': 'could not update username'})
     
-    refresh_token = refresh_token[1]
-    if not refresh_token:
-      return Response({'error': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        refresh = RefreshToken(refresh_token)
-        access_token = str(refresh.access_token)
-        return Response(
-          {
-            'refresh': str(refresh),
-            'access': access_token
-          })
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-  
+    

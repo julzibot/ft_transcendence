@@ -36,8 +36,9 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
-        unique=True,
+        unique=True
     )
+    image = models.CharField(max_length=255, blank=True, null=True, default="picture-example") # find a way to store a default profile picture
     password = models.CharField(max_length=255)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
@@ -48,8 +49,8 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     objects = UserAccountManager()
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["name"]
+    USERNAME_FIELD = "name"
+    REQUIRED_FIELDS = ["email"]
 
     def __str__(self):
         return self.email
