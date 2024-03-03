@@ -14,7 +14,6 @@ class UserAccountManager(BaseUserManager):
             email=email,
             **kwargs
         )
-
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -38,7 +37,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         max_length=255,
         unique=True
     )
-    image = models.CharField(max_length=255, blank=True, null=True, default="picture-example") # find a way to store a default profile picture
+    image = models.CharField(max_length=255, blank=True, null=True, default="https://t4.ftcdn.net/jpg/02/15/84/43/240_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg") # find a way to store a default profile picture
     password = models.CharField(max_length=255)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)

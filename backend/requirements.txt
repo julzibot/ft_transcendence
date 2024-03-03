@@ -2,6 +2,7 @@ django
 djangorestframework
 djangorestframework-simplejwt
 django-cors-headers
+django-requests
 python-dotenv
 PyJWT
 psycopg
