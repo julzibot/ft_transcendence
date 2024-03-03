@@ -5,7 +5,7 @@ import  { locales } from './i18n';
 
 export const config = {
   // Match only internationalized pathnames
-  matcher: ['/account', '/(en|fr|jp)/:path*']
+  matcher: ['/', '/(en|fr|jp)/:path*']
 };
 
 const publicPages = ['/en', '/fr', '/jp'];
@@ -31,7 +31,7 @@ const authMiddleware = withAuth(
       authorized: ({token}) => token != null
     },
     pages: {
-      signIn: '/en'
+      signIn: '/sign-in'
     }
   }
 );
