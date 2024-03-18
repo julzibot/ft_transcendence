@@ -34,7 +34,7 @@ function ProfilePage(props: Props){
     return (
       <>
         <h1>Profile</h1>
-        <h2>{session.user.name}</h2>
+        <h2>{session.user.nick_name}</h2>
         {isEditing ? (
           <form onSubmit={handleSubmit}>
             <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />

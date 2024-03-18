@@ -6,3 +6,4 @@ django-requests
 python-dotenv
 PyJWT
 psycopg
+Faker
