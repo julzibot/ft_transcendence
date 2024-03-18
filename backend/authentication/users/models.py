@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from faker import Faker
 
-
+fake = Faker()
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **kwargs):
         if not email:
@@ -31,7 +32,8 @@ class UserAccountManager(BaseUserManager):
 
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
-    name = models.CharField(max_length=60, unique=True)
+    login = models.CharField(max_length=60, unique=True)
+    nick_name = models.CharField(max_length=60, default=fake.name())
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
@@ -48,7 +50,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     objects = UserAccountManager()
 
-    USERNAME_FIELD = "name"
+    USERNAME_FIELD = "login"
     REQUIRED_FIELDS = ["email"]
 
     def __str__(self):

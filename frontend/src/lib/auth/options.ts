@@ -22,7 +22,8 @@ export const authOptions: NextAuthOptions = {
       profile(profile) {
         return {
           id: profile.id,
-          name: profile.login,
+          login: profile.login,
+          nick_name: profile.first_name,
           email: profile.email,
           image: profile.image.versions.medium
         }
@@ -31,13 +32,13 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Email",
       credentials: {
-        name: { label: "Name", type: "text", placeholder: "Will be displayed to other players" },
+        login: { label: "Login", type: "text", placeholder: "JohnDoe" },
         email: { label: "Email", type: "email", placeholder: "jdoe@example.com"},
         password: { label: "Password", type: "password" },
         password2: { label: "Confirm Password", type: "password"}
         },
       async authorize(credentials, req) {
-        const { name, email, password, password2} = credentials
+        const { login, email, password, password2} = credentials
         if(password != password2) {
           return null
         }
@@ -45,7 +46,7 @@ export const authOptions: NextAuthOptions = {
           method: "POST",
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            name,
+            login,
             email,
             password
           })

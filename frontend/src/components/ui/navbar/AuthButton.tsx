@@ -23,7 +23,7 @@ export default function AuthButton() {
               height={25}
               alt="session picture"
             />
-            {session.user.name}
+            {session.user.nick_name}
             </button>
           <ul className="dropdown-menu">
             <li><Link className="dropdown-item" href="/en/account">Account</Link></li>

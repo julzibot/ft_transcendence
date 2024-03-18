@@ -64,6 +64,7 @@ class SignupView(APIView):
 class SigninView(APIView):
   def post(self, request):
     data = request.data['user']
+    print(data)
 
     # fetch user in database
     try:
@@ -81,7 +82,8 @@ class SigninView(APIView):
     response = Response({
       'user': {
         'id': user.id,
-        'name': user.name,
+        'login': user.login,
+        'nick_name': user.nick_name,
         'email': user.email,
         'image': user.image,
       },
@@ -113,12 +115,11 @@ class UserView(APIView):
 
 class UpdateNameView(APIView):
   def put(self, request):
-    print(request.data)
     instance = UserAccount.objects.get(email=request.data['email'])
     newName = request.data.get('name', None)
     if newName is not None:
       try:
-        instance.name = newName
+        instance.nick_name = newName
         instance.save()
         return Response({'message': 'username updated successfully'})
       except:
