@@ -1,0 +1,9 @@
+{
+  "LocaleSwitcher": {
+    "label": "Change language",
+		"locale": "{locale, select, fr {Français} en {English} other {日本語}}"
+  },
+	"Index": {
+	  "title": "This it the title!"
+	}
+}

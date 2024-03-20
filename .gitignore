@@ -38,6 +38,6 @@ frontend/next-env.d.ts
 .env
 
 
-pgadmin_data/*
-database/*
 __pycache__/
+
+.dbdata
