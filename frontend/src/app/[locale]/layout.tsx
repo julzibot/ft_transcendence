@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import SessionProvider from "../../components/SessionProvider";
 import { getServerSession } from "next-auth";
 import Navbar from "@/components/ui/navbar/Navbar";
+import Sidebar from "@/components/ui/sidebar/Sidebar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,6 +31,7 @@ export default async function RootLayout({
           {/* <NextIntlClientProvider locale={locale} messages={messages}> */}
             <main>
               <Navbar />
+              <Sidebar />
               {children}
             </main>
           {/* </NextIntlClientProvider> */}
