@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react"
+import { PersonAdd  } from "react-bootstrap-icons";
+import { CustomTooltip } from "@/components/Utils/Tooltip";
 
 export default function SearchPlayerInput() {
   const [searchQuery, setSearchQuery] = useState([]);
@@ -34,7 +36,14 @@ export default function SearchPlayerInput() {
           <div className="position-absolute pt-5 text-dark">
             {
               searchQuery.map(nickName => (
-                <span>{nickName}</span>
+                <div className="border border-2">
+                  <span>{nickName}</span>
+                  <CustomTooltip text="add friend" position="bottom">
+                    <button className="btn">
+                      <PersonAdd color="green" width={15} />
+                    </button>
+                  </CustomTooltip>
+                </div>
               ))
             }
           </div>)
