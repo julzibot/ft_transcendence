@@ -64,7 +64,6 @@ class SignupView(APIView):
 class SigninView(APIView):
   def post(self, request):
     data = request.data['user']
-    print(data)
 
     # fetch user in database
     try:
@@ -129,7 +128,6 @@ class UpdateNameView(APIView):
     
 class SearchUserView(APIView):
   def post(self, request):
-    print(request.data)
     query = request.data
     if len(query) > 0:
       users = UserAccount.objects.filter(nick_name__istartswith=query).values_list('nick_name', flat=True)
@@ -137,5 +135,4 @@ class SearchUserView(APIView):
         return Response(status=status.HTTP_404_NOT_FOUND)
       return Response({"users": users})
     return Response(status=status.HTTP_404_NOT_FOUND)
-    
     
