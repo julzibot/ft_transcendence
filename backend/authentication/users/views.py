@@ -127,4 +127,15 @@ class UpdateNameView(APIView):
     else:
       return Response({'error': 'could not update username'})
     
+class SearchUserView(APIView):
+  def post(self, request):
+    print(request.data)
+    query = request.data
+    if len(query) > 0:
+      users = UserAccount.objects.filter(nick_name__istartswith=query).values_list('nick_name', flat=True)
+      if not users:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+      return Response({"users": users})
+    return Response(status=status.HTTP_404_NOT_FOUND)
+    
     
