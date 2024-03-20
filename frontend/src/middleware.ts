@@ -31,7 +31,7 @@ const authMiddleware = withAuth(
       authorized: ({token}) => token != null
     },
     pages: {
-      signIn: '/sign-in'
+      signIn: '/en/'
     }
   }
 );
