@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'requests',
     'rest_framework',
     'rest_framework_simplejwt',
-    'users'
+    'users',
+    'friends'
 ]
 
 MIDDLEWARE = [

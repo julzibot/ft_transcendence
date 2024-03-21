@@ -41,6 +41,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     )
     image = models.CharField(max_length=255, blank=True, null=True, default="https://t4.ftcdn.net/jpg/02/15/84/43/240_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg") # find a way to store a default profile picture
     password = models.CharField(max_length=255)
+    friends = models.ManyToManyField("UserAccount", blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)

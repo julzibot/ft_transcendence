@@ -128,11 +128,14 @@ class UpdateNameView(APIView):
     
 class SearchUserView(APIView):
   def post(self, request):
-    query = request.data
+    print(request.data)
+    query = request.data['query']
+    id = request.data['id']
     if len(query) > 0:
-      users = UserAccount.objects.filter(nick_name__istartswith=query).values_list('nick_name', flat=True)
+      users = UserAccount.objects.filter(nick_name__istartswith=query).exclude(id=id)
       if not users:
         return Response(status=status.HTTP_404_NOT_FOUND)
-      return Response({"users": users})
+      users_data = list(users.values('id', 'nick_name'))
+      return Response({"users": users_data})
     return Response(status=status.HTTP_404_NOT_FOUND)
     
