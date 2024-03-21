@@ -2,7 +2,6 @@
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import { Trash3Fill, Joystick, Dot } from 'react-bootstrap-icons';
 import { CustomTooltip } from '@/components/Utils/Tooltip';
-import "./style.css"
 import SearchPlayerInput from './SearchPlayerInput';
 
 export default function FriendList() {
