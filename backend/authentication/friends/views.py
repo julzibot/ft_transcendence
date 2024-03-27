@@ -13,7 +13,11 @@ class SendFriendRequestView(APIView):
       to_user = UserAccount.objects.get(id=data['to_user'])
     except UserAccount.DoesNotExist:
       return Response(status=status.HTTP_404_NOT_FOUND)
-    friend_request, created = FriendRequest.objects.get_or_create(from_user = from_user, to_user = to_user)
+    requestor = "UID1"
+    if from_user.id > to_user.id:
+      from_user, to_user = to_user, from_user
+      requestor = "UID2"
+    friend_request, created = FriendRequest.objects.get_or_create(user_id1 = from_user, user_id2 = to_user, requestor = requestor)
     print(friend_request)
     if created:
       return Response(data={"request_id": friend_request.id}, status=status.HTTP_201_CREATED)
