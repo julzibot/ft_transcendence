@@ -1,7 +1,15 @@
 from django.db import models
 from users.models import UserAccount
 
-# Create your models here.
+class FriendList(models.Model):
+    user_id1 = models.ForeignKey(UserAccount, related_name='user_id1_friendlists', on_delete=models.CASCADE)
+    user_id2 = models.ForeignKey(UserAccount, related_name='user_id2_friendlists', on_delete=models.CASCADE)
+
 class FriendRequest(models.Model):
-  from_user = models.ForeignKey(UserAccount, related_name='from_user', on_delete=models.CASCADE)
-  to_user = models.ForeignKey(UserAccount, related_name='to_user', on_delete=models.CASCADE)
+    class REQUESTOR_CHOICES(models.TextChoices):
+      UID1 = 'UID1',
+      UID2 = 'UID2'
+
+    user_id1 = models.ForeignKey(UserAccount, related_name='user_id1_friendrequests', on_delete=models.CASCADE)
+    user_id2 = models.ForeignKey(UserAccount, related_name='user_id2_friendrequests', on_delete=models.CASCADE)
+    requestor = models.CharField(max_length=4, choices=REQUESTOR_CHOICES)
