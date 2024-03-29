@@ -1,46 +1,43 @@
 version: '3.8'
 
 services:
-  # frontend:
-  #   container_name: frontend
-  #   build:
-  #     context: frontend
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   ports:
-  #     - 3000:3000
-  #   volumes: 
-  #     - frontend-dev:/app
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 3000:3000
+    volumes: 
+      - ./frontend/:/app
+      - /app/node_modules
+      - /app/.next
 
-  # db:
-  #   container_name: database
-  #   image: postgres:latest
-  #   restart: always
-  #   ports:
-  #     - 5432:5432
-  #   environment:
-  #     - POSTGRES_USER=root
-  #     - POSTGRES_PASSWORD=root
-  #     - POSTGRES_DB=postgres
+  db:
+    container_name: database
+    image: postgres:16.2
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=postgres
+    volumes:
+      - /home/anloisea/goinfre/ft_transcendence/dbdata:/var/lib/postgresql/data
+    ports:
+      - 33066:5432
 
 
-  # backend:
-  #   container_name: backend
-  #   build:
-  #     context: backend
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   command: python manage.py runserver 0.0.0.0:8000
-  #   ports:
-  #     - 8000:8000
-  #   depends_on:
-  #     - db
-  #   volumes:
-  #     - backend-dev:/backend
-# volumes:
-#   frontend-dev:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       device: frontend
-#       o: bind
+  backend:
+    container_name: backend
+    build:
+      context: ./backend/authentication
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    volumes:
+      - ./backend/authentication/:/app
+
