@@ -1,10 +1,7 @@
 from django.contrib import admin
-from .models import FriendRequest, FriendList
+from .models import Friendship
 
-@admin.register(FriendRequest)
+@admin.register(Friendship)
 class FriendRequestAdmin(admin.ModelAdmin):
-      list_display = ('id', 'user_id1', 'user_id2', "requestor")
+      list_display = ('id', 'user_id1', 'user_id2', "requestor", "status", "request_date", "updated_at")
 
-@admin.register(FriendList)
-class FriendListAdmin(admin.ModelAdmin):
-      list_display = ('user_id1', 'user_id2')
