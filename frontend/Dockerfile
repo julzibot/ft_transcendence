@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:21-alpine3.18
 
 WORKDIR /app
 
@@ -8,11 +8,13 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-COPY . .
+# RUN npm install --save-dev @types/next-auth
 
+COPY . /app
+
+RUN npm install
 # Build the Next.js app for production
-RUN npm run build
-
+# RUN npm run build
 
 EXPOSE 3000
 # Define the command to run your Next.js app
