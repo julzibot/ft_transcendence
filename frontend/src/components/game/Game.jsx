@@ -108,13 +108,13 @@ const animate = () =>
     }
 
     // ADJUST THE BALL SPEED, WITHOUT GOING OVER OR UNDER THE LIMITS
-    if (vars.ballSpeed < CONST.BALLMAXSPEED)
-      vars.ballSpeed *= CONST.SPEEDINCREMENT;
+    if (vars.ballSpeed < CONST.BALLSPEED_MAX)
+      vars.ballSpeed *= CONST.BALLSPEED_INCREMENT;
     vars.adjustedBallSpeed *= 1 + (Math.abs(vars.reboundDiff) - (CONST.PLAYERLEN / 6)) / 2;
     if (vars.adjustedBallSpeed < vars.ballSpeed)
       vars.adjustedBallSpeed = vars.ballSpeed;
-    else if (vars.adjustedBallSpeed > CONST.BALLMAXSPEED)
-      vars.adjustedBallSpeed = CONST.BALLMAXSPEED;
+    else if (vars.adjustedBallSpeed > CONST.BALLSPEED_MAX)
+      vars.adjustedBallSpeed = CONST.BALLSPEED_MAX;
     vars.isRebound = 0;
   }
   // CHECK TOP AND BOT BOUNDARY COLLISIONS
@@ -128,43 +128,51 @@ const animate = () =>
   csts.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
   csts.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
   csts.renderer.render(csts.scene, csts.camera);
+  // vars.frametick += 1;
   requestAnimationFrame(animate);
 }
 
 
 const update = () =>
 {
-    if (keys['ArrowUp'] && csts.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-        csts.player2.position.y += CONST.PLAYERSPEED;
-    }
-    if (keys['ArrowDown'] && csts.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-        csts.player2.position.y -= CONST.PLAYERSPEED;
-    }
-    if (keys['KeyW'] && csts.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-        csts.player1.position.y += CONST.PLAYERSPEED;
-    }
-    if (keys['KeyS'] && csts.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-        csts.player1.position.y -= CONST.PLAYERSPEED;
-    }
-    if (keys['KeyR'] && vars.stopGame == true) {
-        vars.ballVect.set(-1, 0, 0);
-        csts.scene.remove(vars.scoreMsg);
-        vars.p1Score = 0;
-        vars.p2Score = 0;
-        vars.scoreString = '0';
-        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function ( font )
-        {
-          let updatedScoreGeo = new TextGeometry(vars.scoreString, {font: font, size: 4, height: 0.5});
-          vars.p1textMesh.geometry.dispose();
-          vars.p2textMesh.geometry.dispose();
-          vars.p1textMesh.geometry = updatedScoreGeo;
-          vars.p2textMesh.geometry = updatedScoreGeo;
-        });
-        csts.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
-        csts.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
-        vars.stopGame = false;
-    }
-    requestAnimationFrame( update );
+  if (keys['ArrowUp'] || keys['ArrowDown'] || keys['KeyW'] || keys['KeyS'])
+    vars.playerspeed = Math.min(vars.playerspeed * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+  else
+    vars.playerspeed = CONST.BASE_PLAYERSPEED;
+  if (keys['ArrowUp'] && csts.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
+      csts.player2.position.y += vars.playerspeed;
+  }
+  if (keys['ArrowDown'] && csts.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
+      csts.player2.position.y -= vars.playerspeed;
+  }
+  if (keys['KeyW'] && csts.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
+      csts.player1.position.y += vars.playerspeed;
+  }
+  if (keys['KeyS'] && csts.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
+      csts.player1.position.y -= vars.playerspeed;
+  }
+  if (keys['KeyR']) {
+    csts.ball.position.set(0,0,0);
+    vars.ballSpeed = CONST.BASE_BALLSPEED;
+    vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
+    vars.ballVect.set(-1, 0, 0);
+    csts.scene.remove(vars.scoreMsg);
+    vars.p1Score = 0;
+    vars.p2Score = 0;
+    vars.scoreString = '0';
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function ( font )
+    {
+      let updatedScoreGeo = new TextGeometry(vars.scoreString, {font: font, size: 4, height: 0.5});
+      vars.p1textMesh.geometry.dispose();
+      vars.p2textMesh.geometry.dispose();
+      vars.p1textMesh.geometry = updatedScoreGeo;
+      vars.p2textMesh.geometry = updatedScoreGeo;
+    });
+    csts.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
+    csts.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
+    vars.stopGame = false;
+  }
+  requestAnimationFrame( update );
 }
 
 const ThreeScene = () =>
@@ -180,12 +188,14 @@ const ThreeScene = () =>
     vars.scoreString = "";
     vars.endString = "";
     vars.ballSpeed = CONST.BASE_BALLSPEED;
+    vars.playerspeed = CONST.PLAYERSPEED;
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
     vars.dotProduct = 0;
     vars.stopGame = false;
     vars.directions = [1,1];
     vars.reboundDiff = 0;
     vars.isRebound = 0;
+    vars.frametick = 0;
     
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
