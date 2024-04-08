@@ -217,7 +217,6 @@ const ThreeScene = () =>
     const topB = new THREE.Mesh( upDownBoundary, boundaryMaterial );
     const botB = new THREE.Mesh( upDownBoundary, boundaryMaterial );
     
-    
     scene.add( ball );
     scene.add( player1 );
     scene.add( player2 );
@@ -266,7 +265,7 @@ const ThreeScene = () =>
       const textGeo = new TextGeometry( '0',
       {
         font: font,
-        size: 4,
+        size: 4.7,
         height: 0.2
       });
       const textMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
@@ -276,8 +275,8 @@ const ThreeScene = () =>
       vars.p2textMesh.material = textMaterial;
       csts.scene.add(vars.p1textMesh);
       csts.scene.add(vars.p2textMesh);
-      vars.p1textMesh.position.set(CONST.GAMEWIDTH / 5 - CONST.GAMEWIDTH / 2, CONST.GAMEHEIGHT / 3.5, 0);
-      vars.p2textMesh.position.set(CONST.GAMEWIDTH / 5, CONST.GAMEHEIGHT / 3.5, 0);
+      vars.p1textMesh.position.set(CONST.GAMEWIDTH / 5 - CONST.GAMEWIDTH / 2, CONST.GAMEHEIGHT / 3.5, -1);
+      vars.p2textMesh.position.set(CONST.GAMEWIDTH / 5, CONST.GAMEHEIGHT / 3.5, -1);
     });
 
     document.addEventListener('keydown', function(event) {
