@@ -124,32 +124,42 @@ const animate = () =>
   scoringLogic(vars, csts);
   
   if (vars.stopGame == true)
-  vars.ballVect.set(0, 0);
+    vars.ballVect.set(0, 0);
   csts.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
   csts.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
+  update();
   csts.renderer.render(csts.scene, csts.camera);
   // vars.frametick += 1;
-  requestAnimationFrame(animate);
-}
 
+  setTimeout( function() {
+    requestAnimationFrame( animate );
+  }, 5 );
+
+
+  // requestAnimationFrame(animate);
+}
 
 const update = () =>
 {
-  if (keys['ArrowUp'] || keys['ArrowDown'] || keys['KeyW'] || keys['KeyS'])
-    vars.playerspeed = Math.min(vars.playerspeed * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+  if (keys['ArrowUp'] || keys['ArrowDown'])
+    vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
   else
-    vars.playerspeed = CONST.BASE_PLAYERSPEED;
+    vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
+  if (keys['KeyW'] || keys['KeyS'])
+    vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+  else
+    vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
   if (keys['ArrowUp'] && csts.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-      csts.player2.position.y += vars.playerspeed;
+      csts.player2.position.y += vars.playerspeed[1];
   }
   if (keys['ArrowDown'] && csts.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-      csts.player2.position.y -= vars.playerspeed;
+      csts.player2.position.y -= vars.playerspeed[1];
   }
   if (keys['KeyW'] && csts.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-      csts.player1.position.y += vars.playerspeed;
+      csts.player1.position.y += vars.playerspeed[0];
   }
   if (keys['KeyS'] && csts.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-      csts.player1.position.y -= vars.playerspeed;
+      csts.player1.position.y -= vars.playerspeed[0];
   }
   if (keys['KeyR']) {
     csts.ball.position.set(0,0,0);
@@ -172,7 +182,7 @@ const update = () =>
     csts.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
     vars.stopGame = false;
   }
-  requestAnimationFrame( update );
+  // requestAnimationFrame(update);
 }
 
 const ThreeScene = () =>
@@ -188,11 +198,12 @@ const ThreeScene = () =>
     vars.scoreString = "";
     vars.endString = "";
     vars.ballSpeed = CONST.BASE_BALLSPEED;
-    vars.playerspeed = CONST.PLAYERSPEED;
+    vars.playerspeed = [CONST.PLAYERSPEED, CONST.PLAYERSPEED];
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
     vars.dotProduct = 0;
     vars.stopGame = false;
     vars.directions = [1,1];
+    vars.downkeys = [false, false];
     vars.reboundDiff = 0;
     vars.isRebound = 0;
     vars.frametick = 0;
@@ -287,8 +298,8 @@ const ThreeScene = () =>
         keys[event.code] = false;
     });
 
-    update();
     animate();
+    // update();
   }, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
