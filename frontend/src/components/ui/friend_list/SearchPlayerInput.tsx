@@ -61,7 +61,7 @@ export default function SearchPlayerInput() {
           <div className="pt-5 text-dark">
             {
               searchQuery.map((user, index) => (
-                <div key={index} className="border border-2">
+                <div key={index} className="border border-2 text-light">
                   <span>{user.nick_name}</span>
                   <CustomTooltip text="add friend" position="bottom">
                     <button className="btn" onClick={() => handleFriendRequest(session?.user.id, user.id)}>
