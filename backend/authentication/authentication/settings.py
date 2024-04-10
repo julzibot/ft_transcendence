@@ -17,7 +17,9 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 load_dotenv()
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -27,7 +29,7 @@ SECRET_KEY = 'django-insecure-xn0_$9h7-=t*^z91hmy5pw^qpfd7_ltlzgoer4k!wg2ho@9rz1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["0.0.0.0:8000", "localhost:8000", "backend:8000", "backend", "localhost"]
 
 
 # Application definition
@@ -43,7 +45,8 @@ INSTALLED_APPS = [
     'requests',
     'rest_framework',
     'rest_framework_simplejwt',
-    'users'
+    'users',
+    'friends'
 ]
 
 MIDDLEWARE = [
@@ -80,10 +83,10 @@ WSGI_APPLICATION = 'authentication.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'users',
+        'NAME': 'postgres',
         'USER': 'root',
         'PASSWORD': 'root',
-        'HOST': 'db',
+        'HOST': 'database',
         'PORT': '5432',
     }
 }
