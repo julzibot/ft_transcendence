@@ -19,6 +19,9 @@ export default function Navbar() {
         <span className="ms-2 text-light fw-bold">Transcendence</span>
         </Link>
         <LocaleSwitcher />
+        <Link href="/en/game">
+          <button className="btn btn-primary">Play</button>
+        </Link>
         <AuthButton/>
       </nav>
     </>)
