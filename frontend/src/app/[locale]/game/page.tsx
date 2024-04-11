@@ -1,7 +1,7 @@
 'use client';
 import ThreeScene from "../../../components/game/Game"
 
-export default function Home() {
+export default function Play() {
   return (
     <>
       <ThreeScene />

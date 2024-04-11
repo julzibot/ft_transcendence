@@ -31,7 +31,7 @@ const authMiddleware = withAuth(
       authorized: ({token}) => token != null
     },
     pages: {
-      signIn: '/en'
+      signIn: '/en/'
     }
   }
 );
@@ -51,3 +51,4 @@ export default function middleware(req: NextRequest) {
     return (authMiddleware as any)(req);
   }
 }
+

@@ -40,6 +40,6 @@ frontend/.vite/
 .env
 frontend/src/app/\[locale\]/components/node_modules/
 
-pgadmin_data/*
-database/*
 __pycache__/
+
+.dbdata
