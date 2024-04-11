@@ -1,60 +1,45 @@
 version: '3.8'
 
 services:
-  # frontend:
-  #   container_name: frontend
-  #   build:
-  #     context: frontend
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   ports:
-  #     - 3000:3000
-  #   volumes: 
-  #     - frontend-dev:/app
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on: 
+      - backend
+    ports:
+      - 3000:3000
+    volumes: 
+      - ./frontend/:/app
+      - /app/node_modules
+      - /app/.next
 
   db:
     container_name: database
-    image: postgres:latest
+    image: postgres:16.2
     restart: always
-    ports:
-      - 5432:5432
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=postgres
+    volumes:
+      - /home/jibot/goinfre/ft_transcendence/dbdata:/var/lib/postgresql/data
+    ports:
+      - 33066:5432
 
-  pgadmin:
-    container_name: pgadmin4
-    image: dpage/pgadmin4
+
+  backend:
+    container_name: backend
+    build:
+      context: ./backend/authentication
+      dockerfile: Dockerfile
     restart: always
+    ports:
+      - 8000:8000
     depends_on:
       - db
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=root
-      - PGADMIN_SERVER_JSON_FILE=/pgadmin4/servers.json
-    ports:
-      - 5050:80
     volumes:
-      - ./servers.json:/pgadmin4/servers.json 
+      - ./backend/authentication/:/app
 
-  # backend:
-  #   container_name: backend
-  #   build:
-  #     context: backend
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   command: python manage.py runserver 0.0.0.0:8000
-  #   ports:
-  #     - 8000:8000
-  #   depends_on:
-  #     - db
-  #   volumes:
-  #     - backend-dev:/backend
-# volumes:
-#   frontend-dev:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       device: frontend
-#       o: bind
