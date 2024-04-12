@@ -1,17 +1,18 @@
 @media (max-width: 991px) {
-	.custom-item {
-		margin: 6px;
-		padding: 3px;
-		justify-content: center;
-	}
-
+	
 	.navbar .navbar-nav {
 		display: inline-block;
 		float: none;
 		vertical-align: top;
 	}
-
+	
 	.navbar .navbar-collapse {
 		text-align: center;
+	}
+
+	.custom-item {
+		margin: 6px;
+		padding: 3px;
+		justify-content: center;
 	}
 }
