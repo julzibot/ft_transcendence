@@ -5,5 +5,5 @@ django-cors-headers
 django-requests
 python-dotenv
 PyJWT
-psycopg
+psycopg2-binary
 Faker
