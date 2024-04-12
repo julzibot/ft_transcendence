@@ -27,7 +27,7 @@ export default function AuthButton() {
             </button>
           <ul className="dropdown-menu">
 						<li><Link className="dropdown-item" href="/en/dashboard">Dashboard</Link></li>
-            <li><Link className="dropdown-item" href="/en/account">Account</Link></li>
+            <li><Link className="dropdown-item" href={`/en/account/profile/${session?.user.id}`}>Profile</Link></li>
 						<li><hr className="dropdown-divider" /></li>
             <li><Link className="dropdown-item text-primary" href="/api/auth/signout">Sign Out</Link></li>
           </ul>
