@@ -25,15 +25,17 @@ export default function LocaleSwitcherSelect({
   }
 
   return (
-    <label>
-      <p className='text-light'>{label}</p>
-      <select
-        defaultValue={defaultValue}
-        disabled={isPending}
-        onChange={onSelectChange}
-      >
-        {children}
-      </select>
+    <label className='m-2 p-1'>
+      <p className='text-light m-1'>{label}</p>
+			<div className="d-flex justify-content-center">
+				<select
+					defaultValue={defaultValue}
+					disabled={isPending}
+					onChange={onSelectChange}
+				>
+					{children}
+				</select>
+			</div>
     </label>
   );
 }

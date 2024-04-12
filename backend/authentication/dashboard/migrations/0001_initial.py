@@ -12,13 +12,15 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Friendship',
+            name='DashboardData',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('requestor', models.CharField(choices=[('UID1', 'Uid1'), ('UID2', 'Uid2')], max_length=4)),
-                ('status', models.CharField(choices=[('FRIENDS', 'Friends'), ('REQUEST', 'Request')], max_length=7)),
-                ('request_date', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateField(auto_now=True)),
+                ('wins', models.IntegerField(default=0)),
+                ('losses', models.IntegerField(default=0)),
             ],
+            options={
+                'verbose_name': 'Dashboard Data',
+                'verbose_name_plural': 'Dashboard Data',
+            },
         ),
     ]
