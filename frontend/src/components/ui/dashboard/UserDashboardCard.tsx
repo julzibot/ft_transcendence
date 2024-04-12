@@ -17,7 +17,6 @@ export default function UserDashboardCard() {
 				});
 				if (response.ok) {
 					const data = await response.json();
-					// console.log("user id is: " + user_id)
 					setDashboardData(data);
 				}
 			}
@@ -27,7 +26,6 @@ export default function UserDashboardCard() {
 	}, [user_id]);
 
 	const dataObj = JSON.parse(JSON.stringify(DashboardData));
-	// console.log(dataObj);
 
 	let winPerc : number = (dataObj.wins / (dataObj.wins + dataObj.losses)) * 100;
 	let lossPerc : number = (dataObj.losses / (dataObj.wins + dataObj.losses)) * 100;

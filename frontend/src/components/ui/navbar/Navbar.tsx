@@ -31,12 +31,12 @@ export default function Navbar() {
 							<li className="nav-item custom-item">
 								<LocaleSwitcher />
 							</li>
-							<li className="nav-item custom-item d-flex align-items-center">
+							<li className="nav-item custom-item d-flex align-items-center px-2">
 								<button className="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offCanvasFriendList" aria-controls="offCanvasFriendList">Play with Friends</button>
 							</li>
-							<li>
+							<li className="nav-item custom-item d-flex align-items-center px-2">
 								<Link href="/en/game">
-        				  <button className="btn btn-primary">Play</button>
+        				  <button className="btn btn-info">Play</button>
       				  </Link>
 							</li>
 						</ul>
