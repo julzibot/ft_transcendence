@@ -2,8 +2,10 @@ import { NextAuthOptions } from "next-auth";
 import FortyTwoProvider from "next-auth/providers/42-school";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+const backend_url = process.env.BACKEND_URL
+
 async function refreshToken(token: JWT): Promise<JWT> {
-  const response = await fetch ('http://localhost:8000/api/refresh/', {
+  const response = await fetch (`${backend_url}/api/refresh/`, {
     method: "POST",
     headers: {authorization: `Refresh ${token.backendTokens.refresh}`},
   });
@@ -42,7 +44,7 @@ export const authOptions: NextAuthOptions = {
         if(password != password2) {
           return null
         }
-        const response = await fetch('http://localhost:8000/api/signup/', {
+        const response = await fetch(`${backend_url}/api/signup/`, {
           method: "POST",
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -64,7 +66,8 @@ export const authOptions: NextAuthOptions = {
     async jwt({token, trigger, session, user}) {
       // if user is loging in, call backend api that returns user info and backend token
       if(user) {
-        const response = await fetch('http://localhost:8000/api/signin/', {
+        console.log(user)
+        const response = await fetch(`${backend_url}/api/signin/`, {
           method: "POST",
           headers: {"Content-type": "application/json"},
           body: JSON.stringify({
@@ -89,7 +92,7 @@ export const authOptions: NextAuthOptions = {
 
     async session({session, token}) {
       //call user api to get user informations
-      const response = await fetch('http://localhost:8000/api/user/', {
+      const response = await fetch(`${backend_url}/api/user/`, { 
         method: "GET",
         headers: {'Authorization': `Bearer ${token.backendTokens.access}`},
       })

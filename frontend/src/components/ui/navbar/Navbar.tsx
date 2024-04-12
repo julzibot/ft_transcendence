@@ -34,6 +34,11 @@ export default function Navbar() {
 							<li className="nav-item custom-item d-flex align-items-center">
 								<button className="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offCanvasFriendList" aria-controls="offCanvasFriendList">Play with Friends</button>
 							</li>
+							<li>
+								<Link href="/en/game">
+        				  <button className="btn btn-primary">Play</button>
+      				  </Link>
+							</li>
 						</ul>
 						<div className="custom-item">
      		  		<AuthButton/>
