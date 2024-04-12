@@ -18,6 +18,7 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
+print(os.getenv('TOKEN_SIGNING_KEY'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -43,7 +44,8 @@ INSTALLED_APPS = [
     'requests',
     'rest_framework',
     'rest_framework_simplejwt',
-    'users'
+    'users',
+		'dashboard',
 ]
 
 MIDDLEWARE = [
@@ -83,7 +85,7 @@ DATABASES = {
         'NAME': 'users',
         'USER': 'root',
         'PASSWORD': 'root',
-        'HOST': 'db',
+        'HOST': 'authentication-db-1',
         'PORT': '5432',
     }
 }

@@ -31,7 +31,6 @@ export default async function RootLayout({
           {/* <NextIntlClientProvider locale={locale} messages={messages}> */}
             <main>
               <Navbar />
-              <FriendList />
               {children}
             </main>
           {/* </NextIntlClientProvider> */}
