@@ -14,7 +14,7 @@ frontend/.next/
 frontend/out/
 
 # production
-frontend/build
+frontend/build/
 
 # misc
 frontend/.DS_Store
@@ -35,9 +35,12 @@ frontend/.vercel
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts
 
+frontend/.vite/
+.vite/
 .env
-
+frontend/src/app/\[locale\]/components/node_modules/
 
 __pycache__/
+migrations/
 
 .dbdata
