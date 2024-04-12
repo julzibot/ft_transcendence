@@ -46,10 +46,9 @@ export default function SearchPlayerInput() {
   }
 
   return(
-    <form className="d-flex" role="search">
-      <div className="">
-        <input
-          value={inputValue}
+    <form className="d-flex position-relative mw-100 pt-3" role="search">
+      <div className="position-relative">
+        <input 
           onChange={(e) => handleSearch(e)} 
           type="text" 
           className="form-control" 
