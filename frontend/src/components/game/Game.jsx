@@ -2,18 +2,18 @@ import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
-import * as CONST from '../../utils/Constants';
+import * as CONST from '../../utils/constants';
+import { vars, objs} from '../../utils/algo';
 
-let vars = {};
 let keys = {};
 const csts = {};
 
 const scoringLogic = () =>
 {
   // RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
-  if (csts.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || csts.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4))
+  if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4))
   {
-    if (csts.ball.position.x > CONST.GAMEWIDTH / 2 + 4)
+    if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4)
     {
       vars.ballVect.set(-1, 0, 0);
       vars.p1Score += 1;
@@ -60,7 +60,7 @@ const scoringLogic = () =>
       });
       vars.stopGame = true;
     }
-    csts.ball.position.set(0, 0, 0);
+    objs.ball.position.set(0, 0, 0);
     vars.ballSpeed = CONST.BASE_BALLSPEED;
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
   }
@@ -68,9 +68,9 @@ const scoringLogic = () =>
 
 const animate = () =>
 {
-  let p1HB = new THREE.Box3().setFromObject(csts.player1);
-  let p2HB = new THREE.Box3().setFromObject(csts.player2);
-  let sph = new THREE.Box3().setFromObject(csts.ball);
+  let p1HB = new THREE.Box3().setFromObject(objs.player1);
+  let p2HB = new THREE.Box3().setFromObject(objs.player2);
+  let sph = new THREE.Box3().setFromObject(objs.ball);
 
   // CHECK PLAYER COLLISIONS
   if (p1HB.intersectsBox(sph))
@@ -81,12 +81,12 @@ const animate = () =>
   {
     // COMPUTE THE NORMALIZED REBOUND VECTOR
     if (vars.isRebound == 1)
-      vars.reboundDiff = csts.player1.position.y - csts.ball.position.y;
+      vars.reboundDiff = objs.player1.position.y - objs.ball.position.y;
     else
-      vars.reboundDiff = csts.player2.position.y - csts.ball.position.y;
+      vars.reboundDiff = objs.player2.position.y - objs.ball.position.y;
     if ( Math.abs(vars.reboundDiff) > CONST.PLAYERLEN / 2 + CONST.BALLRADIUS / 2 - 0.3 &&
-      (Math.abs(csts.ball.position.x - csts.player1.position.x) < 0.52 || Math.abs(csts.ball.position.x - csts.player2.position.x) < 0.52))
-      vars.ballVect.set(csts.ball.position.x / (CONST.GAMEWIDTH / 2), -vars.reboundDiff);
+      (Math.abs(objs.ball.position.x - objs.player1.position.x) < 0.52 || Math.abs(objs.ball.position.x - objs.player2.position.x) < 0.52))
+      vars.ballVect.set(objs.ball.position.x / (CONST.GAMEWIDTH / 2), -vars.reboundDiff);
     else
     {
       vars.ballVect.x *= -1;
@@ -121,12 +121,12 @@ const animate = () =>
   if (csts.topHB.intersectsBox(sph) || csts.botHB.intersectsBox(sph))
     vars.ballVect.y *= -1;
   
-  scoringLogic(vars, csts);
+  scoringLogic(vars, csts, objs);
   
   if (vars.stopGame == true)
     vars.ballVect.set(0, 0);
-  csts.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
-  csts.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
+  objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
+  objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
   update();
   csts.renderer.render(csts.scene, csts.camera);
   // vars.frametick += 1;
@@ -134,9 +134,6 @@ const animate = () =>
   setTimeout( function() {
     requestAnimationFrame( animate );
   }, 5 );
-
-
-  // requestAnimationFrame(animate);
 }
 
 const update = () =>
@@ -149,20 +146,20 @@ const update = () =>
     vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
   else
     vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
-  if (keys['ArrowUp'] && csts.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-      csts.player2.position.y += vars.playerspeed[1];
+  if (keys['ArrowUp'] && objs.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
+      objs.player2.position.y += vars.playerspeed[1];
   }
-  if (keys['ArrowDown'] && csts.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-      csts.player2.position.y -= vars.playerspeed[1];
+  if (keys['ArrowDown'] && objs.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
+      objs.player2.position.y -= vars.playerspeed[1];
   }
-  if (keys['KeyW'] && csts.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-      csts.player1.position.y += vars.playerspeed[0];
+  if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
+      objs.player1.position.y += vars.playerspeed[0];
   }
-  if (keys['KeyS'] && csts.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-      csts.player1.position.y -= vars.playerspeed[0];
+  if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
+      objs.player1.position.y -= vars.playerspeed[0];
   }
   if (keys['KeyR']) {
-    csts.ball.position.set(0,0,0);
+    objs.ball.position.set(0,0,0);
     vars.ballSpeed = CONST.BASE_BALLSPEED;
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
     vars.ballVect.set(-1, 0, 0);
@@ -178,100 +175,55 @@ const update = () =>
       vars.p1textMesh.geometry = updatedScoreGeo;
       vars.p2textMesh.geometry = updatedScoreGeo;
     });
-    csts.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
-    csts.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
+    objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
+    objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
     vars.stopGame = false;
   }
-  // requestAnimationFrame(update);
 }
 
 const ThreeScene = () =>
 {
   const containerRef = useRef(null);
   useEffect(() => {
-    vars.scoreMsg = new THREE.Mesh();
-    vars.ballVect = new THREE.Vector2(-1, 0);
-    vars.p1textMesh = new THREE.Mesh();
-    vars.p2textMesh = new THREE.Mesh();
-    vars.p1Score = 0;
-    vars.p2Score = 0;
-    vars.scoreString = "";
-    vars.endString = "";
-    vars.ballSpeed = CONST.BASE_BALLSPEED;
-    vars.playerspeed = [CONST.PLAYERSPEED, CONST.PLAYERSPEED];
-    vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
-    vars.dotProduct = 0;
-    vars.stopGame = false;
-    vars.directions = [1,1];
-    vars.downkeys = [false, false];
-    vars.reboundDiff = 0;
-    vars.isRebound = 0;
-    vars.frametick = 0;
     
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    const renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( renderer.domElement );
     
-    const sphereGeo = new THREE.SphereGeometry(CONST.BALLRADIUS, 40, 40);
-    const playerGeo = new THREE.BoxGeometry(0.5, CONST.PLAYERLEN, 0.6);
-    const upDownBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, 0.5, 0.6);
+    csts.scene = new THREE.Scene();
+    csts.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    csts.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
+    csts.renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( csts.renderer.domElement );
     
-    const sphereMaterial = new THREE.MeshPhongMaterial( { color: 0xff0000 } );
-    const boundaryMaterial = new THREE.MeshStandardMaterial( { color: 0x0000ff } );
-    const playerMaterial = new THREE.MeshStandardMaterial( { color: 0xff00ff } );
+    csts.scene.add( objs.ball );
+    csts.scene.add( objs.player1 );
+    csts.scene.add( objs.player2 );
+    csts.scene.add( objs.topB );
+    csts.scene.add( objs.botB );
     
-    const ball = new THREE.Mesh( sphereGeo, sphereMaterial );
-    const player1 = new THREE.Mesh( playerGeo, playerMaterial );
-    const player2 = new THREE.Mesh( playerGeo, playerMaterial );
-    const topB = new THREE.Mesh( upDownBoundary, boundaryMaterial );
-    const botB = new THREE.Mesh( upDownBoundary, boundaryMaterial );
-    
-    scene.add( ball );
-    scene.add( player1 );
-    scene.add( player2 );
-    scene.add( topB );
-    scene.add( botB );
-    
-    player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
-    player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
-    topB.position.set(0, CONST.GAMEHEIGHT / 2, 0);
-    botB.position.set(0, -CONST.GAMEHEIGHT / 2, 0);
-    const topHB = new THREE.Box3().setFromObject(topB);
-    const botHB = new THREE.Box3().setFromObject(botB);
-    const gameVect = new THREE.Vector2(player2.position.x - player1.position.x, player2.position.y - player1.position.y).normalize();
-    const loader = new FontLoader();
-    const ambLight = new THREE.AmbientLight(0x444444);
-    const dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
-    scene.add( ambLight );
-    scene.add( dirLight );
-    dirLight.position.set(5, 7, 15);
-    camera.position.set(0, 0, 20);
-    camera.lookAt(0, 0, 0);
+    objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
+    objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
+    objs.topB.position.set(0, CONST.GAMEHEIGHT / 2, 0);
+    objs.botB.position.set(0, -CONST.GAMEHEIGHT / 2, 0);
+
+    csts.topHB = new THREE.Box3().setFromObject(objs.topB);
+    csts.botHB = new THREE.Box3().setFromObject(objs.botB);
+    csts.gameVect = new THREE.Vector2(objs.player2.position.x - objs.player1.position.x, objs.player2.position.y - objs.player1.position.y).normalize();
+    csts.loader = new FontLoader();
+    csts.ambLight = new THREE.AmbientLight(0x444444);
+    csts.dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
+    csts.scene.add( csts.ambLight );
+    csts.scene.add( csts.dirLight );
+    csts.dirLight.position.set(5, 7, 15);
+    csts.camera.position.set(0, 0, 20);
+    csts.camera.lookAt(0, 0, 0);
     // camera.rotation.x = Math.PI / 2;
     // camera.rotation.z = -Math.PI / 2;
 
-    csts.scene = scene;
-    csts.camera = camera;
-    csts.renderer = renderer;
-    csts.ball = ball;
-    csts.player1 = player1;
-    csts.player2 = player2;
-    csts.topBoundary = topB;
-    csts.bottomBoundary = botB;
-    csts.topHB = topHB;
-    csts.botHB = botHB;
-    csts.gameVect = gameVect;
-    csts.loader = loader;
     csts.debug = "Hello !"
-
     console.log(csts.debug);
 
     // SET UP SCORE TEXTS
     // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
-    
-    loader.load( CONST.FONTPATH + CONST.FONTNAME, function ( font )
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function ( font )
     {
       const textGeo = new TextGeometry( '0',
       {
@@ -299,7 +251,6 @@ const ThreeScene = () =>
     });
 
     animate();
-    // update();
   }, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
