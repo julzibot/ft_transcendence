@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import * as CONST from './constants';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 
-export const vars = {};
 export const objs = {};
+export const csts = {};
+export const vars = {};
 
 objs.sphereGeo = new THREE.SphereGeometry(CONST.BALLRADIUS, 40, 40);
 objs.playerGeo = new THREE.BoxGeometry(0.5, CONST.PLAYERLEN, 0.6);
@@ -17,6 +19,21 @@ objs.player1 = new THREE.Mesh( objs.playerGeo, objs.playerMaterial );
 objs.player2 = new THREE.Mesh( objs.playerGeo, objs.playerMaterial );
 objs.topB = new THREE.Mesh( objs.upDownBoundary, objs.boundaryMaterial );
 objs.botB = new THREE.Mesh( objs.upDownBoundary, objs.boundaryMaterial );
+
+objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
+objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
+objs.topB.position.set(0, CONST.GAMEHEIGHT / 2, 0);
+objs.botB.position.set(0, -CONST.GAMEHEIGHT / 2, 0);
+
+
+csts.topHB = new THREE.Box3().setFromObject(objs.topB);
+csts.botHB = new THREE.Box3().setFromObject(objs.botB);
+csts.gameVect = new THREE.Vector2(objs.player2.position.x - objs.player1.position.x, objs.player2.position.y - objs.player1.position.y).normalize();
+csts.loader = new FontLoader();
+csts.ambLight = new THREE.AmbientLight(0x444444);
+csts.dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
+csts.dirLight.position.set(5, 7, 15);
+
 
 vars.scoreMsg = new THREE.Mesh();
 vars.p1textMesh = new THREE.Mesh();
