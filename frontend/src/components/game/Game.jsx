@@ -1,12 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import * as CONST from '../../utils/constants';
-import { vars, objs} from '../../utils/algo';
+import { vars, objs, csts} from '../../utils/algo';
 
 let keys = {};
-const csts = {};
+const tools = {};
 
 const scoringLogic = () =>
 {
@@ -55,7 +54,7 @@ const scoringLogic = () =>
         const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
         vars.scoreMsg.geometry = textGeo;
         vars.scoreMsg.material = textMaterial;
-        csts.scene.add(vars.scoreMsg);
+        tools.scene.add(vars.scoreMsg);
         vars.scoreMsg.position.set(-11.5, -7 , 0);
       });
       vars.stopGame = true;
@@ -128,7 +127,7 @@ const animate = () =>
   objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
   objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
   update();
-  csts.renderer.render(csts.scene, csts.camera);
+  tools.renderer.render(tools.scene, tools.camera);
   // vars.frametick += 1;
 
   setTimeout( function() {
@@ -163,7 +162,7 @@ const update = () =>
     vars.ballSpeed = CONST.BASE_BALLSPEED;
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
     vars.ballVect.set(-1, 0, 0);
-    csts.scene.remove(vars.scoreMsg);
+    tools.scene.remove(vars.scoreMsg);
     vars.p1Score = 0;
     vars.p2Score = 0;
     vars.scoreString = '0';
@@ -186,40 +185,24 @@ const ThreeScene = () =>
   const containerRef = useRef(null);
   useEffect(() => {
     
+    tools.scene = new THREE.Scene();
+    tools.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
+    tools.renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( tools.renderer.domElement );
     
-    csts.scene = new THREE.Scene();
-    csts.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    csts.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
-    csts.renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( csts.renderer.domElement );
-    
-    csts.scene.add( objs.ball );
-    csts.scene.add( objs.player1 );
-    csts.scene.add( objs.player2 );
-    csts.scene.add( objs.topB );
-    csts.scene.add( objs.botB );
-    
-    objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
-    objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
-    objs.topB.position.set(0, CONST.GAMEHEIGHT / 2, 0);
-    objs.botB.position.set(0, -CONST.GAMEHEIGHT / 2, 0);
+    tools.scene.add( objs.ball );
+    tools.scene.add( objs.player1 );
+    tools.scene.add( objs.player2 );
+    tools.scene.add( objs.topB );
+    tools.scene.add( objs.botB );
+    tools.scene.add( csts.ambLight );
+    tools.scene.add( csts.dirLight );
+    tools.camera.position.set(0, 0, 20);
+    tools.camera.lookAt(0, 0, 0);
 
-    csts.topHB = new THREE.Box3().setFromObject(objs.topB);
-    csts.botHB = new THREE.Box3().setFromObject(objs.botB);
-    csts.gameVect = new THREE.Vector2(objs.player2.position.x - objs.player1.position.x, objs.player2.position.y - objs.player1.position.y).normalize();
-    csts.loader = new FontLoader();
-    csts.ambLight = new THREE.AmbientLight(0x444444);
-    csts.dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
-    csts.scene.add( csts.ambLight );
-    csts.scene.add( csts.dirLight );
-    csts.dirLight.position.set(5, 7, 15);
-    csts.camera.position.set(0, 0, 20);
-    csts.camera.lookAt(0, 0, 0);
     // camera.rotation.x = Math.PI / 2;
     // camera.rotation.z = -Math.PI / 2;
-
-    csts.debug = "Hello !"
-    console.log(csts.debug);
 
     // SET UP SCORE TEXTS
     // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
@@ -236,8 +219,8 @@ const ThreeScene = () =>
       vars.p1textMesh.material = textMaterial;
       vars.p2textMesh.geometry = textGeo;
       vars.p2textMesh.material = textMaterial;
-      csts.scene.add(vars.p1textMesh);
-      csts.scene.add(vars.p2textMesh);
+      tools.scene.add(vars.p1textMesh);
+      tools.scene.add(vars.p2textMesh);
       vars.p1textMesh.position.set(CONST.GAMEWIDTH / 5 - CONST.GAMEWIDTH / 2, CONST.GAMEHEIGHT / 3.5, -1);
       vars.p2textMesh.position.set(CONST.GAMEWIDTH / 5, CONST.GAMEHEIGHT / 3.5, -1);
     });
