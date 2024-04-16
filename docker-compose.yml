@@ -25,7 +25,7 @@ services:
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=postgres
     volumes:
-      - /Users/julzibot/goinfre/ft_transcendence/dbdata:/var/lib/postgresql/data
+      - /home/jibot/goinfre/ft_transcendence/dbdata:/var/lib/postgresql/data
     ports:
       - 33066:5432
 

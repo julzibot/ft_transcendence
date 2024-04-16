@@ -31,8 +31,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["0.0.0.0:8000", "localhost:8000", "backend:8000", "backend", "localhost"]
 
-print("hello")
-
 # Application definition
 
 INSTALLED_APPS = [

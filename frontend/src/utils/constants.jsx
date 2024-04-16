@@ -14,7 +14,7 @@ export const BALLSPEED_INCREMENT = 1.07;
 export const BALLSPEED_MAX = 0.38;
 
 export const MINREBOUNDANGLE = 40;
-export const WINSCORE = 3;
+export const WINSCORE = 1;
 
 export const FONTPATH = "fonts/";
 export const FONTNAME = "Norwester_Regular.json";

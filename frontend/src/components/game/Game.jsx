@@ -6,6 +6,8 @@ import { vars, objs, csts} from '../../utils/algo';
 
 let keys = {};
 const tools = {};
+let game_id = 0;
+let put_response = false;
 
 const scoringLogic = () =>
 {
@@ -58,6 +60,9 @@ const scoringLogic = () =>
         vars.scoreMsg.position.set(-11.5, -7 , 0);
       });
       vars.stopGame = true;
+      put_response = PutScores();
+      if (put_response == false)
+        console.log("Ouch ! Scores not updated !")
     }
     objs.ball.position.set(0, 0, 0);
     vars.ballSpeed = CONST.BASE_BALLSPEED;
@@ -71,6 +76,7 @@ const animate = () =>
   let p2HB = new THREE.Box3().setFromObject(objs.player2);
   let sph = new THREE.Box3().setFromObject(objs.ball);
 
+  // console.log(game_id)
   // CHECK PLAYER COLLISIONS
   if (p1HB.intersectsBox(sph))
     vars.isRebound = 1;
@@ -180,11 +186,59 @@ const update = () =>
   }
 }
 
-const ThreeScene = () =>
+async function CreateGame()
+{
+  // const url = 'http://localhost:8000/api/game';
+  const response = await fetch('http://localhost:8000/api/game/test/',
+    {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        "player1_id": 1 
+      }
+      )
+    })
+    if(response.status === 201) {
+      const res = await response.json()
+      const ret = parseInt(res.id)
+      return ret
+    }
+    else
+      return -1
+}
+
+async function PutScores()
+{
+  const response = await fetch('http://localhost:8000/api/game/update/',
+    {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        'id': game_id,
+        'score1': vars.p1Score,
+        'score2': vars.p2Score 
+      })
+    })
+    if(response.ok)
+      return true
+    else
+      return false
+}
+
+
+export default function ThreeScene()
 {
   const containerRef = useRef(null);
+  game_id = CreateGame()
+  if (game_id === -1)
+  {
+    console.log("OOooops ! Problem encountered while creating game")
+    return <canvas className='fixed-top' ref={containerRef} />
+  }
+  console.log("first log: " + game_id);
   useEffect(() => {
     
+
     tools.scene = new THREE.Scene();
     tools.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
@@ -237,5 +291,3 @@ const ThreeScene = () =>
   }, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
-
-export default ThreeScene;

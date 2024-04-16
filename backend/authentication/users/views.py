@@ -128,7 +128,6 @@ class UpdateNameView(APIView):
     
 class SearchUserView(APIView):
   def post(self, request):
-    print(request.data)
     query = request.data['query']
     id = request.data['id']
     if len(query) > 0:
