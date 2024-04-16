@@ -33,6 +33,7 @@ csts.loader = new FontLoader();
 csts.ambLight = new THREE.AmbientLight(0x444444);
 csts.dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
 csts.dirLight.position.set(5, 7, 15);
+csts.game_id = 0;
 
 
 vars.scoreMsg = new THREE.Mesh();
