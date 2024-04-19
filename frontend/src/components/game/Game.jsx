@@ -195,13 +195,11 @@ async function CreateGame()
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         "player1_id": 1 
-      }
-      )
+      })
     })
     if(response.status === 201) {
       const res = await response.json()
-      const ret = parseInt(res.id)
-      return ret
+      return parseInt(res.id)
     }
     else
       return -1
@@ -214,9 +212,9 @@ async function PutScores()
       method: 'PUT',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        'id': game_id,
-        'score1': vars.p1Score,
-        'score2': vars.p2Score 
+        "id": game_id,
+        "score1": vars.p1Score,
+        "score2": vars.p2Score 
       })
     })
     if(response.ok)
@@ -225,19 +223,25 @@ async function PutScores()
       return false
 }
 
+async function assignId(id)
+{
+  game_id = id;
+  console.log(game_id + ": game_id assigned")
+}
 
 export default function ThreeScene()
 {
+  console.log("Hello");
   const containerRef = useRef(null);
-  game_id = CreateGame()
-  if (game_id === -1)
-  {
-    console.log("OOooops ! Problem encountered while creating game")
-    return <canvas className='fixed-top' ref={containerRef} />
-  }
-  console.log("first log: " + game_id);
+  CreateGame().then(assignId);
+  // game_id = id;
+  // console.log("game_id value: " + game_id)
+  // if (game_id === -1)
+  // {
+  //   console.log("OOooops ! Problem encountered while creating game")
+  //   return <canvas className='fixed-top' ref={containerRef} />
+  // }
   useEffect(() => {
-    
 
     tools.scene = new THREE.Scene();
     tools.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
