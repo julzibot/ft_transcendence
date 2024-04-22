@@ -31,7 +31,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["0.0.0.0:8000", "localhost:8000", "backend:8000", "backend", "localhost"]
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -46,8 +45,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'users',
-		'dashboard',
-    'friends'
+	'dashboard',
+    'friends',
+    'game',
 ]
 
 MIDDLEWARE = [

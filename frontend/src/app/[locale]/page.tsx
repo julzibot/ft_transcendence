@@ -8,6 +8,7 @@ export default function Home() {
 
   return (
     <>
+      {/* <ThreeScene /> */}
       <h1>{t('title')}</h1>
     </>
   )
