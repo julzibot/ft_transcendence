@@ -189,6 +189,7 @@ const update = () =>
 async function CreateGame()
 {
   // const url = 'http://localhost:8000/api/game';
+  console.log("CreateGame called");
   const response = await fetch('http://localhost:8000/api/game/test/',
     {
       method: 'POST',
@@ -233,16 +234,16 @@ export default function ThreeScene()
 {
   console.log("Hello");
   const containerRef = useRef(null);
-  CreateGame().then(assignId);
   // game_id = id;
   // console.log("game_id value: " + game_id)
   // if (game_id === -1)
   // {
-  //   console.log("OOooops ! Problem encountered while creating game")
-  //   return <canvas className='fixed-top' ref={containerRef} />
-  // }
-  useEffect(() => {
-
+    //   console.log("OOooops ! Problem encountered while creating game")
+    //   return <canvas className='fixed-top' ref={containerRef} />
+    // }
+    useEffect(() => {
+    
+    CreateGame().then(assignId);
     tools.scene = new THREE.Scene();
     tools.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});

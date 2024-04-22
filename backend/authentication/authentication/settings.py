@@ -34,6 +34,7 @@ ALLOWED_HOSTS = ["0.0.0.0:8000", "localhost:8000", "backend:8000", "backend", "l
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
