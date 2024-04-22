@@ -8,4 +8,5 @@ urlpatterns = [
 		path('dashboard/', include('dashboard.urls')),
     path('api/friends/', include('friends.urls')),
     path('api/game/', include('game.urls')),
+    # path('chat/', include ('chat.urls'))
 ]
