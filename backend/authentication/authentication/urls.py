@@ -7,4 +7,5 @@ urlpatterns = [
     path('api/', include('users.urls')),
 		path('dashboard/', include('dashboard.urls')),
     path('api/friends/', include('friends.urls')),
+    path('api/game/', include('game.urls')),
 ]

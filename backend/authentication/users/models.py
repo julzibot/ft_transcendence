@@ -30,7 +30,6 @@ class UserAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     login = models.CharField(max_length=60, unique=True)
