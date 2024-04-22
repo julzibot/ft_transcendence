@@ -46,10 +46,9 @@ export default function SearchPlayerInput() {
   }
 
   return(
-    <form className="d-flex" role="search">
-      <div className="">
-        <input
-          value={inputValue}
+    <form className="d-flex position-relative mw-100 pt-3" role="search">
+      <div className="position-relative">
+        <input 
           onChange={(e) => handleSearch(e)} 
           type="text" 
           className="form-control" 
@@ -61,7 +60,7 @@ export default function SearchPlayerInput() {
           <div className="pt-5 text-dark">
             {
               searchQuery.map((user, index) => (
-                <div key={index} className="border border-2 text-light">
+                <div key={index} className="border border-2 text-dark">
                   <span>{user.nick_name}</span>
                   <CustomTooltip text="add friend" position="bottom">
                     <button className="btn" onClick={() => handleFriendRequest(session?.user.id, user.id)}>
