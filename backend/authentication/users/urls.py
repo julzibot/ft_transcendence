@@ -1,4 +1,5 @@
 from django.urls import path
+from dashboard.views import DashboardView
 from .views import SigninView, UserView, UpdateNameView, SignupView, CustomTokenRefreshView, SearchUserView
 
 urlpatterns = [

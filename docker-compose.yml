@@ -42,4 +42,6 @@ services:
       - db
     volumes:
       - ./backend/authentication/:/app
+    env_file:
+      - ./backend/authentication/.env.example
 
