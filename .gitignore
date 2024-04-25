@@ -43,3 +43,4 @@ frontend/src/app/\[locale\]/components/node_modules/
 __pycache__/
 
 .dbdata
+dbdata
