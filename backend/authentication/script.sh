@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sleep 1
+sleep 2
 
 export DJANGO_SECRET=$(python3 -c 'from django.core.management.utils import get_random_secret_key; import re; print(re.escape(get_random_secret_key()))')
 export TOKEN_SIGNING_KEY=$(python3 -c 'from django.core.management.utils import get_random_secret_key; import re; print(re.escape(get_random_secret_key()))')
