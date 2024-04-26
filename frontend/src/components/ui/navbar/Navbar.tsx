@@ -39,6 +39,11 @@ export default function Navbar() {
         				  <button className="btn btn-info">Play</button>
       				  </Link>
 							</li>
+							<li className="nav-item custom-item d-flex align-items-center px-2">
+								<Link href="/en/chat">
+        				  <button className="btn btn-info">Chat</button>
+      				  </Link>
+							</li>
 						</ul>
 						<div className="custom-item">
      		  		<AuthButton/>
