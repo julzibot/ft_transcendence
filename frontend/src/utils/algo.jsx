@@ -36,7 +36,7 @@ csts.dirLight.position.set(5, 7, 15);
 csts.game_id = 0;
 
 
-vars.scoreMsg = new THREE.Mesh();
+vars.endMsgMesh = new THREE.Mesh();
 vars.p1textMesh = new THREE.Mesh();
 vars.p2textMesh = new THREE.Mesh();
 vars.p1Score = 0;

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts} from '../../utils/algo';
 
@@ -8,6 +9,30 @@ let keys = {};
 const tools = {};
 let game_id = 0;
 let put_response = false;
+
+function printGameInfo( font, textMesh, string, mode, fontsize )
+{
+  let updatedStringGeo = new TextGeometry(string, {font: font, size: fontsize, height: 0.5 });
+  if (mode != 0 && mode < 3)
+  {
+    const textMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    textMesh.material = textMaterial;
+    if (mode == 1)
+      textMesh.position.set(CONST.GAMEWIDTH / 5 - CONST.GAMEWIDTH / 2, CONST.GAMEHEIGHT / 3.5, -1);
+    else if (mode == 2)
+      textMesh.position.set(CONST.GAMEWIDTH / 5, CONST.GAMEHEIGHT / 3.5, -1);
+  }
+  else if (mode == 3)
+  {
+    const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+    textMesh.material = textMaterial;
+    textMesh.position.set(-11.5, -7 , 0);
+  }
+  if (mode != 0)
+    tools.scene.add(textMesh);
+  textMesh.geometry.dispose();
+  textMesh.geometry = updatedStringGeo;
+}
 
 const scoringLogic = () =>
 {
@@ -18,47 +43,25 @@ const scoringLogic = () =>
     {
       vars.ballVect.set(-1, 0, 0);
       vars.p1Score += 1;
-      vars.scoreString = vars.p1Score.toString();
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function ( font )
-      {
-        let updatedScoreGeo = new TextGeometry(vars.scoreString, {font: font, size: 4, height: 0.5});
-        vars.p1textMesh.geometry.dispose();
-        vars.p1textMesh.geometry = updatedScoreGeo;
-      });
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
+        {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
     }
     else
     {
       vars.ballVect.set(1, 0, 0);
       vars.p2Score += 1;
-      vars.scoreString = vars.p2Score.toString();
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function ( font )
-      {
-        let updatedScoreGeo = new TextGeometry(vars.scoreString, {font: font, size: 4, height: 0.5});
-        vars.p2textMesh.geometry.dispose();
-        vars.p2textMesh.geometry = updatedScoreGeo;
-      });
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
+        {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
     }
 
     if (Math.max(vars.p1Score, vars.p2Score) == CONST.WINSCORE)
     {
       if (vars.p1Score > vars.p2Score)
-        vars.endString = "PLAYER 1 WINS";
+        vars.endString = "GAME ENDED\nPLAYER 1 WINS";
       else
-        vars.endString = "PLAYER 2 WINS";
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function ( font )
-      {
-        const textGeo = new TextGeometry( 'GAME ENDED\n' + vars.endString,
-        {
-          font: font,
-          size: 3,
-          height: 0.5
-        });
-        const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-        vars.scoreMsg.geometry = textGeo;
-        vars.scoreMsg.material = textMaterial;
-        tools.scene.add(vars.scoreMsg);
-        vars.scoreMsg.position.set(-11.5, -7 , 0);
-      });
+        vars.endString = "GAME ENDED\nPLAYER 2 WINS";
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+        {printGameInfo(font, vars.endMsgMesh, vars.endString, 3, 3)} );
       vars.stopGame = true;
       put_response = PutScores();
       if (put_response == false)
@@ -70,13 +73,12 @@ const scoringLogic = () =>
   }
 }
 
-const animate = () =>
+const collisionLogic = () =>
 {
   let p1HB = new THREE.Box3().setFromObject(objs.player1);
   let p2HB = new THREE.Box3().setFromObject(objs.player2);
   let sph = new THREE.Box3().setFromObject(objs.ball);
 
-  // console.log(game_id)
   // CHECK PLAYER COLLISIONS
   if (p1HB.intersectsBox(sph))
     vars.isRebound = 1;
@@ -125,7 +127,11 @@ const animate = () =>
   // CHECK TOP AND BOT BOUNDARY COLLISIONS
   if (csts.topHB.intersectsBox(sph) || csts.botHB.intersectsBox(sph))
     vars.ballVect.y *= -1;
-  
+}
+
+const animate = () =>
+{
+  collisionLogic(vars, csts, objs);
   scoringLogic(vars, csts, objs);
   
   if (vars.stopGame == true)
@@ -133,6 +139,15 @@ const animate = () =>
   objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
   objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
   update();
+  tools.controls.update();
+
+  // if (vars.directions[0] == 1)
+  //   tools.camera.position.set(objs.ball.position.x - 10, objs.ball.position.y, 4);
+  // if (vars.directions[0] == -1)
+  //   tools.camera.position.set(objs.ball.position.x + 10, objs.ball.position.y, 4);
+  // tools.camera.lookAt(objs.ball.position.x, objs.ball.position.y, 4);
+  // tools.camera.rotation.x = Math.PI / 2;
+
   tools.renderer.render(tools.scene, tools.camera);
   // vars.frametick += 1;
 
@@ -171,17 +186,17 @@ const update = () =>
     tools.scene.remove(vars.scoreMsg);
     vars.p1Score = 0;
     vars.p2Score = 0;
-    vars.scoreString = '0';
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function ( font )
-    {
-      let updatedScoreGeo = new TextGeometry(vars.scoreString, {font: font, size: 4, height: 0.5});
-      vars.p1textMesh.geometry.dispose();
-      vars.p2textMesh.geometry.dispose();
-      vars.p1textMesh.geometry = updatedScoreGeo;
-      vars.p2textMesh.geometry = updatedScoreGeo;
-    });
+
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.p1textMesh, "0", 0, 4)} );
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.p2textMesh, "0", 0, 4)} );
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.endMsgMesh, "", 3, 3)} );
     objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
     objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
+    tools.camera.position.set(0, 0, 20);
+    tools.camera.lookAt(0, 0, 0);
     vars.stopGame = false;
   }
 }
@@ -248,6 +263,7 @@ export default function ThreeScene()
     tools.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
     tools.renderer.setSize( window.innerWidth, window.innerHeight );
+    tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
     document.body.appendChild( tools.renderer.domElement );
     
     tools.scene.add( objs.ball );
@@ -265,32 +281,14 @@ export default function ThreeScene()
 
     // SET UP SCORE TEXTS
     // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function ( font )
-    {
-      const textGeo = new TextGeometry( '0',
-      {
-        font: font,
-        size: 4.7,
-        height: 0.2
-      });
-      const textMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
-      vars.p1textMesh.geometry = textGeo;
-      vars.p1textMesh.material = textMaterial;
-      vars.p2textMesh.geometry = textGeo;
-      vars.p2textMesh.material = textMaterial;
-      tools.scene.add(vars.p1textMesh);
-      tools.scene.add(vars.p2textMesh);
-      vars.p1textMesh.position.set(CONST.GAMEWIDTH / 5 - CONST.GAMEWIDTH / 2, CONST.GAMEHEIGHT / 3.5, -1);
-      vars.p2textMesh.position.set(CONST.GAMEWIDTH / 5, CONST.GAMEHEIGHT / 3.5, -1);
-    });
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
 
-    document.addEventListener('keydown', function(event) {
-        keys[event.code] = true;
-    });
+    document.addEventListener('keydown', function(event) { keys[event.code] = true; });
 
-    document.addEventListener('keyup', function(event) {
-        keys[event.code] = false;
-    });
+    document.addEventListener('keyup', function(event) { keys[event.code] = false; });
 
     animate();
   }, []);

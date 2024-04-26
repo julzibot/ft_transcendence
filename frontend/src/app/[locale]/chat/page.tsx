@@ -1,21 +1,39 @@
 "use client";
-import {useState, formEvent} from "react";
+import {useState, useEffect, formEvent} from "react";
 
 export default function Chat()
 {
-    const chatSocket = new WebSocket("ws://localhost:8000/ws/chat/1/")
-
-    const [message, setMessage] = useState("")
+    const   [message, setMessage] = useState("")
+    const   [log, setlog] = useState("")
+    const   [chatSocket, setchatSocket] = useState(null)
 
     function handleSubmit(event: FormEvent<HTMLFormElement>)
-    { console.log(message) }
+    {
+        chatSocket.send(
+            JSON.stringify({
+                "message": message})
+        );
+        setlog(log + "\n" + message);
+        console.log(message);
+    }
+
+    useEffect(() => {
+
+        setchatSocket(new WebSocket("ws://localhost:8000/ws/chat/1/"));
+        if (chatSocket)
+        {
+            chatSocket.onmessage = (event) =>
+            {
+                console.log("Received message", event.data);
+            }
+        }
+    },[]);
 
     return (
         <>
-            <form onSubmit={handleSubmit}>
-                <input type="text" value={message} onChange={(e) => setMessage(e.target.value)}/>
-                <button type="submit" className="btn btn-primary">Submit</button>
-            </form>
+            <input type="text" value={message} onChange={(e) => setMessage(e.target.value)}/>
+            <button type="button" className="btn btn-primary" onClick={handleSubmit}>Submit</button>
+            <div >{log}</div>
         </>
     )
 }
