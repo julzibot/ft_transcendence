@@ -11,7 +11,7 @@ export default function Navbar() {
     <>
 			<nav className="navbar navbar-expand-lg navbar-dark bg-dark">
 				<div className="container-fluid">
-					<Link href="#" className="ms-2 text-decoration-none navbar-brand">
+					<Link href="/en" className="ms-2 text-decoration-none navbar-brand">
 						<Image
 							src="/static/images/42.png"
 							style={{filter: "invert(100%)"}}
@@ -40,7 +40,7 @@ export default function Navbar() {
       				  </Link>
 							</li>
 							<li className="nav-item custom-item d-flex align-items-center px-2">
-								<Link href="/en/chat">
+								<Link href="/en/chat/test">
         				  <button className="btn btn-info">Chat</button>
       				  </Link>
 							</li>
