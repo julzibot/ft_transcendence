@@ -66,7 +66,6 @@ export const authOptions: NextAuthOptions = {
     async jwt({token, trigger, session, user}) {
       // if user is loging in, call backend api that returns user info and backend token
       if(user) {
-        console.log(user)
         const response = await fetch(`${backend_url}/api/signin/`, {
           method: "POST",
           headers: {"Content-type": "application/json"},
@@ -92,13 +91,14 @@ export const authOptions: NextAuthOptions = {
 
     async session({session, token}) {
       //call user api to get user informations
-      const response = await fetch(`${backend_url}/api/user/`, { 
-        method: "GET",
-        headers: {'Authorization': `Bearer ${token.backendTokens.access}`},
-      })
-      if(response.ok) {
-        session.user = await response.json()
-      }
+      // const response = await fetch(`${backend_url}/api/user/`, { 
+      //   method: "GET",
+      //   headers: {'Authorization': `Bearer ${token.backendTokens.access}`},
+      // })
+      // if(response.ok) {
+      //   session.user = await response.json()
+      // }
+      session.user = token.user
       return session
     }
   }
