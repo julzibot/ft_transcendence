@@ -1,9 +1,0 @@
-{
-  "LocaleSwitcher": {
-    "label": "言語を変えてください",
-		"locale": "{locale, select, fr {Français} en {English} other {日本語}}"
-  },
-	"Index": {
-	  "title": "これがタイトルです"
-	}
-}

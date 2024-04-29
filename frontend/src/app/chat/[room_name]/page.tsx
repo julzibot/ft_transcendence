@@ -48,7 +48,7 @@ export default function Chat(Props: Props) {
 
   return(
     <>
-      <textarea id="chat-log" value={chatLog} cols={100} rows={20}></textarea><br></br>
+      <div>{chatLog}</div>
       <input type="text" value={message} onChange={(e) => setMessage(e.target.value)}/>
       <button className="btn btn-primary" onClick={() =>handleClick()}>Submit</button>
     </>
