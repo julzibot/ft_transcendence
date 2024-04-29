@@ -61,7 +61,6 @@ export const authOptions: NextAuthOptions = {
       }
     }),
   ],
-
   callbacks: {
     async jwt({token, trigger, session, user}) {
       // if user is loging in, call backend api that returns user info and backend token
@@ -91,14 +90,13 @@ export const authOptions: NextAuthOptions = {
 
     async session({session, token}) {
       //call user api to get user informations
-      // const response = await fetch(`${backend_url}/api/user/`, { 
-      //   method: "GET",
-      //   headers: {'Authorization': `Bearer ${token.backendTokens.access}`},
-      // })
-      // if(response.ok) {
-      //   session.user = await response.json()
-      // }
-      session.user = token.user
+      const response = await fetch(`${backend_url}/api/user/`, { 
+        method: "GET",
+        headers: {'Authorization': `Bearer ${token.backendTokens.access}`},
+      })
+      if(response.ok) {
+        session.user = await response.json()
+      }
       return session
     }
   }
