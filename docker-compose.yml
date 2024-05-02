@@ -50,6 +50,6 @@ services:
     image: redis:7
     restart: always
     ports: 
-      - 6379:6379
+      - 33067:6379
     volumes:
       - /home/anloisea/goinfre/ft_transcendence/.redis:/data

@@ -32,26 +32,17 @@ export const authOptions: NextAuthOptions = {
       }
     }),
     CredentialsProvider({
-      name: "Email",
+      name: "Credentials",
       credentials: {
-        login: { label: "Login", type: "text", placeholder: "JohnDoe" },
         email: { label: "Email", type: "email", placeholder: "jdoe@example.com"},
-        password: { label: "Password", type: "password" },
-        password2: { label: "Confirm Password", type: "password"}
-        },
+        password: { label: "Password", type: "password"}
+      },
       async authorize(credentials, req) {
-        const { login, email, password, password2} = credentials
-        if(password != password2) {
-          return null
-        }
+        console.log({credentials, req})
         const response = await fetch(`${backend_url}/api/signup/`, {
           method: "POST",
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            login,
-            email,
-            password
-          })
+          body: JSON.stringify({credentials})
         });
         if(response.ok) {
           const user = await response.json()
@@ -61,6 +52,11 @@ export const authOptions: NextAuthOptions = {
       }
     }),
   ],
+
+  pages: {
+    signIn: "/auth/signin"
+  },
+
   callbacks: {
     async jwt({token, trigger, session, user}) {
       // if user is loging in, call backend api that returns user info and backend token
