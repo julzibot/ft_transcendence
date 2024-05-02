@@ -13,6 +13,7 @@ import jwt, os, datetime
 
 from .models import UserAccount
 from .serializers import UserAccountSerializer
+from dashboard.models import DashboardData
 
 def get_tokens_for_user(user):
   refresh = RefreshToken.for_user(user)
@@ -78,6 +79,7 @@ class SigninView(APIView):
       serializer = UserAccountSerializer(data=data)
       serializer.is_valid(raise_exception=True)
       user = UserAccount.objects.create(**data)
+      DashboardData.objects.create(user_id=user)
     response = Response({
       'user': {
         'id': user.id,
