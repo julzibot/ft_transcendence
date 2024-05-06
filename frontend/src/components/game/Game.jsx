@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts} from '../../utils/algo';
 
@@ -32,6 +33,16 @@ function printGameInfo( font, textMesh, string, mode, fontsize )
     tools.scene.add(textMesh);
   textMesh.geometry.dispose();
   textMesh.geometry = updatedStringGeo;
+}
+
+const setBallColor = () =>
+{
+  const speedDiff = CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED;
+  const interpolate = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / speedDiff;
+  let color = Math.min(interpolate * 255, 255) << 16 | 255 * (1 - interpolate);
+  const ballMaterial = new THREE.MeshPhongMaterial( { color: color, emissive: color, emissiveIntensity: 0.1 } );
+  objs.ball.material.dispose();
+  objs.ball.material = ballMaterial;
 }
 
 const scoringLogic = () =>
@@ -70,8 +81,10 @@ const scoringLogic = () =>
     objs.ball.position.set(0, 0, 0);
     vars.ballSpeed = CONST.BASE_BALLSPEED;
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
+    setBallColor();
   }
 }
+
 
 const collisionLogic = () =>
 {
@@ -87,13 +100,14 @@ const collisionLogic = () =>
   if (vars.isRebound != 0)
   {
     // COMPUTE THE NORMALIZED REBOUND VECTOR
+    vars.glowStartTime = performance.now();
     if (vars.isRebound == 1)
       vars.reboundDiff = objs.player1.position.y - objs.ball.position.y;
     else
       vars.reboundDiff = objs.player2.position.y - objs.ball.position.y;
     if ( Math.abs(vars.reboundDiff) > CONST.PLAYERLEN / 2 + CONST.BALLRADIUS / 2 - 0.3 &&
       (Math.abs(objs.ball.position.x - objs.player1.position.x) < 0.52 || Math.abs(objs.ball.position.x - objs.player2.position.x) < 0.52))
-      vars.ballVect.set(objs.ball.position.x / (CONST.GAMEWIDTH / 2), -vars.reboundDiff);
+        vars.ballVect.set(objs.ball.position.x / (CONST.GAMEWIDTH / 2), -vars.reboundDiff);
     else
     {
       vars.ballVect.x *= -1;
@@ -123,37 +137,14 @@ const collisionLogic = () =>
     else if (vars.adjustedBallSpeed > CONST.BALLSPEED_MAX)
       vars.adjustedBallSpeed = CONST.BALLSPEED_MAX;
     vars.isRebound = 0;
+
+    // SET BALL COLOR
+    setBallColor();
   }
   // CHECK TOP AND BOT BOUNDARY COLLISIONS
   if (csts.topHB.intersectsBox(sph) || csts.botHB.intersectsBox(sph))
     vars.ballVect.y *= -1;
-}
 
-const animate = () =>
-{
-  collisionLogic(vars, csts, objs);
-  scoringLogic(vars, csts, objs);
-  
-  if (vars.stopGame == true)
-    vars.ballVect.set(0, 0);
-  objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
-  objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
-  update();
-  tools.controls.update();
-
-  // if (vars.directions[0] == 1)
-  //   tools.camera.position.set(objs.ball.position.x - 10, objs.ball.position.y, 4);
-  // if (vars.directions[0] == -1)
-  //   tools.camera.position.set(objs.ball.position.x + 10, objs.ball.position.y, 4);
-  // tools.camera.lookAt(objs.ball.position.x, objs.ball.position.y, 4);
-  // tools.camera.rotation.x = Math.PI / 2;
-
-  tools.renderer.render(tools.scene, tools.camera);
-  // vars.frametick += 1;
-
-  setTimeout( function() {
-    requestAnimationFrame( animate );
-  }, 5 );
 }
 
 const update = () =>
@@ -245,17 +236,51 @@ async function assignId(id)
   console.log(game_id + ": game_id assigned")
 }
 
+const animate = () =>
+{
+  collisionLogic(vars, csts, objs);
+  scoringLogic(vars, csts, objs);
+  
+  if (vars.stopGame == true)
+    vars.ballVect.set(0, 0);
+  objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
+  objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
+  csts.ballLight.position.x = objs.ball.position.x;
+  csts.ballLight.position.y = objs.ball.position.y;
+
+  vars.glowElapsed = performance.now() - vars.glowStartTime;
+  if (vars.glowElapsed < 750)
+  {
+    if (vars.glowElapsed < 100)
+      objs.ball.material.emissiveIntensity = 0.8
+    else
+      objs.ball.material.emissiveIntensity = 0.8 - (vars.glowElapsed / 750 * 0.7);
+  }
+
+  update();
+  tools.stats.update();
+  tools.controls.update();
+
+  // if (vars.directions[0] == 1)
+  //   tools.camera.position.set(objs.ball.position.x - 10, objs.ball.position.y, 4);
+  // if (vars.directions[0] == -1)
+  //   tools.camera.position.set(objs.ball.position.x + 10, objs.ball.position.y, 4);
+  // tools.camera.lookAt(objs.ball.position.x, objs.ball.position.y, 4);
+  // tools.camera.rotation.x = Math.PI / 2;
+
+  tools.renderer.render(tools.scene, tools.camera);
+  // vars.frametick += 1;
+
+  setTimeout( function() {
+    requestAnimationFrame( animate );
+  }, 5 );
+}
+
+
 export default function ThreeScene()
 {
   console.log("Hello");
   const containerRef = useRef(null);
-  // game_id = id;
-  // console.log("game_id value: " + game_id)
-  // if (game_id === -1)
-  // {
-    //   console.log("OOooops ! Problem encountered while creating game")
-    //   return <canvas className='fixed-top' ref={containerRef} />
-    // }
     useEffect(() => {
     
     CreateGame().then(assignId);
@@ -264,15 +289,19 @@ export default function ThreeScene()
     tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
     tools.renderer.setSize( window.innerWidth, window.innerHeight );
     tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
+    tools.stats = Stats()
     document.body.appendChild( tools.renderer.domElement );
+    document.body.appendChild( tools.stats.dom );
     
     tools.scene.add( objs.ball );
     tools.scene.add( objs.player1 );
     tools.scene.add( objs.player2 );
     tools.scene.add( objs.topB );
     tools.scene.add( objs.botB );
+    tools.scene.add( objs.background );
     tools.scene.add( csts.ambLight );
     tools.scene.add( csts.dirLight );
+    tools.scene.add( csts.ballLight );
     tools.camera.position.set(0, 0, 20);
     tools.camera.lookAt(0, 0, 0);
 
