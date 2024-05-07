@@ -10,16 +10,15 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth/options"
 import Image from "next/image"
 import Link from "next/link"
-import {useRef} from 'react'
+import {useState} from "react"
 
 export default function SignIn({
   providers,
   csrfToken
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const email = useRef("")
-  const password = useRef("")
+  const [inputMail, setInputMail] = useState<string>("")
+  const [inputPass, setInputPass] = useState<string>("")
   const fortyTwo = providers['42-school']
-  const mail = providers['credentials']
   return (
     <>  
       <div className="d-flex justify-content-center align-items-center">
@@ -39,15 +38,16 @@ export default function SignIn({
             </button>
             <p>Or</p>
             <form method="post" action="/api/auth/callback/credentials">
+            <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
               <div className="mb-3">
-                <label htmlFor="email" className="form-label">Email address</label>
-                <input type="email" className="form-control" id="Email" aria-describedby="emailHelp" />
+                <label htmlFor="email" className="form-label" >Email address</label>
+                <input type="email" id="email" className ="form-control"value={inputMail} onChange={(e) => setInputMail(e.target.value)}/>
               </div>
               <div className="mb-3">
                 <label htmlFor="password" className="form-label">Password</label>
-                <input type="password" className="form-control" id="password"/>
+                <input type="password" className="form-control"value={inputPass} onChange={(e) => setInputPass(e.target.value)}/>
               </div>
-              <button type="submit" className="btn btn-dark fw-bold" >Submit</button>
+              <button type="submit" className="btn btn-dark fw-bold" onClick={() => signIn("credentials", {email: inputMail, password: inputPass})} >Submit</button>
             </form>
           </div>
           <div className="card-footer">Not Registered Yet ? 

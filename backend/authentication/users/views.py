@@ -62,24 +62,25 @@ class SignupView(APIView):
     serializer.save()
     return Response(serializer.data)
 
-class SigninView(APIView):
+class AccessTokenView(APIView):
   def post(self, request):
     data = request.data['user']
-
     # fetch user in database
     try:
       if 'email' not in data:
         return HttpResponseBadRequest({'Bad Request: email field is required'})
       user = UserAccount.objects.get(email=data['email'])
     except ObjectDoesNotExist:
-      if 'id' in data:
-        user = UserAccount.objects.filter(id=data['id']).first()
-        if user:
-          return Response({'Conflict': 'user id already exists'}, status=status.HTTP_409_CONFLICT)
-      serializer = UserAccountSerializer(data=data)
-      serializer.is_valid(raise_exception=True)
-      user = UserAccount.objects.create(**data)
-      DashboardData.objects.create(user_id=user)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    #   if 'id' in data:
+    #     user = UserAccount.objects.filter(id=data['id']).first()
+    #     if user:
+    #       return Response({'Conflict': 'user id already exists'}, status=status.HTTP_409_CONFLICT)
+    #   serializer = UserAccountSerializer(data=data)
+    #   serializer.is_valid(raise_exception=True)
+    #   user = UserAccount.objects.create(**data)
+    DashboardData.objects.create(user_id=user)
+    backendTokens = get_tokens_for_user(user)
     response = Response({
       'user': {
         'id': user.id,
@@ -88,10 +89,26 @@ class SigninView(APIView):
         'email': user.email,
         'image': user.image,
       },
-      'backendTokens': get_tokens_for_user(user)
+      'backendTokens': backendTokens
     })
     return response
   
+class SigninView(APIView):
+    def post(self, request):
+      data = request.data['user']
+      try:
+        user = UserAccount.objects.get(email=data['email'])
+      except ObjectDoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+      response = Response({
+        'id': user.id,
+        'login': user.login,
+        'nick_name': user.nick_name,
+        'email': user.email,
+        'image': user.image,
+      })
+      return response
+
 class UserView(APIView):
   def get(self, request):
     access_token = request.META.get('HTTP_AUTHORIZATION')

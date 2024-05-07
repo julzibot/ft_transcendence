@@ -34,18 +34,19 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "jdoe@example.com"},
-        password: { label: "Password", type: "password"}
+        user: {
+          email: { label: "Email", type: "email", placeholder: "jdoe@example.com"},
+          password: { label: "Password", type: "password"}
+        }
       },
-      async authorize(credentials, req) {
-        console.log({credentials, req})
-        const response = await fetch(`${backend_url}/api/signup/`, {
+      async authorize(credentials) {
+        const res = await fetch(`${backend_url}/api/auth/signin/`, {
           method: "POST",
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({credentials})
+          body: JSON.stringify({user: credentials})
         });
-        if(response.ok) {
-          const user = await response.json()
+        if(res.ok) {
+          const user = await res.json()
           return user
         }
         return null
@@ -61,17 +62,15 @@ export const authOptions: NextAuthOptions = {
     async jwt({token, trigger, session, user}) {
       // if user is loging in, call backend api that returns user info and backend token
       if(user) {
-        const response = await fetch(`${backend_url}/api/signin/`, {
+        const res = await fetch(`${backend_url}/api/auth/access_token/`, {
           method: "POST",
           headers: {"Content-type": "application/json"},
-          body: JSON.stringify({
-            'user': user
-          })
+          body: JSON.stringify({user})
         })
-        if (response.ok)
+        if (res.ok)
         {
-          const newUser = await response.json()
-          return newUser
+          token = await res.json()
+          return token
         }
       }
       if(trigger === 'update' && session?.name) {
@@ -81,12 +80,11 @@ export const authOptions: NextAuthOptions = {
         return token
       }
       return await refreshToken(token)
-
     },
 
     async session({session, token}) {
       //call user api to get user informations
-      const response = await fetch(`${backend_url}/api/user/`, { 
+      const response = await fetch(`${backend_url}/api/auth/user/`, { 
         method: "GET",
         headers: {'Authorization': `Bearer ${token.backendTokens.access}`},
       })
