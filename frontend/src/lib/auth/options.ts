@@ -40,6 +40,7 @@ export const authOptions: NextAuthOptions = {
         }
       },
       async authorize(credentials) {
+        console.log(credentials)
         const res = await fetch(`${backend_url}/api/auth/signin/`, {
           method: "POST",
           headers: {'Content-Type': 'application/json'},
@@ -55,7 +56,7 @@ export const authOptions: NextAuthOptions = {
   ],
 
   pages: {
-    signIn: "/auth/signin"
+    signIn: "/signin"
   },
 
   callbacks: {
