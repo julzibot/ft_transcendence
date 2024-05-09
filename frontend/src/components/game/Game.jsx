@@ -8,26 +8,38 @@ import { vars, objs, csts} from '../../utils/algo';
 
 let keys = {};
 const tools = {};
+const particleEffects = [];
 let game_id = 0;
 let put_response = false;
+const startTime = performance.now();
+tools.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const uniformData = {
+  u_time:
+  { type: 'f', value: performance.now() - startTime },
+  u_resolution: { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+  projectionMatrix:
+  { value: tools.camera.projectionMatrix },
+  viewMatrix:
+  { value: tools.camera.matrixWorldInverse }
+};
 
 function printGameInfo( font, textMesh, string, mode, fontsize )
 {
   let updatedStringGeo = new TextGeometry(string, {font: font, size: fontsize, height: 0.5 });
   if (mode != 0 && mode < 3)
   {
-    const textMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const textMaterial = new THREE.MeshStandardMaterial({ color: 0x0000cc, emissive: 0xdd00dd, emissiveIntensity: 0.2 });
     textMesh.material = textMaterial;
     if (mode == 1)
-      textMesh.position.set(CONST.GAMEWIDTH / 5 - CONST.GAMEWIDTH / 2, CONST.GAMEHEIGHT / 3.5, -1);
+      textMesh.position.set(CONST.GAMEWIDTH / 5 - CONST.GAMEWIDTH / 2, CONST.GAMEHEIGHT / 3.5, -1.5);
     else if (mode == 2)
-      textMesh.position.set(CONST.GAMEWIDTH / 5, CONST.GAMEHEIGHT / 3.5, -1);
+      textMesh.position.set(CONST.GAMEWIDTH / 5, CONST.GAMEHEIGHT / 3.5, -1.5);
   }
   else if (mode == 3)
   {
     const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
     textMesh.material = textMaterial;
-    textMesh.position.set(-11.5, -7 , 0);
+    textMesh.position.set(-11.5, -7 , -1.5);
   }
   if (mode != 0)
     tools.scene.add(textMesh);
@@ -43,6 +55,7 @@ const setBallColor = () =>
   const ballMaterial = new THREE.MeshPhongMaterial( { color: color, emissive: color, emissiveIntensity: 0.1 } );
   objs.ball.material.dispose();
   objs.ball.material = ballMaterial;
+  csts.ballLight.color.set(color);
 }
 
 const scoringLogic = () =>
@@ -91,6 +104,7 @@ const collisionLogic = () =>
   let p1HB = new THREE.Box3().setFromObject(objs.player1);
   let p2HB = new THREE.Box3().setFromObject(objs.player2);
   let sph = new THREE.Box3().setFromObject(objs.ball);
+  let topDownRebound = 0;
 
   // CHECK PLAYER COLLISIONS
   if (p1HB.intersectsBox(sph))
@@ -143,7 +157,42 @@ const collisionLogic = () =>
   }
   // CHECK TOP AND BOT BOUNDARY COLLISIONS
   if (csts.topHB.intersectsBox(sph) || csts.botHB.intersectsBox(sph))
+  {
     vars.ballVect.y *= -1;
+    if (objs.ball.position.y > 0)
+      topDownRebound = 1;
+    else
+      topDownRebound = -1;
+
+    const vertices = [];
+    const speedVecs = [];
+    let speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED);
+    vars.dotProduct = vars.ballVect.dot(csts.gameVect);
+    if (speedFactor < 0.3)
+      speedFactor = 0.3;
+    for ( let i = 0.0; i < speedFactor * Math.abs(1 - vars.dotProduct) * 25; i ++ ) {
+      let x = objs.ball.position.x;
+      let y = objs.ball.position.y + topDownRebound * CONST.BALLRADIUS;
+      let z = objs.ball.position.z;
+      vertices.push(x, y, z);
+      x = THREE.MathUtils.randFloatSpread( 1 * speedFactor);
+      y = THREE.MathUtils.randFloatSpread( 0.1 * speedFactor) * -topDownRebound;
+      z = THREE.MathUtils.randFloatSpread( 0.3 * speedFactor);
+      speedVecs.push(x, y, z)
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+    geometry.setAttribute( 'velocity', new THREE.Float32BufferAttribute( speedVecs, 3 ) );
+    // let particleColor = Math.min(objs.ball.material.color >> 16 % 256 * 2, 255) << 16 | Math.min(objs.ball.material.color % 256 * 2, 255);
+    let particleColor = 0xffffff;
+    let particleSize = vars.adjustedBallSpeed / CONST.BALLSPEED_MAX / 5;
+    const material = new THREE.PointsMaterial( { color: particleColor, size: particleSize, emissive: particleColor, emissiveIntensity: 1.} );
+    let points = new THREE.Points( geometry, material );
+    const impactTime = performance.now();
+    particleEffects.push([points, impactTime]);
+    tools.scene.add( points );
+  }
 
 }
 
@@ -252,9 +301,44 @@ const animate = () =>
   if (vars.glowElapsed < 750)
   {
     if (vars.glowElapsed < 100)
-      objs.ball.material.emissiveIntensity = 0.8
+    {
+      objs.ball.material.emissiveIntensity = 0.95;
+      csts.ballLight.intensity = 15;
+    }
     else
-      objs.ball.material.emissiveIntensity = 0.8 - (vars.glowElapsed / 750 * 0.7);
+    {
+      objs.ball.material.emissiveIntensity = 0.95 - (vars.glowElapsed / 750 * 0.7);
+      csts.ballLight.intensity = 15 - (vars.glowElapsed / 750 * 10);
+    }
+  }
+
+  for (let i = 0; i < particleEffects.length; i++)
+  {
+    let particleElapsed = performance.now() - particleEffects[i][1];
+    if (particleElapsed > 750)
+    {
+      tools.scene.remove(particleEffects[0][0]);
+      particleEffects.shift();
+    }
+    else
+    {
+      let positions = particleEffects[i][0].geometry.attributes.position.array;
+      let velocities = particleEffects[i][0].geometry.attributes.velocity.array;
+      for (let j = 0; j < positions.length; j += 3)
+      {
+        positions[j] += velocities[j] * (particleElapsed / 1000);
+        positions[j + 1] += velocities[j + 1] * (particleElapsed / 1000);
+        positions[j + 2] += velocities[j + 2] * (particleElapsed / 1000);
+      }
+      particleEffects[i][0].geometry.attributes.position.needsUpdate = true;
+      if (particleElapsed < 200)
+        particleEffects[i][0].material.emissiveIntensity = 10.;
+      else
+      {
+        particleEffects[i][0].material.emissiveIntensity = 10. - (particleElapsed / 750);
+        particleEffects[i][0].material.opacity = 10. - (particleElapsed / 750);
+      }
+    }
   }
 
   update();
@@ -268,8 +352,11 @@ const animate = () =>
   // tools.camera.lookAt(objs.ball.position.x, objs.ball.position.y, 4);
   // tools.camera.rotation.x = Math.PI / 2;
 
-  tools.renderer.render(tools.scene, tools.camera);
+  uniformData.u_time.value = performance.now() - startTime;
+  // vars.uniformData.u_time.value = performance.now() - csts.startTime;
+  // vars.uniformData.u_time.value = performance.now() - csts.startTime;
   // vars.frametick += 1;
+  tools.renderer.render(tools.scene, tools.camera);
 
   setTimeout( function() {
     requestAnimationFrame( animate );
@@ -285,7 +372,8 @@ export default function ThreeScene()
     
     CreateGame().then(assignId);
     tools.scene = new THREE.Scene();
-    tools.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    
+    console.log(window.innerWidth + "    " + window.innerHeight);
     tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
     tools.renderer.setSize( window.innerWidth, window.innerHeight );
     tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
@@ -298,6 +386,7 @@ export default function ThreeScene()
     tools.scene.add( objs.player2 );
     tools.scene.add( objs.topB );
     tools.scene.add( objs.botB );
+    tools.scene.add( objs.backB );
     tools.scene.add( objs.background );
     tools.scene.add( csts.ambLight );
     tools.scene.add( csts.dirLight );
@@ -305,10 +394,217 @@ export default function ThreeScene()
     tools.camera.position.set(0, 0, 20);
     tools.camera.lookAt(0, 0, 0);
 
-    // camera.rotation.x = Math.PI / 2;
-    // camera.rotation.z = -Math.PI / 2;
+    let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
+    console.log(tools.camera.projectionMatrix);
 
-    // SET UP SCORE TEXTS
+    let backgroundMaterial = new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      uniforms: uniformData,
+      fragmentShader: `
+      
+        uniform float u_time;
+        uniform vec2  u_resolution;
+        uniform mat4 projectionMatrix;
+
+        vec3 palette(float t)
+        {
+            vec3 a = vec3(0.5, 0.5, 0.5);
+            vec3 b = vec3(0.5, 0.5, 0.5);
+            vec3 c = vec3(1.0, 1.0, 1.0);
+            vec3 d = vec3(0.25, 0.4, 0.55);
+            
+            return a + b * cos(6.3 * (c+t+d)); 
+        }
+        
+        vec2 randomVec(vec2 gridCorner)
+        {
+            float x = dot(gridCorner, vec2(412., 198.));
+            float y = dot(gridCorner, vec2(276., 332.));
+            vec2 gradient = vec2(x ,y);
+            gradient = sin(gradient);
+            gradient = cos(gradient * 672. + u_time / 1000.);
+            return gradient;
+        }
+        
+        float quintic( float x )
+        { return x * x * x * (x * (x * 6.0 - 15.0) + 10.0); }
+
+        float perlinNoise(vec2 uv)
+        {
+            vec2 gridId = floor(uv);
+            vec2 gridVec = fract(uv);
+            
+            vec2 bl = gridId + vec2(0.0, 0.0);
+            vec2 br = gridId + vec2(1.0, 0.0);
+            vec2 tl = gridId + vec2(0.0, 1.0);
+            vec2 tr = gridId + vec2(1.0, 1.0);
+            
+            vec2 distPixBl = gridVec - vec2(0.0, 0.0);
+            vec2 distPixBr = gridVec - vec2(1.0, 0.0);
+            vec2 distPixTl = gridVec - vec2(0.0, 1.0);
+            vec2 distPixTr = gridVec - vec2(1.0, 1.0);
+            
+            vec2 gradBl = randomVec(bl);
+            vec2 gradBr = randomVec(br);
+            vec2 gradTl = randomVec(tl);
+            vec2 gradTr = randomVec(tr);
+
+            float dotBl = dot(gradBl, distPixBl);
+            float dotBr = dot(gradBr, distPixBr);
+            float dotTl = dot(gradTl, distPixTl);
+            float dotTr = dot(gradTr, distPixTr);
+
+            gridVec = vec2(quintic(gridVec.x), quintic(gridVec.y));
+            // gridVec *= smoothstep(0.0, 0.5, gridVec);
+            // gridVec = 0.005 / gridVec;
+
+            float b = mix(dotBl, dotBr, gridVec.x);
+            float t = mix(dotTl, dotTr, gridVec.x);
+            float perlin = mix(b, t, gridVec.y) + 0.3;
+            
+            return perlin;
+        }
+
+        float ibotNoise(vec2 uv)
+        {
+            uv += u_time / 10000.;
+            vec2 gridId = floor(uv);
+            vec2 gridVec = fract(uv);
+            
+            vec2 bl = gridId + vec2(0.0, 0.0);
+            vec2 br = gridId + vec2(1.0, 0.0);
+            vec2 tl = gridId + vec2(0.0, 1.0);
+            vec2 tr = gridId + vec2(1.0, 1.0);
+            
+            vec2 gradBl = randomVec(bl);
+            vec2 gradBr = randomVec(br);
+            vec2 gradTl = randomVec(tl);
+            vec2 gradTr = randomVec(tr);
+            
+            //vec2 divVec = vec2(4.);
+            
+            gridVec = vec2(quintic(gridVec.x), quintic(gridVec.y));
+            //gridVec = 0.1 / gridVec;
+            
+            float xBot = mix(gradBl.x, gradBr.x, gridVec.x);
+            float yBot = mix(gradBl.y, gradBr.y, gridVec.x);
+            float xTop = mix(gradTl.x, gradTr.x, gridVec.x);
+            float yTop = mix(gradTl.y, gradTr.y, gridVec.x);
+            float x = mix(xBot, xTop, gridVec.y);
+            float y = mix(yBot, yTop, gridVec.y);
+            vec2 colVec = vec2(x, y);
+
+            //gridVec = vec2(quintic(gridVec.x), quintic(gridVec.y));
+          
+            float ibot = x + y + x * x + y * y;
+            return ibot;
+        }
+
+        float fbmPerlinNoise(vec2 uv)
+        {
+            float fbmNoise = 0.0;
+            float amplitude = 1.0;
+            const int octaves = 1;
+            
+            for (int i = 0; i < octaves; i++)
+            {
+                fbmNoise += perlinNoise(uv) * amplitude;
+                amplitude *= 0.5;
+                uv *= 2.0;
+            }
+
+            return fbmNoise;
+        }
+
+        float domainWarpNoise(vec2 uv)
+        {
+            float fbm1 = fbmPerlinNoise(uv + vec2(3.2, 2.6));
+            float fbm2 = fbmPerlinNoise(uv + vec2(1.1, 4.3));
+            
+            // float fbm3 = fbmPerlinNoise(vec2(fbm1, fbm2) + vec2(3.1, 2.5));
+            // float fbm4 = fbmPerlinNoise(vec2(fbm1, fbm2) + vec2(0.6, 2.3));
+            
+            return fbmPerlinNoise(vec2(fbm1, fbm2));
+        }
+
+        vec3 calcNormal(vec2 uv)
+        {
+            float diff = 0.001;
+            float p1 = domainWarpNoise(uv + vec2(diff, 0.0));
+            float p2 = domainWarpNoise(uv - vec2(diff, 0.0));
+            float p3 = domainWarpNoise(uv + vec2(0.0, diff));
+            float p4 = domainWarpNoise(uv - vec2(0.0, diff));
+            
+            vec3 normal = normalize(vec3(p1 - p2, p3 - p4, diff));
+            return normal;
+        }
+
+        vec3 diffuseLighting(vec3 normal, vec3 lightColor)
+        {
+          vec3 lightSource = vec3(1., 1., 1.);
+          float diffuseStrength = max(0., dot(lightSource, normal));
+          vec3 diffuse = diffuseStrength * lightColor;
+
+          return diffuse;
+        }
+
+        vec3 specularLighting(vec3 normal, vec3 lightColor)
+        {
+          vec3 lightSource = vec3(1., 1., 1.);
+          vec3 cameraSource = vec3(0., 0., 1.);
+          vec3 viewSource = normalize(cameraSource);
+          vec3 reflectSource = normalize(reflect(-lightSource, normal));
+          float specularStrength = max(0.0, dot(viewSource, reflectSource));
+          specularStrength = pow(specularStrength, 20.);
+          vec3 specular = specularStrength * lightColor;
+
+          return specular;
+        }
+
+        void main()
+        {
+            // BORING COORDINATES STUFF
+            vec2 ndc = (gl_FragCoord.xy / u_resolution.xy) * 2.0 - 1.0;
+            vec4 clipSpacePos = vec4(ndc, gl_FragCoord.z, 1.0);
+            vec4 viewSpacePos = inverse(projectionMatrix) * clipSpacePos;
+            vec4 worldSpacePos = inverse(viewMatrix) * viewSpacePos;
+            vec2 pos = worldSpacePos.xy;
+            
+            // NOW, ALGO TIME
+
+            pos *= 4.;
+            vec3 color = vec3(0.3, 1., 0.7);
+            vec3 paletteCol = vec3(0.0);
+            float noiseValue = 0.0;
+            
+            // paletteCol = palette(gridId.x * 20. + u_time / 10000.) / 3.;
+            // noiseValue = domainWarpNoise(pos);
+            // noiseValue = perlinNoise(pos);
+            // noiseValue = abs(noiseValue);
+            // noiseValue = clamp(noiseValue, 0., 1.);
+            noiseValue = ibotNoise(pos);
+
+            // vec3 normal = calcNormal(pos);
+            // vec3 lighting = diffuseLighting(normal, color) * 0.5;
+            // lighting += specularLighting(normal, color) * 0.5;
+
+            if (noiseValue > 0.4)
+                noiseValue *= 1.3;
+            if (noiseValue > 0.7)
+                noiseValue *= 1.3;
+            if (noiseValue > 0.9)
+                noiseValue *= 0.5;
+            if (noiseValue > 0.8)
+                noiseValue *= 0.3;
+            color *= noiseValue;
+            // color = lighting;
+            gl_FragColor = vec4(color, 1.0);
+        }
+        `
+    });
+    let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
+    tools.scene.add(background);
+
     // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
       {printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
