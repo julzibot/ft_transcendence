@@ -11,7 +11,8 @@ export default function RegisterPage() {
   const [data, setData] = useState({
     login:'',
     email:'',
-    password:''
+    password:'',
+    rePass:''
   });
   const router = useRouter();
 
@@ -56,6 +57,10 @@ export default function RegisterPage() {
               <div className="mb-3">
                 <label htmlFor="password" className="form-label">Password</label>
                 <input type="password" className="form-control"value={data.password} onChange={(e) => setData({...data, password: e.target.value})}/>
+              </div>
+              <div className="mb-3">
+                <label htmlFor="re-password" className="form-label">Confirm Password</label>
+                <input type="password" className="form-control" value={data.rePass} onChange={(e) => setData({...data, rePass: e.target.value})}/>
               </div>
               <button type="submit" className="btn btn-dark fw-bold">Submit</button>
             </form>

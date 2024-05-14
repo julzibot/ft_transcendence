@@ -18,11 +18,10 @@ export default function SigninPage() {
   async function loginUser(e: React.FormEvent<HTMLInputElement>) {
     e.preventDefault();
     signIn('credentials', {
-      ...data,
-      redirect: false
+      ...data
       }
     )
-    router.push('/dashboard')
+    router.push('/')
   }
   return (
     <>  
