@@ -1,6 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import FortyTwoProvider from "next-auth/providers/42-school";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { JWT } from "next-auth/jwt";
 
 const backend_url = process.env.BACKEND_URL
 
@@ -40,7 +41,6 @@ export const authOptions: NextAuthOptions = {
         }
       },
       async authorize(credentials) {
-        console.log(credentials)
         const res = await fetch(`${backend_url}/api/auth/signin/`, {
           method: "POST",
           headers: {'Content-Type': 'application/json'},
@@ -60,10 +60,15 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({token, trigger, session, user}) {
-      // if user is loging in, call backend api that returns user info and backend token
+    async jwt({token, trigger, session, user, account}) {
+      // if user is loging in, call backend api that returns user info and backend token)
       if(user) {
-        const res = await fetch(`${backend_url}/api/auth/access_token/`, {
+        let backendUrl
+        if (account?.provider === '42-school')
+          backendUrl = `${backend_url}/api/auth/oauth/`
+        else
+          backendUrl = `${backend_url}/api/auth/access_token/`
+        const res = await fetch(backendUrl, {
           method: "POST",
           headers: {"Content-type": "application/json"},
           body: JSON.stringify({user})

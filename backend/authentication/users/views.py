@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import (TokenRefreshView)
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -55,13 +55,38 @@ class CustomTokenRefreshView(TokenRefreshView):
 class RegisterView(APIView):
   def post(self, request):
     data = request.data['data']
-    if not 'email' in data or not 'login' in data or not 'password' in data:
+    if not 'email' in data or not 'login' in data or not 'password' in data or not 'rePass' in data:
       return Response({'message': 'email, login and password are required'}, status=status.HTTP_400_BAD_REQUEST)
     if  UserAccount.objects.filter(login=data['login']).exists() or UserAccount.objects.filter(email=data['email']).exists():
       return Response({'message': 'user already exists'}, status=status.HTTP_409_CONFLICT)
+    if data['password'] != data['rePass']:
+      return Response({'message: passwords does not match'}, status=status.HTTP_400_BAD_REQUEST)
     user = UserAccount.objects.create(login=data['login'], email=data['email'], password=make_password(data['password']))
     serializer = UserAccountSerializer(user)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+class OauthView(APIView):
+  def post(self, request):
+    data = request.data['user']
+    try:
+      user = UserAccount.objects.get(email=data['email'])
+    except ObjectDoesNotExist:
+      serializer = UserAccountSerializer(data=data)
+      serializer.is_valid(raise_exception=True)
+      user = UserAccount.objects.create(**data)
+    backendTokens = get_tokens_for_user(user)
+    response = Response({
+      'user': {
+        'id': user.id,
+        'login': user.login,
+        'nick_name': user.nick_name,
+        'email': user.email,
+        'image': user.image,
+      },
+      'backendTokens': backendTokens
+    })
+    return response
+
 
 class AccessTokenView(APIView):
   def post(self, request):
@@ -101,6 +126,11 @@ class SigninView(APIView):
         user = UserAccount.objects.get(email=data['email'])
       except ObjectDoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+      if not check_password(data['password'], user.password):
+        return Response({
+          "error": "Unauthorized",
+          "message": "The password provided does not match our records. Please double-check your password and try again."
+        }, status=status.HTTP_401_UNAUTHORIZED)
       response = Response({
         'id': user.id,
         'login': user.login,
