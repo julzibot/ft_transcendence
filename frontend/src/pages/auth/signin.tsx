@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import Image from "next/image"
 import Link from "next/link"
 import {useState} from "react"
+import "bootstrap/dist/css/bootstrap.min.css"
 
-export default function SigninPage() {
+export default function SignIn() {
   const [data, setData] = useState({
     login:'',
     email:'',
@@ -18,10 +19,12 @@ export default function SigninPage() {
   async function loginUser(e: React.FormEvent<HTMLInputElement>) {
     e.preventDefault();
     signIn('credentials', {
-      ...data
+      ...data,
+      redirect: true,
+      callbackUrl: '/'
       }
     )
-    router.push('/')
+    // router.push('/')
   }
   return (
     <>  
@@ -29,7 +32,10 @@ export default function SigninPage() {
         <div className="card shadow-lg text-center rounded-1 border-0">
           <div className="card-header fs-2 fw-bold">Sign in to your account</div>
           <div className="card-body">
-            <button className="btn btn-dark  fs-4 fw-bold"onClick={() => signIn('42-school')}>
+            <button className="btn btn-dark  fs-4 fw-bold"onClick={() => signIn('42-school', {
+              redirect: true,
+              callbackUrl: "/"
+            })}>
             Sign in with
             <Image
                 className="ms-1 me-1"
@@ -54,7 +60,7 @@ export default function SigninPage() {
             </form>
           </div>
           <div className="card-footer">Not Registered Yet ? 
-            <Link className="text-decoration-none"href="/register"> Register</Link>
+            <Link className="text-decoration-none"href="/auth/register"> Register</Link>
           </div>
         </div>
       </div>
