@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react"
 import Image from "next/image"
 import Link from "next/link"
+import "bootstrap/dist/css/bootstrap.min.css"
 
-export default function RegisterPage() {
+export default function Register() {
   const [data, setData] = useState({
     login:'',
     email:'',
@@ -24,7 +25,7 @@ export default function RegisterPage() {
       body: JSON.stringify({data})
     })
     if(response.ok)
-      router.push('/signin')
+      router.push('/auth/signin')
   }
 
   return (
@@ -66,7 +67,7 @@ export default function RegisterPage() {
             </form>
           </div>
           <div className="card-footer">Already have an account ?
-            <Link className="text-decoration-none"href="/signin"> Sign In</Link>
+            <Link className="text-decoration-none"href="/auth/signin"> Sign In</Link>
           </div>
         </div>
       </div>

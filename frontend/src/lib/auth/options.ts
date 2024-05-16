@@ -20,6 +20,7 @@ async function refreshToken(token: JWT): Promise<JWT> {
 export const authOptions: NextAuthOptions = {
   providers: [
     FortyTwoProvider({
+      id: '42-school',
       clientId: process.env.FORTY_TWO_CLIENT_ID as string,
       clientSecret: process.env.FORTY_TWO_CLIENT_SECRET as string,
       profile(profile) {
@@ -33,12 +34,11 @@ export const authOptions: NextAuthOptions = {
       }
     }),
     CredentialsProvider({
+      id: 'credentials',
       name: "Credentials",
       credentials: {
-        user: {
           email: { label: "Email", type: "email", placeholder: "jdoe@example.com"},
           password: { label: "Password", type: "password"}
-        }
       },
       async authorize(credentials) {
         const res = await fetch(`${backend_url}/api/auth/signin/`, {
@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
   ],
 
   pages: {
-    signIn: "/signin"
+    signIn: "/auth/signin"
   },
 
   callbacks: {
