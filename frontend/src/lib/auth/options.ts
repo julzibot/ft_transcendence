@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
           login: profile.login,
           nick_name: profile.first_name,
           email: profile.email,
-          image: profile.image.versions.medium
+          image_url: profile.image.versions.medium
         }
       }
     }),

@@ -74,6 +74,9 @@ class OauthView(APIView):
       serializer = UserAccountSerializer(data=data)
       serializer.is_valid(raise_exception=True)
       user = UserAccount.objects.create(**data)
+      user.save_image_from_url()
+
+    
     backendTokens = get_tokens_for_user(user)
     response = Response({
       'user': {
@@ -81,7 +84,7 @@ class OauthView(APIView):
         'login': user.login,
         'nick_name': user.nick_name,
         'email': user.email,
-        'image': user.image,
+        'image': request.build_absolute_uri(user.image.url)
       },
       'backendTokens': backendTokens
     })

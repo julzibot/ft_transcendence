@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from faker import Faker
+from django.core.files.temp import NamedTemporaryFile
+import requests, os
+from django.core.files import File
 
 fake = Faker()
 class UserAccountManager(BaseUserManager):
@@ -30,16 +33,23 @@ class UserAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+def upload_image_to(instance, filename):
+    # Generate a new filename
+    extension = filename.split('.')[-1]
+    new_filename = f"{instance.id}.{extension}"
+    return os.path.join('images/', new_filename)
+
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     login = models.CharField(max_length=60, unique=True)
-    nick_name = models.CharField(max_length=60, default=fake.name())
+    nick_name = models.CharField(max_length=60, default=fake.name)
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
         unique=True
     )
-    image = models.CharField(max_length=255, blank=True, null=True, default="https://t4.ftcdn.net/jpg/02/15/84/43/240_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg") # find a way to store a default profile picture
+    image = models.ImageField(upload_to=upload_image_to, blank=True, null=True)
+    image_url = models.URLField(max_length=512, default="https://t4.ftcdn.net/jpg/02/15/84/43/240_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg")
     password = models.CharField(max_length=255)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
@@ -55,3 +65,21 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+    def save_image_from_url(self):
+        r = requests.get(self.image_url)
+
+        if r.status_code == 200:
+            print('ok')
+            img_temp = NamedTemporaryFile(delete=True)
+            img_temp.write(r.content)
+            img_temp.flush()
+            try:
+                self.image.save(self.image_url, File(img_temp), save=True)
+            except:
+                print("Failed downloading image from ", self.image_url)
+                return False
+            else:
+                return True
+        else:
+            return False
