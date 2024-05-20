@@ -8,7 +8,9 @@ import { vars, objs, csts} from '../../utils/algo';
 
 let keys = {};
 const tools = {};
+const trail = {};
 const particleEffects = [];
+const trailSegments = [];
 let game_id = 0;
 let put_response = false;
 const startTime = performance.now();
@@ -16,12 +18,69 @@ tools.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.inner
 const uniformData = {
   u_time:
   { type: 'f', value: performance.now() - startTime },
-  u_resolution: { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+  u_ballpos:
+  { type: 'f', value: 0. },
+  u_resolution:
+  { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
   projectionMatrix:
   { value: tools.camera.projectionMatrix },
   viewMatrix:
   { value: tools.camera.matrixWorldInverse }
 };
+
+const trailFragmentShader = `
+        
+uniform float u_time;
+varying vec3 vertexNormal;
+uniform vec2  u_resolution;
+uniform mat4 projectionMatrix;
+
+void main()
+{
+    // BORING COORDINATES STUFF
+    vec2 ndc = (gl_FragCoord.xy / u_resolution.xy) * 2.0 - 1.0;
+    vec4 clipSpacePos = vec4(ndc, gl_FragCoord.z, 1.0);
+    vec4 viewSpacePos = inverse(projectionMatrix) * clipSpacePos;
+    vec4 worldSpacePos = inverse(viewMatrix) * viewSpacePos;
+    vec3 pos = worldSpacePos.xyz;
+    
+    // NOW, ALGO TIME
+
+    vec3 color = vec3(0.0, 0.3, 1.);
+    float intensity = 1.;
+    intensity = (5. - pow(0.5 - dot(vertexNormal, vec3(0., 0., 1.)), 3.)) * 0.5;
+    float opacity = 0.7 - u_time / 200.;
+    gl_FragColor = vec4(color * intensity, opacity);
+}`;
+
+const trailVertexShader = `
+        
+uniform float u_time;
+uniform vec2  u_resolution;
+varying vec3 vertexNormal;
+// uniform mat4 projectionMatrix;
+
+vec3 randomize(vec3 pos)
+{
+    float x = dot(pos.yz, vec2(412., 198.));
+    float y = dot(pos.xz, vec2(276., 332.));
+    float z = dot(pos.xy, vec2(98., 165.));
+    vec3 gradient = vec3(x, y, z);
+    gradient = sin(gradient);
+    gradient = cos(gradient * 672. + u_time / 1000.);
+    return gradient;
+}
+
+void main()
+{
+    // NOW, ALGO TIME
+
+    vertexNormal = normalize(normalMatrix * normal);
+    vec3 displacedPos = position + normal * randomize(position);
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+}`
+
 
 function printGameInfo( font, textMesh, string, mode, fontsize )
 {
@@ -92,6 +151,7 @@ const scoringLogic = () =>
         console.log("Ouch ! Scores not updated !")
     }
     objs.ball.position.set(0, 0, 0);
+    objs.ballWrap.position.set(0, 0, 0);
     vars.ballSpeed = CONST.BASE_BALLSPEED;
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
     setBallColor();
@@ -170,15 +230,20 @@ const collisionLogic = () =>
     vars.dotProduct = vars.ballVect.dot(csts.gameVect);
     if (speedFactor < 0.3)
       speedFactor = 0.3;
-    for ( let i = 0.0; i < speedFactor * Math.abs(1 - vars.dotProduct) * 25; i ++ ) {
-      let x = objs.ball.position.x;
-      let y = objs.ball.position.y + topDownRebound * CONST.BALLRADIUS;
-      let z = objs.ball.position.z;
+    let x = objs.ball.position.x;
+    let y = objs.ball.position.y + topDownRebound * CONST.BALLRADIUS;
+    let z = objs.ball.position.z;
+    let light = new THREE.PointLight( objs.ball.material.color, 15, 42);
+    light.position.set(x, y, z);
+    let vecx = 0.0;
+    let vecy = 0.0;
+    let vecz = 0.0;
+    for ( let i = 0.0; i < speedFactor * Math.abs(vars.dotProduct) * 25; i ++ ) {
       vertices.push(x, y, z);
-      x = THREE.MathUtils.randFloatSpread( 1 * speedFactor);
-      y = THREE.MathUtils.randFloatSpread( 0.1 * speedFactor) * -topDownRebound;
-      z = THREE.MathUtils.randFloatSpread( 0.3 * speedFactor);
-      speedVecs.push(x, y, z)
+      vecx = THREE.MathUtils.randFloatSpread( 0.8 * speedFactor);
+      vecy = THREE.MathUtils.randFloatSpread( 0.1 * speedFactor) * -topDownRebound;
+      vecz = THREE.MathUtils.randFloatSpread( 0.5 * speedFactor);
+      speedVecs.push(vecx, vecy, vecz)
     }
 
     const geometry = new THREE.BufferGeometry();
@@ -187,11 +252,12 @@ const collisionLogic = () =>
     // let particleColor = Math.min(objs.ball.material.color >> 16 % 256 * 2, 255) << 16 | Math.min(objs.ball.material.color % 256 * 2, 255);
     let particleColor = 0xffffff;
     let particleSize = vars.adjustedBallSpeed / CONST.BALLSPEED_MAX / 5;
-    const material = new THREE.PointsMaterial( { color: particleColor, size: particleSize, emissive: particleColor, emissiveIntensity: 1.} );
+    const material = new THREE.PointsMaterial( { color: particleColor, size: particleSize, emissive: particleColor, emissiveIntensity: 10.} );
     let points = new THREE.Points( geometry, material );
     const impactTime = performance.now();
-    particleEffects.push([points, impactTime]);
+    particleEffects.push([points, impactTime, light]);
     tools.scene.add( points );
+    tools.scene.add( light );
   }
 
 }
@@ -220,6 +286,7 @@ const update = () =>
   }
   if (keys['KeyR']) {
     objs.ball.position.set(0,0,0);
+    objs.ballWrap.position.set(0,0,0);
     vars.ballSpeed = CONST.BASE_BALLSPEED;
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
     vars.ballVect.set(-1, 0, 0);
@@ -238,6 +305,10 @@ const update = () =>
     tools.camera.position.set(0, 0, 20);
     tools.camera.lookAt(0, 0, 0);
     vars.stopGame = false;
+  }
+  if (keys['KeyP']) {
+    let pauseStart = performance.now();
+    while (performance.now() - pauseStart < 2000) ;
   }
 }
 
@@ -292,11 +363,51 @@ const animate = () =>
   
   if (vars.stopGame == true)
     vars.ballVect.set(0, 0);
+  
+  let ballFloor = Math.floor(objs.ball.position.x * 2.);
+  const speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED) / 2.5;
+  if ( ballFloor != vars.ballFloorPos )
+  {
+    // let segment = trail.ballTrail.clone();
+    let segment = new THREE.Mesh(trail.trailGeo.clone(), trail.trailMaterial.clone());
+    let direction = 1;
+    if (vars.ballVect.x > 0) direction = -1;
+    segment.position.x = objs.ball.position.x - vars.ballVect.x * (1. + segment.geometry.parameters.height / 2.);
+    segment.position.y = objs.ball.position.y - vars.ballVect.y * (1. + segment.geometry.parameters.height / 2.);
+    segment.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2 * direction);
+    segment.scale.y = Math.sqrt(1 + Math.pow(Math.abs(vars.ballVect.y / vars.ballVect.x), 2.))
+    * (1.1 + speedFactor * 0.6);
+    tools.scene.add(segment);
+    trailSegments.push([segment, performance.now()]);
+    vars.ballFloorPos = ballFloor;
+  }
+  if ( trailSegments.length > 0 && performance.now() - trailSegments[0][1] > 120 )
+  {
+    tools.scene.remove(trailSegments[0][0]);
+    trailSegments.shift();
+  }
+  for (let i = 0; i < trailSegments.length; i++)
+  {
+    // trailSegments[i][0].material.uniforms.u_time = performance.now() - trailSegments[i][1];
+    if (Math.abs(trailSegments[i][0].position.y) > CONST.GAMEHEIGHT / 2 - 1.5)
+      trailSegments[i][0].material.opacity = 0;
+    else
+      trailSegments[i][0].material.opacity = speedFactor - ((performance.now() - trailSegments[i][1]) / 120 * speedFactor);
+    trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - trailSegments[i][1]) / 120, 1.);
+  }
+
   objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
   objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
+  objs.ballWrap.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
+  objs.ballWrap.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
   csts.ballLight.position.x = objs.ball.position.x;
   csts.ballLight.position.y = objs.ball.position.y;
+  trail.ballTrail.position.x = objs.ball.position.x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+  trail.ballTrail.position.y = objs.ball.position.y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+  trail.ballTrail.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2);
+  trail.ballTrail.material.opacity = speedFactor;
 
+  
   vars.glowElapsed = performance.now() - vars.glowStartTime;
   if (vars.glowElapsed < 750)
   {
@@ -318,7 +429,11 @@ const animate = () =>
     if (particleElapsed > 750)
     {
       tools.scene.remove(particleEffects[0][0]);
-      particleEffects.shift();
+      if ( particleElapsed > 1000)
+      {
+        tools.scene.remove(particleEffects[0][2]);
+        particleEffects.shift();
+      }
     }
     else
     {
@@ -331,12 +446,11 @@ const animate = () =>
         positions[j + 2] += velocities[j + 2] * (particleElapsed / 1000);
       }
       particleEffects[i][0].geometry.attributes.position.needsUpdate = true;
-      if (particleElapsed < 200)
-        particleEffects[i][0].material.emissiveIntensity = 10.;
-      else
+      if (particleElapsed > 200)
       {
-        particleEffects[i][0].material.emissiveIntensity = 10. - (particleElapsed / 750);
-        particleEffects[i][0].material.opacity = 10. - (particleElapsed / 750);
+        particleEffects[i][2].intensity = 15. - (particleElapsed - 200) / 800 * 15.;
+        particleEffects[i][0].material.emissiveIntensity = 10. - (particleElapsed / 750) * 6.;
+        particleEffects[i][0].material.opacity = 10. - (particleElapsed / 750) * 5.;
       }
     }
   }
@@ -353,8 +467,6 @@ const animate = () =>
   // tools.camera.rotation.x = Math.PI / 2;
 
   uniformData.u_time.value = performance.now() - startTime;
-  // vars.uniformData.u_time.value = performance.now() - csts.startTime;
-  // vars.uniformData.u_time.value = performance.now() - csts.startTime;
   // vars.frametick += 1;
   tools.renderer.render(tools.scene, tools.camera);
 
@@ -382,6 +494,7 @@ export default function ThreeScene()
     document.body.appendChild( tools.stats.dom );
     
     tools.scene.add( objs.ball );
+    tools.scene.add( objs.ballWrap );
     tools.scene.add( objs.player1 );
     tools.scene.add( objs.player2 );
     tools.scene.add( objs.topB );
@@ -573,7 +686,7 @@ export default function ThreeScene()
             // NOW, ALGO TIME
 
             pos *= 4.;
-            vec3 color = vec3(0.3, 1., 0.7);
+            vec3 color = vec3(0.4, 1., 1.);
             vec3 paletteCol = vec3(0.0);
             float noiseValue = 0.0;
             
@@ -603,7 +716,25 @@ export default function ThreeScene()
         `
     });
     let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
+
+    trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
+    trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
+    // trail.trailMaterial = new THREE.ShaderMaterial({
+    //     side: THREE.BackSide,
+    //     transparent: true,
+    //     // opacity: 0.1,
+    //     uniforms: uniformData,
+    //     // blending: THREE.AdditiveBlending,
+    //     vertexShader: trailVertexShader,
+    //     fragmentShader: trailFragmentShader
+    // });
+    trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
+    trail.ballTrail.scale.y = 0.4;
+    trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
+    trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
+
     tools.scene.add(background);
+    tools.scene.add(trail.ballTrail);
 
     // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
