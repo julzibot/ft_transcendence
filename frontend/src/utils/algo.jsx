@@ -7,29 +7,37 @@ export const csts = {};
 export const vars = {};
 
 objs.sphereGeo = new THREE.SphereGeometry(CONST.BALLRADIUS, 40, 40);
+objs.ballGeo = new THREE.SphereGeometry(CONST.BALLRADIUS * 3/2, 40, 40);
 objs.playerGeo = new THREE.BoxGeometry(0.5, CONST.PLAYERLEN, 0.6);
 objs.upDownBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, 0.5, 3.0);
 // objs.BackgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
 objs.backBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, CONST.GAMEHEIGHT, 0.5)
+// objs.trailGeo = new THREE.CylinderGeometry(0.8 * CONST.BALLRADIUS, 0.8 * CONST.BALLRADIUS, 0.5, 30);
 
 objs.sphereMaterial = new THREE.MeshPhongMaterial( { color: CONST.BALL_COLOR, emissive: CONST.BALL_COLOR, emissiveIntensity: 0.25 } );
+objs.ballMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, opacity: 0.2, transparent: true } );
+// objs.trailMaterial = new THREE.ShaderMaterial( {color: 0xffffff, opacity: 1., transparent: true} );
 objs.boundaryMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff, opacity: 0.8, transparent: true } );
 objs.playerMaterial = new THREE.MeshStandardMaterial( { color: 0xff00ff } );
 
 
 objs.ball = new THREE.Mesh( objs.sphereGeo, objs.sphereMaterial );
+objs.ballWrap = new THREE.Mesh( objs.ballGeo, objs.ballMaterial );
 objs.player1 = new THREE.Mesh( objs.playerGeo, objs.playerMaterial );
 objs.player2 = new THREE.Mesh( objs.playerGeo, objs.playerMaterial );
 objs.topB = new THREE.Mesh( objs.upDownBoundary, objs.boundaryMaterial );
 objs.botB = new THREE.Mesh( objs.upDownBoundary, objs.boundaryMaterial );
 // objs.background = new THREE.Mesh( objs.BackgroundGeo, objs.BackgroundMaterial );
 objs.backB = new THREE.Mesh( objs.backBoundary, objs.boundaryMaterial );
+// objs.ballTrail = new THREE.Mesh( objs.trailGeo, objs.trailMaterial );
 
 objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
 objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
 objs.topB.position.set(0, CONST.GAMEHEIGHT / 2, -1);
 objs.botB.position.set(0, -CONST.GAMEHEIGHT / 2, -1);
 objs.backB.position.set(0, 0, -1.6);
+// objs.ballTrail.position.set(0.9, 0, 0);
+// objs.ballTrail.rotation.set(0, 0, Math.PI / 2);
 
 
 csts.topHB = new THREE.Box3().setFromObject(objs.topB);
@@ -58,6 +66,8 @@ vars.ballVect = new THREE.Vector2(-1, 0);
 vars.ballSpeed = CONST.BASE_BALLSPEED;
 vars.playerspeed = [CONST.BASE_PLAYERSPEED, CONST.BASE_PLAYERSPEED];
 vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
+vars.ballFloorPos = 0;
+// vars.trailSegments = [];
 
 vars.dotProduct = 0;
 vars.stopGame = false;
