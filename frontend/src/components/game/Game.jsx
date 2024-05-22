@@ -15,11 +15,10 @@ let game_id = 0;
 let put_response = false;
 const startTime = performance.now();
 tools.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
 const uniformData = {
   u_time:
   { type: 'f', value: performance.now() - startTime },
-  u_ballpos:
-  { type: 'f', value: 0. },
   u_resolution:
   { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
   projectionMatrix:
@@ -28,58 +27,64 @@ const uniformData = {
   { value: tools.camera.matrixWorldInverse }
 };
 
-const trailFragmentShader = `
-        
-uniform float u_time;
-varying vec3 vertexNormal;
-uniform vec2  u_resolution;
-uniform mat4 projectionMatrix;
+const sparkUniform = {
+  u_time:
+  { type: 'f', value: 0. },
+  // u_resolution:
+  // { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+  // projectionMatrix:
+  // { value: camera.projectionMatrix },
+  // viewMatrix:
+  // { value: camera.matrixWorldInverse },
 
-void main()
-{
-    // BORING COORDINATES STUFF
-    vec2 ndc = (gl_FragCoord.xy / u_resolution.xy) * 2.0 - 1.0;
-    vec4 clipSpacePos = vec4(ndc, gl_FragCoord.z, 1.0);
-    vec4 viewSpacePos = inverse(projectionMatrix) * clipSpacePos;
-    vec4 worldSpacePos = inverse(viewMatrix) * viewSpacePos;
-    vec3 pos = worldSpacePos.xyz;
-    
-    // NOW, ALGO TIME
+  u_sizeFactor:
+  { value: window.innerHeight / (2.0 * Math.tan(0.5 * 60. * Math.PI / 180.)) },
+  u_texture:
+  { type: 't', value: new THREE.TextureLoader().load('../../spark.png') }
+};
 
-    vec3 color = vec3(0.0, 0.3, 1.);
-    float intensity = 1.;
-    intensity = (5. - pow(0.5 - dot(vertexNormal, vec3(0., 0., 1.)), 3.)) * 0.5;
-    float opacity = 0.7 - u_time / 200.;
-    gl_FragColor = vec4(color * intensity, opacity);
-}`;
+const sparkVs = `
+    uniform float u_time;
+    uniform float u_sizeFactor;
 
-const trailVertexShader = `
-        
-uniform float u_time;
-uniform vec2  u_resolution;
-varying vec3 vertexNormal;
-// uniform mat4 projectionMatrix;
+    attribute float size;
+    // varying vec2 vUv;
 
-vec3 randomize(vec3 pos)
-{
-    float x = dot(pos.yz, vec2(412., 198.));
-    float y = dot(pos.xz, vec2(276., 332.));
-    float z = dot(pos.xy, vec2(98., 165.));
-    vec3 gradient = vec3(x, y, z);
-    gradient = sin(gradient);
-    gradient = cos(gradient * 672. + u_time / 1000.);
-    return gradient;
-}
+    vec3 randomize(vec3 pos)
+    {
+        float x = dot(pos.yz, vec2(412., 198.));
+        float y = dot(pos.xz, vec2(276., 332.));
+        float z = dot(pos.xy, vec2(98., 165.));
+        vec3 gradient = vec3(x, y, z);
+        gradient = sin(gradient);
+        gradient = cos(gradient * 672. + u_time / 1000.);
+        return gradient;
+    }
 
-void main()
-{
-    // NOW, ALGO TIME
+    void main()
+    {
+        // vUv = uv;
 
-    vertexNormal = normalize(normalMatrix * normal);
-    vec3 displacedPos = position + normal * randomize(position);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+        gl_PointSize = size * u_sizeFactor * gl_Position.w;
+    }
+`;
 
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-}`
+const sparkFs = `
+    uniform float u_time;
+    uniform float u_sizeFactor;
+    uniform sampler2D u_texture;
+
+    // varying vec2 vUv;
+
+    void main()
+    {
+      vec4 color = texture(u_texture, gl_PointCoord);
+      // vec4 intensity = vec4(1., 1., 1., u_sizeFactor * 0.2);
+      vec4 decay = vec4(1., 1., 1., 1. - u_time / 800.);
+      gl_FragColor = color * decay;
+    }
+`;
 
 
 function printGameInfo( font, textMesh, string, mode, fontsize )
@@ -226,40 +231,55 @@ const collisionLogic = () =>
 
     const vertices = [];
     const speedVecs = [];
+    const sizes = [];
     let speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED);
     vars.dotProduct = vars.ballVect.dot(csts.gameVect);
     if (speedFactor < 0.3)
       speedFactor = 0.3;
     let x = objs.ball.position.x;
-    let y = objs.ball.position.y + topDownRebound * CONST.BALLRADIUS;
+    let y = objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3/2);
     let z = objs.ball.position.z;
     let light = new THREE.PointLight( objs.ball.material.color, 15, 42);
     light.position.set(x, y, z);
     let vecx = 0.0;
     let vecy = 0.0;
     let vecz = 0.0;
-    for ( let i = 0.0; i < speedFactor * Math.abs(vars.dotProduct) * 25; i ++ ) {
+    for ( let i = 0.0; i < speedFactor * Math.abs(vars.dotProduct) * 25; i++ ) {
       vertices.push(x, y, z);
-      vecx = THREE.MathUtils.randFloatSpread( 0.8 * speedFactor);
-      vecy = THREE.MathUtils.randFloatSpread( 0.1 * speedFactor) * -topDownRebound;
-      vecz = THREE.MathUtils.randFloatSpread( 0.5 * speedFactor);
-      speedVecs.push(vecx, vecy, vecz)
+      vecx = THREE.MathUtils.randFloatSpread( 0.8 * speedFactor );
+      vecy = (THREE.MathUtils.randFloatSpread( 0.1 * speedFactor ) + 0.1 * speedFactor) * -topDownRebound;
+      vecz = THREE.MathUtils.randFloatSpread( 0.5 * speedFactor );
+      speedVecs.push(vecx, vecy, vecz);
+      sizes.push(Math.max(1.3 * speedFactor - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.3));
     }
 
+    console.log(sizes);
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
     geometry.setAttribute( 'velocity', new THREE.Float32BufferAttribute( speedVecs, 3 ) );
+    geometry.setAttribute( 'size', new THREE.Float32BufferAttribute( sizes, 1 ) );
     // let particleColor = Math.min(objs.ball.material.color >> 16 % 256 * 2, 255) << 16 | Math.min(objs.ball.material.color % 256 * 2, 255);
-    let particleColor = 0xffffff;
-    let particleSize = vars.adjustedBallSpeed / CONST.BALLSPEED_MAX / 5;
-    const material = new THREE.PointsMaterial( { color: particleColor, size: particleSize, emissive: particleColor, emissiveIntensity: 10.} );
+    // const textureLoader = new THREE.TextureLoader();
+    let particleSize = Math.max( 1., speedFactor * 3.);
+    sparkUniform.u_sizeFactor.value = particleSize;
+    // textureLoader.load('../../utils/spark.png', function (texture)
+    // { applySparkTexture(texture, particleSize, particleEffects, light) });
+    const material = new THREE.ShaderMaterial({
+      uniforms: sparkUniform,
+      vertexShader: sparkVs,
+      fragmentShader: sparkFs,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      vertexColors: true,
+      depthTest: true,
+      depthWrite: false
+      }); 
     let points = new THREE.Points( geometry, material );
     const impactTime = performance.now();
     particleEffects.push([points, impactTime, light]);
     tools.scene.add( points );
     tools.scene.add( light );
   }
-
 }
 
 const update = () =>
@@ -426,7 +446,7 @@ const animate = () =>
   for (let i = 0; i < particleEffects.length; i++)
   {
     let particleElapsed = performance.now() - particleEffects[i][1];
-    if (particleElapsed > 750)
+    if (particleElapsed > 600)
     {
       tools.scene.remove(particleEffects[0][0]);
       if ( particleElapsed > 1000)
@@ -439,19 +459,19 @@ const animate = () =>
     {
       let positions = particleEffects[i][0].geometry.attributes.position.array;
       let velocities = particleEffects[i][0].geometry.attributes.velocity.array;
+      let initialSpeedBoost = 1.;
+      if (particleElapsed < 250)
+        initialSpeedBoost += 1 - particleElapsed / 250; 
       for (let j = 0; j < positions.length; j += 3)
       {
-        positions[j] += velocities[j] * (particleElapsed / 1000);
-        positions[j + 1] += velocities[j + 1] * (particleElapsed / 1000);
-        positions[j + 2] += velocities[j + 2] * (particleElapsed / 1000);
+        positions[j] += velocities[j] * initialSpeedBoost * (particleElapsed / 1000);
+        positions[j + 1] += velocities[j + 1] * initialSpeedBoost * (particleElapsed / 1000);
+        positions[j + 2] += velocities[j + 2] * initialSpeedBoost * (particleElapsed / 1000);
       }
       particleEffects[i][0].geometry.attributes.position.needsUpdate = true;
-      if (particleElapsed > 200)
-      {
-        particleEffects[i][2].intensity = 15. - (particleElapsed - 200) / 800 * 15.;
-        particleEffects[i][0].material.emissiveIntensity = 10. - (particleElapsed / 750) * 6.;
-        particleEffects[i][0].material.opacity = 10. - (particleElapsed / 750) * 5.;
-      }
+      particleEffects[i][0].geometry.attributes.size.needsUpdate = true;
+      if (particleElapsed > 250)
+        sparkUniform.u_time.value = particleElapsed;
     }
   }
 
