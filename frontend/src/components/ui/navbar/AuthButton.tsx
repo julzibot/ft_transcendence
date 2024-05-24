@@ -21,7 +21,7 @@ export default function AuthButton() {
               session.user.image ? (
                 <>
                   <Image className="rounded-circle me-2"
-                    src={session.user.image}
+                    src={`http://backend:8000${session.user.image}`}
                     width={28}
                     height={25}
                     alt="42 session picture"

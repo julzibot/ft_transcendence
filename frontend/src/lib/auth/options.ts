@@ -81,6 +81,7 @@ export const authOptions: NextAuthOptions = {
       }
       if(trigger === 'update' && session?.name) {
         token.name = session.name
+        token.image = session.image
       }
       if(new Date().getTime() / 1000 < token.backendTokens.expiresIn) {
         return token
