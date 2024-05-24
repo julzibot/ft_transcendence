@@ -55,13 +55,13 @@ class CustomTokenRefreshView(TokenRefreshView):
 class RegisterView(APIView):
   def post(self, request):
     data = request.data['data']
-    if not 'email' in data or not 'login' in data or not 'password' in data or not 'rePass' in data:
+    if len(data['email']) < 1 or len(data['login']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
       return Response({'message': 'email, login and password are required'}, status=status.HTTP_400_BAD_REQUEST)
     if  UserAccount.objects.filter(login=data['login']).exists() or UserAccount.objects.filter(email=data['email']).exists():
-      return Response({'message': 'user already exists'}, status=status.HTTP_409_CONFLICT)
+      return Response({'message': 'user already exists try another email or login'}, status=status.HTTP_409_CONFLICT)
     if data['password'] != data['rePass']:
-      return Response({'message: passwords does not match'}, status=status.HTTP_400_BAD_REQUEST)
-    user = UserAccount.objects.create(login=data['login'], email=data['email'], password=make_password(data['password']))
+      return Response({'message': 'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
+    user = UserAccount.objects.create(login=data['login'], nick_name=data['nick_name'], email=data['email'], password=make_password(data['password']))
     user.save_image_from_url()
     serializer = UserAccountSerializer(user)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -118,10 +118,12 @@ class AccessTokenView(APIView):
 class SigninView(APIView):
     def post(self, request):
       data = request.data['user']
+      if len(data['email']) < 1:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
       try:
         user = UserAccount.objects.get(email=data['email'])
       except ObjectDoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response({'message': 'User does not exists, try different credentials'}, status=status.HTTP_404_NOT_FOUND)
       if not check_password(data['password'], user.password):
         return Response({
           "error": "Unauthorized",

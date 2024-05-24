@@ -1,7 +1,7 @@
 "use client";
 
 import "react"
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react"
 import Image from "next/image"
@@ -11,21 +11,35 @@ import "bootstrap/dist/css/bootstrap.min.css"
 export default function Register() {
   const [data, setData] = useState({
     login:'',
+    nick_name: '',
     email:'',
     password:'',
     rePass:''
   });
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter();
 
-  async function registerUser(e: React.FormEvent<HTMLInputElement>) {
+  async function registerUser(e: FormEvent<HTMLInputElement>) {
     e.preventDefault()
-    const response = await fetch('http://localhost:8000/api/auth/register/', {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({data})
-    })
-    if(response.ok)
-      router.push('/auth/signin')
+    setError(null)
+
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/register/', {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({data})
+      })
+      const res = await response.json()
+      if(!response.ok) {
+        throw new Error(res.message)
+      }
+      else(
+        router.push('/auth/signin')
+      )
+    } 
+    catch(error) {
+      setError(error.message)
+    }
   }
 
   return (
@@ -34,22 +48,15 @@ export default function Register() {
         <div className="card shadow-lg text-center rounded-1 border-0">
           <div className="card-header fs-2 fw-bold">Register a new account</div>
           <div className="card-body">
-            <button className="btn btn-dark fs-4 fw-bold"onClick={() => signIn('42-school')}>
-            Register with
-            <Image
-                className="ms-1 me-1"
-                src="/static/images/42.png"
-                style={{filter: "invert(100%)"}}
-                width={30}
-                height={30}
-                alt="42 Logo"
-              />
-            </button>
-            <p className="mt-2">Or</p>
             <form onSubmit={registerUser}>
               <div className="mb-3">
                 <label htmlFor="login" className="form-label" >Login</label>
                 <input type="text" id="login" className="form-control" value={data.login} onChange={(e) => setData({...data, login: e.target.value})}/>
+              </div>
+              <div className="mb-3">
+                <label htmlFor="nick-name" className="form-label" >Nick Name</label>
+                <input type="text" id="nick-name" className ="form-control"value={data.nick_name} onChange={(e) => setData({...data, nick_name: e.target.value})}/>
+                <div className="form-text">Will be displayed to other players</div>
               </div>
               <div className="mb-3">
                 <label htmlFor="email" className="form-label" >Email address</label>
@@ -63,6 +70,7 @@ export default function Register() {
                 <label htmlFor="re-password" className="form-label">Confirm Password</label>
                 <input type="password" className="form-control" value={data.rePass} onChange={(e) => setData({...data, rePass: e.target.value})}/>
               </div>
+              <div className="form-text text-danger">{error}</div>
               <button type="submit" className="btn btn-dark fw-bold">Submit</button>
             </form>
           </div>
