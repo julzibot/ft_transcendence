@@ -1,11 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
-from faker import Faker
 from django.core.files.temp import NamedTemporaryFile
 import requests, os
 from django.core.files import File
 
-fake = Faker()
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **kwargs):
         if not email:
@@ -28,6 +26,7 @@ class UserAccountManager(BaseUserManager):
             password=password,
             **kwargs,
         )
+        user.save_image_from_url()
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self._db)
@@ -42,7 +41,7 @@ def upload_image_to(instance, filename):
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     login = models.CharField(max_length=60, unique=True)
-    nick_name = models.CharField(max_length=60, default=fake.name)
+    nick_name = models.CharField(max_length=60, default=f"user{id}")
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
@@ -50,6 +49,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     )
     image = models.ImageField(upload_to=upload_image_to, blank=True, null=True)
     image_url = models.URLField(max_length=512, default="https://t4.ftcdn.net/jpg/02/15/84/43/240_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg")
+
     password = models.CharField(max_length=255)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
@@ -70,7 +70,6 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         r = requests.get(self.image_url)
 
         if r.status_code == 200:
-            print('ok')
             img_temp = NamedTemporaryFile(delete=True)
             img_temp.write(r.content)
             img_temp.flush()

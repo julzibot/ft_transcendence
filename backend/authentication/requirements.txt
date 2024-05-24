@@ -6,7 +6,6 @@ django-requests
 python-dotenv
 PyJWT
 psycopg2-binary
-Faker
 channels[daphne]
 channels_redis
 Pillow

@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation";
 import Image from "next/image"
 import Link from "next/link"
-import {useState} from "react"
+import {useState, FormEvent} from "react"
 import "bootstrap/dist/css/bootstrap.min.css"
 
 export default function SignIn() {
@@ -15,16 +15,19 @@ export default function SignIn() {
     password:''
   });
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null)
 
-  async function loginUser(e: React.FormEvent<HTMLInputElement>) {
+  async function loginUser(e: FormEvent<HTMLInputElement>) {
     e.preventDefault();
-    signIn('credentials', {
+    setError(null)
+    const result = await signIn('credentials', {
       ...data,
-      redirect: true,
-      callbackUrl: '/'
-      }
-    )
-    // router.push('/')
+      redirect: false
+    })
+    if(!result.ok)
+      setError("Authentication failed, please check your credentials.")
+    else
+      router.push("/")
   }
   return (
     <>  
@@ -56,6 +59,7 @@ export default function SignIn() {
                 <label htmlFor="password" className="form-label">Password</label>
                 <input type="password" className="form-control" value={data.password} onChange={(e) => setData({...data, password:e.target.value})}/>
               </div>
+              <div className="form-text text-danger">{error}</div>
               <button type="submit" className="btn btn-dark fw-bold">Submit</button>
             </form>
           </div>
