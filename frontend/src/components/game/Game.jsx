@@ -30,57 +30,28 @@ const uniformData = {
 const sparkUniform = {
   u_time:
   { type: 'f', value: 0. },
-  // u_resolution:
-  // { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-  // projectionMatrix:
-  // { value: camera.projectionMatrix },
-  // viewMatrix:
-  // { value: camera.matrixWorldInverse },
-
-  u_sizeFactor:
-  { value: window.innerHeight / (2.0 * Math.tan(0.5 * 60. * Math.PI / 180.)) },
   u_texture:
   { type: 't', value: new THREE.TextureLoader().load('../../spark.png') }
 };
 
 const sparkVs = `
     uniform float u_time;
-    uniform float u_sizeFactor;
-
     attribute float size;
-    // varying vec2 vUv;
-
-    vec3 randomize(vec3 pos)
-    {
-        float x = dot(pos.yz, vec2(412., 198.));
-        float y = dot(pos.xz, vec2(276., 332.));
-        float z = dot(pos.xy, vec2(98., 165.));
-        vec3 gradient = vec3(x, y, z);
-        gradient = sin(gradient);
-        gradient = cos(gradient * 672. + u_time / 1000.);
-        return gradient;
-    }
 
     void main()
     {
-        // vUv = uv;
-
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-        gl_PointSize = size * u_sizeFactor * gl_Position.w;
+        gl_PointSize = size * gl_Position.w;
     }
 `;
 
 const sparkFs = `
     uniform float u_time;
-    uniform float u_sizeFactor;
     uniform sampler2D u_texture;
-
-    // varying vec2 vUv;
 
     void main()
     {
       vec4 color = texture(u_texture, gl_PointCoord);
-      // vec4 intensity = vec4(1., 1., 1., u_sizeFactor * 0.2);
       vec4 decay = vec4(1., 1., 1., 1. - u_time / 800.);
       gl_FragColor = color * decay;
     }
@@ -236,6 +207,7 @@ const collisionLogic = () =>
     vars.dotProduct = vars.ballVect.dot(csts.gameVect);
     if (speedFactor < 0.3)
       speedFactor = 0.3;
+    const particleSize = Math.max( 1., speedFactor * 3.);
     let x = objs.ball.position.x;
     let y = objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3/2);
     let z = objs.ball.position.z;
@@ -250,20 +222,12 @@ const collisionLogic = () =>
       vecy = (THREE.MathUtils.randFloatSpread( 0.1 * speedFactor ) + 0.1 * speedFactor) * -topDownRebound;
       vecz = THREE.MathUtils.randFloatSpread( 0.5 * speedFactor );
       speedVecs.push(vecx, vecy, vecz);
-      sizes.push(Math.max(1.3 * speedFactor - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.3));
+      sizes.push(particleSize * Math.max(1.3 * speedFactor - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.3));
     }
-
-    console.log(sizes);
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
     geometry.setAttribute( 'velocity', new THREE.Float32BufferAttribute( speedVecs, 3 ) );
     geometry.setAttribute( 'size', new THREE.Float32BufferAttribute( sizes, 1 ) );
-    // let particleColor = Math.min(objs.ball.material.color >> 16 % 256 * 2, 255) << 16 | Math.min(objs.ball.material.color % 256 * 2, 255);
-    // const textureLoader = new THREE.TextureLoader();
-    let particleSize = Math.max( 1., speedFactor * 3.);
-    sparkUniform.u_sizeFactor.value = particleSize;
-    // textureLoader.load('../../utils/spark.png', function (texture)
-    // { applySparkTexture(texture, particleSize, particleEffects, light) });
     const material = new THREE.ShaderMaterial({
       uniforms: sparkUniform,
       vertexShader: sparkVs,
@@ -487,7 +451,6 @@ const animate = () =>
   // tools.camera.rotation.x = Math.PI / 2;
 
   uniformData.u_time.value = performance.now() - startTime;
-  // vars.frametick += 1;
   tools.renderer.render(tools.scene, tools.camera);
 
   setTimeout( function() {
@@ -738,16 +701,7 @@ export default function ThreeScene()
     let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
 
     trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
-    trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
-    // trail.trailMaterial = new THREE.ShaderMaterial({
-    //     side: THREE.BackSide,
-    //     transparent: true,
-    //     // opacity: 0.1,
-    //     uniforms: uniformData,
-    //     // blending: THREE.AdditiveBlending,
-    //     vertexShader: trailVertexShader,
-    //     fragmentShader: trailFragmentShader
-    // });
+    trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );s
     trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
     trail.ballTrail.scale.y = 0.4;
     trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
