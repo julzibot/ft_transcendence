@@ -5,6 +5,7 @@ import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 export const objs = {};
 export const csts = {};
 export const vars = {};
+export const custom = {};
 
 objs.sphereGeo = new THREE.SphereGeometry(CONST.BALLRADIUS, 40, 40);
 objs.ballGeo = new THREE.SphereGeometry(CONST.BALLRADIUS * 3/2, 40, 40);
@@ -76,3 +77,6 @@ vars.downkeys = [false, false];
 vars.reboundDiff = 0;
 vars.isRebound = 0;
 vars.frametick = 0;
+
+custom.pov = "classic";
+custom.immersiveCamPos = new THREE.Vector3(-CONST.GAMEWIDTH / 2 - 10, 0, 18);
