@@ -62,6 +62,7 @@ class RegisterView(APIView):
     if data['password'] != data['rePass']:
       return Response({'message: passwords does not match'}, status=status.HTTP_400_BAD_REQUEST)
     user = UserAccount.objects.create(login=data['login'], email=data['email'], password=make_password(data['password']))
+    user.save_image_from_url()
     serializer = UserAccountSerializer(user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -108,7 +109,7 @@ class AccessTokenView(APIView):
         'login': user.login,
         'nick_name': user.nick_name,
         'email': user.email,
-        'image': request.build_absolute_uri(user.image.url),
+        'image': user.image.url
       },
       'backendTokens': backendTokens
     })
@@ -131,7 +132,7 @@ class SigninView(APIView):
         'login': user.login,
         'nick_name': user.nick_name,
         'email': user.email,
-        'image': user.image,
+        'image': user.image.url,
       })
       return response
 
