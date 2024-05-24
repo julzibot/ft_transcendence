@@ -4,7 +4,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
-import { vars, objs, csts} from '../../utils/algo';
+import { vars, objs, csts, custom} from '../../utils/algo';
 
 let keys = {};
 const tools = {};
@@ -479,12 +479,20 @@ const animate = () =>
   tools.stats.update();
   tools.controls.update();
 
-  // if (vars.directions[0] == 1)
-  //   tools.camera.position.set(objs.ball.position.x - 10, objs.ball.position.y, 4);
-  // if (vars.directions[0] == -1)
-  //   tools.camera.position.set(objs.ball.position.x + 10, objs.ball.position.y, 4);
-  // tools.camera.lookAt(objs.ball.position.x, objs.ball.position.y, 4);
-  // tools.camera.rotation.x = Math.PI / 2;
+  if (custom.pov === "classic")
+  {
+    tools.camera.position.set(0, 0, 20);
+    tools.camera.lookAt(0, 0, 0);
+  }
+  else if (custom.pov === "immersive")
+  {
+    tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
+    tools.camera.lookAt(0, 0, 0);
+    let quaternion = new THREE.Quaternion();
+    quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
+    tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+    tools.camera.fov = 75;
+  }
 
   uniformData.u_time.value = performance.now() - startTime;
   // vars.frametick += 1;
@@ -524,12 +532,23 @@ export default function ThreeScene()
     tools.scene.add( csts.ambLight );
     tools.scene.add( csts.dirLight );
     tools.scene.add( csts.ballLight );
-    tools.camera.position.set(0, 0, 20);
-    tools.camera.lookAt(0, 0, 0);
+
+    // if (custom.pov === "classic")
+    // {
+    //   tools.camera.position.set(0, 0, 20);
+    //   tools.camera.lookAt(0, 0, 0);
+    // }
+    // else if (custom.pov === "immersive")
+    // {
+    //   tools.camera.position.set(-CONST.GAMEWIDTH - 5, 0, 5);
+    //   tools.camera.lookAt(5, 0, 0);
+    //   tools.camera.rotation.x = Math.PI / 2;
+    // }
 
     let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
     console.log(tools.camera.projectionMatrix);
 
+    // let backgroundMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
     let backgroundMaterial = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       uniforms: uniformData,
@@ -732,27 +751,16 @@ export default function ThreeScene()
             color *= noiseValue;
             // color = lighting;
             gl_FragColor = vec4(color, 1.0);
-        }
         `
     });
     let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
 
     trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
     trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
-    // trail.trailMaterial = new THREE.ShaderMaterial({
-    //     side: THREE.BackSide,
-    //     transparent: true,
-    //     // opacity: 0.1,
-    //     uniforms: uniformData,
-    //     // blending: THREE.AdditiveBlending,
-    //     vertexShader: trailVertexShader,
-    //     fragmentShader: trailFragmentShader
-    // });
     trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
     trail.ballTrail.scale.y = 0.4;
     trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
     trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
-
     tools.scene.add(background);
     tools.scene.add(trail.ballTrail);
 
