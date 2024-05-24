@@ -76,7 +76,6 @@ class OauthView(APIView):
       user = UserAccount.objects.create(**data)
       user.save_image_from_url()
 
-    
     backendTokens = get_tokens_for_user(user)
     response = Response({
       'user': {
@@ -84,7 +83,7 @@ class OauthView(APIView):
         'login': user.login,
         'nick_name': user.nick_name,
         'email': user.email,
-        'image': request.build_absolute_uri(user.image.url)
+        'image': user.image.url
       },
       'backendTokens': backendTokens
     })
@@ -101,13 +100,6 @@ class AccessTokenView(APIView):
       user = UserAccount.objects.get(email=data['email'])
     except ObjectDoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    #   if 'id' in data:
-    #     user = UserAccount.objects.filter(id=data['id']).first()
-    #     if user:
-    #       return Response({'Conflict': 'user id already exists'}, status=status.HTTP_409_CONFLICT)
-    #   serializer = UserAccountSerializer(data=data)
-    #   serializer.is_valid(raise_exception=True)
-    #   user = UserAccount.objects.create(**data)
     DashboardData.objects.create(user_id=user)
     backendTokens = get_tokens_for_user(user)
     response = Response({
@@ -116,7 +108,7 @@ class AccessTokenView(APIView):
         'login': user.login,
         'nick_name': user.nick_name,
         'email': user.email,
-        'image': user.image,
+        'image': request.build_absolute_uri(user.image.url),
       },
       'backendTokens': backendTokens
     })
@@ -178,6 +170,14 @@ class UpdateNameView(APIView):
         return Response({'error': 'name already exists'}, status=409)
     else:
       return Response({'error': 'could not update username'})
+
+class UpdateImageView(APIView):
+  def put(self, request):
+    user = UserAccount.objects.get(id=request.data['user_id'])
+    user.delete_image()
+    user.image = request.data['image']
+    user.save()
+    return Response(status=status.HTTP_200_OK)
     
 class SearchUserView(APIView):
   def post(self, request):

@@ -1,6 +1,6 @@
 from django.urls import path
 from dashboard.views import DashboardView
-from .views import SigninView, UserView, UpdateNameView, RegisterView, CustomTokenRefreshView, SearchUserView, AccessTokenView, OauthView
+from .views import SigninView, UserView, UpdateNameView, RegisterView, CustomTokenRefreshView, SearchUserView, AccessTokenView, OauthView, UpdateImageView
 
 urlpatterns = [
   path('auth/signin/', SigninView.as_view()),
@@ -10,5 +10,6 @@ urlpatterns = [
   path('auth/user/', UserView.as_view()),
   path('refresh/', CustomTokenRefreshView.as_view()),
   path('update/name/', UpdateNameView.as_view()),
+  path('update/image/', UpdateImageView.as_view()),
   path('search-user/', SearchUserView.as_view()),
 ]

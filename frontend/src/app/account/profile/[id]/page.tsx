@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useState, FormEvent } from "react";
+import ImageUpload from "@/components/Utils/ImageUpload";
 
 type Props = {
   params: {
@@ -46,10 +47,11 @@ function ProfilePage(props: Props){
         )}
         <p>{session.user.email}</p>
         <Image 
-          src={session.user.image}
+          src={`http://backend:8000${session.user.image}`}
           width={120}
           height={80}
           alt="session picture"/>
+        <ImageUpload />
       </>
     );
   }

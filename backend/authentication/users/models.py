@@ -83,3 +83,8 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
                 return True
         else:
             return False
+    
+    def delete_image(self):
+        if self.image:
+            if os.path.isfile(self.image.path):
+                os.remove(self.image.path)
