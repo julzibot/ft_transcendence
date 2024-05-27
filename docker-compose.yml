@@ -13,6 +13,18 @@ services:
       - ./frontend/:/app
       - /app/node_modules
       - /app/.next
+  
+  ws-server:
+    container_name: ws-server
+    build:
+      context: ./frontend/ws-server
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 5000:5000
+    volumes:
+      - ./frontend/ws-server/:/app
+      - /app/node_modules
 
   db:
     container_name: database
