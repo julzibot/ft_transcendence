@@ -193,4 +193,20 @@ class SearchUserView(APIView):
       users_data = list(users.values('id', 'nick_name'))
       return Response({"users": users_data})
     return Response(status=status.HTTP_404_NOT_FOUND)
+  
+class UpdatePasswordView(APIView):
+  def put(self, request):
+    data = request.data
+    try:
+      user = UserAccount.objects.get(id=data['user_id'])
+    except ObjectDoesNotExist:
+      return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+    if data['new_password'] != data['rePass']:
+      return Response({'message': 'Passwords does not match'}, status=status.HTTP_400_BAD_REQUEST)
+    if not check_password(data['old_password'], user.password):
+      return Response({'message': 'Password does not match are records, try again'}, status=status.HTTP_400_BAD_REQUEST)
+    user.password = make_password(data['new_password'])
+    user.save()
+    return Response({'message:' 'Password updated successfully'}, status=status.HTTP_200_OK)
+    
     
