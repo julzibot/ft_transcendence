@@ -17,6 +17,7 @@
     "react-bootstrap": "^2.10.2",
     "react-bootstrap-icons": "^1.11.3",
     "react-dom": "^18",
+    "socket.io-client": "^4.7.5",
     "three": "^0.161.0"
   },
   "devDependencies": {
