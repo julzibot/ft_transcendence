@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import * as CONST from './constants';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { shaders } from './shaders';
 
 export const objs = {};
 export const csts = {};
@@ -18,7 +19,7 @@ objs.backBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, CONST.GAMEHEIGHT, 0.5
 objs.sphereMaterial = new THREE.MeshPhongMaterial( { color: CONST.BALL_COLOR, emissive: CONST.BALL_COLOR, emissiveIntensity: 0.25 } );
 objs.ballMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, opacity: 0.2, transparent: true } );
 // objs.trailMaterial = new THREE.ShaderMaterial( {color: 0xffffff, opacity: 1., transparent: true} );
-objs.boundaryMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff, opacity: 0.8, transparent: true } );
+objs.boundaryMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff, opacity: 0.85, transparent: true } );
 objs.playerMaterial = new THREE.MeshStandardMaterial( { color: 0xff00ff } );
 
 
@@ -80,3 +81,7 @@ vars.frametick = 0;
 
 custom.pov = "classic";
 custom.immersiveCamPos = new THREE.Vector3(-CONST.GAMEWIDTH / 2 - 10, 0, 18);
+custom.shader_utils = shaders.utils;
+custom.shader_background = shaders.background_waves;
+custom.color = new THREE.Vector3(0.2, 0.7, 0.6);
+custom.palette = 0;

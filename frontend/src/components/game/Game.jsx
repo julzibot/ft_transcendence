@@ -19,6 +19,10 @@ tools.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.inner
 const uniformData = {
   u_time:
   { type: 'f', value: performance.now() - startTime },
+  u_color:
+  { type: 'v3', value: custom.color },
+  u_palette:
+  { type: 'i', value: custom.palette },
   u_resolution:
   { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
   projectionMatrix:
@@ -439,25 +443,20 @@ const animate = () =>
     }
   }
 
+  // tools.controls.update();
+  
+  // if (custom.pov === "immersive")
+  // {
+  //   tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
+  //   tools.camera.lookAt(0, 0, 0);
+  //   let quaternion = new THREE.Quaternion();
+  //   quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
+  //   tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+  //   tools.camera.fov = 75;
+  // }
   update();
   tools.stats.update();
-  tools.controls.update();
-
-  if (custom.pov === "classic")
-  {
-    tools.camera.position.set(0, 0, 20);
-    tools.camera.lookAt(0, 0, 0);
-  }
-  else if (custom.pov === "immersive")
-  {
-    tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
-    tools.camera.lookAt(0, 0, 0);
-    let quaternion = new THREE.Quaternion();
-    quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
-    tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-    tools.camera.fov = 75;
-  }
-
+    
   uniformData.u_time.value = performance.now() - startTime;
   tools.renderer.render(tools.scene, tools.camera);
 
@@ -496,225 +495,28 @@ export default function ThreeScene()
     tools.scene.add( csts.dirLight );
     tools.scene.add( csts.ballLight );
 
-    // if (custom.pov === "classic")
-    // {
-    //   tools.camera.position.set(0, 0, 20);
-    //   tools.camera.lookAt(0, 0, 0);
-    // }
-    // else if (custom.pov === "immersive")
-    // {
-    //   tools.camera.position.set(-CONST.GAMEWIDTH - 5, 0, 5);
-    //   tools.camera.lookAt(5, 0, 0);
-    //   tools.camera.rotation.x = Math.PI / 2;
-    // }
+    if (custom.pov === "classic")
+    {
+      tools.camera.position.set(0, 0, 20);
+      tools.camera.lookAt(0, 0, 0);
+    }
+    else if (custom.pov === "immersive")
+    {
+      tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
+      tools.camera.lookAt(0, 0, 0);
+      let quaternion = new THREE.Quaternion();
+      quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
+      tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+      tools.camera.fov = 75;
+    }
 
     let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
     console.log(tools.camera.projectionMatrix);
 
-    // let backgroundMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
     let backgroundMaterial = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       uniforms: uniformData,
-      fragmentShader: `
-      
-        uniform float u_time;
-        uniform vec2  u_resolution;
-        uniform mat4 projectionMatrix;
-
-        vec3 palette(float t)
-        {
-            vec3 a = vec3(0.5, 0.5, 0.5);
-            vec3 b = vec3(0.5, 0.5, 0.5);
-            vec3 c = vec3(1.0, 1.0, 1.0);
-            vec3 d = vec3(0.25, 0.4, 0.55);
-            
-            return a + b * cos(6.3 * (c+t+d)); 
-        }
-        
-        vec2 randomVec(vec2 gridCorner)
-        {
-            float x = dot(gridCorner, vec2(412., 198.));
-            float y = dot(gridCorner, vec2(276., 332.));
-            vec2 gradient = vec2(x ,y);
-            gradient = sin(gradient);
-            gradient = cos(gradient * 672. + u_time / 1000.);
-            return gradient;
-        }
-        
-        float quintic( float x )
-        { return x * x * x * (x * (x * 6.0 - 15.0) + 10.0); }
-
-        float perlinNoise(vec2 uv)
-        {
-            vec2 gridId = floor(uv);
-            vec2 gridVec = fract(uv);
-            
-            vec2 bl = gridId + vec2(0.0, 0.0);
-            vec2 br = gridId + vec2(1.0, 0.0);
-            vec2 tl = gridId + vec2(0.0, 1.0);
-            vec2 tr = gridId + vec2(1.0, 1.0);
-            
-            vec2 distPixBl = gridVec - vec2(0.0, 0.0);
-            vec2 distPixBr = gridVec - vec2(1.0, 0.0);
-            vec2 distPixTl = gridVec - vec2(0.0, 1.0);
-            vec2 distPixTr = gridVec - vec2(1.0, 1.0);
-            
-            vec2 gradBl = randomVec(bl);
-            vec2 gradBr = randomVec(br);
-            vec2 gradTl = randomVec(tl);
-            vec2 gradTr = randomVec(tr);
-
-            float dotBl = dot(gradBl, distPixBl);
-            float dotBr = dot(gradBr, distPixBr);
-            float dotTl = dot(gradTl, distPixTl);
-            float dotTr = dot(gradTr, distPixTr);
-
-            gridVec = vec2(quintic(gridVec.x), quintic(gridVec.y));
-            // gridVec *= smoothstep(0.0, 0.5, gridVec);
-            // gridVec = 0.005 / gridVec;
-
-            float b = mix(dotBl, dotBr, gridVec.x);
-            float t = mix(dotTl, dotTr, gridVec.x);
-            float perlin = mix(b, t, gridVec.y) + 0.3;
-            
-            return perlin;
-        }
-
-        float ibotNoise(vec2 uv)
-        {
-            uv += u_time / 10000.;
-            vec2 gridId = floor(uv);
-            vec2 gridVec = fract(uv);
-            
-            vec2 bl = gridId + vec2(0.0, 0.0);
-            vec2 br = gridId + vec2(1.0, 0.0);
-            vec2 tl = gridId + vec2(0.0, 1.0);
-            vec2 tr = gridId + vec2(1.0, 1.0);
-            
-            vec2 gradBl = randomVec(bl);
-            vec2 gradBr = randomVec(br);
-            vec2 gradTl = randomVec(tl);
-            vec2 gradTr = randomVec(tr);
-            
-            //vec2 divVec = vec2(4.);
-            
-            gridVec = vec2(quintic(gridVec.x), quintic(gridVec.y));
-            //gridVec = 0.1 / gridVec;
-            
-            float xBot = mix(gradBl.x, gradBr.x, gridVec.x);
-            float yBot = mix(gradBl.y, gradBr.y, gridVec.x);
-            float xTop = mix(gradTl.x, gradTr.x, gridVec.x);
-            float yTop = mix(gradTl.y, gradTr.y, gridVec.x);
-            float x = mix(xBot, xTop, gridVec.y);
-            float y = mix(yBot, yTop, gridVec.y);
-            vec2 colVec = vec2(x, y);
-
-            //gridVec = vec2(quintic(gridVec.x), quintic(gridVec.y));
-          
-            float ibot = x + y + x * x + y * y;
-            return ibot;
-        }
-
-        float fbmPerlinNoise(vec2 uv)
-        {
-            float fbmNoise = 0.0;
-            float amplitude = 1.0;
-            const int octaves = 1;
-            
-            for (int i = 0; i < octaves; i++)
-            {
-                fbmNoise += perlinNoise(uv) * amplitude;
-                amplitude *= 0.5;
-                uv *= 2.0;
-            }
-
-            return fbmNoise;
-        }
-
-        float domainWarpNoise(vec2 uv)
-        {
-            float fbm1 = fbmPerlinNoise(uv + vec2(3.2, 2.6));
-            float fbm2 = fbmPerlinNoise(uv + vec2(1.1, 4.3));
-            
-            // float fbm3 = fbmPerlinNoise(vec2(fbm1, fbm2) + vec2(3.1, 2.5));
-            // float fbm4 = fbmPerlinNoise(vec2(fbm1, fbm2) + vec2(0.6, 2.3));
-            
-            return fbmPerlinNoise(vec2(fbm1, fbm2));
-        }
-
-        vec3 calcNormal(vec2 uv)
-        {
-            float diff = 0.001;
-            float p1 = domainWarpNoise(uv + vec2(diff, 0.0));
-            float p2 = domainWarpNoise(uv - vec2(diff, 0.0));
-            float p3 = domainWarpNoise(uv + vec2(0.0, diff));
-            float p4 = domainWarpNoise(uv - vec2(0.0, diff));
-            
-            vec3 normal = normalize(vec3(p1 - p2, p3 - p4, diff));
-            return normal;
-        }
-
-        vec3 diffuseLighting(vec3 normal, vec3 lightColor)
-        {
-          vec3 lightSource = vec3(1., 1., 1.);
-          float diffuseStrength = max(0., dot(lightSource, normal));
-          vec3 diffuse = diffuseStrength * lightColor;
-
-          return diffuse;
-        }
-
-        vec3 specularLighting(vec3 normal, vec3 lightColor)
-        {
-          vec3 lightSource = vec3(1., 1., 1.);
-          vec3 cameraSource = vec3(0., 0., 1.);
-          vec3 viewSource = normalize(cameraSource);
-          vec3 reflectSource = normalize(reflect(-lightSource, normal));
-          float specularStrength = max(0.0, dot(viewSource, reflectSource));
-          specularStrength = pow(specularStrength, 20.);
-          vec3 specular = specularStrength * lightColor;
-
-          return specular;
-        }
-
-        void main()
-        {
-            // BORING COORDINATES STUFF
-            vec2 ndc = (gl_FragCoord.xy / u_resolution.xy) * 2.0 - 1.0;
-            vec4 clipSpacePos = vec4(ndc, gl_FragCoord.z, 1.0);
-            vec4 viewSpacePos = inverse(projectionMatrix) * clipSpacePos;
-            vec4 worldSpacePos = inverse(viewMatrix) * viewSpacePos;
-            vec2 pos = worldSpacePos.xy;
-            
-            // NOW, ALGO TIME
-
-            pos *= 4.;
-            vec3 color = vec3(0.4, 1., 1.);
-            vec3 paletteCol = vec3(0.0);
-            float noiseValue = 0.0;
-            
-            // paletteCol = palette(gridId.x * 20. + u_time / 10000.) / 3.;
-            // noiseValue = domainWarpNoise(pos);
-            // noiseValue = perlinNoise(pos);
-            // noiseValue = abs(noiseValue);
-            // noiseValue = clamp(noiseValue, 0., 1.);
-            noiseValue = ibotNoise(pos);
-
-            // vec3 normal = calcNormal(pos);
-            // vec3 lighting = diffuseLighting(normal, color) * 0.5;
-            // lighting += specularLighting(normal, color) * 0.5;
-
-            if (noiseValue > 0.4)
-                noiseValue *= 1.3;
-            if (noiseValue > 0.7)
-                noiseValue *= 1.3;
-            if (noiseValue > 0.9)
-                noiseValue *= 0.5;
-            if (noiseValue > 0.8)
-                noiseValue *= 0.3;
-            color *= noiseValue;
-            // color = lighting;
-            gl_FragColor = vec4(color, 1.0);
-        `
+      fragmentShader: custom.shader_utils + custom.shader_background
     });
     let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
 
@@ -724,6 +526,7 @@ export default function ThreeScene()
     trail.ballTrail.scale.y = 0.4;
     trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
     trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
+
     tools.scene.add(background);
     tools.scene.add(trail.ballTrail);
 
