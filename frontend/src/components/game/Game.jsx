@@ -117,7 +117,7 @@ const scoringLogic = () =>
         {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
     }
 
-    if (Math.max(vars.p1Score, vars.p2Score) == CONST.WINSCORE)
+    if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score)
     {
       if (vars.p1Score > vars.p2Score)
         vars.endString = "GAME ENDED\nPLAYER 1 WINS";
@@ -384,10 +384,10 @@ const animate = () =>
     trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - trailSegments[i][1]) / 120, 1.);
   }
 
-  objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
-  objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
-  objs.ballWrap.position.x += vars.ballVect.x * vars.adjustedBallSpeed;
-  objs.ballWrap.position.y += vars.ballVect.y * vars.adjustedBallSpeed;
+  objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
+  objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
+  objs.ballWrap.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
+  objs.ballWrap.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
   csts.ballLight.position.x = objs.ball.position.x;
   csts.ballLight.position.y = objs.ball.position.y;
   trail.ballTrail.position.x = objs.ball.position.x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
@@ -443,18 +443,8 @@ const animate = () =>
     }
   }
 
-  // tools.controls.update();
-  
-  // if (custom.pov === "immersive")
-  // {
-  //   tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
-  //   tools.camera.lookAt(0, 0, 0);
-  //   let quaternion = new THREE.Quaternion();
-  //   quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
-  //   tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-  //   tools.camera.fov = 75;
-  // }
   update();
+  tools.controls.update();
   tools.stats.update();
     
   uniformData.u_time.value = performance.now() - startTime;

@@ -8,6 +8,21 @@ export const csts = {};
 export const vars = {};
 export const custom = {};
 
+// GAME CUSTOM PARAMS
+
+custom.pov = "classic";
+custom.immersiveCamPos = new THREE.Vector3(-CONST.GAMEWIDTH / 2 - 10, 0, 18);
+custom.shader_utils = shaders.utils;
+custom.shader_background = shaders.background_fractcircles;
+custom.color = new THREE.Vector3(0.2, 0.7, 0.6);
+custom.palette = 3;
+custom.difficulty = 1.;
+custom.win_score = 2;
+custom.backboard_opacity = 0.95;
+custom.power_ups = false;
+
+// GAME INIT
+
 objs.sphereGeo = new THREE.SphereGeometry(CONST.BALLRADIUS, 40, 40);
 objs.ballGeo = new THREE.SphereGeometry(CONST.BALLRADIUS * 3/2, 40, 40);
 objs.playerGeo = new THREE.BoxGeometry(0.5, CONST.PLAYERLEN, 0.6);
@@ -19,7 +34,7 @@ objs.backBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, CONST.GAMEHEIGHT, 0.5
 objs.sphereMaterial = new THREE.MeshPhongMaterial( { color: CONST.BALL_COLOR, emissive: CONST.BALL_COLOR, emissiveIntensity: 0.25 } );
 objs.ballMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, opacity: 0.2, transparent: true } );
 // objs.trailMaterial = new THREE.ShaderMaterial( {color: 0xffffff, opacity: 1., transparent: true} );
-objs.boundaryMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff, opacity: 0.85, transparent: true } );
+objs.boundaryMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff, opacity: custom.backboard_opacity, transparent: true } );
 objs.playerMaterial = new THREE.MeshStandardMaterial( { color: 0xff00ff } );
 
 
@@ -78,10 +93,3 @@ vars.downkeys = [false, false];
 vars.reboundDiff = 0;
 vars.isRebound = 0;
 vars.frametick = 0;
-
-custom.pov = "classic";
-custom.immersiveCamPos = new THREE.Vector3(-CONST.GAMEWIDTH / 2 - 10, 0, 18);
-custom.shader_utils = shaders.utils;
-custom.shader_background = shaders.background_waves;
-custom.color = new THREE.Vector3(0.2, 0.7, 0.6);
-custom.palette = 0;
