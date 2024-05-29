@@ -1,6 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import FortyTwoProvider from "next-auth/providers/42-school";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { JWT } from "next-auth/jwt";
 
 const backend_url = process.env.BACKEND_URL
 
@@ -19,6 +20,7 @@ async function refreshToken(token: JWT): Promise<JWT> {
 export const authOptions: NextAuthOptions = {
   providers: [
     FortyTwoProvider({
+      id: '42-school',
       clientId: process.env.FORTY_TWO_CLIENT_ID as string,
       clientSecret: process.env.FORTY_TWO_CLIENT_SECRET as string,
       profile(profile) {
@@ -27,34 +29,25 @@ export const authOptions: NextAuthOptions = {
           login: profile.login,
           nick_name: profile.first_name,
           email: profile.email,
-          image: profile.image.versions.medium
+          image_url: profile.image.versions.medium
         }
       }
     }),
     CredentialsProvider({
-      name: "Email",
+      id: 'credentials',
+      name: "Credentials",
       credentials: {
-        login: { label: "Login", type: "text", placeholder: "JohnDoe" },
-        email: { label: "Email", type: "email", placeholder: "jdoe@example.com"},
-        password: { label: "Password", type: "password" },
-        password2: { label: "Confirm Password", type: "password"}
-        },
-      async authorize(credentials, req) {
-        const { login, email, password, password2} = credentials
-        if(password != password2) {
-          return null
-        }
-        const response = await fetch(`${backend_url}/api/signup/`, {
+          email: { label: "Email", type: "email", placeholder: "jdoe@example.com"},
+          password: { label: "Password", type: "password"}
+      },
+      async authorize(credentials) {
+        const res = await fetch(`${backend_url}/api/auth/signin/`, {
           method: "POST",
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            login,
-            email,
-            password
-          })
+          body: JSON.stringify({user: credentials})
         });
-        if(response.ok) {
-          const user = await response.json()
+        const user = await res.json()
+        if(res.ok && user) {
           return user
         }
         return null
@@ -62,37 +55,43 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
 
+  pages: {
+    signIn: "/auth/signin"
+  },
+
   callbacks: {
-    async jwt({token, trigger, session, user}) {
-      // if user is loging in, call backend api that returns user info and backend token
+    async jwt({token, trigger, session, user, account}) {
+      // if user is loging in, call backend api that returns user info and backend token)
       if(user) {
-        console.log(user)
-        const response = await fetch(`${backend_url}/api/signin/`, {
+        let backendUrl
+        if (account?.provider === '42-school')
+          backendUrl = `${backend_url}/api/auth/oauth/`
+        else
+          backendUrl = `${backend_url}/api/auth/access_token/`
+        const res = await fetch(backendUrl, {
           method: "POST",
           headers: {"Content-type": "application/json"},
-          body: JSON.stringify({
-            'user': user
-          })
+          body: JSON.stringify({user})
         })
-        if (response.ok)
+        if (res.ok)
         {
-          const newUser = await response.json()
-          return newUser
+          token = await res.json()
+          return token
         }
       }
       if(trigger === 'update' && session?.name) {
         token.name = session.name
+        token.image = session.image
       }
       if(new Date().getTime() / 1000 < token.backendTokens.expiresIn) {
         return token
       }
       return await refreshToken(token)
-
     },
 
     async session({session, token}) {
       //call user api to get user informations
-      const response = await fetch(`${backend_url}/api/user/`, { 
+      const response = await fetch(`${backend_url}/api/auth/user/`, { 
         method: "GET",
         headers: {'Authorization': `Bearer ${token.backendTokens.access}`},
       })
