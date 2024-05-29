@@ -1,7 +1,6 @@
 import Link from "next/link"
 import AuthButton from "./AuthButton"
 import Image from "next/image"
-import LocaleSwitcher from "./LocaleSwitcher"
 import FriendList from "../friend_list/FriendList"
 import "./styles.css"
 
@@ -11,7 +10,7 @@ export default function Navbar() {
     <>
 			<nav className="navbar navbar-expand-lg navbar-dark bg-dark">
 				<div className="container-fluid">
-					<Link href="#" className="ms-2 text-decoration-none navbar-brand">
+					<Link href="/" className="ms-2 text-decoration-none navbar-brand">
 						<Image
 							src="/static/images/42.png"
 							style={{filter: "invert(100%)"}}
@@ -29,14 +28,18 @@ export default function Navbar() {
 					<div className="collapse navbar-collapse custom-collapse" id="navbarSupportedContent">
 						<ul className="navbar-nav me-auto mb-lg-0">
 							<li className="nav-item custom-item">
-								<LocaleSwitcher />
 							</li>
 							<li className="nav-item custom-item d-flex align-items-center px-2">
 								<button className="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offCanvasFriendList" aria-controls="offCanvasFriendList">Play with Friends</button>
 							</li>
 							<li className="nav-item custom-item d-flex align-items-center px-2">
-								<Link href="/en/game">
+								<Link href="/game">
         				  <button className="btn btn-info">Play</button>
+      				  </Link>
+							</li>
+							<li className="nav-item custom-item d-flex align-items-center px-2">
+								<Link href="/chat/test">
+        				  <button className="btn btn-info">Chat</button>
       				  </Link>
 							</li>
 						</ul>
