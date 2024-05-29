@@ -7,6 +7,7 @@ import Image from "next/image"
 import Link from "next/link"
 import {useState, FormEvent} from "react"
 import "bootstrap/dist/css/bootstrap.min.css"
+import DOMPurify from 'dompurify'
 
 export default function SignIn() {
   const [data, setData] = useState({
@@ -17,9 +18,10 @@ export default function SignIn() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null)
 
-  async function loginUser(e: FormEvent<HTMLInputElement>) {
+  async function loginUser(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null)
+    setError(null);
+
     const result = await signIn('credentials', {
       ...data,
       redirect: false
@@ -47,17 +49,18 @@ export default function SignIn() {
                 width={30}
                 height={30}
                 alt="42 Logo"
+                priority={true}
               />
             </button>
             <p>Or</p>
             <form onSubmit={loginUser}>
               <div className="mb-3">
                 <label htmlFor="email" className="form-label" >Email address</label>
-                <input type="email" id="email" className ="form-control" value={data.email} onChange={(e) => setData({...data, email:e.target.value})}/>
+                <input type="email" id="email" className ="form-control" value={data.email} onChange={(e) => setData({...data, email:DOMPurify.sanitize(e.target.value)})}/>
               </div>
               <div className="mb-3">
                 <label htmlFor="password" className="form-label">Password</label>
-                <input type="password" className="form-control" value={data.password} onChange={(e) => setData({...data, password:e.target.value})}/>
+                <input type="password" className="form-control" value={data.password} onChange={(e) => setData({...data, password:DOMPurify.sanitize(e.target.value)})}/>
               </div>
               <div className="form-text text-danger">{error}</div>
               <button type="submit" className="btn btn-dark fw-bold">Submit</button>

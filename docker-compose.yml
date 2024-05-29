@@ -23,7 +23,7 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - ./frontend/ws-server/:/app
+      - ./frontend/ws-server/:/server
       - /app/node_modules
 
   db:
