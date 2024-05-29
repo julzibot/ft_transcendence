@@ -1,12 +1,19 @@
-import createNextIntlPlugin from 'next-intl/plugin';
- 
-const withNextIntl = createNextIntlPlugin();
- 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  images: {
-    domains: ['cdn.intra.42.fr', 't4.ftcdn.net']
-  }
-};
+// /** @type {import('next').NextConfig} */
+// const nextConfig = {
+  export default {
+    images: {
+      remotePatterns: [
+        {
+          protocol: 'http',
+          hostname: 'backend',
+          port: '8000',
+        },
+        {
+          protocol: 'http',
+          hostname: 'backend2',
+        },
+      ],
+    },
+  };
 
-export default withNextIntl(nextConfig);
+// export default nextConfig;

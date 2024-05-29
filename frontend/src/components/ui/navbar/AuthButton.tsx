@@ -17,17 +17,25 @@ export default function AuthButton() {
       <>
         <li className="dropdown me-3">
           <button className="btn btn-light dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <Image className="rounded-circle me-2"
-              src={session.user.image}
-              width={28}
-              height={25}
-              alt="42 session picture"
-            />
-            {session.user.nick_name}
+            {
+              session.user.image ? (
+                <>
+                  <Image className="rounded-circle me-2"
+                    src={`http://backend:8000${session.user.image}`}
+                    width={28}
+                    height={25}
+                    alt="42 session picture"
+                  />
+                  {session.user.nick_name}
+                </>) : (    
+                  <div className="spinner-border spinner-border-sm" role="status">
+                    <span className="sr-only"></span>
+                  </div>
+            )}
             </button>
           <ul className="dropdown-menu">
-						<li><Link className="dropdown-item" href="/en/dashboard">Dashboard</Link></li>
-            <li><Link className="dropdown-item" href={`/en/account/profile/${session?.user.id}`}>Profile</Link></li>
+						<li><Link className="dropdown-item" href="/dashboard">Dashboard</Link></li>
+            <li><Link className="dropdown-item" href={`/account/profile/${session?.user.id}`}>Profile</Link></li>
 						<li><hr className="dropdown-divider" /></li>
             <li><Link className="dropdown-item text-primary" href="/api/auth/signout">Sign Out</Link></li>
           </ul>
