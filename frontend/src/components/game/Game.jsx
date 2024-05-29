@@ -4,7 +4,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
-import { vars, objs, csts, custom} from '../../utils/algo';
+import { vars, objs, csts, custom} from '../../utils/init';
 
 let keys = {};
 const tools = {};
