@@ -37,13 +37,12 @@ vec3 palette(float t, int mode)
     }
     else if (mode == 4)
     {
-        a = vec3(0.588, 0.498, 0.588);
-        b = vec3(-0.472, -0.472, 0.318);
-        c = vec3(0.408, 1.638, 0.268);
-        d = vec3(2.088, 1.238, 1.008);
+        a = vec3(0., 0.538, 0.288);
+        b = vec3(0., -0.362, 0.668);
+        c = vec3(0., 0.318, 0.248);
+        d = vec3(0., 0.198, 0.698);
     }
-    
-    return a + b * cos(6.28 * (c*t+d)); 
+    return abs(a + b * cos(6.28 * (c*t+d))); 
 }
 
 vec2 randomVec(vec2 gridCorner)
