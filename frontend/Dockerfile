@@ -12,7 +12,6 @@ RUN npm install
 
 COPY . /app
 
-RUN npm install
 # Build the Next.js app for production
 # RUN npm run build
 
