@@ -51,18 +51,18 @@ services:
       - 8000:8000
     depends_on:
       - db
-      - redis
+      # - redis
     volumes:
       - ./backend/authentication/:/app
     env_file:
       - ./backend/authentication/.env.example
 
-  redis:
-    container_name: redis
-    image: redis:7
-    restart: always
-    ports: 
-      - 33067:6379
-    volumes:
-      - /Users/julzibot/goinfre/ft_transcendence/.redis:/data
-      # - /home/anloisea/goinfre/ft_transcendence/.redis:/data
+  # redis:
+  #   container_name: redis
+  #   image: redis:7
+  #   restart: always
+  #   ports: 
+  #     - 33067:6379
+  #   volumes:
+  #     - /Users/julzibot/goinfre/ft_transcendence/.redis:/data
+  #     # - /home/anloisea/goinfre/ft_transcendence/.redis:/data
