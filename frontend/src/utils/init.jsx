@@ -66,6 +66,8 @@ csts.dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
 csts.ballLight = new THREE.PointLight( CONST.BALL_COLOR, 5, 42);
 csts.dirLight.position.set(5, 7, 15);
 csts.game_id = 0;
+csts.gameCreator = true;
+csts.player_id = 0;
 
 
 vars.scoreMsg = new THREE.Mesh();

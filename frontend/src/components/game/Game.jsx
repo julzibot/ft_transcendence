@@ -253,26 +253,24 @@ const collisionLogic = () =>
 
 const update = (socket) =>
 {
-  if (keys['ArrowUp'] || keys['ArrowDown'])
-    vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
-  else
-    vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
+  // if (keys['ArrowUp'] || keys['ArrowDown'])
+  //   vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+  // else
+  //   vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
   if (keys['KeyW'] || keys['KeyS'])
     vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
   else
     vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
-  if (keys['ArrowUp'] && objs.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-      objs.player2.position.y += vars.playerspeed[1];
-  }
-  if (keys['ArrowDown'] && objs.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-      objs.player2.position.y -= vars.playerspeed[1];
+  if (keys['opponentPos'] > -10000) {
+      objs.player2.position.y = parseFloat(keys['opponentPos']);
   }
   if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
       objs.player1.position.y += vars.playerspeed[0];
-      socket.emit("player1Move", objs.player.position.y)
+      socket.emit("playerMove", (csts.player_id, objs.player1.position.y));
   }
   if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
       objs.player1.position.y -= vars.playerspeed[0];
+      socket.emit("playerMove", objs.player1.position.y)
   }
   if (keys['KeyR']) {
     objs.ball.position.set(0,0,0);
@@ -464,50 +462,47 @@ export default function ThreeScene()
   const containerRef = useRef(null);
     useEffect(() => {
     
-      socket.on("updatePlayerPosition", ({position})=> {
-        update(positions))
-      })
-    CreateGame().then(assignId);
-    tools.scene = new THREE.Scene();
-    
-    console.log(window.innerWidth + "    " + window.innerHeight);
-    tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
-    tools.renderer.setSize( window.innerWidth, window.innerHeight );
-    tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
-    tools.stats = Stats()
-    document.body.appendChild( tools.renderer.domElement );
-    document.body.appendChild( tools.stats.dom );
-    
-    tools.scene.add( objs.ball );
-    tools.scene.add( objs.ballWrap );
-    tools.scene.add( objs.player1 );
-    tools.scene.add( objs.player2 );
-    tools.scene.add( objs.topB );
-    tools.scene.add( objs.botB );
+      CreateGame().then(assignId);
+      tools.scene = new THREE.Scene();
+      
+      console.log(window.innerWidth + "    " + window.innerHeight);
+      tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
+      tools.renderer.setSize( window.innerWidth, window.innerHeight );
+      tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
+      tools.stats = Stats()
+      document.body.appendChild( tools.renderer.domElement );
+      document.body.appendChild( tools.stats.dom );
+      
+      tools.scene.add( objs.ball );
+      tools.scene.add( objs.ballWrap );
+      tools.scene.add( objs.player1 );
+      tools.scene.add( objs.player2 );
+      tools.scene.add( objs.topB );
+      tools.scene.add( objs.botB );
     tools.scene.add( objs.backB );
     tools.scene.add( objs.background );
     tools.scene.add( csts.ambLight );
     tools.scene.add( csts.dirLight );
     tools.scene.add( csts.ballLight );
-
+    
     if (custom.pov === "classic")
-    {
-      tools.camera.position.set(0, 0, 20);
-      tools.camera.lookAt(0, 0, 0);
-    }
-    else if (custom.pov === "immersive")
-    {
-      tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
-      tools.camera.lookAt(0, 0, 0);
-      let quaternion = new THREE.Quaternion();
+      {
+        tools.camera.position.set(0, 0, 20);
+        tools.camera.lookAt(0, 0, 0);
+      }
+      else if (custom.pov === "immersive")
+        {
+          tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
+          tools.camera.lookAt(0, 0, 0);
+          let quaternion = new THREE.Quaternion();
       quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
       tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
       tools.camera.fov = 75;
     }
-
+    
     let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
     console.log(tools.camera.projectionMatrix);
-
+    
     let backgroundMaterial = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       uniforms: uniformData,
@@ -521,20 +516,26 @@ export default function ThreeScene()
     trail.ballTrail.scale.y = 0.4;
     trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
     trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
-
+    
     tools.scene.add(background);
     tools.scene.add(trail.ballTrail);
-
+    
     // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
+    {printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
+    {printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
+    
+    socket.on("setUserId", (userId) => {
+      csts.player_id = userId;
+    })
 
+    socket.on("updatePlayerPosition", ({position})=> {
+      keys["opponentPos"] = JSON.parse(position);
+    })
     document.addEventListener('keydown', function(event) { keys[event.code] = true; });
-
     document.addEventListener('keyup', function(event) { keys[event.code] = false; });
-
+    
     animate(socket);
   }, []);
   return <canvas className='fixed-top' ref={containerRef} />;

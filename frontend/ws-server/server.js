@@ -14,7 +14,7 @@ const io = new Server(server, {
 io.on("connection", (client) => {
   console.log("A client connected to the server with id: " + client.id)
 
-  // client.emit("setUserId", client.id)
+  client.emit("setUserId", client.id)
 
   socket.on("keyDown", (position) => {
     client.emit("updatePlayerPostion", {}) //Send Updated paddle position to room
