@@ -5,6 +5,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts, custom } from '../../utils/init';
+import io from 'socket.io-client'
 
 let keys = {};
 const tools = {};
@@ -250,7 +251,7 @@ const collisionLogic = () =>
   }
 }
 
-const update = () =>
+const update = (socket) =>
 {
   if (keys['ArrowUp'] || keys['ArrowDown'])
     vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
@@ -268,6 +269,7 @@ const update = () =>
   }
   if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
       objs.player1.position.y += vars.playerspeed[0];
+      socket.emit("player1Move", objs.player.position.y)
   }
   if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
       objs.player1.position.y -= vars.playerspeed[0];
@@ -344,7 +346,7 @@ async function assignId(id)
   console.log(game_id + ": game_id assigned")
 }
 
-const animate = () =>
+const animate = (socket) =>
 {
   collisionLogic(vars, csts, objs);
   scoringLogic(vars, csts, objs);
@@ -443,7 +445,7 @@ const animate = () =>
     }
   }
 
-  update();
+  update(socket);
   tools.controls.update();
   tools.stats.update();
     
@@ -458,10 +460,13 @@ const animate = () =>
 
 export default function ThreeScene()
 {
-  console.log("Hello");
+  const socket = io('http://localhost:5000')
   const containerRef = useRef(null);
     useEffect(() => {
     
+      socket.on("updatePlayerPosition", ({position})=> {
+        update(positions))
+      })
     CreateGame().then(assignId);
     tools.scene = new THREE.Scene();
     
@@ -530,7 +535,7 @@ export default function ThreeScene()
 
     document.addEventListener('keyup', function(event) { keys[event.code] = false; });
 
-    animate();
+    animate(socket);
   }, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };

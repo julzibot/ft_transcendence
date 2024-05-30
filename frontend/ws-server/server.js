@@ -11,15 +11,22 @@ const io = new Server(server, {
   }
 })
 
-io.on("connection", async (socket) => {
-  console.log("Handshake from host with socket id: " + socket.id)
+io.on("connection", (client) => {
+  console.log("A client connected to the server with id: " + client.id)
 
-  socket.on('myEvent', arg1 => {
-    console.log("message from client: " + arg1)
-    socket.emit("serverResponse", "Hi client")
+  // client.emit("setUserId", client.id)
+
+  socket.on("keyDown", (position) => {
+    client.emit("updatePlayerPostion", {}) //Send Updated paddle position to room
+  })
+
+
+  socket.on('disconnect', (socket) => {
+    console.log(socket.id + " disconnected")
   })
 })
 
+
 server.listen(PORT, () => {
-  console.log("socket.io server is now listening on port " + PORT)
+  console.log("Socket server is now listening on port " + PORT)
 })
