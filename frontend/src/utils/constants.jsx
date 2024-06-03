@@ -5,9 +5,9 @@ export const GAMEHEIGHT = 30;
 export const DECORSIZE = 100;
 
 export const PLAYERLEN = 5;
-export const BASE_PLAYERSPEED = 0.17
+export const BASE_PLAYERSPEED = 0.1
 export const PLAYERSPEED_INCREMENT = 1.023
-export const PLAYERSPEED_MAX = 0.45
+export const PLAYERSPEED_MAX = 0.25
 
 export const BALLRADIUS = 0.55;
 export const BASE_BALLSPEED = 0.15;

@@ -12,8 +12,8 @@ const tools = {};
 const trail = {};
 const particleEffects = [];
 const trailSegments = [];
-const remote_game = false;
-const game_creator = true;
+const remote_game = true;
+let isHost = true;
 let game_id = 0;
 let put_response = false;
 const startTime = performance.now();
@@ -254,23 +254,23 @@ const collisionLogic = () =>
   }
 }
 
-const remote_update = (socket) =>
+const remote_update = (socket, user_id) =>
 {
-  if (game_creator)
+  if (isHost)
   {
     if (keys['KeyW'] || keys['KeyS'])
       vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
     else
       vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
-    // objs.player2.position.y = parseFloat(keys['opponentPos']);
-    objs.player2.position.y = 0;
+    objs.player2.position.y = parseFloat(keys['opponentPos']);
+    // objs.player2.position.y = 0;
     if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
         objs.player1.position.y += vars.playerspeed[0];
-        // socket.emit("playerMove", (csts.player_id, objs.player1.position.y));
+        socket.emit("sendPlayer1Pos", ({room_id: 1, user_id, player1pos: objs.player1.position.y}));
     }
     if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
         objs.player1.position.y -= vars.playerspeed[0];
-        // socket.emit("playerMove", objs.player1.position.y)
+        socket.emit("sendPlayer1Pos", ({room_id: 1, user_id, player2pos: objs.player1.position.y}));;
     }
   }
   else
@@ -279,20 +279,20 @@ const remote_update = (socket) =>
       vars.playerspeed[1] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
     else
       vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
-    // objs.player2.position.y = parseFloat(keys['opponentPos']);
-    objs.player1.position.y = 0;
+    objs.player1.position.y = parseFloat(keys['opponentPos']);
+    // objs.player1.position.y = 0;
     if (keys['ArrowUp'] && objs.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
         objs.player2.position.y += vars.playerspeed[1];
-        // socket.emit("playerMove", (csts.player_id, objs.player1.position.y));
+        socket.emit("sendPlayer2Pos", ({room_id: 1, user_id, player1pos: objs.player2.position.y}));
     }
     if (keys['ArrowDown'] && objs.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
         objs.player2.position.y -= vars.playerspeed[1];
-        // socket.emit("playerMove", objs.player1.position.y)
+        socket.emit("sendPlayer2Pos", ({room_id: 1, user_id, player2pos: objs.player2.position.y}));
     }
   }
 }
 
-const local_update = (socket) =>
+const local_update = () =>
 {
   if (keys['ArrowUp'] || keys['ArrowDown'])
     vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
@@ -386,7 +386,7 @@ async function assignId(id)
   console.log(game_id + ": game_id assigned")
 }
 
-const animate = (socket) =>
+const animate = (socket, user_id) =>
 {
   collisionLogic(vars, csts, objs);
   scoringLogic(vars, csts, objs);
@@ -486,9 +486,9 @@ const animate = (socket) =>
   }
 
   if (remote_game)
-    remote_update(socket);
+    remote_update(socket, user_id);
   else
-    local_update(socket);
+    local_update();
   tools.controls.update();
   tools.stats.update();
     
@@ -501,14 +501,14 @@ const animate = (socket) =>
 }
 
 
-export default function ThreeScene()
+export default function ThreeScene({ socket, user_id })
 {
-  const socket = io('http://localhost:5000')
   const containerRef = useRef(null);
     useEffect(() => {
     
     CreateGame().then(assignId);
     tools.scene = new THREE.Scene();
+    // csts.player_id
     
     console.log(window.innerWidth + "    " + window.innerHeight);
     tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
@@ -578,13 +578,25 @@ export default function ThreeScene()
     // socket.on("initGameInfo", ({info})=>{
     //   gameCreator = JSON.parse(info);
     // })
-    // socket.on("updatePlayerPosition", ({position})=> {
-    //   keys["opponentPos"] = JSON.parse(position);
-    // })
+    socket.on("isHost", (bool) => {
+      isHost = bool;
+    })
+    if (isHost)
+    {
+      socket.on("updatePlayer2Pos", ({position})=> {
+        keys["opponentPos"] = JSON.parse(position);
+      })
+    }
+    else
+    {
+      socket.on("updatePlayer1Pos", ({position})=> {
+        keys["opponentPos"] = JSON.parse(position);
+      })
+    }
     document.addEventListener('keydown', function(event) { keys[event.code] = true; });
     document.addEventListener('keyup', function(event) { keys[event.code] = false; });
     
-    animate(socket);
+    animate(socket, user_id);
   }, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
