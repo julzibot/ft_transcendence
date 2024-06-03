@@ -6,8 +6,20 @@ import { useEffect, useState } from "react"
 
 
 export default function Page() {
-  const socket = io("http://localhost:5000")
-  const [buttonText, setButtonText] = useState("Send Message")
+  const socket = io("http://localhost:6500");
+  const [buttonText, setButtonText] = useState("Send Message");
+	const [newMessageRcvd, setNewMessageRcvd] = useState("");
+
+	const joinRoom = () => {
+			socket.emit("join_room", 26);
+	};
+
+	const sendMessage = () => {
+
+		const message = "Hello from the client!";
+		const room_id = 26;
+		socket.emit("myEvent", {message, room_id});
+	};
 
   useEffect(() => {
     socket.on("connect", () => {
@@ -23,7 +35,18 @@ export default function Page() {
     }
   }, [])
 
+	useEffect(() => {
+		socket.on('receive_message', (data) => {
+			setNewMessageRcvd((prevMsg) => prevMsg + "\n" + data.message);
+			console.log("newMSGreceived:", newMessageRcvd);
+		})
+	}, [socket]);
+
   return(
-    <button className="btn btn-primary" onClick={() => {socket.emit('myEvent', 'Hello Server!')}}>{buttonText}</button>
+		<div>
+			<button onClick={joinRoom}>Join Room</button>
+			<button className="btn btn-primary" onClick={sendMessage}>{buttonText}</button>
+			<p>{newMessageRcvd}</p>
+		</div>
   )
 }

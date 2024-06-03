@@ -503,11 +503,14 @@ export default function ThreeScene()
     let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
     console.log(tools.camera.projectionMatrix);
 
-    let backgroundMaterial = new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      uniforms: uniformData,
-      fragmentShader: custom.shader_utils + custom.shader_background
-    });
+		let backgroundMaterial = new THREE.MeshStandardMaterial({
+			color: 0x000000
+		})
+    // let backgroundMaterial = new THREE.ShaderMaterial({
+    //   side: THREE.BackSide,
+    //   uniforms: uniformData,
+    //   fragmentShader: custom.shader_utils + custom.shader_background
+    // });
     let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
 
     trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);

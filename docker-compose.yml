@@ -21,7 +21,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - 5000:5000
+      - 6500:6500
     volumes:
       - ./frontend/ws-server/:/server
       - /server/node_modules
@@ -35,7 +35,7 @@ services:
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=postgres
     volumes:
-      - /Users/julzibot/goinfre/ft_transcendence/dbdata:/var/lib/postgresql/data
+      - /Users/miky/42mac/transcendence/.dbdata:/var/lib/postgresql/data
       # - /home/anloisea/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
     ports:
       - 33066:5432
@@ -64,5 +64,5 @@ services:
     ports: 
       - 33067:6379
     volumes:
-      - /Users/julzibot/goinfre/ft_transcendence/.redis:/data
+      - /Users/miky/42mac/transcendence/.redis:/data
       # - /home/anloisea/goinfre/ft_transcendence/.redis:/data
