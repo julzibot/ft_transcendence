@@ -12,6 +12,8 @@ const tools = {};
 const trail = {};
 const particleEffects = [];
 const trailSegments = [];
+const remote_game = true;
+const game_creator = true;
 let game_id = 0;
 let put_response = false;
 const startTime = performance.now();
@@ -105,14 +107,14 @@ const scoringLogic = () =>
   {
     if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4)
     {
-      vars.ballVect.set(-1, 0, 0);
+      vars.ballVect.set(-1, 0);
       vars.p1Score += 1;
       csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
         {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
     }
     else
     {
-      vars.ballVect.set(1, 0, 0);
+      vars.ballVect.set(1, 0);
       vars.p2Score += 1;
       csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
         {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
@@ -139,13 +141,60 @@ const scoringLogic = () =>
   }
 }
 
+const createSparks = () =>
+{
+  let topDownRebound = objs.ball.position.y > 0? 1 : 0;
+
+  const vertices = [];
+  const speedVecs = [];
+  const sizes = [];
+  let speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED);
+  vars.dotProduct = vars.ballVect.dot(csts.gameVect);
+  if (speedFactor < 0.3)
+    speedFactor = 0.3;
+  const particleSize = Math.max( 1., speedFactor * 3.);
+  let x = objs.ball.position.x;
+  let y = objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3/2);
+  let z = objs.ball.position.z;
+  let light = new THREE.PointLight( objs.ball.material.color, 15, 42);
+  light.position.set(x, y, z);
+  let vecx = 0.0;
+  let vecy = 0.0;
+  let vecz = 0.0;
+  for ( let i = 0.0; i < speedFactor * Math.abs(vars.dotProduct) * 25; i++ ) {
+    vertices.push(x, y, z);
+    vecx = THREE.MathUtils.randFloatSpread( 0.8 * speedFactor );
+    vecy = (THREE.MathUtils.randFloatSpread( 0.1 * speedFactor ) + 0.1 * speedFactor) * -topDownRebound;
+    vecz = THREE.MathUtils.randFloatSpread( 0.5 * speedFactor );
+    speedVecs.push(vecx, vecy, vecz);
+    sizes.push(particleSize * Math.max(1.3 * speedFactor - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.3));
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+  geometry.setAttribute( 'velocity', new THREE.Float32BufferAttribute( speedVecs, 3 ) );
+  geometry.setAttribute( 'size', new THREE.Float32BufferAttribute( sizes, 1 ) );
+  const material = new THREE.ShaderMaterial({
+    uniforms: sparkUniform,
+    vertexShader: sparkVs,
+    fragmentShader: sparkFs,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    vertexColors: true,
+    depthTest: true,
+    depthWrite: false
+    }); 
+  let points = new THREE.Points( geometry, material );
+  const impactTime = performance.now();
+  particleEffects.push([points, impactTime, light]);
+  tools.scene.add( points );
+  tools.scene.add( light );
+}
 
 const collisionLogic = () =>
 {
   let p1HB = new THREE.Box3().setFromObject(objs.player1);
   let p2HB = new THREE.Box3().setFromObject(objs.player2);
   let sph = new THREE.Box3().setFromObject(objs.ball);
-  let topDownRebound = 0;
 
   // CHECK PLAYER COLLISIONS
   if (p1HB.intersectsBox(sph))
@@ -200,77 +249,69 @@ const collisionLogic = () =>
   if (csts.topHB.intersectsBox(sph) || csts.botHB.intersectsBox(sph))
   {
     vars.ballVect.y *= -1;
-    if (objs.ball.position.y > 0)
-      topDownRebound = 1;
-    else
-      topDownRebound = -1;
-
-    const vertices = [];
-    const speedVecs = [];
-    const sizes = [];
-    let speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED);
-    vars.dotProduct = vars.ballVect.dot(csts.gameVect);
-    if (speedFactor < 0.3)
-      speedFactor = 0.3;
-    const particleSize = Math.max( 1., speedFactor * 3.);
-    let x = objs.ball.position.x;
-    let y = objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3/2);
-    let z = objs.ball.position.z;
-    let light = new THREE.PointLight( objs.ball.material.color, 15, 42);
-    light.position.set(x, y, z);
-    let vecx = 0.0;
-    let vecy = 0.0;
-    let vecz = 0.0;
-    for ( let i = 0.0; i < speedFactor * Math.abs(vars.dotProduct) * 25; i++ ) {
-      vertices.push(x, y, z);
-      vecx = THREE.MathUtils.randFloatSpread( 0.8 * speedFactor );
-      vecy = (THREE.MathUtils.randFloatSpread( 0.1 * speedFactor ) + 0.1 * speedFactor) * -topDownRebound;
-      vecz = THREE.MathUtils.randFloatSpread( 0.5 * speedFactor );
-      speedVecs.push(vecx, vecy, vecz);
-      sizes.push(particleSize * Math.max(1.3 * speedFactor - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.3));
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-    geometry.setAttribute( 'velocity', new THREE.Float32BufferAttribute( speedVecs, 3 ) );
-    geometry.setAttribute( 'size', new THREE.Float32BufferAttribute( sizes, 1 ) );
-    const material = new THREE.ShaderMaterial({
-      uniforms: sparkUniform,
-      vertexShader: sparkVs,
-      fragmentShader: sparkFs,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      vertexColors: true,
-      depthTest: true,
-      depthWrite: false
-      }); 
-    let points = new THREE.Points( geometry, material );
-    const impactTime = performance.now();
-    particleEffects.push([points, impactTime, light]);
-    tools.scene.add( points );
-    tools.scene.add( light );
+    createSparks();
   }
 }
 
-const update = (socket) =>
+const remote_update = (socket) =>
 {
-  // if (keys['ArrowUp'] || keys['ArrowDown'])
-  //   vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
-  // else
-  //   vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
+  if (game_creator)
+  {
+    if (keys['KeyW'] || keys['KeyS'])
+      vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+    else
+      vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
+    // objs.player2.position.y = parseFloat(keys['opponentPos']);
+    objs.player2.position.y = 0;
+    if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
+        objs.player1.position.y += vars.playerspeed[0];
+        // socket.emit("playerMove", (csts.player_id, objs.player1.position.y));
+    }
+    if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
+        objs.player1.position.y -= vars.playerspeed[0];
+        // socket.emit("playerMove", objs.player1.position.y)
+    }
+  }
+  else
+  {
+    if (keys['ArrowUp'] || keys['ArrowDown'])
+      vars.playerspeed[1] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+    else
+      vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
+    // objs.player2.position.y = parseFloat(keys['opponentPos']);
+    objs.player1.position.y = 0;
+    if (keys['ArrowUp'] && objs.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
+        objs.player2.position.y += vars.playerspeed[1];
+        // socket.emit("playerMove", (csts.player_id, objs.player1.position.y));
+    }
+    if (keys['ArrowDown'] && objs.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
+        objs.player2.position.y -= vars.playerspeed[1];
+        // socket.emit("playerMove", objs.player1.position.y)
+    }
+  }
+}
+
+const local_update = (socket) =>
+{
+  if (keys['ArrowUp'] || keys['ArrowDown'])
+    vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+  else
+    vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
   if (keys['KeyW'] || keys['KeyS'])
     vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
   else
     vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
-  if (keys['opponentPos'] > -10000) {
-      objs.player2.position.y = parseFloat(keys['opponentPos']);
+  if (keys['ArrowUp'] && objs.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
+      objs.player2.position.y += vars.playerspeed[1];
+  }
+  if (keys['ArrowDown'] && objs.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
+      objs.player2.position.y -= vars.playerspeed[1];
   }
   if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
       objs.player1.position.y += vars.playerspeed[0];
-      socket.emit("playerMove", (csts.player_id, objs.player1.position.y));
   }
   if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
       objs.player1.position.y -= vars.playerspeed[0];
-      socket.emit("playerMove", objs.player1.position.y)
   }
   if (keys['KeyR']) {
     objs.ball.position.set(0,0,0);
@@ -443,7 +484,10 @@ const animate = (socket) =>
     }
   }
 
-  update(socket);
+  if (remote_game)
+    remote_update(socket);
+  else
+    local_update(socket);
   tools.controls.update();
   tools.stats.update();
     
@@ -462,23 +506,23 @@ export default function ThreeScene()
   const containerRef = useRef(null);
     useEffect(() => {
     
-      CreateGame().then(assignId);
-      tools.scene = new THREE.Scene();
-      
-      console.log(window.innerWidth + "    " + window.innerHeight);
-      tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
-      tools.renderer.setSize( window.innerWidth, window.innerHeight );
-      tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
-      tools.stats = Stats()
-      document.body.appendChild( tools.renderer.domElement );
-      document.body.appendChild( tools.stats.dom );
-      
-      tools.scene.add( objs.ball );
-      tools.scene.add( objs.ballWrap );
-      tools.scene.add( objs.player1 );
-      tools.scene.add( objs.player2 );
-      tools.scene.add( objs.topB );
-      tools.scene.add( objs.botB );
+    CreateGame().then(assignId);
+    tools.scene = new THREE.Scene();
+    
+    console.log(window.innerWidth + "    " + window.innerHeight);
+    tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
+    tools.renderer.setSize( window.innerWidth, window.innerHeight );
+    tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
+    tools.stats = Stats()
+    document.body.appendChild( tools.renderer.domElement );
+    document.body.appendChild( tools.stats.dom );
+    
+    tools.scene.add( objs.ball );
+    tools.scene.add( objs.ballWrap );
+    tools.scene.add( objs.player1 );
+    tools.scene.add( objs.player2 );
+    tools.scene.add( objs.topB );
+    tools.scene.add( objs.botB );
     tools.scene.add( objs.backB );
     tools.scene.add( objs.background );
     tools.scene.add( csts.ambLight );
@@ -526,13 +570,15 @@ export default function ThreeScene()
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
     {printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
     
-    socket.on("setUserId", (userId) => {
-      csts.player_id = userId;
-    })
-
-    socket.on("updatePlayerPosition", ({position})=> {
-      keys["opponentPos"] = JSON.parse(position);
-    })
+    // socket.on("setUserId", ({userId}) => {
+    //   csts.player_id = JSON.parse(userId);
+    // })
+    // socket.on("initGameInfo", ({info})=>{
+    //   gameCreator = JSON.parse(info);
+    // })
+    // socket.on("updatePlayerPosition", ({position})=> {
+    //   keys["opponentPos"] = JSON.parse(position);
+    // })
     document.addEventListener('keydown', function(event) { keys[event.code] = true; });
     document.addEventListener('keyup', function(event) { keys[event.code] = false; });
     
