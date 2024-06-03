@@ -18,7 +18,7 @@ custom.color = new THREE.Vector3(0.2, 0.7, 0.6);
 custom.palette = 2;
 custom.difficulty = 1.;
 custom.win_score = 2;
-custom.backboard_opacity = 0.95;
+custom.backboard_opacity = 0.6;
 custom.power_ups = false;
 
 // GAME INIT

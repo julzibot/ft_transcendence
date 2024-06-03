@@ -12,7 +12,7 @@ const tools = {};
 const trail = {};
 const particleEffects = [];
 const trailSegments = [];
-const remote_game = true;
+const remote_game = false;
 const game_creator = true;
 let game_id = 0;
 let put_response = false;
@@ -34,6 +34,7 @@ const uniformData = {
   { value: tools.camera.matrixWorldInverse }
 };
 
+const landscape = new THREE.TextureLoader().load('../../city.jpg');
 const sparkUniform = {
   u_time:
   { type: 'f', value: 0. },
@@ -547,11 +548,12 @@ export default function ThreeScene()
     let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
     console.log(tools.camera.projectionMatrix);
     
-    let backgroundMaterial = new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      uniforms: uniformData,
-      fragmentShader: custom.shader_utils + custom.shader_background
-    });
+    // let backgroundMaterial = new THREE.ShaderMaterial({
+    //   side: THREE.BackSide,
+    //   uniforms: uniformData,
+    //   fragmentShader: custom.shader_utils + custom.shader_background
+    // });
+    let backgroundMaterial = new THREE.MeshBasicMaterial({side: THREE.BackSide, map: landscape});
     let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
 
     trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
