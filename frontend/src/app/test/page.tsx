@@ -1,52 +1,46 @@
 "use client";
 
-import io from "socket.io-client"
+import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
-
-
+import Test from "../../components/testComponent/Test"
+import io from "socket.io-client"
 
 export default function Page() {
-  const socket = io("http://localhost:6500");
-  const [buttonText, setButtonText] = useState("Send Message");
-	const [newMessageRcvd, setNewMessageRcvd] = useState("");
 
-	const joinRoom = () => {
-			socket.emit("join_room", 26);
-	};
+	const { data: session, status } = useSession();
+	const [userId, setUserId] = useState(null);
+	// const [socket, setSocket] = useState(null);
 
-	const sendMessage = () => {
+	const socket = io('http://localhost:6500');
+	// useEffect(() => {
+	// 	if (socket === null) {
+	// 		setSocket(io('http://localhost:6500', {
+	// 			autoConnect: false,
+	// 		}));
+	// 	}
+	// 	// 	return () => {
+	// 	// 		socket?.disconnect();
+	// 	// 	};
+	// 	// };
+	// }, [socket]);
 
-		const message = "Hello from the client!";
-		const room_id = 26;
-		socket.emit("myEvent", {message, room_id});
-	};
-
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log("connected to: " + socket.id)
-    })
-
-    socket.on("serverResponse", (data) => {
-      setButtonText(data)
-    })
-
-    return () => {
-      // socket.disconnect()
-    }
-  }, [])
+	// console.log("SOCKET ID: " + socket.id);
 
 	useEffect(() => {
-		socket.on('receive_message', (data) => {
-			setNewMessageRcvd((prevMsg) => prevMsg + "\n" + data.message);
-			console.log("newMSGreceived:", newMessageRcvd);
-		})
-	}, [socket]);
+		if (status === "authenticated" && session) {
+			setUserId(session.user.id);
+		}
+	}, [session, status]);
 
-  return(
-		<div>
-			<button onClick={joinRoom}>Join Room</button>
-			<button className="btn btn-primary" onClick={sendMessage}>{buttonText}</button>
-			<p>{newMessageRcvd}</p>
-		</div>
-  )
+	if (status === "Loading") {
+		return (
+			<div>Loading...</div>
+		);
+	}
+
+	return (
+		<>
+			{(socket && userId) ? <Test socket={socket} user_id={userId} /> : <div>Loading data...</div>}
+		</>
+	)
 }

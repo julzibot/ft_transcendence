@@ -5,44 +5,29 @@ const PORT = 6500
 
 const server = createServer();
 
-function makeid(length) {
-	let result = '';
-	const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	const charactersLength = characters.length;
-	let counter = 0;
-	while (counter < length) {
-		result += characters.charAt(Math.floor(Math.random() * charactersLength));
-		counter += 1;
-	}
-	return result;
-}
-
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
     methods: ["GET", "POST"]
   }
-})
+});
 
 io.on("connection", async (socket) => {
-  console.log("User connected: " + socket.id)
+  console.log("User connected through socket: " + socket.id)
 
-  socket.on('myEvent', data => {
-    console.log("message from client: " + data.message + " to room: " + data.room_id);
-		socket.to(data.room_id).emit('receive_message', data);
-    // socket.emit("serverResponse", "Hi client");
-  })
+  socket.on('send_player_pos', data => {
+    console.log("Room[" + data.room_id + "]: " + "[" + data.user_id + "] sent: '" + data.message + "'");
+		socket.to(data.room_id).emit('receive_player_pos', data);
+  });
 
-	socket.on('join_room', (roomId) => {
-		console.log("client joining room:", roomId);
-		socket.join(roomId);
+	socket.on('join_room', (data) => {
+		if (!io.sockets.adapter.rooms.get(data.room_id)) {
+			socket.emit('isHost', true);
+		}
+		console.log("Client [" + data.user_id + "] joining room: " + data.room_id);
+		socket.join(data.room_id);
 	});
-
-	// socket.on('send_message', (data) => {
-	// 	console.log('emiting to:', data.room_id);
-	// 	socket.to(data.room_id).emit('receive_message', data);
-	// });
-})
+});
 
 server.listen(PORT, () => {
   console.log("'socket.io' server is now listening on port: " + PORT)
@@ -51,7 +36,7 @@ server.listen(PORT, () => {
 // Server/client communication
 // It seems that we can use the same socket.io Server
 // for both the game and the chat
-
+/*
 client1.emit("newMultiplayerGame", player_id1, player_id2)
 server.on("newMultiplayerGame", (player_id1, player_id2) => {
 	// Create game
@@ -90,3 +75,4 @@ server.on("player2move", keyEvent => {
 })
 
 // Disconnected player???
+*/
