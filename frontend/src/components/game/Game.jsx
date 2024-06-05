@@ -1,10 +1,11 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useContext } from 'react';
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts, custom } from '../../utils/init';
+import { SocketContext } from '../../../context/socket';
 import io from 'socket.io-client'
 
 let keys = {};
@@ -13,7 +14,8 @@ const trail = {};
 const particleEffects = [];
 const trailSegments = [];
 const remote_game = true;
-let isHost = true;
+let isHost = false;
+let opponentPos = 0.;
 let game_id = 0;
 let put_response = false;
 const startTime = performance.now();
@@ -262,32 +264,32 @@ const remote_update = (socket, user_id) =>
       vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
     else
       vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
-    objs.player2.position.y = parseFloat(keys['opponentPos']);
+    objs.player2.position.y = opponentPos;
     // objs.player2.position.y = 0;
     if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
         objs.player1.position.y += vars.playerspeed[0];
-        socket.emit("sendPlayer1Pos", ({room_id: 1, user_id, player1pos: objs.player1.position.y}));
+        socket.emit('sendPlayer1Pos', {room_id: 1, user_id: user_id, player1pos: objs.player1.position.y});
     }
     if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
         objs.player1.position.y -= vars.playerspeed[0];
-        socket.emit("sendPlayer1Pos", ({room_id: 1, user_id, player2pos: objs.player1.position.y}));;
+        socket.emit('sendPlayer1Pos', {room_id: 1, user_id: user_id, player1pos: objs.player1.position.y});
     }
   }
   else
   {
     if (keys['ArrowUp'] || keys['ArrowDown'])
-      vars.playerspeed[1] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+      vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
     else
       vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
-    objs.player1.position.y = parseFloat(keys['opponentPos']);
+    objs.player1.position.y = opponentPos;
     // objs.player1.position.y = 0;
     if (keys['ArrowUp'] && objs.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
         objs.player2.position.y += vars.playerspeed[1];
-        socket.emit("sendPlayer2Pos", ({room_id: 1, user_id, player1pos: objs.player2.position.y}));
+        socket.emit('sendPlayer2Pos', {room_id: 1, user_id: user_id, player2pos: objs.player2.position.y});
     }
     if (keys['ArrowDown'] && objs.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
         objs.player2.position.y -= vars.playerspeed[1];
-        socket.emit("sendPlayer2Pos", ({room_id: 1, user_id, player2pos: objs.player2.position.y}));
+        socket.emit('sendPlayer2Pos', {room_id: 1, user_id: user_id, player2pos: objs.player2.position.y});
     }
   }
 }
@@ -496,16 +498,18 @@ const animate = (socket, user_id) =>
   tools.renderer.render(tools.scene, tools.camera);
 
   setTimeout( function() {
-    requestAnimationFrame( animate );
+    requestAnimationFrame( () => animate(socket, user_id) );
   }, 5 );
 }
 
-
-export default function ThreeScene({ socket, user_id })
+export default function ThreeScene({ user_id })
 {
+  const socket = useContext(SocketContext);
   const containerRef = useRef(null);
-    useEffect(() => {
-    
+  socket.emit('join_room', { room_id: 1, user_id: user_id });
+
+  useEffect(() => {
+  
     CreateGame().then(assignId);
     tools.scene = new THREE.Scene();
     // csts.player_id
@@ -578,25 +582,27 @@ export default function ThreeScene({ socket, user_id })
     // socket.on("initGameInfo", ({info})=>{
     //   gameCreator = JSON.parse(info);
     // })
-    socket.on("isHost", (bool) => {
-      isHost = bool;
+    socket.on('isHost', bool => {
+      isHost = true;
     })
     if (isHost)
     {
-      socket.on("updatePlayer2Pos", ({position})=> {
-        keys["opponentPos"] = JSON.parse(position);
+      socket.on('updatePlayer2Pos', position => {
+        opponentPos = position.player2pos;
       })
     }
     else
     {
-      socket.on("updatePlayer1Pos", ({position})=> {
-        keys["opponentPos"] = JSON.parse(position);
+      socket.on('updatePlayer1Pos', position => {
+        opponentPos = position.player1pos;
       })
     }
+    console.log("isHost: " + isHost);
     document.addEventListener('keydown', function(event) { keys[event.code] = true; });
     document.addEventListener('keyup', function(event) { keys[event.code] = false; });
     
-    animate(socket, user_id);
+    if (socket && user_id)
+      animate(socket, user_id);
   }, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
