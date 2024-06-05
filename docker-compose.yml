@@ -21,7 +21,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - 5000:5000
+      - 6500:6500
     volumes:
       - ./frontend/ws-server/:/server
       - /server/node_modules
