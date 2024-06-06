@@ -14,7 +14,6 @@ const trail = {};
 const particleEffects = [];
 const trailSegments = [];
 const remote_game = true;
-let isHost = false;
 let opponentPos = 0.;
 let game_id = 0;
 let put_response = false;
@@ -256,7 +255,7 @@ const collisionLogic = () =>
   }
 }
 
-const remote_update = (socket, user_id) =>
+const remote_update = (socket, user_id, isHost) =>
 {
   if (isHost)
   {
@@ -268,11 +267,11 @@ const remote_update = (socket, user_id) =>
     // objs.player2.position.y = 0;
     if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
         objs.player1.position.y += vars.playerspeed[0];
-        socket.emit('sendPlayer1Pos', {room_id: 1, user_id: user_id, player1pos: objs.player1.position.y});
+        socket.emit('sendPlayer1Pos', {room_id: 5, user_id: user_id, player1pos: objs.player1.position.y});
     }
     if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
         objs.player1.position.y -= vars.playerspeed[0];
-        socket.emit('sendPlayer1Pos', {room_id: 1, user_id: user_id, player1pos: objs.player1.position.y});
+        socket.emit('sendPlayer1Pos', {room_id: 5, user_id: user_id, player1pos: objs.player1.position.y});
     }
   }
   else
@@ -285,11 +284,14 @@ const remote_update = (socket, user_id) =>
     // objs.player1.position.y = 0;
     if (keys['ArrowUp'] && objs.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
         objs.player2.position.y += vars.playerspeed[1];
-        socket.emit('sendPlayer2Pos', {room_id: 1, user_id: user_id, player2pos: objs.player2.position.y});
+				console.log("Sending [Player2] position to server: " + objs.player2.position.y);
+        socket.emit('sendPlayer2Pos', {room_id: 5, user_id: user_id, player2pos: objs.player2.position.y});
     }
     if (keys['ArrowDown'] && objs.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
         objs.player2.position.y -= vars.playerspeed[1];
-        socket.emit('sendPlayer2Pos', {room_id: 1, user_id: user_id, player2pos: objs.player2.position.y});
+				console
+				console.log("Sending [Player2] position to server: " + objs.player2.position.y);
+        socket.emit('sendPlayer2Pos', {room_id: 5, user_id: user_id, player2pos: objs.player2.position.y});
     }
   }
 }
@@ -388,7 +390,7 @@ async function assignId(id)
   console.log(game_id + ": game_id assigned")
 }
 
-const animate = (socket, user_id) =>
+const animate = (socket, user_id, isHost) =>
 {
   collisionLogic(vars, csts, objs);
   scoringLogic(vars, csts, objs);
@@ -488,7 +490,7 @@ const animate = (socket, user_id) =>
   }
 
   if (remote_game)
-    remote_update(socket, user_id);
+    remote_update(socket, user_id, isHost);
   else
     local_update();
   tools.controls.update();
@@ -498,111 +500,113 @@ const animate = (socket, user_id) =>
   tools.renderer.render(tools.scene, tools.camera);
 
   setTimeout( function() {
-    requestAnimationFrame( () => animate(socket, user_id) );
+    requestAnimationFrame( () => animate(socket, user_id, isHost) );
   }, 5 );
 }
 
-export default function ThreeScene({ user_id })
+export default function ThreeScene({ user_id, isHost })
 {
   const socket = useContext(SocketContext);
   const containerRef = useRef(null);
-  socket.emit('join_room', { room_id: 1, user_id: user_id });
 
-  useEffect(() => {
-  
-    CreateGame().then(assignId);
-    tools.scene = new THREE.Scene();
-    // csts.player_id
-    
-    console.log(window.innerWidth + "    " + window.innerHeight);
-    tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
-    tools.renderer.setSize( window.innerWidth, window.innerHeight );
-    tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
-    tools.stats = Stats()
-    document.body.appendChild( tools.renderer.domElement );
-    document.body.appendChild( tools.stats.dom );
-    
-    tools.scene.add( objs.ball );
-    tools.scene.add( objs.ballWrap );
-    tools.scene.add( objs.player1 );
-    tools.scene.add( objs.player2 );
-    tools.scene.add( objs.topB );
-    tools.scene.add( objs.botB );
-    tools.scene.add( objs.backB );
-    tools.scene.add( objs.background );
-    tools.scene.add( csts.ambLight );
-    tools.scene.add( csts.dirLight );
-    tools.scene.add( csts.ballLight );
-    
-    if (custom.pov === "classic")
-      {
-        tools.camera.position.set(0, 0, 20);
-        tools.camera.lookAt(0, 0, 0);
-      }
-      else if (custom.pov === "immersive")
-        {
-          tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
-          tools.camera.lookAt(0, 0, 0);
-          let quaternion = new THREE.Quaternion();
-      quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
-      tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-      tools.camera.fov = 75;
-    }
-    
-    let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
-    console.log(tools.camera.projectionMatrix);
-    
-    // let backgroundMaterial = new THREE.ShaderMaterial({
-    //   side: THREE.BackSide,
-    //   uniforms: uniformData,
-    //   fragmentShader: custom.shader_utils + custom.shader_background
-    // });
-    let backgroundMaterial = new THREE.MeshBasicMaterial({side: THREE.BackSide, map: landscape});
-    let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
-
-    trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
-    trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
-    trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
-    trail.ballTrail.scale.y = 0.4;
-    trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
-    trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
-    
-    tools.scene.add(background);
-    tools.scene.add(trail.ballTrail);
-    
-    // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-    {printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-    {printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
-    
-    // socket.on("setUserId", ({userId}) => {
-    //   csts.player_id = JSON.parse(userId);
-    // })
-    // socket.on("initGameInfo", ({info})=>{
-    //   gameCreator = JSON.parse(info);
-    // })
-    socket.on('isHost', bool => {
-      isHost = true;
-    })
-    if (isHost)
-    {
-      socket.on('updatePlayer2Pos', position => {
-        opponentPos = position.player2pos;
-      })
-    }
-    else
-    {
-      socket.on('updatePlayer1Pos', position => {
-        opponentPos = position.player1pos;
-      })
-    }
-    console.log("isHost: " + isHost);
-    document.addEventListener('keydown', function(event) { keys[event.code] = true; });
-    document.addEventListener('keyup', function(event) { keys[event.code] = false; });
-    
-    if (socket && user_id)
-      animate(socket, user_id);
-  }, []);
+  // socket.emit('join_room', { room_id: 5, user_id: user_id });
+	// socket.on('isHost', bool => {
+	// 	if (!isHost)
+	// 		isHost = bool;
+	// 	if (isHost)
+	// 		console.log("You are the host (player 1)");
+	// 	else if (!isHost)
+	// 		console.log("You are NOT the host");
+	// })
+	// socket.on("startGame", () => {
+	// 	console.log("Client: Game can start!");
+	// 	gameStart = true;
+	// })
+	
+	useEffect(() => {
+		
+			CreateGame().then(assignId);
+			tools.scene = new THREE.Scene();
+			
+			// console.log(window.innerWidth + "    " + window.innerHeight);
+			tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
+			tools.renderer.setSize( window.innerWidth, window.innerHeight );
+			tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
+			tools.stats = Stats()
+			document.body.appendChild( tools.renderer.domElement );
+			document.body.appendChild( tools.stats.dom );
+			
+			tools.scene.add( objs.ball );
+			tools.scene.add( objs.ballWrap );
+			tools.scene.add( objs.player1 );
+			tools.scene.add( objs.player2 );
+			tools.scene.add( objs.topB );
+			tools.scene.add( objs.botB );
+			tools.scene.add( objs.backB );
+			tools.scene.add( objs.background );
+			tools.scene.add( csts.ambLight );
+			tools.scene.add( csts.dirLight );
+			tools.scene.add( csts.ballLight );
+			
+			if (custom.pov === "classic")
+				{
+					tools.camera.position.set(0, 0, 20);
+					tools.camera.lookAt(0, 0, 0);
+				}
+				else if (custom.pov === "immersive")
+					{
+						tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
+						tools.camera.lookAt(0, 0, 0);
+						let quaternion = new THREE.Quaternion();
+				quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
+				tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+				tools.camera.fov = 75;
+			}
+			
+			let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
+			console.log(tools.camera.projectionMatrix);
+			
+			// let backgroundMaterial = new THREE.ShaderMaterial({
+			//   side: THREE.BackSide,
+			//   uniforms: uniformData,
+			//   fragmentShader: custom.shader_utils + custom.shader_background
+			// });
+			let backgroundMaterial = new THREE.MeshBasicMaterial({side: THREE.BackSide, map: landscape});
+			let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
+	
+			trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
+			trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
+			trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
+			trail.ballTrail.scale.y = 0.4;
+			trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
+			trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
+			
+			tools.scene.add(background);
+			tools.scene.add(trail.ballTrail);
+			
+			// ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
+			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
+			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
+	
+			if (isHost) {
+				socket.on('updatePlayer2Pos', position => {
+					console.log("Receiving player 2 pos: " + position.player2pos);
+					opponentPos = position.player2pos;
+				})
+			}
+			else {
+				socket.on('updatePlayer1Pos', position => {
+					console.log("Receiving player 1 pos: " + position.player1pos);
+					opponentPos = position.player1pos;
+				})
+			}
+			document.addEventListener('keydown', function(event) { keys[event.code] = true; });
+			document.addEventListener('keyup', function(event) { keys[event.code] = false; });
+			
+			if (socket && user_id)
+				animate(socket, user_id, isHost);
+		}, [gameStart]);
   return <canvas className='fixed-top' ref={containerRef} />;
 };

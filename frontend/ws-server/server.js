@@ -17,11 +17,23 @@ io.on("connection", async (socket) => {
   console.log("User connected through socket: " + socket.id);
 
   socket.on('join_room', data => {
-    if (!io.sockets.adapter.rooms.get(data.room_id)) {
-      socket.emit('isHost', true);
+		const roomExists = io.sockets.adapter.rooms.get(data.room_id);
+	
+    if (!roomExists || roomExists.size === 0) {
+			console.log("[HOST] Client [" + data.user_id + "] joining room: " + data.room_id);
+      socket.emit('isHost');
     }
-    console.log("Client [" + data.user_id + "] joining room: " + data.room_id);
-    socket.join(data.room_id);
+		else {
+			console.log("[NOT HOST] Client [" + data.user_id + "] joining room: " + data.room_id);
+		}
+
+		socket.join(data.room_id);
+
+		if (io.sockets.adapter.rooms.get(data.room_id) && io._nsps.get('/').adapter.rooms.get(data.room_id).size === 2) {
+			console.log("users in a room: " + io._nsps.get('/').adapter.rooms.get(data.room_id).size);
+			console.log('Starting game...');
+			socket.to(data.room_id).emit('startGame');
+		}
   });
 
   socket.on('sendPlayer1Pos', data => {
