@@ -1,7 +1,7 @@
 import { createServer } from 'node:http'
 import { Server } from "socket.io"
 
-const PORT = 5000
+const PORT = 6500
 
 const server = createServer();
 const io = new Server(server, {
