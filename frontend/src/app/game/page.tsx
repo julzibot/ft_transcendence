@@ -1,6 +1,7 @@
 'use client';
 
 import ThreeScene from "../../components/game/Game"
+import Join from "../../components/game/Join"
 import { useSession } from "next-auth/react"
 import { useEffect, useState, useContext } from "react"
 import io from "socket.io-client"
@@ -8,15 +9,10 @@ import { SocketContext, socket } from "../../../context/socket"
 
 export default function Play() {
 
+	const gameSocket = socket;
   const { data: session, status } = useSession();
   const {room, setRoom} = useState("");
 	const [userId, setUserId] = useState(null);
-
-  // useEffect(() => {
-  //   const newSocket = io('http://localhost:6500');
-  //   setSocket(newSocket);
-  //   return () => newSocket.close();
-  // }, []);
 
   useEffect(() => {
 		if (status === "authenticated" && session) {
@@ -24,28 +20,22 @@ export default function Play() {
 		}
 	}, [session, status]);
 
-  // useEffect(() => {
-  //   if (socket && userId) {
-  //     socket.emit('join_room', { "room_id": 1, "user_id": userId });
-  //   }
-  // }, [socket, userId]);
-
 	if (status === "Loading" || !userId) {
 		return (
 			<div>Loading...</div>
 		);
 	}
 
-  // if (!socket || !userId) {
-  //   return <div>Loading...</div>;
-  // }
-  // if (socket)
-  //   console.log("socket id: " + socket.id);
   return (
     <>
-    <SocketContext.Provider value={socket}>
-      {userId ? <ThreeScene user_id={userId} /> : <div>Loading data...</div>}
-    </SocketContext.Provider>
+			<SocketContext.Provider value={socket}>
+				{/* {
+					<button className="btn btn-primary" onClick={joinGame}>Join a game</button>
+				}
+				
+				{(gameJoined && userId) ? <ThreeScene user_id={userId} /> : <div>Loading data...</div>} */}
+				<Join user_id={userId} />
+			</SocketContext.Provider>
     </>
   )
 }

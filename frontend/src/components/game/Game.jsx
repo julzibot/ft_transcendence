@@ -508,27 +508,12 @@ export default function ThreeScene({ user_id, isHost })
 {
   const socket = useContext(SocketContext);
   const containerRef = useRef(null);
-
-  // socket.emit('join_room', { room_id: 5, user_id: user_id });
-	// socket.on('isHost', bool => {
-	// 	if (!isHost)
-	// 		isHost = bool;
-	// 	if (isHost)
-	// 		console.log("You are the host (player 1)");
-	// 	else if (!isHost)
-	// 		console.log("You are NOT the host");
-	// })
-	// socket.on("startGame", () => {
-	// 	console.log("Client: Game can start!");
-	// 	gameStart = true;
-	// })
 	
 	useEffect(() => {
 		
 			CreateGame().then(assignId);
 			tools.scene = new THREE.Scene();
 			
-			// console.log(window.innerWidth + "    " + window.innerHeight);
 			tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
 			tools.renderer.setSize( window.innerWidth, window.innerHeight );
 			tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
@@ -607,6 +592,6 @@ export default function ThreeScene({ user_id, isHost })
 			
 			if (socket && user_id)
 				animate(socket, user_id, isHost);
-		}, [gameStart]);
+		}, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
