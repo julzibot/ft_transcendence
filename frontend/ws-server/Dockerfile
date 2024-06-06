@@ -1,13 +1,13 @@
 FROM node:21-alpine3.18
 
-WORKDIR /app
+WORKDIR /server
 COPY package.json .
 
 # Install dependencies
 RUN npm install socket.io cors
 RUN npm install -g nodemon
 
-COPY . /app
+COPY . /server
 
 EXPOSE 5000
 

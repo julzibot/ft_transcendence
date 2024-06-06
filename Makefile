@@ -1,7 +1,7 @@
 COMPOSE = docker-compose.yml
 
 all:
-	docker compose -f $(COMPOSE) up -d
+	docker compose -f $(COMPOSE) up
 
 re: fclean all
 

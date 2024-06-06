@@ -34,7 +34,6 @@ class DashboardDetail(APIView):
 			dashboard_detail = DashboardData.objects.get(user_id=id)
 		except:
 			return Response(status.HTTP_404_NOT_FOUND)
-		print(dashboard_detail.user_id)
 		serializer = DashboardSerializer(dashboard_detail)
 		return Response(serializer.data)
 		

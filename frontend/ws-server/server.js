@@ -11,12 +11,12 @@ const io = new Server(server, {
   }
 })
 
-io.on("connection", (client) => {
-  console.log("Handshake from host to client: " + client.id)
+io.on("connection", async (socket) => {
+  console.log("Handshake from host with socket id: " + socket.id)
 
-  client.on('myEvent', arg1 => {
+  socket.on('myEvent', arg1 => {
     console.log("message from client: " + arg1)
-    client.emit("serverResponse", "Hi client")
+    socket.emit("serverResponse", "Hi client")
   })
 })
 
