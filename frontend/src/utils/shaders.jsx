@@ -268,3 +268,5 @@ shaders.background_fractcircles = main_init +
     gl_FragColor = vec4(color, 1.0);
 }
 `
+
+shaders.background_skybox = "skybox"
