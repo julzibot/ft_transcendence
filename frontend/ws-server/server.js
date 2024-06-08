@@ -36,6 +36,10 @@ io.on("connection", async (socket) => {
 		}
   });
 
+  socket.on('sendBallPos', (data) => {
+    socket.to(data.room_id).emit('updateBallPos', {x: data.x, y: data.y, vectx: data.vectx, vecty: data.vecty});
+  })
+
   socket.on('sendPlayer1Pos', data => {
     console.log("Room[" + data.room_id + "]: " + "[" + data.user_id + "]'s position: '" + data.player1pos + "'");
     socket.to(data.room_id).emit('updatePlayer1Pos', {player1pos: data.player1pos});
@@ -45,6 +49,10 @@ io.on("connection", async (socket) => {
     console.log("Room[" + data.room_id + "]: " + "[" + data.user_id + "]'s position: '" + data.player2pos + "'");
     socket.to(data.room_id).emit('updatePlayer2Pos', {player2pos: data.player2pos});
   });
+
+  socket.on('sendScore', data => {
+    socket.to(data.room_id).emit('updateScore', {score1: data.score1, score2: data.score2, game_ended: data.stopGame});
+  })
 
   socket.on('disconnect', () => {
     console.log(socket.id + " disconnected");

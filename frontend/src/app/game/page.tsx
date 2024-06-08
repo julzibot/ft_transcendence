@@ -29,11 +29,6 @@ export default function Play() {
   return (
     <>
 			<SocketContext.Provider value={socket}>
-				{/* {
-					<button className="btn btn-primary" onClick={joinGame}>Join a game</button>
-				}
-				
-				{(gameJoined && userId) ? <ThreeScene user_id={userId} /> : <div>Loading data...</div>} */}
 				<Join user_id={userId} />
 			</SocketContext.Provider>
     </>

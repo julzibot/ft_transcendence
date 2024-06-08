@@ -10,8 +10,9 @@ export default function Join({ user_id }) {
 
 	const [gameJoined, setGameJoined] = useState(false);
 	const [isHost, setIsHost] = useState(false);
+	const room_id = 5;
 
-	socket.emit('join_room', { room_id: 5, user_id: user_id });
+	socket.emit('join_room', { room_id: room_id, user_id: user_id });
 
 	useEffect(() => {
 		socket.on('isHost', () => {
@@ -25,7 +26,7 @@ export default function Join({ user_id }) {
 
 	return (
 		<>
-			{gameJoined ? <ThreeScene user_id={user_id} isHost={isHost} /> : <div>Loading game...</div>}
+			{gameJoined ? <ThreeScene room_id={room_id} user_id={user_id} isHost={isHost} /> : <div>Loading game...</div>}
 		</>
 	)
 }

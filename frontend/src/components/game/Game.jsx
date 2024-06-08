@@ -102,44 +102,45 @@ const setBallColor = () =>
   csts.ballLight.color.set(color);
 }
 
-const scoringLogic = () =>
+const scoringLogic = (room_id, socket, isHost) =>
 {
   // RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
-  if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4))
+  if (isHost === true && (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4)))
   {
     if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4)
     {
       vars.ballVect.set(-1, 0);
       vars.p1Score += 1;
       csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-        {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
+      {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
     }
     else
     {
       vars.ballVect.set(1, 0);
       vars.p2Score += 1;
       csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-        {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
-    }
-
-    if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score)
-    {
-      if (vars.p1Score > vars.p2Score)
-        vars.endString = "GAME ENDED\nPLAYER 1 WINS";
-      else
-        vars.endString = "GAME ENDED\nPLAYER 2 WINS";
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-        {printGameInfo(font, vars.endMsgMesh, vars.endString, 3, 3)} );
-      vars.stopGame = true;
-      put_response = PutScores();
-      if (put_response == false)
-        console.log("Ouch ! Scores not updated !")
+      {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
     }
     objs.ball.position.set(0, 0, 0);
     objs.ballWrap.position.set(0, 0, 0);
     vars.ballSpeed = CONST.BASE_BALLSPEED;
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
     setBallColor();
+    if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score)
+        vars.stopGame = true;
+    socket.emit('sendScore', {room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, game_ended: vars.stopGame})
+  }
+  if (vars.stopGame === true)
+  {
+    if (vars.p1Score > vars.p2Score)
+      vars.endString = "GAME ENDED\nPLAYER 1 WINS";
+    else
+      vars.endString = "GAME ENDED\nPLAYER 2 WINS";
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.endMsgMesh, vars.endString, 3, 3)} );
+    put_response = PutScores();
+    if (put_response == false)
+      console.log("Ouch ! Scores not updated !")
   }
 }
 
@@ -390,12 +391,12 @@ async function assignId(id)
   console.log(game_id + ": game_id assigned")
 }
 
-const animate = (socket, user_id, isHost) =>
+const animate = (socket, room_id, user_id, isHost) =>
 {
-  collisionLogic(vars, csts, objs);
-  scoringLogic(vars, csts, objs);
+  collisionLogic();
+  scoringLogic(room_id, socket, isHost);
   
-  if (vars.stopGame == true)
+  if (vars.stopGame === true)
     vars.ballVect.set(0, 0);
   
   let ballFloor = Math.floor(objs.ball.position.x * 2.);
@@ -429,18 +430,24 @@ const animate = (socket, user_id, isHost) =>
       trailSegments[i][0].material.opacity = speedFactor - ((performance.now() - trailSegments[i][1]) / 120 * speedFactor);
     trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - trailSegments[i][1]) / 120, 1.);
   }
-
-  objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
-  objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
-  objs.ballWrap.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
-  objs.ballWrap.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
-  csts.ballLight.position.x = objs.ball.position.x;
-  csts.ballLight.position.y = objs.ball.position.y;
+  
+  if (isHost === true)
+  {
+    objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
+    objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
+    socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vexty: vars.ballVect.y, room_id: room_id})
+  }
+  const x = objs.ball.position.x;
+  const y = objs.ball.position.y;
+  objs.ballWrap.position.x = x;
+  objs.ballWrap.position.y = y;
+  csts.ballLight.position.x = x;
+  csts.ballLight.position.y = y;
   trail.ballTrail.position.x = objs.ball.position.x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
   trail.ballTrail.position.y = objs.ball.position.y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
   trail.ballTrail.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2);
   trail.ballTrail.material.opacity = speedFactor;
-
+  
   
   vars.glowElapsed = performance.now() - vars.glowStartTime;
   if (vars.glowElapsed < 750)
@@ -500,11 +507,11 @@ const animate = (socket, user_id, isHost) =>
   tools.renderer.render(tools.scene, tools.camera);
 
   setTimeout( function() {
-    requestAnimationFrame( () => animate(socket, user_id, isHost) );
+    requestAnimationFrame( () => animate(socket, room_id, user_id, isHost) );
   }, 5 );
 }
 
-export default function ThreeScene({ user_id, isHost })
+export default function ThreeScene({ room_id, user_id, isHost })
 {
   const socket = useContext(SocketContext);
   const containerRef = useRef(null);
@@ -538,15 +545,15 @@ export default function ThreeScene({ user_id, isHost })
 					tools.camera.position.set(0, 0, 20);
 					tools.camera.lookAt(0, 0, 0);
 				}
-				else if (custom.pov === "immersive")
-					{
-						tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
-						tools.camera.lookAt(0, 0, 0);
-						let quaternion = new THREE.Quaternion();
-				quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
-				tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-				tools.camera.fov = 75;
-			}
+      else if (custom.pov === "immersive")
+        {
+          tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
+          tools.camera.lookAt(0, 0, 0);
+          let quaternion = new THREE.Quaternion();
+          quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
+          tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+          tools.camera.fov = 75;
+        }
 			
 			let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
 			console.log(tools.camera.projectionMatrix);
@@ -585,13 +592,34 @@ export default function ThreeScene({ user_id, isHost })
 				socket.on('updatePlayer1Pos', position => {
 					console.log("Receiving player 1 pos: " + position.player1pos);
 					opponentPos = position.player1pos;
-				})
+				});
+        socket.on('updateBallPos', data => {
+          objs.ball.position.x = data.x;
+          objs.ball.position.y = data.y;
+          vars.ballVect.x = data.vectx;
+          vars.ballVect.y = data.vecty;
+        })
+        socket.on('updateScore', data => {
+          if (data.score1 > vars.p1Score)
+          {
+            vars.p1Score = data.score1;
+            csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
+            {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
+          }
+          else
+          {
+            vars.p2Score = data.score2;
+            csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
+            {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
+          }
+          vars.stopGame = data.stopGame;
+        });
 			}
 			document.addEventListener('keydown', function(event) { keys[event.code] = true; });
 			document.addEventListener('keyup', function(event) { keys[event.code] = false; });
 			
 			if (socket && user_id)
-				animate(socket, user_id, isHost);
+				animate(socket, room_id, user_id, isHost);
 		}, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
