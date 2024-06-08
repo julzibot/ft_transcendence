@@ -37,18 +37,26 @@ io.on("connection", async (socket) => {
   });
 
   socket.on('sendBallPos', (data) => {
-    socket.to(data.room_id).emit('updateBallPos', {x: data.x, y: data.y, vectx: data.vectx, vecty: data.vecty});
+    socket.to(data.room_id).emit('updateBallPos', {x: data.x, y: data.y, vectx: data.vectx, vecty: data.vecty, speed: data.speed});
   })
 
   socket.on('sendPlayer1Pos', data => {
-    console.log("Room[" + data.room_id + "]: " + "[" + data.user_id + "]'s position: '" + data.player1pos + "'");
+    // console.log("Room[" + data.room_id + "]: " + "[" + data.user_id + "]'s position: '" + data.player1pos + "'");
     socket.to(data.room_id).emit('updatePlayer1Pos', {player1pos: data.player1pos});
   });
 
   socket.on('sendPlayer2Pos', data => {
-    console.log("Room[" + data.room_id + "]: " + "[" + data.user_id + "]'s position: '" + data.player2pos + "'");
+    // console.log("Room[" + data.room_id + "]: " + "[" + data.user_id + "]'s position: '" + data.player2pos + "'");
     socket.to(data.room_id).emit('updatePlayer2Pos', {player2pos: data.player2pos});
   });
+
+  socket.on('sendBounceGlow', data => {
+    socket.to(data.room_id).emit('startBounceGlow');
+  })
+
+  socket.on('sendWallCollision', data => {
+    socket.to(data.room_id).emit('newWallCollision');
+  })
 
   socket.on('sendScore', data => {
     socket.to(data.room_id).emit('updateScore', {score1: data.score1, score2: data.score2, game_ended: data.stopGame});

@@ -156,6 +156,7 @@ const createSparks = () =>
   if (speedFactor < 0.3)
     speedFactor = 0.3;
   const particleSize = Math.max( 1., speedFactor * 3.);
+  console.log("speedfactor: " + speedFactor);
   let x = objs.ball.position.x;
   let y = objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3/2);
   let z = objs.ball.position.z;
@@ -193,7 +194,7 @@ const createSparks = () =>
   tools.scene.add( light );
 }
 
-const collisionLogic = () =>
+const collisionLogic = (room_id, socket, isHost) =>
 {
   let p1HB = new THREE.Box3().setFromObject(objs.player1);
   let p2HB = new THREE.Box3().setFromObject(objs.player2);
@@ -208,6 +209,7 @@ const collisionLogic = () =>
   {
     // COMPUTE THE NORMALIZED REBOUND VECTOR
     vars.glowStartTime = performance.now();
+    socket.emit('sendBounceGlow', {room_id: room_id});
     if (vars.isRebound == 1)
       vars.reboundDiff = objs.player1.position.y - objs.ball.position.y;
     else
@@ -252,6 +254,7 @@ const collisionLogic = () =>
   if (csts.topHB.intersectsBox(sph) || csts.botHB.intersectsBox(sph))
   {
     vars.ballVect.y *= -1;
+    socket.emit('sendWallCollision', {room_id: room_id});
     createSparks();
   }
 }
@@ -393,7 +396,8 @@ async function assignId(id)
 
 const animate = (socket, room_id, user_id, isHost) =>
 {
-  collisionLogic();
+  if (isHost)
+    collisionLogic(room_id, socket, isHost);
   scoringLogic(room_id, socket, isHost);
   
   if (vars.stopGame === true)
@@ -435,7 +439,7 @@ const animate = (socket, room_id, user_id, isHost) =>
   {
     objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
     objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
-    socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vexty: vars.ballVect.y, room_id: room_id})
+    socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id})
   }
   const x = objs.ball.position.x;
   const y = objs.ball.position.y;
@@ -443,15 +447,16 @@ const animate = (socket, room_id, user_id, isHost) =>
   objs.ballWrap.position.y = y;
   csts.ballLight.position.x = x;
   csts.ballLight.position.y = y;
-  trail.ballTrail.position.x = objs.ball.position.x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
-  trail.ballTrail.position.y = objs.ball.position.y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+  trail.ballTrail.position.x = x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+  trail.ballTrail.position.y = y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
   trail.ballTrail.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2);
   trail.ballTrail.material.opacity = speedFactor;
   
-  
+  console.log("animate loop");
   vars.glowElapsed = performance.now() - vars.glowStartTime;
   if (vars.glowElapsed < 750)
   {
+    console.log("glowing effect activated");
     if (vars.glowElapsed < 100)
     {
       objs.ball.material.emissiveIntensity = 0.95;
@@ -464,9 +469,10 @@ const animate = (socket, room_id, user_id, isHost) =>
     }
   }
 
+  let particleElapsed = 0;
   for (let i = 0; i < particleEffects.length; i++)
   {
-    let particleElapsed = performance.now() - particleEffects[i][1];
+    particleElapsed = performance.now() - particleEffects[i][1];
     if (particleElapsed > 600)
     {
       tools.scene.remove(particleEffects[0][0]);
@@ -511,7 +517,56 @@ const animate = (socket, room_id, user_id, isHost) =>
   }, 5 );
 }
 
-export default function ThreeScene({ room_id, user_id, isHost })
+const init_socket = (socket, isHost) =>
+{
+  if (isHost) {
+    socket.on('updatePlayer2Pos', position => {
+      // console.log("Receiving player 2 pos: " + position.player2pos);
+      opponentPos = position.player2pos;
+    })
+  }
+  else {
+    socket.on('updatePlayer1Pos', position => {
+      // console.log("Receiving player 1 pos: " + position.player1pos);
+      opponentPos = position.player1pos;
+    });
+    socket.on('updateBallPos', data => {
+      objs.ball.position.x = data.x;
+      objs.ball.position.y = data.y;
+      vars.ballVect.x = data.vectx;
+      vars.ballVect.y = data.vecty;
+      if (vars.adjustedBallSpeed != data.speed)
+      {
+        vars.adjustedBallSpeed = data.speed;
+        setBallColor();
+      }
+    });
+    socket.on('startBounceGlow', () => {
+      vars.glowStartTime = performance.now();
+    });
+    socket.on('newWallCollision', () => {
+      createSparks();
+    });
+    socket.on('updateScore', data => {
+      if (data.score1 > vars.p1Score)
+      {
+        vars.p1Score = data.score1;
+        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
+        {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
+      }
+      else
+      {
+        vars.p2Score = data.score2;
+        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
+        {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
+      }
+      setBallColor();
+      vars.stopGame = data.stopGame;
+    });
+  }
+}
+
+export default function ThreeScene({ room_id, user_id, isHost, gamemode })
 {
   const socket = useContext(SocketContext);
   const containerRef = useRef(null);
@@ -558,12 +613,15 @@ export default function ThreeScene({ room_id, user_id, isHost })
 			let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
 			console.log(tools.camera.projectionMatrix);
 			
-			// let backgroundMaterial = new THREE.ShaderMaterial({
-			//   side: THREE.BackSide,
-			//   uniforms: uniformData,
-			//   fragmentShader: custom.shader_utils + custom.shader_background
-			// });
-			let backgroundMaterial = new THREE.MeshBasicMaterial({side: THREE.BackSide, map: landscape});
+      let backgroundMaterial = new THREE.MeshBasicMaterial({side: THREE.BackSide, map: landscape});
+      if (custom.background != "skybox")
+      {
+        backgroundMaterial = new THREE.ShaderMaterial({
+          side: THREE.BackSide,
+          uniforms: uniformData,
+          fragmentShader: custom.shader_utils + custom.background
+        });
+      }
 			let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
 	
 			trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
@@ -581,40 +639,9 @@ export default function ThreeScene({ room_id, user_id, isHost })
 			{printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
 			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
 			{printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
-	
-			if (isHost) {
-				socket.on('updatePlayer2Pos', position => {
-					console.log("Receiving player 2 pos: " + position.player2pos);
-					opponentPos = position.player2pos;
-				})
-			}
-			else {
-				socket.on('updatePlayer1Pos', position => {
-					console.log("Receiving player 1 pos: " + position.player1pos);
-					opponentPos = position.player1pos;
-				});
-        socket.on('updateBallPos', data => {
-          objs.ball.position.x = data.x;
-          objs.ball.position.y = data.y;
-          vars.ballVect.x = data.vectx;
-          vars.ballVect.y = data.vecty;
-        })
-        socket.on('updateScore', data => {
-          if (data.score1 > vars.p1Score)
-          {
-            vars.p1Score = data.score1;
-            csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-            {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
-          }
-          else
-          {
-            vars.p2Score = data.score2;
-            csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-            {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
-          }
-          vars.stopGame = data.stopGame;
-        });
-			}
+      
+      init_socket(socket, isHost);
+			
 			document.addEventListener('keydown', function(event) { keys[event.code] = true; });
 			document.addEventListener('keyup', function(event) { keys[event.code] = false; });
 			
