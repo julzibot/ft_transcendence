@@ -7,7 +7,7 @@ import ThreeScene from '../game/Game'
 
 export default function Join({ user_id }) {
 	
-	const remote_game = true;
+	const remote_game = false;
 	if (remote_game === true)
 	{
 		const socket = useContext(SocketContext);
@@ -29,7 +29,7 @@ export default function Join({ user_id }) {
 		}, [socket]);
 	return (
 		<>
-			{gameJoined ? <ThreeScene room_id={room_id} user_id={user_id} isHost={isHost} /> : <div>Loading game...</div>}
+			{gameJoined ? <ThreeScene room_id={room_id} user_id={user_id} isHost={isHost} gamemode={2} /> : <div>Loading game...</div>}
 		</>
 		)
 	}
@@ -37,7 +37,7 @@ export default function Join({ user_id }) {
 	{
 		return (
 			<>
-				<ThreeScene />
+				<ThreeScene room_id={-1} user_id={user_id} isHost={true} gamemode={0}/>
 			</>
 			)
 	}
