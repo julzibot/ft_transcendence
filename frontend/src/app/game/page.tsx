@@ -1,11 +1,36 @@
 'use client';
+
 import ThreeScene from "../../components/game/Game"
+import Join from "../../components/game/Join"
+import { useSession } from "next-auth/react"
+import { useEffect, useState, useContext } from "react"
+import io from "socket.io-client"
+import { SocketContext, socket } from "../../../context/socket"
 
 export default function Play() {
-  // TODO: COMPONENT CALLED TWICE
+
+	const gameSocket = socket;
+  const { data: session, status } = useSession();
+  const {room, setRoom} = useState("");
+	const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+		if (status === "authenticated" && session) {
+			setUserId(session.user.id);
+		}
+	}, [session, status]);
+
+	if (status === "Loading" || !userId) {
+		return (
+			<div>Loading...</div>
+		);
+	}
+
   return (
     <>
-      <ThreeScene />
+			<SocketContext.Provider value={socket}>
+				<Join user_id={userId} />
+			</SocketContext.Provider>
     </>
   )
 }

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 
 
 export default function Page() {
-  const socket = io("http://localhost:5000")
+  const socket = io("http://localhost:6500")
   const [buttonText, setButtonText] = useState("Send Message")
 
   useEffect(() => {
