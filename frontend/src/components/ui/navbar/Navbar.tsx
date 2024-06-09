@@ -34,8 +34,8 @@ export default function Navbar() {
 							</li>
 							<li className="nav-item custom-item d-flex align-items-center px-2">
 								<Link href="/game">
-        				  <button className="btn btn-info">Play</button>
-      				  </Link>
+        					<button className="btn btn-info">Play</button>
+      				 	</Link>
 							</li>
 							<li className="nav-item custom-item d-flex align-items-center px-2">
 								<Link href="/chat/test">
