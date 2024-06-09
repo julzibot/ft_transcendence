@@ -13,7 +13,6 @@ const tools = {};
 const trail = {};
 const particleEffects = [];
 const trailSegments = [];
-const remote_game = true;
 let opponentPos = 0.;
 let game_id = 0;
 let put_response = false;
@@ -102,7 +101,7 @@ const setBallColor = () =>
   csts.ballLight.color.set(color);
 }
 
-const scoringLogic = (room_id, socket, isHost) =>
+const scoringLogic = (room_id, socket, isHost, gamemode) =>
 {
   // RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
   if (isHost === true && (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4)))
@@ -128,7 +127,8 @@ const scoringLogic = (room_id, socket, isHost) =>
     setBallColor();
     if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score)
         vars.stopGame = true;
-    socket.emit('sendScore', {room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, game_ended: vars.stopGame})
+    if (gamemode === 2)
+      socket.emit('sendScore', {room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, game_ended: vars.stopGame})
   }
   if (vars.stopGame === true)
   {
@@ -194,7 +194,7 @@ const createSparks = () =>
   tools.scene.add( light );
 }
 
-const collisionLogic = (room_id, socket, isHost) =>
+const collisionLogic = (room_id, socket, gamemode) =>
 {
   let p1HB = new THREE.Box3().setFromObject(objs.player1);
   let p2HB = new THREE.Box3().setFromObject(objs.player2);
@@ -209,7 +209,8 @@ const collisionLogic = (room_id, socket, isHost) =>
   {
     // COMPUTE THE NORMALIZED REBOUND VECTOR
     vars.glowStartTime = performance.now();
-    socket.emit('sendBounceGlow', {room_id: room_id});
+    if (gamemode === 2)
+      socket.emit('sendBounceGlow', {room_id: room_id});
     if (vars.isRebound == 1)
       vars.reboundDiff = objs.player1.position.y - objs.ball.position.y;
     else
@@ -254,7 +255,8 @@ const collisionLogic = (room_id, socket, isHost) =>
   if (csts.topHB.intersectsBox(sph) || csts.botHB.intersectsBox(sph))
   {
     vars.ballVect.y *= -1;
-    socket.emit('sendWallCollision', {room_id: room_id});
+    if (gamemode === 2)
+      socket.emit('sendWallCollision', {room_id: room_id});
     createSparks();
   }
 }
@@ -394,11 +396,11 @@ async function assignId(id)
   console.log(game_id + ": game_id assigned")
 }
 
-const animate = (socket, room_id, user_id, isHost) =>
+const animate = (socket, room_id, user_id, isHost, gamemode) =>
 {
   if (isHost)
-    collisionLogic(room_id, socket, isHost);
-  scoringLogic(room_id, socket, isHost);
+    collisionLogic(room_id, socket, isHost, gamemode);
+  scoringLogic(room_id, socket, isHost, gamemode);
   
   if (vars.stopGame === true)
     vars.ballVect.set(0, 0);
@@ -439,7 +441,8 @@ const animate = (socket, room_id, user_id, isHost) =>
   {
     objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
     objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
-    socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id})
+    if (gamemode === 2)
+      socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id})
   }
   const x = objs.ball.position.x;
   const y = objs.ball.position.y;
@@ -452,7 +455,6 @@ const animate = (socket, room_id, user_id, isHost) =>
   trail.ballTrail.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2);
   trail.ballTrail.material.opacity = speedFactor;
   
-  console.log("animate loop");
   vars.glowElapsed = performance.now() - vars.glowStartTime;
   if (vars.glowElapsed < 750)
   {
@@ -502,7 +504,7 @@ const animate = (socket, room_id, user_id, isHost) =>
     }
   }
 
-  if (remote_game)
+  if (gamemode === 2)
     remote_update(socket, user_id, isHost);
   else
     local_update();
@@ -513,7 +515,7 @@ const animate = (socket, room_id, user_id, isHost) =>
   tools.renderer.render(tools.scene, tools.camera);
 
   setTimeout( function() {
-    requestAnimationFrame( () => animate(socket, room_id, user_id, isHost) );
+    requestAnimationFrame( () => animate(socket, room_id, user_id, isHost, gamemode) );
   }, 5 );
 }
 
@@ -568,9 +570,11 @@ const init_socket = (socket, isHost) =>
 
 export default function ThreeScene({ room_id, user_id, isHost, gamemode })
 {
-  const socket = useContext(SocketContext);
   const containerRef = useRef(null);
-	
+	let socket = -1;
+  if (gamemode === 2)
+    socket = useContext(SocketContext);
+
 	useEffect(() => {
 		
 			CreateGame().then(assignId);
@@ -640,13 +644,14 @@ export default function ThreeScene({ room_id, user_id, isHost, gamemode })
 			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
 			{printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
       
-      init_socket(socket, isHost);
 			
 			document.addEventListener('keydown', function(event) { keys[event.code] = true; });
 			document.addEventListener('keyup', function(event) { keys[event.code] = false; });
-			
-			if (socket && user_id)
-				animate(socket, room_id, user_id, isHost);
+
+      if (gamemode === 2)
+        init_socket(socket, isHost);
+			if (gamemode === 0 || (gamemode === 2 && socket && user_id))
+				animate(socket, room_id, user_id, isHost, gamemode);
 		}, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
