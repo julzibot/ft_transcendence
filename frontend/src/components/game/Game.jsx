@@ -399,7 +399,7 @@ async function assignId(id)
 const animate = (socket, room_id, user_id, isHost, gamemode) =>
 {
   if (isHost)
-    collisionLogic(room_id, socket, isHost, gamemode);
+    collisionLogic(room_id, socket, gamemode);
   scoringLogic(room_id, socket, isHost, gamemode);
   
   if (vars.stopGame === true)
