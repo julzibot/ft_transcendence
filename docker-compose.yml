@@ -24,7 +24,7 @@ services:
       - 5000:5000
     volumes:
       - ./frontend/ws-server/:/server
-      - /app/node_modules
+      - /server/node_modules
 
   db:
     container_name: database

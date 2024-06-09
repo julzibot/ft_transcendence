@@ -8,6 +8,8 @@ import Link from "next/link"
 import {useState, FormEvent} from "react"
 import "bootstrap/dist/css/bootstrap.min.css"
 import DOMPurify from 'dompurify'
+import { getSession } from 'next-auth/react';
+import { GetServerSideProps } from 'next';
 
 export default function SignIn() {
   const [data, setData] = useState({
@@ -33,7 +35,7 @@ export default function SignIn() {
   }
   return (
     <>  
-      <div className="d-flex justify-content-center align-items-center">
+      <div className="d-flex justify-content-center align-items-center vh-100">
         <div className="card shadow-lg text-center rounded-1 border-0">
           <div className="card-header fs-2 fw-bold">Sign in to your account</div>
           <div className="card-body">
@@ -49,7 +51,7 @@ export default function SignIn() {
                 width={30}
                 height={30}
                 alt="42 Logo"
-                priority={true}
+                priority
               />
             </button>
             <p>Or</p>
@@ -74,3 +76,18 @@ export default function SignIn() {
     </>
   )
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const session = await getSession(context);
+  if (session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false
+      }
+    };
+  }
+  return {
+    props: {}
+  };
+};
