@@ -1,16 +1,19 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useContext } from 'react';
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts, custom } from '../../utils/init';
+import { SocketContext } from '../../../context/socket';
+import io from 'socket.io-client'
 
 let keys = {};
 const tools = {};
 const trail = {};
 const particleEffects = [];
 const trailSegments = [];
+let opponentPos = 0.;
 let game_id = 0;
 let put_response = false;
 const startTime = performance.now();
@@ -31,6 +34,7 @@ const uniformData = {
   { value: tools.camera.matrixWorldInverse }
 };
 
+const landscape = new THREE.TextureLoader().load('../../city.jpg');
 const sparkUniform = {
   u_time:
   { type: 'f', value: 0. },
@@ -97,54 +101,104 @@ const setBallColor = () =>
   csts.ballLight.color.set(color);
 }
 
-const scoringLogic = () =>
+const scoringLogic = (room_id, socket, isHost, gamemode) =>
 {
   // RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
-  if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4))
+  if (isHost === true && (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4)))
   {
     if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4)
     {
-      vars.ballVect.set(-1, 0, 0);
+      vars.ballVect.set(-1, 0);
       vars.p1Score += 1;
       csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-        {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
+      {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
     }
     else
     {
-      vars.ballVect.set(1, 0, 0);
+      vars.ballVect.set(1, 0);
       vars.p2Score += 1;
       csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-        {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
-    }
-
-    if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score)
-    {
-      if (vars.p1Score > vars.p2Score)
-        vars.endString = "GAME ENDED\nPLAYER 1 WINS";
-      else
-        vars.endString = "GAME ENDED\nPLAYER 2 WINS";
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-        {printGameInfo(font, vars.endMsgMesh, vars.endString, 3, 3)} );
-      vars.stopGame = true;
-      put_response = PutScores();
-      if (put_response == false)
-        console.log("Ouch ! Scores not updated !")
+      {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
     }
     objs.ball.position.set(0, 0, 0);
     objs.ballWrap.position.set(0, 0, 0);
     vars.ballSpeed = CONST.BASE_BALLSPEED;
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
     setBallColor();
+    if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score)
+        vars.stopGame = true;
+    if (gamemode === 2)
+      socket.emit('sendScore', {room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, game_ended: vars.stopGame})
+  }
+  if (vars.stopGame === true)
+  {
+    if (vars.p1Score > vars.p2Score)
+      vars.endString = "GAME ENDED\nPLAYER 1 WINS";
+    else
+      vars.endString = "GAME ENDED\nPLAYER 2 WINS";
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.endMsgMesh, vars.endString, 3, 3)} );
+    put_response = PutScores();
+    if (put_response == false)
+      console.log("Ouch ! Scores not updated !")
   }
 }
 
+const createSparks = () =>
+{
+  let topDownRebound = objs.ball.position.y > 0? 1 : 0;
 
-const collisionLogic = () =>
+  const vertices = [];
+  const speedVecs = [];
+  const sizes = [];
+  let speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED);
+  vars.dotProduct = vars.ballVect.dot(csts.gameVect);
+  if (speedFactor < 0.3)
+    speedFactor = 0.3;
+  const particleSize = Math.max( 1., speedFactor * 3.);
+  console.log("speedfactor: " + speedFactor);
+  let x = objs.ball.position.x;
+  let y = objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3/2);
+  let z = objs.ball.position.z;
+  let light = new THREE.PointLight( objs.ball.material.color, 15, 42);
+  light.position.set(x, y, z);
+  let vecx = 0.0;
+  let vecy = 0.0;
+  let vecz = 0.0;
+  for ( let i = 0.0; i < speedFactor * Math.abs(vars.dotProduct) * 25; i++ ) {
+    vertices.push(x, y, z);
+    vecx = THREE.MathUtils.randFloatSpread( 0.8 * speedFactor );
+    vecy = (THREE.MathUtils.randFloatSpread( 0.1 * speedFactor ) + 0.1 * speedFactor) * -topDownRebound;
+    vecz = THREE.MathUtils.randFloatSpread( 0.5 * speedFactor );
+    speedVecs.push(vecx, vecy, vecz);
+    sizes.push(particleSize * Math.max(1.3 * speedFactor - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.3));
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+  geometry.setAttribute( 'velocity', new THREE.Float32BufferAttribute( speedVecs, 3 ) );
+  geometry.setAttribute( 'size', new THREE.Float32BufferAttribute( sizes, 1 ) );
+  const material = new THREE.ShaderMaterial({
+    uniforms: sparkUniform,
+    vertexShader: sparkVs,
+    fragmentShader: sparkFs,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    vertexColors: true,
+    depthTest: true,
+    depthWrite: false
+    }); 
+  let points = new THREE.Points( geometry, material );
+  const impactTime = performance.now();
+  particleEffects.push([points, impactTime, light]);
+  tools.scene.add( points );
+  tools.scene.add( light );
+}
+
+const collisionLogic = (room_id, socket, gamemode) =>
 {
   let p1HB = new THREE.Box3().setFromObject(objs.player1);
   let p2HB = new THREE.Box3().setFromObject(objs.player2);
   let sph = new THREE.Box3().setFromObject(objs.ball);
-  let topDownRebound = 0;
 
   // CHECK PLAYER COLLISIONS
   if (p1HB.intersectsBox(sph))
@@ -155,6 +209,8 @@ const collisionLogic = () =>
   {
     // COMPUTE THE NORMALIZED REBOUND VECTOR
     vars.glowStartTime = performance.now();
+    if (gamemode === 2)
+      socket.emit('sendBounceGlow', {room_id: room_id});
     if (vars.isRebound == 1)
       vars.reboundDiff = objs.player1.position.y - objs.ball.position.y;
     else
@@ -199,58 +255,54 @@ const collisionLogic = () =>
   if (csts.topHB.intersectsBox(sph) || csts.botHB.intersectsBox(sph))
   {
     vars.ballVect.y *= -1;
-    if (objs.ball.position.y > 0)
-      topDownRebound = 1;
-    else
-      topDownRebound = -1;
-
-    const vertices = [];
-    const speedVecs = [];
-    const sizes = [];
-    let speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED);
-    vars.dotProduct = vars.ballVect.dot(csts.gameVect);
-    if (speedFactor < 0.3)
-      speedFactor = 0.3;
-    const particleSize = Math.max( 1., speedFactor * 3.);
-    let x = objs.ball.position.x;
-    let y = objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3/2);
-    let z = objs.ball.position.z;
-    let light = new THREE.PointLight( objs.ball.material.color, 15, 42);
-    light.position.set(x, y, z);
-    let vecx = 0.0;
-    let vecy = 0.0;
-    let vecz = 0.0;
-    for ( let i = 0.0; i < speedFactor * Math.abs(vars.dotProduct) * 25; i++ ) {
-      vertices.push(x, y, z);
-      vecx = THREE.MathUtils.randFloatSpread( 0.8 * speedFactor );
-      vecy = (THREE.MathUtils.randFloatSpread( 0.1 * speedFactor ) + 0.1 * speedFactor) * -topDownRebound;
-      vecz = THREE.MathUtils.randFloatSpread( 0.5 * speedFactor );
-      speedVecs.push(vecx, vecy, vecz);
-      sizes.push(particleSize * Math.max(1.3 * speedFactor - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.3));
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-    geometry.setAttribute( 'velocity', new THREE.Float32BufferAttribute( speedVecs, 3 ) );
-    geometry.setAttribute( 'size', new THREE.Float32BufferAttribute( sizes, 1 ) );
-    const material = new THREE.ShaderMaterial({
-      uniforms: sparkUniform,
-      vertexShader: sparkVs,
-      fragmentShader: sparkFs,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      vertexColors: true,
-      depthTest: true,
-      depthWrite: false
-      }); 
-    let points = new THREE.Points( geometry, material );
-    const impactTime = performance.now();
-    particleEffects.push([points, impactTime, light]);
-    tools.scene.add( points );
-    tools.scene.add( light );
+    if (gamemode === 2)
+      socket.emit('sendWallCollision', {room_id: room_id});
+    createSparks();
   }
 }
 
-const update = () =>
+const remote_update = (socket, user_id, isHost) =>
+{
+  if (isHost)
+  {
+    if (keys['KeyW'] || keys['KeyS'])
+      vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+    else
+      vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
+    objs.player2.position.y = opponentPos;
+    // objs.player2.position.y = 0;
+    if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
+        objs.player1.position.y += vars.playerspeed[0];
+        socket.emit('sendPlayer1Pos', {room_id: 5, user_id: user_id, player1pos: objs.player1.position.y});
+    }
+    if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
+        objs.player1.position.y -= vars.playerspeed[0];
+        socket.emit('sendPlayer1Pos', {room_id: 5, user_id: user_id, player1pos: objs.player1.position.y});
+    }
+  }
+  else
+  {
+    if (keys['ArrowUp'] || keys['ArrowDown'])
+      vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+    else
+      vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
+    objs.player1.position.y = opponentPos;
+    // objs.player1.position.y = 0;
+    if (keys['ArrowUp'] && objs.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
+        objs.player2.position.y += vars.playerspeed[1];
+				console.log("Sending [Player2] position to server: " + objs.player2.position.y);
+        socket.emit('sendPlayer2Pos', {room_id: 5, user_id: user_id, player2pos: objs.player2.position.y});
+    }
+    if (keys['ArrowDown'] && objs.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
+        objs.player2.position.y -= vars.playerspeed[1];
+				console
+				console.log("Sending [Player2] position to server: " + objs.player2.position.y);
+        socket.emit('sendPlayer2Pos', {room_id: 5, user_id: user_id, player2pos: objs.player2.position.y});
+    }
+  }
+}
+
+const local_update = () =>
 {
   if (keys['ArrowUp'] || keys['ArrowDown'])
     vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
@@ -344,12 +396,13 @@ async function assignId(id)
   console.log(game_id + ": game_id assigned")
 }
 
-const animate = () =>
+const animate = (socket, room_id, user_id, isHost, gamemode) =>
 {
-  collisionLogic(vars, csts, objs);
-  scoringLogic(vars, csts, objs);
+  if (isHost)
+    collisionLogic(room_id, socket, gamemode);
+  scoringLogic(room_id, socket, isHost, gamemode);
   
-  if (vars.stopGame == true)
+  if (vars.stopGame === true)
     vars.ballVect.set(0, 0);
   
   let ballFloor = Math.floor(objs.ball.position.x * 2.);
@@ -383,22 +436,29 @@ const animate = () =>
       trailSegments[i][0].material.opacity = speedFactor - ((performance.now() - trailSegments[i][1]) / 120 * speedFactor);
     trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - trailSegments[i][1]) / 120, 1.);
   }
-
-  objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
-  objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
-  objs.ballWrap.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
-  objs.ballWrap.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
-  csts.ballLight.position.x = objs.ball.position.x;
-  csts.ballLight.position.y = objs.ball.position.y;
-  trail.ballTrail.position.x = objs.ball.position.x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
-  trail.ballTrail.position.y = objs.ball.position.y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+  
+  if (isHost === true)
+  {
+    objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
+    objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
+    if (gamemode === 2)
+      socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id})
+  }
+  const x = objs.ball.position.x;
+  const y = objs.ball.position.y;
+  objs.ballWrap.position.x = x;
+  objs.ballWrap.position.y = y;
+  csts.ballLight.position.x = x;
+  csts.ballLight.position.y = y;
+  trail.ballTrail.position.x = x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+  trail.ballTrail.position.y = y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
   trail.ballTrail.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2);
   trail.ballTrail.material.opacity = speedFactor;
-
   
   vars.glowElapsed = performance.now() - vars.glowStartTime;
   if (vars.glowElapsed < 750)
   {
+    console.log("glowing effect activated");
     if (vars.glowElapsed < 100)
     {
       objs.ball.material.emissiveIntensity = 0.95;
@@ -411,9 +471,10 @@ const animate = () =>
     }
   }
 
+  let particleElapsed = 0;
   for (let i = 0; i < particleEffects.length; i++)
   {
-    let particleElapsed = performance.now() - particleEffects[i][1];
+    particleElapsed = performance.now() - particleEffects[i][1];
     if (particleElapsed > 600)
     {
       tools.scene.remove(particleEffects[0][0]);
@@ -443,7 +504,10 @@ const animate = () =>
     }
   }
 
-  update();
+  if (gamemode === 2)
+    remote_update(socket, user_id, isHost);
+  else
+    local_update();
   tools.controls.update();
   tools.stats.update();
     
@@ -451,86 +515,143 @@ const animate = () =>
   tools.renderer.render(tools.scene, tools.camera);
 
   setTimeout( function() {
-    requestAnimationFrame( animate );
+    requestAnimationFrame( () => animate(socket, room_id, user_id, isHost, gamemode) );
   }, 5 );
 }
 
-
-export default function ThreeScene()
+const init_socket = (socket, isHost) =>
 {
-  console.log("Hello");
-  const containerRef = useRef(null);
-    useEffect(() => {
-    
-    CreateGame().then(assignId);
-    tools.scene = new THREE.Scene();
-    
-    console.log(window.innerWidth + "    " + window.innerHeight);
-    tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
-    tools.renderer.setSize( window.innerWidth, window.innerHeight );
-    tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
-    tools.stats = Stats()
-    document.body.appendChild( tools.renderer.domElement );
-    document.body.appendChild( tools.stats.dom );
-    
-    tools.scene.add( objs.ball );
-    tools.scene.add( objs.ballWrap );
-    tools.scene.add( objs.player1 );
-    tools.scene.add( objs.player2 );
-    tools.scene.add( objs.topB );
-    tools.scene.add( objs.botB );
-    tools.scene.add( objs.backB );
-    tools.scene.add( objs.background );
-    tools.scene.add( csts.ambLight );
-    tools.scene.add( csts.dirLight );
-    tools.scene.add( csts.ballLight );
-
-    if (custom.pov === "classic")
-    {
-      tools.camera.position.set(0, 0, 20);
-      tools.camera.lookAt(0, 0, 0);
-    }
-    else if (custom.pov === "immersive")
-    {
-      tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
-      tools.camera.lookAt(0, 0, 0);
-      let quaternion = new THREE.Quaternion();
-      quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
-      tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-      tools.camera.fov = 75;
-    }
-
-    let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
-    console.log(tools.camera.projectionMatrix);
-
-    let backgroundMaterial = new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      uniforms: uniformData,
-      fragmentShader: custom.shader_utils + custom.shader_background
+  if (isHost) {
+    socket.on('updatePlayer2Pos', position => {
+      // console.log("Receiving player 2 pos: " + position.player2pos);
+      opponentPos = position.player2pos;
+    })
+  }
+  else {
+    socket.on('updatePlayer1Pos', position => {
+      // console.log("Receiving player 1 pos: " + position.player1pos);
+      opponentPos = position.player1pos;
     });
-    let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
+    socket.on('updateBallPos', data => {
+      objs.ball.position.x = data.x;
+      objs.ball.position.y = data.y;
+      vars.ballVect.x = data.vectx;
+      vars.ballVect.y = data.vecty;
+      if (vars.adjustedBallSpeed != data.speed)
+      {
+        vars.adjustedBallSpeed = data.speed;
+        setBallColor();
+      }
+    });
+    socket.on('startBounceGlow', () => {
+      vars.glowStartTime = performance.now();
+    });
+    socket.on('newWallCollision', () => {
+      createSparks();
+    });
+    socket.on('updateScore', data => {
+      if (data.score1 > vars.p1Score)
+      {
+        vars.p1Score = data.score1;
+        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
+        {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
+      }
+      else
+      {
+        vars.p2Score = data.score2;
+        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
+        {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
+      }
+      setBallColor();
+      vars.stopGame = data.stopGame;
+    });
+  }
+}
 
-    trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
-    trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
-    trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
-    trail.ballTrail.scale.y = 0.4;
-    trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
-    trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
+export default function ThreeScene({ room_id, user_id, isHost, gamemode })
+{
+  const containerRef = useRef(null);
+	let socket = -1;
+  if (gamemode === 2)
+    socket = useContext(SocketContext);
 
-    tools.scene.add(background);
-    tools.scene.add(trail.ballTrail);
+	useEffect(() => {
+		
+			CreateGame().then(assignId);
+			tools.scene = new THREE.Scene();
+			
+			tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
+			tools.renderer.setSize( window.innerWidth, window.innerHeight );
+			tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
+			tools.stats = Stats()
+			document.body.appendChild( tools.renderer.domElement );
+			document.body.appendChild( tools.stats.dom );
+			
+			tools.scene.add( objs.ball );
+			tools.scene.add( objs.ballWrap );
+			tools.scene.add( objs.player1 );
+			tools.scene.add( objs.player2 );
+			tools.scene.add( objs.topB );
+			tools.scene.add( objs.botB );
+			tools.scene.add( objs.backB );
+			tools.scene.add( objs.background );
+			tools.scene.add( csts.ambLight );
+			tools.scene.add( csts.dirLight );
+			tools.scene.add( csts.ballLight );
+			
+			if (custom.pov === "classic")
+				{
+					tools.camera.position.set(0, 0, 20);
+					tools.camera.lookAt(0, 0, 0);
+				}
+      else if (custom.pov === "immersive")
+        {
+          tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
+          tools.camera.lookAt(0, 0, 0);
+          let quaternion = new THREE.Quaternion();
+          quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
+          tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+          tools.camera.fov = 75;
+        }
+			
+			let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
+			console.log(tools.camera.projectionMatrix);
+			
+      let backgroundMaterial = new THREE.MeshBasicMaterial({side: THREE.BackSide, map: landscape});
+      if (custom.background != "skybox")
+      {
+        backgroundMaterial = new THREE.ShaderMaterial({
+          side: THREE.BackSide,
+          uniforms: uniformData,
+          fragmentShader: custom.shader_utils + custom.background
+        });
+      }
+			let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
+	
+			trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
+			trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
+			trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
+			trail.ballTrail.scale.y = 0.4;
+			trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
+			trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
+			
+			tools.scene.add(background);
+			tools.scene.add(trail.ballTrail);
+			
+			// ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
+			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
+			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
+      
+			
+			document.addEventListener('keydown', function(event) { keys[event.code] = true; });
+			document.addEventListener('keyup', function(event) { keys[event.code] = false; });
 
-    // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
-
-    document.addEventListener('keydown', function(event) { keys[event.code] = true; });
-
-    document.addEventListener('keyup', function(event) { keys[event.code] = false; });
-
-    animate();
-  }, []);
+      if (gamemode === 2)
+        init_socket(socket, isHost);
+			if (gamemode === 0 || (gamemode === 2 && socket && user_id))
+				animate(socket, room_id, user_id, isHost, gamemode);
+		}, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
