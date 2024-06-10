@@ -53,20 +53,32 @@ export default function Register() {
           <div className="card-body">
             <form onSubmit={registerUser}>
               <div className="mb-3">
-                <label htmlFor="nick-name" className="form-label" >Nick Name</label>
+                <label htmlFor="nick-name" className="form-label" >
+                  Nick Name
+                  <span className="text-danger">*</span>
+                </label>
                 <input type="text" id="nick-name" className ="form-control"value={data.nick_name} onChange={(e) => setData({...data, nick_name: DOMPurify.sanitize(e.target.value)})}/>
                 <div className="form-text">Will be displayed to other players</div>
               </div>
               <div className="mb-3">
-                <label htmlFor="email" className="form-label" >Email address</label>
+                <label htmlFor="email" className="form-label" >
+                  Email address
+                  <span className="text-danger">*</span>
+                </label>
                 <input type="email" id="email" className ="form-control"value={data.email} onChange={(e) => setData({...data, email: DOMPurify.sanitize(e.target.value)})}/>
               </div>
               <div className="mb-3">
-                <label htmlFor="password" className="form-label">Password</label>
+                <label htmlFor="password" className="form-label">
+                  Password
+                  <span className="text-danger">*</span>
+                </label>
                 <input type="password" className="form-control"value={data.password} onChange={(e) => setData({...data, password: DOMPurify.sanitize(e.target.value)})}/>
               </div>
               <div className="mb-3">
-                <label htmlFor="re-password" className="form-label">Confirm Password</label>
+                <label htmlFor="re-password" className="form-label">
+                  Confirm Password
+                  <span className="text-danger">*</span>  
+                </label>
                 <input type="password" className="form-control" value={data.rePass} onChange={(e) => setData({...data, rePass: DOMPurify.sanitize(e.target.value)})}/>
               </div>
               <div className="form-text text-danger">{error}</div>

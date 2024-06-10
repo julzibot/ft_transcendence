@@ -7,13 +7,9 @@ import ImageUpload from "@/components/Utils/ImageUpload";
 import DOMPurify from 'dompurify'
 import { useRouter } from "next/navigation";
 
-type Props = {
-  params: {
-    id: string;
-  };
-};
 
-function ProfilePage(props: Props){
+
+function ProfilePage(){
   const { data: session, update} = useSession({
     required: true
   });
@@ -35,7 +31,7 @@ function ProfilePage(props: Props){
       method: 'PUT',
       headers: {'Content-type': 'application/json'},
       body: JSON.stringify({
-        'user_id': props.params.id,
+        'user_id': session.user.id,
         'old_password': data.oldPassword,
         'new_password': data.newPassword,
         'rePass': data.rePassword

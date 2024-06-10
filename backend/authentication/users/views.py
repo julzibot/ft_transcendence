@@ -55,8 +55,8 @@ class CustomTokenRefreshView(TokenRefreshView):
 class RegisterView(APIView):
   def post(self, request):
     data = request.data['data']
-    if len(data['email']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
-      return Response({'message': 'email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+    if len(data['email']) < 1 or len(data['nick_name']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
+      return Response({'message': 'email, nick name and password are required'}, status=status.HTTP_400_BAD_REQUEST)
     if  UserAccount.objects.filter(email=data['email']).exists():
       return Response({'message': 'user already exists try another email'}, status=status.HTTP_409_CONFLICT)
     if data['password'] != data['rePass']:
