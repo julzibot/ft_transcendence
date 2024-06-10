@@ -208,5 +208,25 @@ class UpdatePasswordView(APIView):
     user.password = make_password(data['new_password'])
     user.save()
     return Response({'message:' 'Password updated successfully'}, status=status.HTTP_200_OK)
+
+
+class DeleteAccountView(APIView):
+  def delete(self, request):
+    data = request.data
+    try:
+      user = UserAccount.objects.get(id=data['user_id'])
+    except ObjectDoesNotExist:
+      return Response({'message': 'user does not exists'}, status=status.HTTP_404_NOT_FOUND)
+    if not user.password:
+      user.delete_image()
+      user.delete()
+      return Response(status=status.HTTP_204_NO_CONTENT)
+
+    if not check_password(data['password'], user.password):
+      return Response({'message': 'password does not match our record'}, status=status.HTTP_401_UNAUTHORIZED)
+    else:
+      user.delete_image()
+      user.delete()
+      return Response(status=status.HTTP_204_NO_CONTENT)
     
     

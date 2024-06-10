@@ -2,9 +2,9 @@
 
 import "react"
 import { useState, FormEvent } from "react";
+import { getSession } from 'next-auth/react';
+import { GetServerSideProps } from 'next';
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react"
-import Image from "next/image"
 import Link from "next/link"
 import "bootstrap/dist/css/bootstrap.min.css"
 import DOMPurify from 'dompurify'
@@ -45,8 +45,21 @@ export default function Register() {
 
   return (
     <>  
-      <div className="d-flex justify-content-center align-items-center">
-        <div className="card shadow-lg text-center rounded-1 border-0">
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="card shadow-lg text-center rounded-1 borexport const getServerSideProps: GetServerSideProps = async (context) => {
+  const session = await getSession(context);
+  if (session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false
+      }
+    };
+  }
+  return {
+    props: {}
+  };
+};der-0">
           <div className="card-header fs-2 fw-bold">Register a new account</div>
           <div className="card-body">
             <form onSubmit={registerUser}>
@@ -83,3 +96,18 @@ export default function Register() {
     </>
   )
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const session = await getSession(context);
+  if (session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false
+      }
+    };
+  }
+  return {
+    props: {}
+  };
+};
