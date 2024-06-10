@@ -13,7 +13,6 @@ import { GetServerSideProps } from 'next';
 
 export default function SignIn() {
   const [data, setData] = useState({
-    login:'',
     email:'',
     password:''
   });
@@ -34,9 +33,12 @@ export default function SignIn() {
       router.push("/")
   }
   return (
-    <>  
+    <>
+      <div className="overflow-hidden position-fixed">
+        <video className="object-fit-cover" src="/static/videos/background2.mp4" autoPlay loop muted />
+      </div>
       <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="card shadow-lg text-center rounded-1 border-0">
+        <div className="card shadow-lg text-center rounded-4 border border-light border-1 border-opacity-25 bg-light bg-gradient bg-opacity-50">
           <div className="card-header fs-2 fw-bold">Sign in to your account</div>
           <div className="card-body">
             <button className="btn btn-dark  fs-4 fw-bold"onClick={() => signIn('42-school', {

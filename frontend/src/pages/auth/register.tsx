@@ -11,7 +11,6 @@ import DOMPurify from 'dompurify'
 
 export default function Register() {
   const [data, setData] = useState({
-    login:'',
     nick_name: '',
     email:'',
     password:'',
@@ -44,29 +43,15 @@ export default function Register() {
   }
 
   return (
-    <>  
+    <> 
+      <div className="position-fixed">
+        <video className="object-fit-scale" src="/static/videos/background2.mp4" autoPlay loop muted />
+      </div>
       <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="card shadow-lg text-center rounded-1 borexport const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context);
-  if (session) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false
-      }
-    };
-  }
-  return {
-    props: {}
-  };
-};der-0">
+        <div className="card shadow-lg text-center rounded-4 border border-light border-1 border-opacity-25 bg-light bg-gradient bg-opacity-50">
           <div className="card-header fs-2 fw-bold">Register a new account</div>
           <div className="card-body">
             <form onSubmit={registerUser}>
-              <div className="mb-3">
-                <label htmlFor="login" className="form-label" >Login</label>
-                <input type="text" id="login" className="form-control" value={data.login} onChange={(e) => setData({...data, login: DOMPurify.sanitize(e.target.value)})}/>
-              </div>
               <div className="mb-3">
                 <label htmlFor="nick-name" className="form-label" >Nick Name</label>
                 <input type="text" id="nick-name" className ="form-control"value={data.nick_name} onChange={(e) => setData({...data, nick_name: DOMPurify.sanitize(e.target.value)})}/>
