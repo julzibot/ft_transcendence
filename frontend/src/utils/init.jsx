@@ -13,12 +13,12 @@ export const custom = {};
 custom.pov = "classic";
 custom.immersiveCamPos = new THREE.Vector3(-CONST.GAMEWIDTH / 2 - 10, 0, 18);
 custom.shader_utils = shaders.utils;
-custom.shader_background = shaders.background_waves;
+custom.background = shaders.background_skybox;
 custom.color = new THREE.Vector3(0.2, 0.7, 0.6);
 custom.palette = 2;
 custom.difficulty = 1.;
-custom.win_score = 2;
-custom.backboard_opacity = 0.95;
+custom.win_score = 200;
+custom.backboard_opacity = 0.6;
 custom.power_ups = false;
 
 // GAME INIT
@@ -66,6 +66,7 @@ csts.dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
 csts.ballLight = new THREE.PointLight( CONST.BALL_COLOR, 5, 42);
 csts.dirLight.position.set(5, 7, 15);
 csts.game_id = 0;
+csts.player_id = 0;
 
 
 vars.scoreMsg = new THREE.Mesh();

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, FormEvent } from "react";
 import ImageUpload from "@/components/Utils/ImageUpload";
 import DOMPurify from 'dompurify'
+import { useRouter } from "next/navigation";
 
 type Props = {
   params: {
@@ -13,15 +14,19 @@ type Props = {
 };
 
 function ProfilePage(props: Props){
-  const { data: session, update } = useSession();
+  const { data: session, update} = useSession({
+    required: true
+  });
   const [isEditing, setIsEditing] = useState(false)
   const [data, setData] = useState({
     username: '',
     oldPassword: '',
     newPassword: '',
     rePassword: '',
-    error: ''
+    error: '',
+    pwDelete: ''
   })
+  const router = useRouter()
 
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -60,15 +65,19 @@ function ProfilePage(props: Props){
   }
 
   async function deleteAccount() {
-    const response = await fetch('http://localhost:8000/api/user/delete/', {
+    const response = await fetch('http://localhost:8000/api/auth/user/delete/', {
       method: 'DELETE',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         'user_id': session.user.id,
-        'password': 'putvariablehere' //need a variable HERE
+        'password': data.pwDelete
       })
     })
-  }
+    if(response.status === 204) {
+      // TODO: router does not push
+      router.push('/')
+    }
+} 
 
   if(session) {
     return (
@@ -92,13 +101,23 @@ function ProfilePage(props: Props){
           <button type="submit" className="btn btn-primary">Submit</button>
           <div className="form-text text-danger">{data.error}</div>
         </form>
-        <Image 
-          src={`http://backend:8000${session.user.image}`}
-          width={120}
-          height={80}
-          alt="session picture"/>
+        {
+              session.user.image ? (
+                <>
+                  <Image className="me-2"
+                    src={`http://backend:8000${session.user.image}`}
+                    width={100}
+                    height={60}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    alt="42 session picture"
+                  />
+                </>) : (    
+                  <div className="spinner-border spinner-border-sm" role="status">
+                    <span className="sr-only"></span>
+                  </div>
+            )}
         <ImageUpload />
-
+          
 
         <button type="button" className="btn btn-danger" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
           Delete Account
@@ -108,18 +127,18 @@ function ProfilePage(props: Props){
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h1 className="modal-title fs-5" id="staticBackdropLabel">We are sad to see you leaving</h1>
+                <h1 className="modal-title fs-5" id="staticBackdropLabel">We are sad to see you leaving 😔</h1>
                 <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div className="modal-body">
                 <form onSubmit={deleteAccount}>
                   <label htmlFor="" className="form-label">Please confirm your password to proceed</label>
-                  <input placeholder="Password" type="password"/>
+                  <input placeholder="Password" type="password" value={data.pwDelete} onChange={(e) => setData({...data, pwDelete: DOMPurify.sanitize(e.target.value)})}/>
                 </form>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">I Changed My Mind</button>
-                <button type="button" className="btn btn-danger">See You</button>
+                <button type="submit" className="btn btn-danger">See You</button>
               </div>
             </div>
           </div>
@@ -131,5 +150,7 @@ function ProfilePage(props: Props){
     return(<h1>Error</h1>)
   }
 };
+
+ProfilePage.auth = true
 
 export default ProfilePage;
