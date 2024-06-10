@@ -1,11 +1,9 @@
-"use client";
 
-import "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation";
 import Image from "next/image"
 import Link from "next/link"
-import {useState, FormEvent} from "react"
+import { useState, FormEvent } from "react"
 import "bootstrap/dist/css/bootstrap.min.css"
 import DOMPurify from 'dompurify'
 
