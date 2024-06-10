@@ -13,7 +13,7 @@ type Props = {
 };
 
 function ProfilePage(props: Props){
-  const { data: session, update} = useSession();
+  const { data: session, update } = useSession();
   const [isEditing, setIsEditing] = useState(false)
   const [data, setData] = useState({
     username: '',
