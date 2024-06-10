@@ -12,7 +12,7 @@ if [ "$DJANGO_SUPERUSER_USERNAME" ]
 then
     python manage.py createsuperuser \
         --noinput \
-        --login $DJANGO_SUPERUSER_USERNAME \
+        --id $DJANGO_SUPERUSER_ID \
         --email $DJANGO_SUPERUSER_EMAIL
 fi
 

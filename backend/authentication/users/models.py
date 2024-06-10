@@ -3,6 +3,8 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, Permis
 from django.core.files.temp import NamedTemporaryFile
 import requests, os
 from django.core.files import File
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **kwargs):
@@ -40,8 +42,7 @@ def upload_image_to(instance, filename):
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
-    login = models.CharField(max_length=60, unique=True)
-    nick_name = models.CharField(max_length=60, blank=True)
+    nick_name = models.CharField(max_length=60)
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
@@ -51,6 +52,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     image_url = models.URLField(max_length=512, default="https://t4.ftcdn.net/jpg/02/15/84/43/240_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg")
 
     password = models.CharField(max_length=255)
+
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
@@ -60,7 +62,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     objects = UserAccountManager()
 
-    USERNAME_FIELD = "login"
+    USERNAME_FIELD = "id"
     REQUIRED_FIELDS = ["email"]
 
     def __str__(self):
@@ -68,8 +70,14 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         if not self.nick_name:
-            self.nick_name = self.login
+            self.nick_name = f"User #{self.id}"
         super(UserAccount, self).save(*args, **kwargs)
+
+    def delete_image(self):
+        if self.image:
+            if os.path.isfile(self.image.path):
+                os.remove(self.image.path)
+
 
     def save_image_from_url(self):
         r = requests.get(self.image_url)
@@ -87,8 +95,9 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
                 return True
         else:
             return False
-    
-    def delete_image(self):
-        if self.image:
-            if os.path.isfile(self.image.path):
-                os.remove(self.image.path)
+
+@receiver(post_delete, sender=UserAccount)
+def delete_image_on_model_delete(sender, instance, **kwargs):
+    if instance.image:
+        if os.path.isfile(instance.image.path):
+            os.remove(instance.image.path)
