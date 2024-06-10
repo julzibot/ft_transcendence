@@ -41,7 +41,7 @@ def upload_image_to(instance, filename):
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     login = models.CharField(max_length=60, unique=True)
-    nick_name = models.CharField(max_length=60, default=f"user{id}")
+    nick_name = models.CharField(max_length=60, blank=True)
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
@@ -65,6 +65,11 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+    def save(self, *args, **kwargs):
+        if not self.nick_name:
+            self.nick_name = self.login
+        super(UserAccount, self).save(*args, **kwargs)
 
     def save_image_from_url(self):
         r = requests.get(self.image_url)

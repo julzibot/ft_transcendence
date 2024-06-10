@@ -43,11 +43,25 @@ export default function Navbar() {
 							<li className="nav-item custom-item d-flex align-items-center text-light px-2">
 							{game}
 							</li>
-						)
-					}
-				</ul>
-				<div className="custom-item">
-			<AuthButton/>
+							<li className="nav-item custom-item d-flex align-items-center px-2">
+								<button className="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offCanvasFriendList" aria-controls="offCanvasFriendList">Play with Friends</button>
+							</li>
+							<li className="nav-item custom-item d-flex align-items-center px-2">
+								<Link href="/game">
+        					<button className="btn btn-info">Play</button>
+      				 	</Link>
+							</li>
+							<li className="nav-item custom-item d-flex align-items-center px-2">
+								<Link href="/chat/test">
+        				  <button className="btn btn-info">Chat</button>
+      				  </Link>
+							</li>
+						</ul>
+						<div className="custom-item">
+     		  		<AuthButton/>
+						</div>
+					</div>
+
 				</div>
 			</div>
 

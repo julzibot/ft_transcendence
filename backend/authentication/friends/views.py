@@ -34,7 +34,7 @@ class ApprouveFriendRequest(APIView):
     requestor = "UID2"
     user_id1 = UserAccount.objects.get(id = approuving_user_id)
     user_id2 = UserAccount.objects.get(id = pending_user_id)
-    friendship = Friendship.objects.filter(user_id1 = user_id1, user_id2 = user_id2, requestor = requestor, status="REQUEST")
+    friendship = Friendship.objects.filter(user_id1 = user_id1, user_id2 = user_id2, requestor = requestor, status="REQUEST").first()
     friendship.status = "FRIENDS"
     friendship.save()
     return Response(status=status.HTTP_202_ACCEPTED)
