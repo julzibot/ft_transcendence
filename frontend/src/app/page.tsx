@@ -34,13 +34,12 @@ export default function Home() {
             </button>
           </Col>
           <Col className="h-100">
-          {/** TODO: FIX THIS before pushing */}
-            {/* <button onClick={() => setGameOnPage(GameType.TUBE_RUSH)}> */}
+            <button onClick={() => setGameOnPage(GameType.TUBE_RUSH)}
+              className="bg-transparent border-0">
               <video width="320" height="240" autoPlay loop muted src="/pong.mov">
-                {/* <source src="/pong.mov" type="video/mp4" /> */}
               </video>
-              {/* {GameType.TUBE_RUSH} */}
-            {/* </button> */}
+              {GameType.TUBE_RUSH}
+            </button>
           </Col>
         </Row>
       </Container>
