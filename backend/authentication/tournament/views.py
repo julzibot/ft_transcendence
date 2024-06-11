@@ -2,10 +2,12 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-
+from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer, OpenApiResponse
+from rest_framework import serializers
 
 from .models import TournamentData
 from .serializers import TournamentSerializer
+from rest_framework import status
 
 # Create your views here.
 class TournamentView(APIView):
@@ -13,3 +15,49 @@ class TournamentView(APIView):
 		tournament = TournamentData.objects.filter(Q(tournamentWinner__isnull=True) | Q(tournamentWinner = ''))
 		serializer = TournamentSerializer(tournament, many=True)
 		return Response(serializer.data)
+
+	@extend_schema(
+    request=inline_serializer(
+        name="InlineFormSerializer",
+        fields={
+            "name": serializers.CharField(),
+            "numberOfPlayers": serializers.CharField(),
+			"isPrivate": serializers.BooleanField(),
+			"difficultyLevel": serializers.CharField(),
+			"isActiveTournament": serializers.BooleanField(),
+			"pointsPerGame": serializers.CharField(),
+			"timer": serializers.CharField(),
+        },
+    ),
+    description="join tournament",
+    responses={
+       200: inline_serializer(
+           name='JoinTournamentresponse',
+           fields={
+               'message': serializers.CharField(),
+           }
+       ), 
+       400: OpenApiResponse(description='user not found'),
+    }
+)	
+	
+	def post(self, request):
+		data = request.data
+		powerUpsData = []
+		if 'powerUps' in data:
+			powerUpsData = data["powerUps"]
+		
+		new_tournament = TournamentData.objects.create(name = data['name'], numberOfPlayers = data['numberOfPlayers'], isPrivate = data['isPrivate'],difficultyLevel = data['difficultyLevel'],isActiveTournament = data['isActiveTournament'],pointsPerGame = data['pointsPerGame'],timer = data['timer'], powerUps= powerUpsData)
+		return Response({'message':'You have created tournament successfully'}, status=status.HTTP_201_CREATED)	
+
+class TournamentDetailView(APIView):
+	def get(self, request, id):
+		tournament = TournamentData.objects.filter(id=id)
+		serializer = TournamentSerializer(tournament, many=True)
+		augmented_serializer_data = list(serializer.data)
+		augmented_serializer_data.append({'service': 'All Services'})
+		return Response({'data': augmented_serializer_data}, status=status.HTTP_201_CREATED)	
+
+
+	
+
