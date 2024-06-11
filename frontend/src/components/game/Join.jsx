@@ -7,7 +7,7 @@ import ThreeScene from '../game/Game'
 
 export default function Join({ user_id }) {
 	
-	const remote_game = true;
+	const remote_game = false;
 	if (remote_game === true)
 	{
 		const socket = useContext(SocketContext);
