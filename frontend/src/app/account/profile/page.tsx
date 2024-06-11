@@ -10,9 +10,7 @@ import { useRouter } from "next/navigation";
 
 
 function ProfilePage(){
-  const { data: session, update} = useSession({
-    required: true
-  });
+  const { data: session, update} = useSession({required: true});
   const [isEditing, setIsEditing] = useState(false)
   const [data, setData] = useState({
     username: '',
@@ -73,6 +71,10 @@ function ProfilePage(){
       // TODO: router does not push
       router.push('/')
     }
+    else {
+      const res = await response.json()
+      setData({...data, error: res.message})
+    }
 } 
 
   if(session) {
@@ -119,7 +121,7 @@ function ProfilePage(){
           Delete Account
         </button>
         
-        <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
@@ -128,13 +130,21 @@ function ProfilePage(){
               </div>
               <div className="modal-body">
                 <form onSubmit={deleteAccount}>
-                  <label htmlFor="" className="form-label">Please confirm your password to proceed</label>
-                  <input placeholder="Password" type="password" value={data.pwDelete} onChange={(e) => setData({...data, pwDelete: DOMPurify.sanitize(e.target.value)})}/>
+                  <label htmlFor="confirm-password-input" className="form-label">Please confirm your password to proceed</label>
+                  <input 
+                    className="form-control" 
+                    id="confirm-password-input" 
+                    placeholder="Password" 
+                    type="password" 
+                    value={data.pwDelete} 
+                    onChange={(e) => setData({...data, pwDelete: DOMPurify.sanitize(e.target.value)})}
+                  />
+                  <div className="form-text text-danger">{data.error}</div>
                 </form>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">I Changed My Mind</button>
-                <button type="submit" className="btn btn-danger">See You</button>
+                <button type="submit" onClick={deleteAccount}className="btn btn-danger">See You</button>
               </div>
             </div>
           </div>
@@ -146,7 +156,5 @@ function ProfilePage(){
     return(<h1>Error</h1>)
   }
 };
-
-ProfilePage.auth = true
 
 export default ProfilePage;
