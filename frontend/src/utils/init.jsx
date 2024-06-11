@@ -67,7 +67,8 @@ csts.ballLight = new THREE.PointLight( CONST.BALL_COLOR, 5, 42);
 csts.dirLight.position.set(5, 7, 15);
 csts.game_id = 0;
 csts.player_id = 0;
-
+csts.pu_vs = shaders.pu_vs;
+csts.pu_fs = shaders.pu_fs;
 
 vars.scoreMsg = new THREE.Mesh();
 vars.p1textMesh = new THREE.Mesh();
@@ -94,3 +95,8 @@ vars.downkeys = [false, false];
 vars.reboundDiff = 0;
 vars.isRebound = 0;
 vars.frametick = 0;
+
+vars.puTimeSave = 0;
+vars.puSpawnChance = 0;
+vars.puChanceCounter = 1;
+vars.bulletTime = 1;

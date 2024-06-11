@@ -13,6 +13,10 @@ const tools = {};
 const trail = {};
 const particleEffects = [];
 const trailSegments = [];
+const powerUps = [];
+let player_powerUps = [-1, -1];
+let activated_powers = [-1, -1];
+let power_timers = [0, 0];
 let opponentPos = 0.;
 let game_id = 0;
 let put_response = false;
@@ -26,6 +30,21 @@ const uniformData = {
   { type: 'v3', value: custom.color },
   u_palette:
   { type: 'i', value: custom.palette },
+  u_resolution:
+  { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+  projectionMatrix:
+  { value: tools.camera.projectionMatrix },
+  viewMatrix:
+  { value: tools.camera.matrixWorldInverse }
+};
+
+const puUniformData = {
+  u_time:
+  { type: 'f', value: performance.now() - startTime },
+  u_color:
+  { type: 'v3', value: custom.color },
+  u_radius:
+  { type: 'f', value: 0 },
   u_resolution:
   { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
   projectionMatrix:
@@ -64,7 +83,6 @@ const sparkFs = `
       gl_FragColor = color * decay;
     }
 `;
-
 
 function printGameInfo( font, textMesh, string, mode, fontsize )
 {
@@ -156,7 +174,7 @@ const createSparks = () =>
   if (speedFactor < 0.3)
     speedFactor = 0.3;
   const particleSize = Math.max( 1., speedFactor * 3.);
-  console.log("speedfactor: " + speedFactor);
+  // console.log("speedfactor: " + speedFactor);
   let x = objs.ball.position.x;
   let y = objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3/2);
   let z = objs.ball.position.z;
@@ -246,6 +264,14 @@ const collisionLogic = (room_id, socket, gamemode) =>
       vars.adjustedBallSpeed = vars.ballSpeed;
     else if (vars.adjustedBallSpeed > CONST.BALLSPEED_MAX)
       vars.adjustedBallSpeed = CONST.BALLSPEED_MAX;
+    if ((vars.isRebound === 1 && activated_powers[0] === 1) || (vars.isRebound === 2 && activated_powers[1] === 1))
+    {
+      vars.adjustedBallSpeed = Math.min(1.5 * vars.adjustedBallSpeed, 1.3 * CONST.BALLSPEED_MAX);
+      if (vars.isRebound === 1)
+        activated_powers[0] = -1;
+      else
+        activated_powers[1] = -1;
+    }
     vars.isRebound = 0;
 
     // SET BALL COLOR
@@ -259,6 +285,23 @@ const collisionLogic = (room_id, socket, gamemode) =>
       socket.emit('sendWallCollision', {room_id: room_id});
     createSparks();
   }
+  // CHECK POWER-UP COLLISION
+  // if (powerUps.length > 0)
+  // {
+    for (let i = 0; i < powerUps.length; i++)
+    {
+      if (powerUps[i][4].intersectsBox(sph))
+      {
+        if (vars.ballVect.x > 0)
+          player_powerUps[0] = powerUps[i][5];
+        else
+          player_powerUps[1] = powerUps[i][5];
+        console.log("POWER-UPS: " + player_powerUps);
+        tools.scene.remove(powerUps[i][0]); 
+        powerUps.splice(i, 1);
+      }
+    }
+  // }
 }
 
 const remote_update = (socket, user_id, isHost) =>
@@ -300,6 +343,32 @@ const remote_update = (socket, user_id, isHost) =>
         socket.emit('sendPlayer2Pos', {room_id: 5, user_id: user_id, player2pos: objs.player2.position.y});
     }
   }
+}
+
+const activate_power = ( i ) =>
+{
+  if (player_powerUps[i] > -1)
+    {
+      activated_powers[i] = player_powerUps[i];
+      player_powerUps[i] = -1;
+    }
+  if (activated_powers[i] == 0)
+  {
+    power_timers[i] = performance.now();
+    console.log("longer pad");
+  }
+  else if (activated_powers[i] == 1)
+    console.log("speed boost");
+  else if (activated_powers[i] == 2)
+  {
+    power_timers[i] = performance.now();
+    vars.bulletTime = 0.4;
+    console.log("bullet time");
+  }
+  else if (activated_powers[i] == 3)
+    console.log("invert controls");
+  else if (activated_powers[i] == 4)
+    console.log("blind");
 }
 
 const local_update = () =>
@@ -350,6 +419,12 @@ const local_update = () =>
     let pauseStart = performance.now();
     while (performance.now() - pauseStart < 2000) ;
   }
+  if (keys['Space']) {
+    activate_power(0);
+  }
+  if (keys['ArrowRight']) {
+    activate_power(1);
+  }
 }
 
 async function CreateGame()
@@ -396,69 +471,11 @@ async function assignId(id)
   console.log(game_id + ": game_id assigned")
 }
 
-const animate = (socket, room_id, user_id, isHost, gamemode) =>
+const render_effects = () =>
 {
-  if (isHost)
-    collisionLogic(room_id, socket, gamemode);
-  scoringLogic(room_id, socket, isHost, gamemode);
-  
-  if (vars.stopGame === true)
-    vars.ballVect.set(0, 0);
-  
-  let ballFloor = Math.floor(objs.ball.position.x * 2.);
-  const speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED) / 2.5;
-  if ( ballFloor != vars.ballFloorPos )
-  {
-    // let segment = trail.ballTrail.clone();
-    let segment = new THREE.Mesh(trail.trailGeo.clone(), trail.trailMaterial.clone());
-    let direction = 1;
-    if (vars.ballVect.x > 0) direction = -1;
-    segment.position.x = objs.ball.position.x - vars.ballVect.x * (1. + segment.geometry.parameters.height / 2.);
-    segment.position.y = objs.ball.position.y - vars.ballVect.y * (1. + segment.geometry.parameters.height / 2.);
-    segment.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2 * direction);
-    segment.scale.y = Math.sqrt(1 + Math.pow(Math.abs(vars.ballVect.y / vars.ballVect.x), 2.))
-    * (1.1 + speedFactor * 0.6);
-    tools.scene.add(segment);
-    trailSegments.push([segment, performance.now()]);
-    vars.ballFloorPos = ballFloor;
-  }
-  if ( trailSegments.length > 0 && performance.now() - trailSegments[0][1] > 120 )
-  {
-    tools.scene.remove(trailSegments[0][0]);
-    trailSegments.shift();
-  }
-  for (let i = 0; i < trailSegments.length; i++)
-  {
-    // trailSegments[i][0].material.uniforms.u_time = performance.now() - trailSegments[i][1];
-    if (Math.abs(trailSegments[i][0].position.y) > CONST.GAMEHEIGHT / 2 - 1.5)
-      trailSegments[i][0].material.opacity = 0;
-    else
-      trailSegments[i][0].material.opacity = speedFactor - ((performance.now() - trailSegments[i][1]) / 120 * speedFactor);
-    trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - trailSegments[i][1]) / 120, 1.);
-  }
-  
-  if (isHost === true)
-  {
-    objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
-    objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
-    if (gamemode === 2)
-      socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id})
-  }
-  const x = objs.ball.position.x;
-  const y = objs.ball.position.y;
-  objs.ballWrap.position.x = x;
-  objs.ballWrap.position.y = y;
-  csts.ballLight.position.x = x;
-  csts.ballLight.position.y = y;
-  trail.ballTrail.position.x = x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
-  trail.ballTrail.position.y = y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
-  trail.ballTrail.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2);
-  trail.ballTrail.material.opacity = speedFactor;
-  
   vars.glowElapsed = performance.now() - vars.glowStartTime;
   if (vars.glowElapsed < 750)
   {
-    console.log("glowing effect activated");
     if (vars.glowElapsed < 100)
     {
       objs.ball.material.emissiveIntensity = 0.95;
@@ -503,6 +520,154 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
         sparkUniform.u_time.value = particleElapsed;
     }
   }
+}
+
+const render_trail = (x, y) =>
+{
+  let ballFloor = Math.floor(objs.ball.position.x * 2.);
+  const speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED) / 2.5;
+
+  if ( ballFloor != vars.ballFloorPos )
+  {
+    // let segment = trail.ballTrail.clone();
+    let segment = new THREE.Mesh(trail.trailGeo.clone(), trail.trailMaterial.clone());
+    let direction = 1;
+    if (vars.ballVect.x > 0) direction = -1;
+    segment.position.x = objs.ball.position.x - vars.ballVect.x * (1. + segment.geometry.parameters.height / 2.);
+    segment.position.y = objs.ball.position.y - vars.ballVect.y * (1. + segment.geometry.parameters.height / 2.);
+    segment.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2 * direction);
+    segment.scale.y = Math.sqrt(1 + Math.pow(Math.abs(vars.ballVect.y / vars.ballVect.x), 2.))
+    * (1.1 + speedFactor * 0.6);
+    tools.scene.add(segment);
+    trailSegments.push([segment, performance.now()]);
+    vars.ballFloorPos = ballFloor;
+  }
+  if ( trailSegments.length > 0 && performance.now() - trailSegments[0][1] > 120 )
+  {
+    tools.scene.remove(trailSegments[0][0]);
+    trailSegments.shift();
+  }
+  for (let i = 0; i < trailSegments.length; i++)
+  {
+    if (Math.abs(trailSegments[i][0].position.y) > CONST.GAMEHEIGHT / 2 - 1.5)
+      trailSegments[i][0].material.opacity = 0;
+    else
+      trailSegments[i][0].material.opacity = speedFactor - ((performance.now() - trailSegments[i][1]) / 120 * speedFactor);
+    trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - trailSegments[i][1]) / 120, 1.);
+  }
+
+  trail.ballTrail.position.x = x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+  trail.ballTrail.position.y = y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+  trail.ballTrail.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2);
+  trail.ballTrail.material.opacity = speedFactor;
+}
+
+const createPowerUp = () =>
+{
+  console.log("CREATING POWERUP");
+  const radius = Math.max(0.7, Math.random() * 1.4);
+  let color = new THREE.Vector3(0., 0., 0.);
+  const powerTypeRoll = Math.random() * 10;
+  let powerType = -1;
+  const timedelta = Math.random() * 2000;
+  if (powerTypeRoll < 0) { powerType = 0; color.set(0., 1., 0.2); } // longer pad
+  else if (powerTypeRoll < 10) {powerType = 1; color.set(1., 0., 0.2);} // speed boost
+  else if (powerTypeRoll < 10) {powerType = 2; color.set(0.3, 0.3, 1.);} // bullet time
+  else if (powerTypeRoll < 8) {powerType = 3; color.set(0.7, 0., 0.7);} // invert controls
+  else color.set(1., 1., 1.); // blind
+
+  let puGeo = new THREE.SphereGeometry(radius, 42, 42)
+  let puUniform =
+  {
+    u_time:
+    { type: 'f', value: performance.now() - startTime + timedelta },
+    u_color:
+    { type: 'v3', value: color },
+    u_radius:
+    { type: 'f', value: radius },
+  }
+  let puMat = new THREE.ShaderMaterial({
+    uniforms: puUniform,
+    vertexShader: csts.pu_vs,
+    fragmentShader: csts.pu_fs,
+    transparent: true,
+    blending: THREE.NormalBlending,
+  });
+
+  let puBoxGeo = new THREE.BoxGeometry(radius * 1.6);
+  let puBoxMat = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.});
+
+  let power_up = new THREE.Mesh( puGeo, puMat );
+  let pu_box = new THREE.Mesh( puBoxGeo, puBoxMat );
+  const spawnx = THREE.MathUtils.randFloatSpread( CONST.GAMEWIDTH * 0.7 );
+  const spawny = THREE.MathUtils.randFloatSpread( CONST.GAMEHEIGHT * 0.9 );
+  power_up.position.set(spawnx, spawny, 0);
+  power_up.rotation.set(Math.PI / 2, 0, 0);
+  pu_box.position.set(spawnx, spawny, 0);
+
+  tools.scene.add(power_up);
+  // tools.scene.add(pu_box);
+  const puHB = new THREE.Box3().setFromObject(pu_box);
+  powerUps.push([power_up, performance.now(), puUniform, timedelta, puHB, powerType]);
+}
+
+const animate = (socket, room_id, user_id, isHost, gamemode) =>
+{
+  if (isHost)
+    collisionLogic(room_id, socket, gamemode);
+  scoringLogic(room_id, socket, isHost, gamemode);
+  
+  if (vars.stopGame === true)
+    vars.ballVect.set(0, 0);
+  
+  if (isHost === true)
+  {
+    if (vars.bulletTime < 1)
+    {
+      if (activated_powers[0] === 2 && performance.now() - power_timers[0] > 5000)
+        activated_powers[0] = -1;
+      if (activated_powers[1] === 2 && performance.now() - power_timers[1] > 5000)
+        activated_powers[1] = -1;
+      if (activated_powers[0] === -1 && activated_powers[1] === -1)
+        vars.bulletTime = 1;
+    }
+    objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
+    objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
+    if (gamemode === 2)
+      socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id})
+  }
+  const x = objs.ball.position.x;
+  const y = objs.ball.position.y;
+  objs.ballWrap.position.x = x;
+  objs.ballWrap.position.y = y;
+  csts.ballLight.position.x = x;
+  csts.ballLight.position.y = y;
+
+  render_trail(x, y);
+  render_effects();
+
+  let puTimer = performance.now() - startTime;
+  if (puTimer - vars.puTimeSave > 500)
+  {
+    vars.puTimeSave = puTimer;
+    const spawnChance = Math.random() - (1 - (vars.puChanceCounter / 10));
+    if (spawnChance > 0)
+    {
+      createPowerUp();
+      vars.puChanceCounter = 1;
+    }
+    else
+      vars.puChanceCounter += 1;
+  }
+  for (let i = 0; i < powerUps.length; i++)
+  {
+    powerUps[i][2].u_time.value = performance.now() - startTime + powerUps[i][3];
+    if (performance.now() - powerUps[i][1] > 10000)
+    {
+      tools.scene.remove(powerUps[i][0]);
+      powerUps.shift();
+    }
+  }
 
   if (gamemode === 2)
     remote_update(socket, user_id, isHost);
@@ -512,6 +677,8 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
   tools.stats.update();
     
   uniformData.u_time.value = performance.now() - startTime;
+  if (powerUps.length > 0)
+    puUniformData.u_time.value = performance.now() - startTime;
   tools.renderer.render(tools.scene, tools.camera);
 
   setTimeout( function() {
