@@ -187,7 +187,7 @@ class SearchUserView(APIView):
       users = UserAccount.objects.filter(nick_name__istartswith=query).exclude(id=id)
       if not users:
         return Response(status=status.HTTP_404_NOT_FOUND)
-      users_data = list(users.values('id', 'nick_name'))
+      users_data = list(users.values('id', 'nick_name', 'image'))
       return Response({"users": users_data})
     return Response(status=status.HTTP_404_NOT_FOUND)
   
