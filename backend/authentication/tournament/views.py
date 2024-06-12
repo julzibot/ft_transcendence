@@ -6,8 +6,12 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serial
 from rest_framework import serializers
 
 from .models import TournamentData
+from tournamentParticipants.models import TournamentParticipants
 from .serializers import TournamentSerializer
+from tournamentParticipants.serializers import TournamentParticipantsSerializer
 from rest_framework import status
+
+import random
 
 # Create your views here.
 class TournamentView(APIView):
@@ -29,10 +33,10 @@ class TournamentView(APIView):
 			"timer": serializers.CharField(),
         },
     ),
-    description="join tournament",
+    description="create tournament",
     responses={
        200: inline_serializer(
-           name='JoinTournamentresponse',
+           name='CreateTournamentresponse',
            fields={
                'message': serializers.CharField(),
            }
@@ -53,10 +57,22 @@ class TournamentView(APIView):
 class TournamentDetailView(APIView):
 	def get(self, request, id):
 		tournament = TournamentData.objects.filter(id=id)
+		tournamentParticpant = TournamentParticipants.objects.filter(tournament_id=id)
 		serializer = TournamentSerializer(tournament, many=True)
-		augmented_serializer_data = list(serializer.data)
-		augmented_serializer_data.append({'service': 'All Services'})
-		return Response({'data': augmented_serializer_data}, status=status.HTTP_201_CREATED)	
+		serializerT = TournamentParticipantsSerializer(tournamentParticpant, many=True)
+		return Response({'data': {'detail': serializer.data, 'particpants': serializerT.data }}, status=status.HTTP_201_CREATED)	
+
+class CreateMatchMakingView(APIView):
+	def get(self, request, id):
+		tournament = TournamentData.objects.filter(id=id)
+		tournamentParticpant = TournamentParticipants.objects.filter(tournament_id=id)
+		# serializer = TournamentSerializer(tournament, many=True)
+		serializerT = TournamentParticipantsSerializer(tournamentParticpant, many=True)
+		print("data====", serializerT.data)
+		data = random.sample(serializerT.data, 2)
+		print("data1====",data)
+		return Response({'particpants': data }, status=status.HTTP_201_CREATED)	
+
 
 
 	

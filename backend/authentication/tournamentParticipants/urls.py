@@ -5,5 +5,5 @@ from .views import TournamentParticipantView,CreateTournamentParticipantView, Le
 urlpatterns = [
   path('', TournamentParticipantView.as_view(), name='tournament'),
   path('joinTournament', CreateTournamentParticipantView.as_view(), name='Join-Tournamnet'),
-  path('leaveTournament/<int:tournamentId>/user/<int:userId>', LeaveTournamentParticipantView.as_view(), name='Leave-Tournament'),
+  path('leaveTournament/<int:tournament_id>/user/<int:userId>', LeaveTournamentParticipantView.as_view(), name='Leave-Tournament'),
 ]
