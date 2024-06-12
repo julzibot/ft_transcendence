@@ -180,9 +180,9 @@ class UpdateImageView(APIView):
     return Response(status=status.HTTP_200_OK)
     
 class SearchUserView(APIView):
-  def post(self, request):
-    query = request.data['query']
-    id = request.data['id']
+  def get(self, request):
+    query = request.query_params.get('query')
+    id = request.query_params.get('id')
     if len(query) > 0:
       users = UserAccount.objects.filter(nick_name__istartswith=query).exclude(id=id)
       if not users:
