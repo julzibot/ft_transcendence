@@ -5,7 +5,8 @@ import { PersonAdd  } from "react-bootstrap-icons";
 import { CustomTooltip } from "@/components/Utils/Tooltip";
 import { useSession } from "next-auth/react";
 import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
-import { Col, Row, Toast, ToastContainer } from 'react-bootstrap'
+import { Toast, ToastContainer } from 'react-bootstrap'
+import Image from "next/image";
 
 export default function SearchPlayerInput() {
   const [searchQuery, setSearchQuery] = useState([]);
@@ -34,6 +35,7 @@ export default function SearchPlayerInput() {
       return false
     }
     const data = await response.json()
+    console.log(data)
     setSearchQuery(data.users)
   }
 
@@ -55,7 +57,12 @@ export default function SearchPlayerInput() {
         })
       }
       else {
-        setToastParams({text: 'You Already sent a request to that person, wait for the reply.', color: 'danger', title: 'Warning', show: true})
+        setToastParams({
+          text: 'You have already sent a request to that user, wait for the reply.',
+          color: 'warning', 
+          title: 'Warning', 
+          show: true
+        })
       }
     }).catch(error => {
       console.error('Error sending friend request:', error);
@@ -72,10 +79,16 @@ export default function SearchPlayerInput() {
       />
         {
           searchQuery.length > 0 && (
-            <div className="pt-5 text-dark">
+            <div className="pt-5 text-dark align-items-center">
               {
                 searchQuery.map((user, index) => (
                   <div key={index} className="border border-2 text-dark">
+                    <Image className="rounded-circle border ms-2 me-2"
+                      src={`http://backend:8000/media/${user.image}`}
+                      alt="user image"
+                      height={20}
+                      width={20}
+                    />
                     <span>{user.nick_name}</span>
                     <CustomTooltip text="Send Friend Request" position="bottom">
                       <button className="btn" onClick={() => handleFriendRequest(session?.user.id, user.id)}>
@@ -99,7 +112,7 @@ export default function SearchPlayerInput() {
             autohide
             bg={toastParams.color}
             >
-            <Toast.Header className={(toastParams.title === 'Success') ? "text-success" : "text-danger"}>
+            <Toast.Header className={(toastParams.title === 'Success') ? "text-success" : "text-secondary"}>
             {
               (toastParams.title === 'Success') ? (
                 <i className="bi bi-check-circle-fill"></i>
