@@ -22,7 +22,7 @@ class TournamentParticipantView(APIView):
 class CreateTournamentParticipantView(APIView):
   @extend_schema(
     request=inline_serializer(
-        name="InlineFormSerializer",
+        name="JoinFormSerializer",
         fields={
             "tournament_id": serializers.CharField(),
             "user_id": serializers.CharField(),
@@ -46,17 +46,16 @@ class CreateTournamentParticipantView(APIView):
     except ObjectDoesNotExist:
       return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
     
-    new_participant = TournamentParticipants.objects.create(tournamentId = data['tournament_id'], user_id = user)
+    new_participant = TournamentParticipants.objects.create(tournament_id = data['tournament_id'], user = user)
     return Response({'message':'You have joined tournament successfully'}, status=status.HTTP_201_CREATED)
 
 class LeaveTournamentParticipantView(APIView):
-  def delete(self, request, tournamentId, userId):
+  def delete(self, request, tournament_id, userId):
     try:
-      tournamentParticipant = TournamentParticipants.objects.filter(user_id=userId, tournamentId = tournamentId)
+      tournamentParticipant = TournamentParticipants.objects.filter(user_id=userId, tournament_id = tournament_id)
     except ObjectDoesNotExist:
       return Response({'message': 'Participant not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    print("123------", tournamentParticipant)  
+ 
     if tournamentParticipant:
       tournamentParticipant.delete()
       return Response({'message':'You have left tournament successfully'}, status=status.HTTP_201_CREATED)
