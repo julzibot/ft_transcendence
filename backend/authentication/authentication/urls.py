@@ -16,4 +16,5 @@ urlpatterns = [
     path('api/game/', include('game.urls')),
     path('api/tournament/', include('tournament.urls')),
     path('api/tournamentParticipants/', include('tournamentParticipants.urls')),
+    path('api/tournamentPairings/', include('tournamentPairings.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
