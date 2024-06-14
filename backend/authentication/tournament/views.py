@@ -62,17 +62,6 @@ class TournamentDetailView(APIView):
 		serializerT = TournamentParticipantsSerializer(tournamentParticpant, many=True)
 		return Response({'data': {'detail': serializer.data, 'particpants': serializerT.data }}, status=status.HTTP_201_CREATED)	
 
-class CreateMatchMakingView(APIView):
-	def get(self, request, id):
-		tournament = TournamentData.objects.filter(id=id)
-		tournamentParticpant = TournamentParticipants.objects.filter(tournament_id=id)
-		# serializer = TournamentSerializer(tournament, many=True)
-		serializerT = TournamentParticipantsSerializer(tournamentParticpant, many=True)
-		print("data====", serializerT.data)
-		data = random.sample(serializerT.data, 2)
-		print("data1====",data)
-		return Response({'particpants': data }, status=status.HTTP_201_CREATED)	
-
 
 
 	
