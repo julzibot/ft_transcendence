@@ -21,6 +21,7 @@ export default function FriendList() {
 			method: 'GET'
 		})
 		const data = await response.json()
+
 		setFriends(data)
 	}
 
@@ -46,7 +47,7 @@ export default function FriendList() {
 					data-bs-target="#friendsCollapse" 
 					aria-expanded="false" 
 					aria-controls="friendsCollapse">
-					Friends
+					Friends ({friends.filter(friend => friend.status === 'FRIENDS').length})
 				</button>
 				<div className="collapse" id="friendsCollapse">
 					<div className="card card-body">
@@ -97,7 +98,7 @@ export default function FriendList() {
 					data-bs-target="#friendRequestsCollapse" 
 					aria-expanded="false" 
 					aria-controls="friendRequestsCollapse">
-					Friend Requests
+					Friend Requests ({friends.filter(friend => friend.status === 'REQUEST').length})
 				</button>
 				<div className="collapse" id="friendRequestsCollapse">
 					<div className="card card-body">
