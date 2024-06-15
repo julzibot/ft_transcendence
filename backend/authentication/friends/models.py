@@ -12,3 +12,6 @@ class Friendship(models.Model):
     status = models.CharField(max_length=7, choices=STATUS_CHOICES)
     request_date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
+
+    class Meta:
+      unique_together = ('user1', 'user2')

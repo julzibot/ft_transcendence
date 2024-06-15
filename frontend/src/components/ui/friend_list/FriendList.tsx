@@ -1,7 +1,7 @@
 "use client";
 
 import 'bootstrap-icons/font/bootstrap-icons.css'
-import { Trash3Fill, Joystick, Dot, ChatDotsFill } from 'react-bootstrap-icons';
+import { Trash3Fill, Joystick, ChatDotsFill } from 'react-bootstrap-icons';
 import { CustomTooltip } from '@/components/Utils/Tooltip';
 import SearchPlayerInput from './SearchPlayerInput';
 import { useEffect, useState } from 'react'

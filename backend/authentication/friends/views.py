@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 
 # Create your views here.
 class SendFriendRequestView(APIView):
@@ -18,7 +19,10 @@ class SendFriendRequestView(APIView):
     requestor = from_user
     if from_user.id > to_user.id:
       from_user, to_user = to_user, from_user
-    friend_request, created = Friendship.objects.get_or_create(user1 = from_user, user2 = to_user, requestor = requestor, status="REQUEST")
+    try:
+      friend_request, created = Friendship.objects.get_or_create(user1 = from_user, user2 = to_user, requestor = requestor, status="REQUEST")
+    except IntegrityError:
+      return Response(status=status.HTTP_409_CONFLICT)
     if created:
       return Response(data={"request_id": friend_request.id}, status=status.HTTP_201_CREATED)
     else:
