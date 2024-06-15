@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react"
-import { PersonAdd  } from "react-bootstrap-icons";
+import { PersonAdd, Trash3Fill, Joystick, ChatDotsFill  } from "react-bootstrap-icons";
 import { CustomTooltip } from "@/components/Utils/Tooltip";
 import { useSession } from "next-auth/react";
 import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
@@ -84,17 +84,40 @@ export default function SearchPlayerInput() {
                 searchQuery.map((user, index) => (
                   <div key={index} className="border border-2 text-dark">
                     <Image className="rounded-circle border ms-2 me-2"
-                      src={`http://backend:8000/media/${user.image}`}
+                      src={`http://backend:8000${user.image}`}
                       alt="user image"
                       height={20}
                       width={20}
                     />
                     <span>{user.nick_name}</span>
-                    <CustomTooltip text="Send Friend Request" position="bottom">
-                      <button className="btn" onClick={() => handleFriendRequest(session?.user.id, user.id)}>
-                        <PersonAdd color="green" width={15} />
-                      </button>
-                    </CustomTooltip>
+                    {
+                      (user.friendship_status === 'FRIENDS') ? (
+                        <>
+                          <CustomTooltip text="Invite to play" position="top">
+                            <button className='btn'>
+                              <Joystick color="green" />
+                            </button>
+                          </CustomTooltip>
+                          <CustomTooltip text="remove friend" position="top">
+                            <button className='btn'>
+                              <Trash3Fill color="red" />
+                            </button>
+                          </CustomTooltip>
+                          <CustomTooltip text="Send message" position="top">
+                            <button className='btn'>
+                              <ChatDotsFill color="blue" />
+                            </button>
+                          </CustomTooltip>
+                        </>
+                      ) : (
+                        <>
+                          <CustomTooltip text="Send Friend Request" position="bottom">
+                            <button className="btn" onClick={() => handleFriendRequest(session?.user.id, user.id)}>
+                              <PersonAdd color="green" width={15} />
+                            </button>
+                          </CustomTooltip>
+                        </>)
+                  }
                   </div>
                 ))
               }

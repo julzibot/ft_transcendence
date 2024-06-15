@@ -9,10 +9,12 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseBadRequest
+from django.db.models import Q 
 
 import jwt, os, datetime
 
 from .models import UserAccount
+from friends.models import Friendship
 from .serializers import UserAccountSerializer
 from dashboard.models import DashboardData
 
@@ -183,11 +185,26 @@ class SearchUserView(APIView):
   def get(self, request):
     query = request.query_params.get('query')
     id = request.query_params.get('id')
+    query_user = UserAccount.objects.get(id=id)
     if len(query) > 0:
-      users = UserAccount.objects.filter(nick_name__istartswith=query).exclude(id=id)
-      if not users:
+      query_set = UserAccount.objects.filter(nick_name__istartswith=query).exclude(id=id)
+      if not query_set:
         return Response(status=status.HTTP_404_NOT_FOUND)
-      users_data = list(users.values('id', 'nick_name', 'image'))
+      users_data = []
+      for user in query_set:
+        friendship = Friendship.objects.filter(Q(user1=user, user2=query_user) | Q(user1=query_user, user2=user)).exclude(status='REQUEST').first()
+
+        if friendship:
+          friendship_status = friendship.status
+        else:
+          friendship_status = 'NONE'
+        user_data = {
+          'id': user.id,
+          'nick_name': user.nick_name,
+          'image': user.image.url if user.image else None,
+          'friendship_status': friendship_status
+        }
+        users_data.append(user_data)
       return Response({"users": users_data})
     return Response(status=status.HTTP_404_NOT_FOUND)
   
