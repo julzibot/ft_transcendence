@@ -24,6 +24,18 @@ export default function FriendList() {
 		setFriends(data)
 	}
 
+	async function approveFriendRequest(friend) {
+		const response = await fetch(`http://localhost:8000/api/friends/approve-friend-request/`, {
+			method: 'PUT',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				'approving_user_id': session.user.id,
+				'pending_user_id': friend.id,
+				'requestor_id': friend.id
+			})
+		})
+	}
+
 	return (
 		<>
 			<div>
@@ -39,10 +51,10 @@ export default function FriendList() {
 				<div className="collapse" id="friendsCollapse">
 					<div className="card card-body">
 						{
-							friends.map((friend, index) => (
+							friends.map((friend) => (
 								friend.status === 'FRIENDS' && (
 									<>
-										<div key={index} className="d-flex flex-row justify-content-between">
+										<div key={friend.user.id} className="d-flex flex-row justify-content-between">
 											<div className="">
 												<img 
 												src={`http://localhost:8000${friend.user.image}`}
@@ -90,10 +102,10 @@ export default function FriendList() {
 				<div className="collapse" id="friendRequestsCollapse">
 					<div className="card card-body">
 						{
-							friends.map((friend, index) => (
+							friends.map((friend) => (
 								friend.status === 'REQUEST' && (
 									<>
-										<div key={index} className="d-flex flex-row justify-content-between">
+										<div key={friend.user.id} className="d-flex flex-row justify-content-between">
 											<div className="">
 												<img 
 												src={`http://localhost:8000${friend.user.image}`} 
@@ -106,19 +118,14 @@ export default function FriendList() {
 												<h3>{friend.user.nick_name}</h3>
 											</div>
 											<div className="">
-												<CustomTooltip text="Invite to play" position="top">
-													<button className='btn'>
-														<Joystick color="green" />
+												<CustomTooltip text="Approuve Request" position="top">
+													<button className='btn text-success' onClick={() => approveFriendRequest(friend.user)}>
+													<i class="bi bi-check-circle-fill"></i>
 													</button>
 												</CustomTooltip>
-												<CustomTooltip text="remove friend" position="top">
-													<button className='btn'>
-														<Trash3Fill color="red" />
-													</button>
-												</CustomTooltip>
-												<CustomTooltip text="Send message" position="top">
-													<button className='btn'>
-														<ChatDotsFill color="blue" />
+												<CustomTooltip text="Deny Request" position="top">
+													<button className='btn text-danger'>
+													<i class="bi bi-x-circle-fill"></i>
 													</button>
 												</CustomTooltip>
 											</div>
