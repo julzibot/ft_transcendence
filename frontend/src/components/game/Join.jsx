@@ -5,9 +5,10 @@ import { SocketContext } from "../../../context/socket";
 import ThreeScene from '../game/Game'
 
 
-export default function Join({ user_id }) {
+export default function Join({ user_id, gameSettings }) {
 	
 	const remote_game = true;
+	console.log('Game Settings: ' + JSON.stringify(gameSettings));
 	if (remote_game === true)
 	{
 		const socket = useContext(SocketContext);
