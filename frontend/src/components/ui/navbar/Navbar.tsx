@@ -46,9 +46,7 @@ export default function Navbar() {
 						</>)
 					}
 				</ul>
-				<div className="custom-item">
-					<AuthButton/>
-				</div>
+				<AuthButton/>
 			</div>
 		</div>
 	</nav>);

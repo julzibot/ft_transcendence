@@ -9,10 +9,12 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseBadRequest
+from django.db.models import Q 
 
 import jwt, os, datetime
 
 from .models import UserAccount
+from friends.models import Friendship
 from .serializers import UserAccountSerializer
 from dashboard.models import DashboardData
 
@@ -55,13 +57,13 @@ class CustomTokenRefreshView(TokenRefreshView):
 class RegisterView(APIView):
   def post(self, request):
     data = request.data['data']
-    if len(data['email']) < 1 or len(data['login']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
-      return Response({'message': 'email, login and password are required'}, status=status.HTTP_400_BAD_REQUEST)
-    if  UserAccount.objects.filter(login=data['login']).exists() or UserAccount.objects.filter(email=data['email']).exists():
-      return Response({'message': 'user already exists try another email or login'}, status=status.HTTP_409_CONFLICT)
+    if len(data['email']) < 1 or len(data['nick_name']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
+      return Response({'message': 'email, nick name and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+    if  UserAccount.objects.filter(email=data['email']).exists():
+      return Response({'message': 'user already exists try another email'}, status=status.HTTP_409_CONFLICT)
     if data['password'] != data['rePass']:
       return Response({'message': 'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
-    user = UserAccount.objects.create(login=data['login'], nick_name=data['nick_name'], email=data['email'], password=make_password(data['password']))
+    user = UserAccount.objects.create(nick_name=data['nick_name'], email=data['email'], password=make_password(data['password']))
     user.save_image_from_url()
     serializer = UserAccountSerializer(user)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -81,7 +83,6 @@ class OauthView(APIView):
     response = Response({
       'user': {
         'id': user.id,
-        'login': user.login,
         'nick_name': user.nick_name,
         'email': user.email,
         'image': user.image.url
@@ -106,7 +107,6 @@ class AccessTokenView(APIView):
     response = Response({
       'user': {
         'id': user.id,
-        'login': user.login,
         'nick_name': user.nick_name,
         'email': user.email,
         'image': user.image.url
@@ -131,7 +131,6 @@ class SigninView(APIView):
         }, status=status.HTTP_401_UNAUTHORIZED)
       response = Response({
         'id': user.id,
-        'login': user.login,
         'nick_name': user.nick_name,
         'email': user.email,
         'image': user.image.url,
@@ -183,14 +182,29 @@ class UpdateImageView(APIView):
     return Response(status=status.HTTP_200_OK)
     
 class SearchUserView(APIView):
-  def post(self, request):
-    query = request.data['query']
-    id = request.data['id']
+  def get(self, request):
+    query = request.query_params.get('query')
+    id = request.query_params.get('id')
+    query_user = UserAccount.objects.get(id=id)
     if len(query) > 0:
-      users = UserAccount.objects.filter(nick_name__istartswith=query).exclude(id=id)
-      if not users:
+      query_set = UserAccount.objects.filter(nick_name__istartswith=query).exclude(id=id)
+      if not query_set:
         return Response(status=status.HTTP_404_NOT_FOUND)
-      users_data = list(users.values('id', 'nick_name'))
+      users_data = []
+      for user in query_set:
+        friendship = Friendship.objects.filter(Q(user1=user, user2=query_user) | Q(user1=query_user, user2=user)).exclude(status='REQUEST').first()
+
+        if friendship:
+          friendship_status = friendship.status
+        else:
+          friendship_status = 'NONE'
+        user_data = {
+          'id': user.id,
+          'nick_name': user.nick_name,
+          'image': user.image.url if user.image else None,
+          'friendship_status': friendship_status
+        }
+        users_data.append(user_data)
       return Response({"users": users_data})
     return Response(status=status.HTTP_404_NOT_FOUND)
   

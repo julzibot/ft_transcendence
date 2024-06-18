@@ -12,5 +12,5 @@ class DashboardData(models.Model):
 		verbose_name_plural = 'Dashboard Data'
 
 	def __str__(self):
-		return f'Dashboard data for: {self.user_id.login}'
+		return f'Dashboard data for: {self.user_id.nick_name}'
 
