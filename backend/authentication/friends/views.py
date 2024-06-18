@@ -52,9 +52,8 @@ class GetFriendsView(APIView):
     user = UserAccount.objects.get(id=id)
     friendships = Friendship.objects.filter(
         Q(user1=user) | Q(user2=user)
-      )#.exclude(
-          # Q(status='REQUEST') #& Q(requestor=user)
-      # )
+    )
+    
     user_ids = list(set([friend.user1_id for friend in friendships] + [friend.user2_id for friend in friendships]))
     users = UserAccount.objects.filter(id__in=user_ids)
 
