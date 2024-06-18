@@ -1,14 +1,19 @@
 "use client";
 
-import {useState, FormEvent} from 'react'
+import {useState, useEffect} from 'react'
 import {useSession} from 'next-auth/react'
+import {Upload} from 'react-bootstrap-icons'
 
 export default function ImageUpload() {
     const {data: session, update} = useSession()
     const [file, setFile] = useState(null)
 
-    async function uploadImage(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault()
+		useEffect(() => {
+			if(file)
+				uploadImage()
+		}, [file])
+
+    async function uploadImage() {
         try {
             const formData = new FormData()
             formData.append('user_id', session.user.id)
@@ -17,25 +22,29 @@ export default function ImageUpload() {
                 method: 'PUT',
                 body: formData
             })
-            if(!response.ok) {
+            if(!response.ok)
                 throw new Error("Failed to upload data, Try Again")
-            }
-
+					update({image: file})
         }
         catch (error) {
             console.error(error)
         }
-        finally {
-            update({image: file})
-        }
     }
 
     return (
-        <>
-            <form onSubmit={(e) => uploadImage(e)}>
-                <input type="file" accept="image/*" required={true} src={file} onChange={(e) => setFile(e.target.files[0])}/>
-                <button className="btn btn-dark" type="submit">Upload</button>
-            </form>
-        </>
+			<>
+				<form className="position-absolute bottom-0 end-0">
+					<label htmlFor="file-upload" className="btn btn-dark rounded-circle">
+						<Upload />
+					</label>
+					<input
+						id="file-upload"
+						type="file"
+						accept="image/*"
+						className="d-none"
+						onChange={(e) => setFile(e.target.files[0])}
+					/>
+				</form>
+    </>
     )
 }
