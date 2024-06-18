@@ -8,9 +8,11 @@ from rest_framework import serializers
 
 
 from .models import TournamentParticipants
+from tournament.models import TournamentData
 from users.models import UserAccount
 from .serializers import TournamentParticipantsSerializer
 from rest_framework import status
+from django.core.exceptions import ObjectDoesNotExist
 
 # Create your views here.
 class TournamentParticipantView(APIView):
@@ -45,6 +47,11 @@ class CreateTournamentParticipantView(APIView):
       user = UserAccount.objects.get(id=data['user_id'])
     except ObjectDoesNotExist:
       return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+      user = TournamentData.objects.get(id=data['tournament_id'])
+    except ObjectDoesNotExist:
+      return Response({'message': 'Tournament not found'}, status=status.HTTP_404_NOT_FOUND)  
     
     new_participant = TournamentParticipants.objects.create(tournament_id = data['tournament_id'], user = user)
     return Response({'message':'You have joined tournament successfully'}, status=status.HTTP_201_CREATED)

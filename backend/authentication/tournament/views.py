@@ -60,7 +60,10 @@ class TournamentDetailView(APIView):
 		tournamentParticpant = TournamentParticipants.objects.filter(tournament_id=id)
 		serializer = TournamentSerializer(tournament, many=True)
 		serializerT = TournamentParticipantsSerializer(tournamentParticpant, many=True)
-		return Response({'data': {'detail': serializer.data, 'particpants': serializerT.data }}, status=status.HTTP_201_CREATED)	
+		if(len(serializer.data) != 0):
+			return Response({'data': {'detail': serializer.data, 'particpants': serializerT.data }}, status=status.HTTP_201_CREATED)	
+		else:
+			return Response({'message': 'Record not found with this Id.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 
