@@ -8,7 +8,7 @@ import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
 import { Toast, ToastContainer } from 'react-bootstrap'
 import Image from "next/image";
 
-export default function SearchPlayerInput() {
+export default function SearchPlayerInput({fetchFriends}) {
   const [searchQuery, setSearchQuery] = useState([]);
   const [inputValue, setInputValue] = useState<string>('');
   const {data: session} = useSession()
@@ -54,10 +54,11 @@ export default function SearchPlayerInput() {
           title: 'Success', 
           show: true,
         })
+        fetchFriends()
       }
       else {
         setToastParams({
-          text: 'You have already sent a request to that user, wait for the reply.',
+          text: 'A request is pending with this user, check your friend requests',
           color: 'warning', 
           title: 'Warning', 
           show: true

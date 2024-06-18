@@ -14,7 +14,7 @@ export default function FriendList() {
 
 	useEffect(() => {
 		fecthFriends()
-	}, [friends])
+	}, [])
 
 	async function fecthFriends(){
 		const response = await fetch(`http://localhost:8000/api/friends/get/?id=${session.user.id}` , {
@@ -34,8 +34,9 @@ export default function FriendList() {
 				'requestor_id': friend.id
 			})
 		})
-		if(response.status === 202)
+		if(response.status === 202) {
 			fecthFriends()
+		}
 	}
 
 	async function deleteFriendship(friend) {
@@ -162,7 +163,7 @@ export default function FriendList() {
 						}
 					</div>
 				</div>
-				<SearchPlayerInput />
+				<SearchPlayerInput fetchFriends={fecthFriends}/>
 			</div>
 		</>
   )
