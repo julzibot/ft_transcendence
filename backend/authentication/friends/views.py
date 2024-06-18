@@ -52,10 +52,9 @@ class GetFriendsView(APIView):
     user = UserAccount.objects.get(id=id)
     friendships = Friendship.objects.filter(
         Q(user1=user) | Q(user2=user)
-      ).exclude(
-        Q(status='REQUEST') & Q(requestor=user)
-      )
-
+      )#.exclude(
+          # Q(status='REQUEST') #& Q(requestor=user)
+      # )
     user_ids = list(set([friend.user1_id for friend in friendships] + [friend.user2_id for friend in friendships]))
     users = UserAccount.objects.filter(id__in=user_ids)
 
@@ -67,7 +66,18 @@ class GetFriendsView(APIView):
             {
                 'user': user_data[friend.user1.id] if friend.user1.id != user.id else user_data[friend.user2.id],
                 'status': friend.status,
+                'requestor': friend.requestor_id
             }
             for friend in friendships
     ]
     return Response(serialized_data)
+
+class DeleteFriendshipView(APIView):
+  def delete(self, request):
+    data = request.data
+    user1 = data['user_id1']
+    user2 = data['user_id2']
+    friendship = Friendship.objects.filter(
+      Q(user1=user1, user2=user2) | Q(user1=user2, user2=user1)
+    ).delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
