@@ -35,7 +35,7 @@ export default function FriendList() {
 			})
 		})
 		if(response.status === 202) {
-			fecthFriends()
+			fetchFriends()
 		}
 	}
 
