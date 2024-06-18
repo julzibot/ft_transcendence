@@ -14,14 +14,13 @@ export default function FriendList() {
 
 	useEffect(() => {
 		fecthFriends()
-	}, [])
+	}, [friends])
 
 	async function fecthFriends(){
 		const response = await fetch(`http://localhost:8000/api/friends/get/?id=${session.user.id}` , {
 			method: 'GET'
 		})
 		const data = await response.json()
-
 		setFriends(data)
 	}
 
@@ -35,6 +34,8 @@ export default function FriendList() {
 				'requestor_id': friend.id
 			})
 		})
+		if(response.status === 202)
+			fecthFriends()
 	}
 
 	async function deleteFriendship(friend) {
@@ -46,6 +47,8 @@ export default function FriendList() {
 				'user_id2': friend.id
 			})
 		})
+		if(response.status === 204)
+			fecthFriends()
 	}
 
 	return (
