@@ -13,10 +13,10 @@ export default function FriendList() {
 
 
 	useEffect(() => {
-		fecthFriends()
+		fetchFriends()
 	}, [])
 
-	async function fecthFriends(){
+	async function fetchFriends(){
 		const response = await fetch(`http://localhost:8000/api/friends/get/?id=${session.user.id}` , {
 			method: 'GET'
 		})
@@ -49,7 +49,7 @@ export default function FriendList() {
 			})
 		})
 		if(response.status === 204)
-			fecthFriends()
+			fetchFriends()
 	}
 
 	return (
@@ -163,7 +163,7 @@ export default function FriendList() {
 						}
 					</div>
 				</div>
-				<SearchPlayerInput fetchFriends={fecthFriends}/>
+				<SearchPlayerInput fetchFriends={fetchFriends}/>
 			</div>
 		</>
   )
