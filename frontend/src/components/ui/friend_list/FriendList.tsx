@@ -37,6 +37,17 @@ export default function FriendList() {
 		})
 	}
 
+	async function deleteFriendship(friend) {
+		const response = await fetch('http://localhost:8000/api/friends/delete-friendship/', {
+			method: 'DELETE',
+			headers: {'Content-type': 'application/json'},
+			body: JSON.stringify({
+				'user_id1': session.user.id,
+				'user_id2': friend.id
+			})
+		})
+	}
+
 	return (
 		<>
 			<div>
@@ -75,7 +86,7 @@ export default function FriendList() {
 													</button>
 												</CustomTooltip>
 												<CustomTooltip text="remove friend" position="top">
-													<button className='btn'>
+													<button className='btn' onClick={() => deleteFriendship(friend.user)}>
 														<Trash3Fill color="red" />
 													</button>
 												</CustomTooltip>
@@ -119,16 +130,28 @@ export default function FriendList() {
 												<h3>{friend.user.nick_name}</h3>
 											</div>
 											<div className="">
-												<CustomTooltip text="Approuve Request" position="top">
-													<button className='btn text-success' onClick={() => approveFriendRequest(friend.user)}>
-													<i class="bi bi-check-circle-fill"></i>
-													</button>
-												</CustomTooltip>
-												<CustomTooltip text="Deny Request" position="top">
-													<button className='btn text-danger'>
-													<i class="bi bi-x-circle-fill"></i>
-													</button>
-												</CustomTooltip>
+												{
+													(friend.user.id === friend.requestor) ? (
+														<>
+															<CustomTooltip text="Approuve Request" position="top">
+																<button className='btn text-success' onClick={() => approveFriendRequest(friend.user)}>
+																<i class="bi bi-check-circle-fill"></i>
+																</button>
+															</CustomTooltip>
+															<CustomTooltip text="Deny Request" position="top">
+																<button className='btn text-danger' onClick={() => deleteFriendship(friend.user)}>
+																<i class="bi bi-x-circle-fill"></i>
+																</button>
+															</CustomTooltip>
+														</>
+													) : (
+														<CustomTooltip text="Cancel Request" position="top">
+															<button className='btn text-danger' onClick={() => deleteFriendship(friend.user)}>
+																<i class="bi bi-x-circle-fill"></i>
+															</button>
+														</CustomTooltip>
+													)
+												}
 											</div>
 										</div>
 								</>
