@@ -33,7 +33,7 @@ export default function ImageUpload() {
 
     return (
 			<>
-				<form className="position-absolute bottom-0 end-0">
+				<form className="position-absolute end-0 top-0 mt-4 me-5">
 					<label htmlFor="file-upload" className="btn btn-dark rounded-circle">
 						<Upload />
 					</label>
