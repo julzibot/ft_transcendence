@@ -89,7 +89,7 @@ export default function ProfilePage() {
         objectFit: 'cover',
       }}
     />
-      <div className="d-flex justify-content-center align-items-center">
+      <div className="d-flex justify-content-center align-items-center mt-5">
         <div className="card shadow-lg text-center bg-light bg-opacity-75">
           <div className="card-body">
             <div className="position-relative border border-4 border-dark-subtle rounded-circle" style={{width: '280px', height: '280px', overflow: 'hidden'}}>
