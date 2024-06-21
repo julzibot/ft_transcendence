@@ -49,7 +49,7 @@ class CreateTournamentParticipantView(APIView):
       return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
 
     try:
-      user = TournamentData.objects.get(id=data['tournament_id'])
+      tournament = TournamentData.objects.get(id=data['tournament_id'])
     except ObjectDoesNotExist:
       return Response({'message': 'Tournament not found'}, status=status.HTTP_404_NOT_FOUND)  
     
