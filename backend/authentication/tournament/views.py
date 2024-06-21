@@ -16,7 +16,7 @@ import random
 # Create your views here.
 class TournamentView(APIView):
 	def get(self, request):
-		tournament = TournamentData.objects.filter(Q(tournamentWinner__isnull=True) | Q(tournamentWinner = ''))
+		tournament = TournamentData.objects.filter(Q(tournamentWinner__isnull=True) | Q(tournamentWinner = None))
 		serializer = TournamentSerializer(tournament, many=True)
 		return Response(serializer.data)
 

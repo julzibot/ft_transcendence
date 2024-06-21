@@ -4,8 +4,10 @@ from rest_framework.views import APIView
 from django.db.models import Q
 
 from .models import TournamentPairingData
+from tournament.models import TournamentData
 from users.models import UserAccount
 from .serializers import TournamentPairingSerializer
+from tournament.serializers import TournamentSerializer
 from tournamentParticipants.models import TournamentParticipants
 from tournamentParticipants.serializers import TournamentParticipantsSerializer
 from rest_framework import status
@@ -41,8 +43,8 @@ class CreateMatchMakingView(APIView):
 				user = UserAccount.objects.get(id=rand1[0]['user_id'])
 			except ObjectDoesNotExist:
 				return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
-				
-			if(len(particpantsData) > 1):
+
+			if(len(particpantsData) >= 1):
 				rand2 = self.pop_random(particpantsData)
 				particpantsData.remove(rand2[0])
 				try:
@@ -51,6 +53,7 @@ class CreateMatchMakingView(APIView):
 					return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
 			else:
 				user2 = None
+				
 			particpantPairing = TournamentPairingData.objects.create(tournament_id = id, player1 =user, player2 = user2, round_id = roundId)
 			
 		return Response({'message': 'Pairing for particpants has been created.' }, status=status.HTTP_201_CREATED)	
@@ -65,10 +68,29 @@ class UpdateWinnerView(APIView):
 
 		tournamentPairings = TournamentPairingData.objects.filter(query)
 		serializerPairings = TournamentPairingSerializer(tournamentPairings, many=True)
+
+
+		if (int(serializerPairings.data[0]['player1']) == int(data["winner_id"])):
+			tournamentParticpants = TournamentParticipants.objects.filter(tournament_id=data["tournament_id"], user_id=serializerPairings.data[0]['player2'])
+			serializerTournament = TournamentParticipantsSerializer(tournamentParticpants, many=True)
+			tournamentParticpants.update(isEliminated=True)
+		elif(int(serializerPairings.data[0]['player2']) == int(data["winner_id"])):
+			tournamentParticpants = TournamentParticipants.objects.filter(tournament_id=data["tournament_id"], user_id=serializerPairings.data[0]['player1'])
+			serializerTournament = TournamentParticipantsSerializer(tournamentParticpants, many=True)
+			tournamentParticpants.update(isEliminated=True)
+
+
+		tournamentParticpantsData = TournamentParticipants.objects.filter(tournament_id=data["tournament_id"], isEliminated=False)
+		serializerTournamentPartiData = TournamentParticipantsSerializer(tournamentParticpantsData, many=True)
+		
+		
+
 		try:
 			user = UserAccount.objects.get(id=data["winner_id"])
-			tournamentPairings[0].winner = user
-			tournamentPairings[0].save()
+			tournamentPairings.update(winner=user)
+			if(len(serializerTournamentPartiData.data) == 1):
+				tournamentData = TournamentData.objects.filter(id=data["tournament_id"])
+				tournamentData.update(tournamentWinner=user)
 		except ObjectDoesNotExist:
 			return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
 		
