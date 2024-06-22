@@ -4,11 +4,18 @@ import { useEffect, useState, useContext } from "react";
 import { SocketContext } from "../../../context/socket";
 import ThreeScene from '../game/Game'
 
-
-export default function Join({ user_id, gameSettings }) {
+export default function Join({ user_id }) {
 	
+	const [gameSettings, setGameSettings] = useState(null);
+
+
+	useEffect(() => {
+		const fetchedSettings = localStorage.getItem('gameSettings');
+		setGameSettings(JSON.parse(fetchedSettings));
+	}, []);
+
 	const remote_game = true;
-	console.log('Game Settings: ' + JSON.stringify(gameSettings));
+	console.log('[Join] Game Settings: ' + JSON.stringify(gameSettings));
 	if (remote_game === true)
 	{
 		const socket = useContext(SocketContext);
