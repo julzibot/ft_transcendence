@@ -4,7 +4,8 @@ import { useEffect, useState, useContext } from "react";
 import { SocketContext } from "../../../context/socket";
 import ThreeScene from '../game/Game'
 
-export default function Join() {	
+export default function Join({ remoteGame }) {
+
 	const [gameSettings, setGameSettings] = useState(() => {
 		const fetchedSettings = localStorage.getItem('gameSettings');
 		const parsedSettings = JSON.parse(fetchedSettings);
@@ -12,10 +13,8 @@ export default function Join() {
 		return parsedSettings || "";
 	});
 
-
-	const remote_game = true;
 	console.log('[Join] Game Settings: ' + JSON.stringify(gameSettings));
-	if (remote_game === true)
+	if (remoteGame === true)
 	{
 		const socket = useContext(SocketContext);
 
@@ -29,14 +28,14 @@ export default function Join() {
 			socket.on('isHost', () => {
 				setIsHost(true);
 				console.log("You are player 1");
-			})
+			});
 			socket.on('startGame', () => {
 				setGameJoined(true);
-			})
+			});
 		}, [socket]);
 		return (
 			<>
-				{gameJoined ? <ThreeScene room_id={room_id} user_id={gameSettings.userId} isHost={isHost} gamemode={2} /> : <div>Loading game...</div>}
+				{gameJoined ? <ThreeScene gameSettings={gameSettings} room_id={room_id} user_id={gameSettings.userId} isHost={isHost} gamemode={2} /> : <div>Loading game...</div>}
 			</>
 			)
 	}

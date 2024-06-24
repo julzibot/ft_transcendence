@@ -6,7 +6,6 @@ import { useEffect, useState, useContext } from "react"
 import Link from "next/link"
 import { SocketContext, socket } from "../../../../context/socket"
 import ColorSliderPicker from '../../../components/game/ColorPalette'
-import './custom.scss'
 
 export default function GameSettings() {
 
@@ -234,23 +233,12 @@ export default function GameSettings() {
 
               <div className="d-flex justify-content-center mb-3">
                 <button type="button" className="btn btn-secondary mx-3">Play Against AI</button>
-                <button type="button" className="btn btn-secondary mx-3">Local Multiplayer</button>
               </div>
 
 							<p>{JSON.stringify(gameSettings)}</p>
-              {/* <p>BG pattern: {gameSettings.bgPattern}</p>
-              <p>Anim BG: {gameSettings.animatedBg}</p>
-              <p>Static BG: {gameSettings.staticBg}</p>
-              <p>Color: {gameSettings.colorStyle}</p>
-              <p>BG color: {gameSettings.bgColor}</p>
-              <p>Opacity: {gameSettings.opacity}</p>
-              <p>Sparks: {gameSettings.sparks.toString()}</p>
-              <p>Game Difficulty: {gameSettings.gameDifficulty}</p>
-              <p>Points: {gameSettings.points}</p>
-              <p>PowerUps: {gameSettings.powerUps.toString()}</p> */}
             </div>
-            <Link href='local/play'>
-              <button className="btn btn-primary">Join a game</button>
+            <Link href='/game/local/play/'>
+              <button type="button" className="btn btn-secondary mx-3">Local Multiplayer</button>
             </Link>
           </div>
         </div>

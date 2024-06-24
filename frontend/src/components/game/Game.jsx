@@ -568,7 +568,7 @@ const init_socket = (socket, isHost) =>
   }
 }
 
-export default function ThreeScene({ room_id, user_id, isHost, gamemode })
+export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gamemode })
 {
   const containerRef = useRef(null);
 	let socket = -1;
