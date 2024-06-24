@@ -6,12 +6,12 @@ import io from "socket.io-client"
 import { SocketContext, socket } from "../../../../../context/socket"
 import '../custom.scss'
 
-export default function Play({userId, gameSettings}) {
+export default function Play() {
 
 	return (
 	<>
 		<SocketContext.Provider value={socket}>
-			<Join user_id={userId} gameSettings={gameSettings} />
+			<Join />
 		</SocketContext.Provider>
 	</>
 	)
