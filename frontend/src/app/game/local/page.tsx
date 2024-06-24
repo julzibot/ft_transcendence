@@ -18,6 +18,7 @@ export default function GameSettings() {
 	const [showSettings, setShowSettings] = useState(true);
 
 	const [gameSettings, setGameSettings] = useState({
+		userId: -1,
 		bgPattern: 'animated',
 		animatedBg: 1,
 		staticBg: 1,
@@ -32,11 +33,15 @@ export default function GameSettings() {
 
 	useEffect(() => {
 		localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
+		console.log('SETTING game settings');
 	}, [gameSettings]);
 	
 	useEffect(() => {
 		if (status === "authenticated" && session) {
 			setUserId(session.user.id);
+			setGameSettings({ ...gameSettings, 'userId': session.user.id });
+			console.log('UserId set: ' + session.user.id);
+			console.log(gameSettings);
 		}
 	}, [session, status]);
 

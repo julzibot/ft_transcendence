@@ -4,15 +4,14 @@ import { useEffect, useState, useContext } from "react";
 import { SocketContext } from "../../../context/socket";
 import ThreeScene from '../game/Game'
 
-export default function Join({ user_id }) {
-	
-	const [gameSettings, setGameSettings] = useState(null);
-
-
-	useEffect(() => {
+export default function Join() {	
+	const [gameSettings, setGameSettings] = useState(() => {
 		const fetchedSettings = localStorage.getItem('gameSettings');
-		setGameSettings(JSON.parse(fetchedSettings));
-	}, []);
+		const parsedSettings = JSON.parse(fetchedSettings);
+		console.log('fetched settings: ' + fetchedSettings);
+		return parsedSettings || "";
+	});
+
 
 	const remote_game = true;
 	console.log('[Join] Game Settings: ' + JSON.stringify(gameSettings));
@@ -24,7 +23,7 @@ export default function Join({ user_id }) {
 		const [isHost, setIsHost] = useState(false);
 		const room_id = 5;
 
-		socket.emit('join_room', { room_id: room_id, user_id: user_id });
+		socket.emit('join_room', { room_id: room_id, user_id: gameSettings['userId'] });
 
 		useEffect(() => {
 			socket.on('isHost', () => {
@@ -35,17 +34,17 @@ export default function Join({ user_id }) {
 				setGameJoined(true);
 			})
 		}, [socket]);
-	return (
-		<>
-			{gameJoined ? <ThreeScene room_id={room_id} user_id={user_id} isHost={isHost} gamemode={2} /> : <div>Loading game...</div>}
-		</>
-		)
+		return (
+			<>
+				{gameJoined ? <ThreeScene room_id={room_id} user_id={gameSettings.userId} isHost={isHost} gamemode={2} /> : <div>Loading game...</div>}
+			</>
+			)
 	}
 	else
 	{
 		return (
 			<>
-				<ThreeScene room_id={-1} user_id={user_id} isHost={true} gamemode={0}/>
+				<ThreeScene room_id={-1} user_id={gameSettings.userId} isHost={true} gamemode={0}/>
 			</>
 			)
 	}
