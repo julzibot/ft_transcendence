@@ -14,6 +14,8 @@ const trail = {};
 const particleEffects = [];
 const trailSegments = [];
 const powerUps = [];
+const powerUp_names = ["elongation", "golden rush", "bullet time", "confundus", "invisiball", "none"];
+const modes_colormap = [0x00ff33, 0xff0022, 0x4c4cff, 0xcc00cc, 0xffffff, 0x888888]
 let player_powerUps = [-1, -1];
 let activated_powers = [-1, -1];
 let power_timers = [[0,0,0,0,0], [0,0,0,0,0]];
@@ -43,6 +45,8 @@ const puUniformData = {
   { type: 'f', value: performance.now() - startTime },
   u_color:
   { type: 'v3', value: custom.color },
+  u_fade:
+  { type: 'f', value: 0 },
   u_radius:
   { type: 'f', value: 0 },
   u_resolution:
@@ -84,25 +88,49 @@ const sparkFs = `
     }
 `;
 
-function printGameInfo( font, textMesh, string, mode, fontsize )
+function printGameInfo( font, textMesh, string, mode, id, fontsize )
 {
   let updatedStringGeo = new TextGeometry(string, {font: font, size: fontsize, height: 0.5 });
-  if (mode != 0 && mode < 3)
+  if (mode > 0 && mode < 3)
   {
     const textMaterial = new THREE.MeshStandardMaterial({ color: 0x0000cc, emissive: 0xdd00dd, emissiveIntensity: 0.2 });
     textMesh.material = textMaterial;
     if (mode == 1)
-      textMesh.position.set(CONST.GAMEWIDTH / 5 - CONST.GAMEWIDTH / 2, CONST.GAMEHEIGHT / 3.5, -1.5);
+      textMesh.position.set(-CONST.GAMEWIDTH / 16 - 2, CONST.GAMEHEIGHT / 2 + 0.75, 1);
     else if (mode == 2)
-      textMesh.position.set(CONST.GAMEWIDTH / 5, CONST.GAMEHEIGHT / 3.5, -1.5);
+      textMesh.position.set(CONST.GAMEWIDTH / 16, CONST.GAMEHEIGHT / 2 + 0.75, 1);
   }
   else if (mode == 3)
+  {
+    const textMaterial = new THREE.MeshStandardMaterial({ color: modes_colormap[5], emissive: modes_colormap[5], emissiveIntensity: 0.3 });
+    textMesh.material = textMaterial;
+    if (id === 0)
+      textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 2.75, 1)
+    else
+      textMesh.position.set( CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 2.75, 1)
+  }
+  else if (mode == 4)
+  {
+    const textMaterial = new THREE.MeshStandardMaterial({ color: modes_colormap[5], emissive: modes_colormap[5], emissiveIntensity: 0.3 });
+    textMesh.material = textMaterial;
+    if (id === 0)
+      textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 0.75, 1)
+    else
+      textMesh.position.set( CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 0.75, 1)
+  }
+  else if (mode == 5)
   {
     const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
     textMesh.material = textMaterial;
     textMesh.position.set(-11.5, -7 , -1.5);
   }
-  if (mode != 0)
+  else if (mode > 5)
+  {
+    const textMaterial = new THREE.MeshStandardMaterial({ color: modes_colormap[mode - 6], emissive: modes_colormap[mode - 6], emissiveIntensity: 0.3 });
+    // textMesh.material.dispose();
+    textMesh.material = textMaterial;
+  }
+  if (mode > 0 && mode < 5)
     tools.scene.add(textMesh);
   textMesh.geometry.dispose();
   textMesh.geometry = updatedStringGeo;
@@ -129,25 +157,28 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
       vars.ballVect.set(-1, 0);
       vars.p1Score += 1;
       csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-      {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
+      {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, -1, 3.5);});
     }
     else
     {
       vars.ballVect.set(1, 0);
       vars.p2Score += 1;
       csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-      {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
+      {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, -1, 3.5);});
     }
-    if (activated_powers[0] == 40 || activated_powers[1] == 40)
+    for (let i = 0; i < 2; i++)
     {
-      objs.ball.visible = true;
-      objs.ballWrap.visible = true;
-      csts.ballLight.intensity = 5;
+      if (activated_powers[i] == 40)
+        objs.ball.visible = true;
+        objs.ballWrap.visible = true;
+        csts.ballLight.intensity = 5;
+      if (activated_powers[i] == 40 || activated_powers[i] == 10)
+      {
+        activated_powers[i] = -1;
+        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+        {printGameInfo(font, vars.activeMesh[i], "none", 11, i, 0.85);});
+      }
     }
-    if (activated_powers[0] == 40)
-      activated_powers[0] = -1;
-    if (activated_powers[1] == 40)
-      activated_powers[1] = -1;
 
     objs.ball.position.set(0, 0, 0);
     objs.ballWrap.position.set(0, 0, 0);
@@ -166,7 +197,7 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
     else
       vars.endString = "GAME ENDED\nPLAYER 2 WINS";
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.endMsgMesh, vars.endString, 3, 3)} );
+      {printGameInfo(font, vars.endMsgMesh, vars.endString, 5, -1, 3)} );
     put_response = PutScores();
     if (put_response == false)
       console.log("Ouch ! Scores not updated !")
@@ -229,9 +260,24 @@ const activate_collision_pu = () =>
   {
     vars.adjustedBallSpeed = Math.min(2. * vars.adjustedBallSpeed, 1.3 * CONST.BALLSPEED_MAX);
     if (vars.isRebound === 1)
-      activated_powers[0] = -1;
+      activated_powers[0] = 10;
     else
+      activated_powers[1] = 10;
+  }
+  else if ((vars.isRebound === 1 && activated_powers[1] === 10) || (vars.isRebound === 2 && activated_powers[0] === 10))
+  {
+    if (vars.isRebound == 1)
+    {
       activated_powers[1] = -1;
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.activeMesh[1], "none", 11, 1, 0.85)} );
+    }
+    else
+    {
+      activated_powers[0] = -1;
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.activeMesh[0], "none", 11, 0, 0.85)} );
+    }
   }
   if ((vars.isRebound == 1 && activated_powers[0] == 3) || (vars.isRebound == 2 && activated_powers[1] == 3))
   {
@@ -246,31 +292,31 @@ const activate_collision_pu = () =>
       activated_powers[1] = 30;
     }
   }
-  if ((vars.isRebound == 1 && activated_powers[0] == 4) || (vars.isRebound == 2 && activated_powers[1] == 4))
+  if ((vars.isRebound === 1 && activated_powers[0] === 4) || (vars.isRebound === 2 && activated_powers[1] === 4))
   {
     objs.ball.visible = false;
     objs.ballWrap.visible = false;
     csts.ballLight.intensity = 5;
-    if (vars.isRebound == 1)
-    {
-      power_timers[0][4] = performance.now();
-      activated_powers[0] = 40;
-    }
-    else
-    {
-      power_timers[1][4] = performance.now();
-      activated_powers[1] = 40;
-    }
+    power_timers[vars.isRebound - 1][4] = performance.now();
+    activated_powers[vars.isRebound - 1] = 40;
   }
-  else if ((vars.isRebound == 1 && activated_powers[1] == 40) || (vars.isRebound == 2 && activated_powers[0] == 40))
+  else if ((vars.isRebound === 1 && activated_powers[1] === 40) || (vars.isRebound === 2 && activated_powers[0] === 40))
   {
     objs.ball.visible = true;
     objs.ballWrap.visible = true;
     csts.ballLight.intensity = 15;
-    if (vars.isRebound == 1)
+    if (vars.isRebound === 1)
+    {
       activated_powers[1] = -1;
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.activeMesh[1], "none", 11, 1, 0.85)} );
+    }
     else
+    {
       activated_powers[0] = -1;
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.activeMesh[0], "none", 11, 0, 0.85)} );
+    }
   }
 }
 
@@ -285,7 +331,7 @@ const collisionLogic = (room_id, socket, gamemode) =>
     vars.isRebound = 1;
   else if (p2HB.intersectsBox(sph))
     vars.isRebound = 2;
-  if (vars.isRebound != 0)
+  if (vars.isRebound > 0)
   {
     // COMPUTE THE NORMALIZED REBOUND VECTOR
     vars.glowStartTime = performance.now();
@@ -341,15 +387,17 @@ const collisionLogic = (room_id, socket, gamemode) =>
       socket.emit('sendWallCollision', {room_id: room_id});
     createSparks();
   }
+
+  let pu_dir = 0;
+  if (vars.ballVect.x < 0)
+    pu_dir = 1;
   for (let i = 0; i < powerUps.length; i++)
   {
     if (powerUps[i][4].intersectsBox(sph))
     {
-      if (vars.ballVect.x > 0)
-        player_powerUps[0] = powerUps[i][5];
-      else
-        player_powerUps[1] = powerUps[i][5];
-      console.log("POWER-UPS: " + player_powerUps);
+      player_powerUps[pu_dir] = powerUps[i][5];
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.latentMesh[pu_dir], powerUp_names[player_powerUps[pu_dir]], player_powerUps[pu_dir] + 6, pu_dir, 0.85)} );
       tools.scene.remove(powerUps[i][0]); 
       powerUps.splice(i, 1);
     }
@@ -402,6 +450,9 @@ const activate_power = ( i ) =>
   if (player_powerUps[i] > -1)
   {
     activated_powers[i] = player_powerUps[i];
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.activeMesh[i], powerUp_names[activated_powers[i]], activated_powers[i] + 6, i, 0.85);
+      printGameInfo(font, vars.latentMesh[i], "none", 11, i, 0.85)} );
     player_powerUps[i] = -1;
   }
   if (activated_powers[i] == 0)
@@ -411,21 +462,11 @@ const activate_power = ( i ) =>
       objs.player1.scale.y = 1.4;
     else
       objs.player2.scale.y = 1.4;
-    console.log("longer pad");
   }
-  else if (activated_powers[i] == 1)
-    console.log("speed boost");
   else if (activated_powers[i] == 2)
   {
     power_timers[i][2] = performance.now();
     vars.bulletTime = 0.4;
-    console.log("bullet time");
-  }
-  else if (activated_powers[i] == 3)
-    console.log("invert controls");
-  else if (activated_powers[i] == 4)
-  {
-    console.log("invisiball");
   }
 }
 
@@ -478,11 +519,11 @@ const local_update = () =>
     vars.p2Score = 0;
 
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p1textMesh, "0", 0, 4)} );
+      {printGameInfo(font, vars.p1textMesh, "0", 0, -1, 3.5)} );
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p2textMesh, "0", 0, 4)} );
+      {printGameInfo(font, vars.p2textMesh, "0", 0, -1, 3.5)} );
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.endMsgMesh, "", 3, 3)} );
+      {printGameInfo(font, vars.endMsgMesh, "", 4, -1, 3)} );
     objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
     objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
     tools.camera.position.set(0, 0, 20);
@@ -663,6 +704,10 @@ const createPowerUp = () =>
     { type: 'f', value: performance.now() - startTime + timedelta },
     u_color:
     { type: 'v3', value: color },
+    u_spawn:
+    { type: 'f', value: 0 },
+    u_fade:
+    { type: 'f', value: 0 },
     u_radius:
     { type: 'f', value: radius },
   }
@@ -693,37 +738,26 @@ const createPowerUp = () =>
 
 const check_pu_timers = () =>
 {
-  if (vars.bulletTime < 1)
+  const timestamp = performance.now()
+  for (let i = 0; i < 2; i++)
   {
-    if (activated_powers[0] === 2 && performance.now() - power_timers[0][2] > 5000)
+    if ((activated_powers[i] === 2 && timestamp - power_timers[i][2] > 5000)
+        || (activated_powers[i] == 0 && timestamp - power_timers[i][0] > 10000)
+        || (activated_powers[i] == 30 && timestamp - power_timers[i][3] > 10000))
     {
-      activated_powers[0] = -1;
+      if (activated_powers[i] == 0 && i === 0)
+        objs.player1.scale.y = 1;
+      else if (activated_powers[i] == 0 && i == 1)
+        objs.player2.scale.y = 1;
+      activated_powers[i] = -1;
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.activeMesh[i], "none", 11, i, 0.85)} );
     }
-    if (activated_powers[1] === 2 && performance.now() - power_timers[1][2] > 5000)
-    {
-      activated_powers[1] = -1;
-    }
-    if (activated_powers[0] === -1 && activated_powers[1] === -1)
-      vars.bulletTime = 1;
+    if (activated_powers[i] == 40)
+      csts.ballLight.intensity = Math.max(0., Math.cos((performance.now() - power_timers[i][4]) / 80) * 5);
   }
-  if (activated_powers[0] == 0 && performance.now() - power_timers[0][0] > 10000)
-  {
-    objs.player1.scale.y = 1;
-    activated_powers[0] = -1;
-  }
-  if (activated_powers[1] == 0 && performance.now() - power_timers[1][0] > 10000)
-  {
-    objs.player2.scale.y = 1;
-    activated_powers[1] = -1;
-  }
-  if (activated_powers[0] == 30 && performance.now() - power_timers[0][3] > 10000)
-    activated_powers[0] = -1;
-  if (activated_powers[1] == 30 && performance.now() - power_timers[1][3] > 10000)
-    activated_powers[1] = -1;
-  if (activated_powers[0] == 40)
-    csts.ballLight.intensity = Math.max(0., Math.cos((performance.now() - power_timers[0][4]) / 80) * 5);
-  if (activated_powers[1] == 40)
-    csts.ballLight.intensity = Math.max(0., Math.cos((performance.now() - power_timers[1][4]) / 80) * 5);
+  if (vars.bulletTime < 1 && activated_powers[0] === -1 && activated_powers[1] === -1)
+    vars.bulletTime = 1;
 }
 
 const create_delete_pu = () =>
@@ -741,14 +775,23 @@ const create_delete_pu = () =>
     else
       vars.puChanceCounter += 1;
   }
+  let checkTime = 0;
   for (let i = 0; i < powerUps.length; i++)
   {
     powerUps[i][2].u_time.value = performance.now() - startTime + powerUps[i][3];
-    if (performance.now() - powerUps[i][1] > 12000)
-    {
-      tools.scene.remove(powerUps[i][0]);
-      powerUps.shift();
-    }
+    checkTime = performance.now() - powerUps[i][1];
+    if (checkTime < 1000)
+      powerUps[i][2].u_spawn.value = checkTime;
+    else if (powerUps[i][2].u_spawn.value > 0)
+      powerUps[i][2].u_spawn.value = -1;
+
+    if (checkTime > CONST.PU_LIFESPAN)
+      {
+        tools.scene.remove(powerUps[i][0]);
+        powerUps.shift();
+      }
+    else if (checkTime > CONST.PU_LIFESPAN * 2/3)
+      powerUps[i][2].u_fade.value = checkTime - CONST.PU_LIFESPAN * 2/3
   }
 }
 
@@ -784,7 +827,7 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
     remote_update(socket, user_id, isHost);
   else
     local_update();
-  tools.controls.update();
+  // tools.controls.update();
   tools.stats.update();
     
   uniformData.u_time.value = performance.now() - startTime;
@@ -832,13 +875,13 @@ const init_socket = (socket, isHost) =>
       {
         vars.p1Score = data.score1;
         csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-        {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
+        {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, -1, 4);});
       }
       else
       {
         vars.p2Score = data.score2;
         csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-        {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
+        {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, -1, 4);});
       }
       setBallColor();
       vars.stopGame = data.stopGame;
@@ -873,24 +916,28 @@ export default function ThreeScene({ room_id, user_id, isHost, gamemode })
 			tools.scene.add( objs.botB );
 			tools.scene.add( objs.backB );
 			tools.scene.add( objs.background );
+			tools.scene.add( objs.display );
+
 			tools.scene.add( csts.ambLight );
 			tools.scene.add( csts.dirLight );
 			tools.scene.add( csts.ballLight );
-			
+
+      let quaternion = new THREE.Quaternion();
 			if (custom.pov === "classic")
-				{
-					tools.camera.position.set(0, 0, 20);
-					tools.camera.lookAt(0, 0, 0);
-				}
+      {
+        tools.camera.position.set(custom.classicCamPos.x, custom.classicCamPos.y, custom.classicCamPos.z);
+        // quaternion.setFromAxisAngle(custom.classicCamPos.clone().normalize(), -Math.PI / 2);
+        // tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+        tools.camera.lookAt(0, 2.5, 0);
+      }
       else if (custom.pov === "immersive")
-        {
-          tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
-          tools.camera.lookAt(0, 0, 0);
-          let quaternion = new THREE.Quaternion();
-          quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
-          tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-          tools.camera.fov = 75;
-        }
+      {
+        tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
+        tools.camera.lookAt(0, 0, 0);
+        quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
+        tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+        tools.camera.fov = 75;
+      }
 			
 			let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
 			console.log(tools.camera.projectionMatrix);
@@ -918,9 +965,17 @@ export default function ThreeScene({ room_id, user_id, isHost, gamemode })
 			
 			// ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
 			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
+			{printGameInfo(font, vars.p1textMesh, "0", 1, -1, 3.5)} );
 			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
+			{printGameInfo(font, vars.p2textMesh, "0", 2, -1, 3.5)} );
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.latentMesh[0], " none", 3, 0, 0.85)} );
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.latentMesh[1], " none", 3, 1, 0.85)} );
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.activeMesh[0], " none", 4, 0, 0.85)} );
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.activeMesh[1], " none", 4, 1, 0.85)} );
       
 			
 			document.addEventListener('keydown', function(event) { keys[event.code] = true; });
