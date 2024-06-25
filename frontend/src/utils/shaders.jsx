@@ -384,6 +384,8 @@ shaders.pu_fs =
 `
 uniform float u_time;
 uniform float u_radius;
+uniform float u_spawn;
+uniform float u_fade;
 uniform vec3 u_color;
 varying vec3 pos;
 
@@ -391,6 +393,11 @@ void main()
 {
     vec3 color = u_color;
     float len = length(pos);
-    gl_FragColor = vec4(color, min(1., 1. / (len * len * len / (u_radius / 4.)) + 0.5));
+    float alpha = min(1., 1. / (len * len * len / (u_radius / 4.)) + 0.5);
+    if (u_spawn > -0.1)
+        alpha *= u_spawn / 1000.;
+    else if (u_fade > 1.)
+        alpha *= max(0.1, abs(cos(u_fade / (300. - u_fade /40.))));
+    gl_FragColor = vec4(color, alpha);
 }
 `
