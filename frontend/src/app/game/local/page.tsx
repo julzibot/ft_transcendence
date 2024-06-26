@@ -34,7 +34,7 @@ export default function GameSettings() {
 		localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
 		console.log('SETTING game settings');
 	}, [gameSettings]);
-	
+
 	useEffect(() => {
 		if (status === "authenticated" && session) {
 			setUserId(session.user.id);
