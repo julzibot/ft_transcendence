@@ -15,9 +15,9 @@ const particleEffects = [];
 const trailSegments = [];
 const powerUps = [];
 const powerUp_names = ["elongation", "golden rush", "bullet time", "confundus", "invisiball", "none"];
-const modes_colormap = [0x00ff33, 0xff0022, 0x4c4cff, 0xcc00cc, 0xffffff, 0x888888]
+// const modes_colormap = [0x00ff33, 0xff0022, 0x4c4cff, 0xcc00cc, 0xffffff, 0x888888]
 let player_powerUps = [-1, -1];
-let activated_powers = [-1, -1];
+let activated_powers = [[0,0,0,0,0], [0,0,0,0,0]];
 let power_timers = [[0,0,0,0,0], [0,0,0,0,0]];
 let opponentPos = 0.;
 let game_id = 0;
@@ -102,7 +102,7 @@ function printGameInfo( font, textMesh, string, mode, id, fontsize )
   }
   else if (mode == 3)
   {
-    const textMaterial = new THREE.MeshStandardMaterial({ color: modes_colormap[5], emissive: modes_colormap[5], emissiveIntensity: 0.3 });
+    const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
     textMesh.material = textMaterial;
     if (id === 0)
       textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 2.75, 1)
@@ -111,7 +111,7 @@ function printGameInfo( font, textMesh, string, mode, id, fontsize )
   }
   else if (mode == 4)
   {
-    const textMaterial = new THREE.MeshStandardMaterial({ color: modes_colormap[5], emissive: modes_colormap[5], emissiveIntensity: 0.3 });
+    const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
     textMesh.material = textMaterial;
     if (id === 0)
       textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 0.75, 1)
@@ -126,7 +126,7 @@ function printGameInfo( font, textMesh, string, mode, id, fontsize )
   }
   else if (mode > 5)
   {
-    const textMaterial = new THREE.MeshStandardMaterial({ color: modes_colormap[mode - 6], emissive: modes_colormap[mode - 6], emissiveIntensity: 0.3 });
+    const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[mode - 6], emissive: custom.modes_colormap[mode - 6], emissiveIntensity: 0.3 });
     // textMesh.material.dispose();
     textMesh.material = textMaterial;
   }
@@ -168,15 +168,18 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
     }
     for (let i = 0; i < 2; i++)
     {
-      if (activated_powers[i] == 40)
+      if (activated_powers[i][4] == 2)
+      {
         objs.ball.visible = true;
         objs.ballWrap.visible = true;
         csts.ballLight.intensity = 5;
-      if (activated_powers[i] == 40 || activated_powers[i] == 10)
+        activated_powers[i][4] = 0;
+        objs.puGaugeLights[i][4].intensity = 0;
+      }
+      if (activated_powers[i][1] == 2)
       {
-        activated_powers[i] = -1;
-        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-        {printGameInfo(font, vars.activeMesh[i], "none", 11, i, 0.85);});
+        activated_powers[i][1] = 0;
+        objs.puGaugeLights[i][1].intensity = 0;
       }
     }
 
@@ -256,66 +259,62 @@ const createSparks = () =>
 
 const activate_collision_pu = () =>
 {
-  if ((vars.isRebound === 1 && activated_powers[0] === 1) || (vars.isRebound === 2 && activated_powers[1] === 1))
+  if ((vars.isRebound === 1 && activated_powers[0][1] === 1) || (vars.isRebound === 2 && activated_powers[1][1] === 1))
   {
     vars.adjustedBallSpeed = Math.min(2. * vars.adjustedBallSpeed, 1.3 * CONST.BALLSPEED_MAX);
     if (vars.isRebound === 1)
-      activated_powers[0] = 10;
+      activated_powers[0][1] = 2;
     else
-      activated_powers[1] = 10;
+      activated_powers[1][1] = 2;
   }
-  else if ((vars.isRebound === 1 && activated_powers[1] === 10) || (vars.isRebound === 2 && activated_powers[0] === 10))
+  else if ((vars.isRebound === 1 && activated_powers[1][1] === 2) || (vars.isRebound === 2 && activated_powers[0][1] === 2))
   {
-    if (vars.isRebound == 1)
+    if (vars.isRebound === 1)
     {
-      activated_powers[1] = -1;
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.activeMesh[1], "none", 11, 1, 0.85)} );
+      activated_powers[1][1] = 0;
+      objs.puGaugeLights[1][1].intensity = 0;
     }
     else
     {
-      activated_powers[0] = -1;
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.activeMesh[0], "none", 11, 0, 0.85)} );
+      activated_powers[0][1] = 0;
+      objs.puGaugeLights[0][1].intensity = 0;
     }
   }
-  if ((vars.isRebound == 1 && activated_powers[0] == 3) || (vars.isRebound == 2 && activated_powers[1] == 3))
+  if ((vars.isRebound == 1 && activated_powers[0][3] === 1) || (vars.isRebound == 2 && activated_powers[1][3] === 1))
   {
     if (vars.isRebound == 1)
     {
       power_timers[0][3] = performance.now();
-      activated_powers[0] = 30;
+      activated_powers[0][3] = 2;
     }
     else
     {
       power_timers[1][3] = performance.now();
-      activated_powers[1] = 30;
+      activated_powers[1][3] = 2;
     }
   }
-  if ((vars.isRebound === 1 && activated_powers[0] === 4) || (vars.isRebound === 2 && activated_powers[1] === 4))
+  if ((vars.isRebound === 1 && activated_powers[0][4] === 1) || (vars.isRebound === 2 && activated_powers[1][4] === 1))
   {
     objs.ball.visible = false;
     objs.ballWrap.visible = false;
     csts.ballLight.intensity = 5;
     power_timers[vars.isRebound - 1][4] = performance.now();
-    activated_powers[vars.isRebound - 1] = 40;
+    activated_powers[vars.isRebound - 1][4] = 2;
   }
-  else if ((vars.isRebound === 1 && activated_powers[1] === 40) || (vars.isRebound === 2 && activated_powers[0] === 40))
+  else if ((vars.isRebound === 1 && activated_powers[1][4] === 2) || (vars.isRebound === 2 && activated_powers[0][4] === 2))
   {
     objs.ball.visible = true;
     objs.ballWrap.visible = true;
     csts.ballLight.intensity = 15;
     if (vars.isRebound === 1)
     {
-      activated_powers[1] = -1;
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.activeMesh[1], "none", 11, 1, 0.85)} );
+      activated_powers[1][4] = 0;
+      objs.puGaugeLights[1][4].intensity = 0;
     }
     else
     {
-      activated_powers[0] = -1;
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.activeMesh[0], "none", 11, 0, 0.85)} );
+      activated_powers[0][4] = 0;
+      objs.puGaugeLights[0][4].intensity = 0;
     }
   }
 }
@@ -449,21 +448,21 @@ const activate_power = ( i ) =>
 {
   if (player_powerUps[i] > -1)
   {
-    activated_powers[i] = player_powerUps[i];
+    activated_powers[i][player_powerUps[i]] = 1;
+    objs.puGaugeLights[i][player_powerUps[i]].intensity = 5;
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.activeMesh[i], powerUp_names[activated_powers[i]], activated_powers[i] + 6, i, 0.85);
-      printGameInfo(font, vars.latentMesh[i], "none", 11, i, 0.85)} );
+			{printGameInfo(font, vars.latentMesh[i], "none", 11, i, 0.85)} );
     player_powerUps[i] = -1;
   }
-  if (activated_powers[i] == 0)
+  if (activated_powers[i][0] === 1)
   {
     power_timers[i][0] = performance.now();
-    if (i == 0)
+    if (i === 0)
       objs.player1.scale.y = 1.4;
     else
       objs.player2.scale.y = 1.4;
   }
-  else if (activated_powers[i] == 2)
+  else if (activated_powers[i][2] === 1)
   {
     power_timers[i][2] = performance.now();
     vars.bulletTime = 0.4;
@@ -474,9 +473,9 @@ const local_update = () =>
 {
   let playerlen = [CONST.PLAYERLEN, CONST.PLAYERLEN];
   let invert_controls = [1, 1];
-  if (activated_powers[0] === 0)
+  if (activated_powers[0][0] === 1)
     playerlen[0] = 1.4 * CONST.PLAYERLEN;
-  if (activated_powers[1] === 0)
+  if (activated_powers[1][0] === 1)
     playerlen[1] = 1.4 * CONST.PLAYERLEN;
   let blockLen = [CONST.GAMEHEIGHT / 2 - playerlen[0] / 2, CONST.GAMEHEIGHT / 2 - playerlen[1] / 2];
   if (keys['ArrowUp'] || keys['ArrowDown'])
@@ -489,7 +488,7 @@ const local_update = () =>
     vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
 
   if (keys['ArrowUp'] || keys['ArrowDown'])
-    invert_controls[1] = activated_powers[0] == 30 ? -1 : 1;
+    invert_controls[1] = activated_powers[0][3] === 2 ? -1 : 1;
   if (keys['ArrowUp'] && ((invert_controls[1] == 1 && objs.player2.position.y < blockLen[1])
                         || (invert_controls[1] == -1 && objs.player2.position.y > -blockLen[1]))) {
     objs.player2.position.y += vars.playerspeed[1] * invert_controls[1];
@@ -499,7 +498,7 @@ const local_update = () =>
     objs.player2.position.y -= vars.playerspeed[1] * invert_controls[1];
   }
   if (keys['KeyW'] || keys['KeyS'])
-    invert_controls[0] = activated_powers[1] == 30 ? -1 : 1;
+    invert_controls[0] = activated_powers[1][3] === 2 ? -1 : 1;
   if (keys['KeyW'] && ((invert_controls[0] == 1 && objs.player1.position.y < blockLen[0])
                     || (invert_controls[0] == -1 && objs.player1.position.y > -blockLen[0]))) {
     objs.player1.position.y += vars.playerspeed[0] * invert_controls[0];
@@ -589,7 +588,7 @@ async function assignId(id)
 const render_effects = () =>
 {
   vars.glowElapsed = performance.now() - vars.glowStartTime;
-  if (vars.glowElapsed < 750 && activated_powers[0] != 40 && activated_powers[1] != 40)
+  if (vars.glowElapsed < 750 && activated_powers[0][4] != 2 && activated_powers[1][4] != 2)
   {
     if (vars.glowElapsed < 100)
     {
@@ -665,14 +664,14 @@ const render_trail = (x, y) =>
   for (let i = 0; i < trailSegments.length; i++)
   {
     if (Math.abs(trailSegments[i][0].position.y) > CONST.GAMEHEIGHT / 2 - 1.5
-            || activated_powers[0] == 40 || activated_powers[1] == 40)
+            || activated_powers[0][4] === 2 || activated_powers[1][4] === 2)
       trailSegments[i][0].material.opacity = 0;
     else
       trailSegments[i][0].material.opacity = speedFactor - ((performance.now() - trailSegments[i][1]) / 120 * speedFactor);
     trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - trailSegments[i][1]) / 120, 1.);
   }
 
-  if (activated_powers[0] == 40 || activated_powers[1] == 40)
+  if (activated_powers[0][4] === 2 || activated_powers[1][4] === 2)
     trail.ballTrail.material.opacity = 0.;
   else
   {
@@ -741,22 +740,29 @@ const check_pu_timers = () =>
   const timestamp = performance.now()
   for (let i = 0; i < 2; i++)
   {
-    if ((activated_powers[i] === 2 && timestamp - power_timers[i][2] > 5000)
-        || (activated_powers[i] == 0 && timestamp - power_timers[i][0] > 10000)
-        || (activated_powers[i] == 30 && timestamp - power_timers[i][3] > 10000))
+    if (activated_powers[i][0] === 1 && timestamp - power_timers[i][0] > 10000)
     {
-      if (activated_powers[i] == 0 && i === 0)
+      if (i === 0)
         objs.player1.scale.y = 1;
-      else if (activated_powers[i] == 0 && i == 1)
+      else
         objs.player2.scale.y = 1;
-      activated_powers[i] = -1;
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.activeMesh[i], "none", 11, i, 0.85)} );
+      activated_powers[i][0] = 0;
+      objs.puGaugeLights[i][0].intensity = 0;
     }
-    if (activated_powers[i] == 40)
+    if (activated_powers[i][2] === 1 && timestamp - power_timers[i][2] > 5000)
+    {
+      activated_powers[i][2] = 0;
+      objs.puGaugeLights[i][2].intensity = 0;
+    }
+    if (activated_powers[i][3] === 2 && timestamp - power_timers[i][3] > 10000)
+    {
+      activated_powers[i][3] = 0;
+      objs.puGaugeLights[i][3].intensity = 0;
+    }
+    if (activated_powers[i][4] === 2)
       csts.ballLight.intensity = Math.max(0., Math.cos((performance.now() - power_timers[i][4]) / 80) * 5);
   }
-  if (vars.bulletTime < 1 && activated_powers[0] === -1 && activated_powers[1] === -1)
+  if (vars.bulletTime < 1 && activated_powers[0][2] === 0 && activated_powers[1][2] === 0)
     vars.bulletTime = 1;
 }
 
@@ -895,14 +901,14 @@ export default function ThreeScene({ room_id, user_id, isHost, gamemode })
 	let socket = -1;
   if (gamemode === 2)
     socket = useContext(SocketContext);
-
-	useEffect(() => {
-		
-			CreateGame().then(assignId);
-			tools.scene = new THREE.Scene();
-			
-			tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
-			tools.renderer.setSize( window.innerWidth, window.innerHeight );
+  
+  useEffect(() => {
+    
+    CreateGame().then(assignId);
+    tools.scene = new THREE.Scene();
+    
+    tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
+    tools.renderer.setSize( window.innerWidth, window.innerHeight );
 			tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
 			tools.stats = Stats()
 			document.body.appendChild( tools.renderer.domElement );
@@ -915,13 +921,13 @@ export default function ThreeScene({ room_id, user_id, isHost, gamemode })
 			tools.scene.add( objs.topB );
 			tools.scene.add( objs.botB );
 			tools.scene.add( objs.backB );
-			tools.scene.add( objs.background );
+			// tools.scene.add( objs.background );
 			tools.scene.add( objs.display );
-
+      
 			tools.scene.add( csts.ambLight );
 			tools.scene.add( csts.dirLight );
 			tools.scene.add( csts.ballLight );
-
+      
       let quaternion = new THREE.Quaternion();
 			if (custom.pov === "classic")
       {
@@ -938,10 +944,10 @@ export default function ThreeScene({ room_id, user_id, isHost, gamemode })
         tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
         tools.camera.fov = 75;
       }
-			
-			let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
-			console.log(tools.camera.projectionMatrix);
-			
+      
+      let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
+      console.log(tools.camera.projectionMatrix);
+      
       let backgroundMaterial = new THREE.MeshBasicMaterial({side: THREE.BackSide, map: landscape});
       if (custom.background != "skybox")
       {
@@ -951,40 +957,47 @@ export default function ThreeScene({ room_id, user_id, isHost, gamemode })
           fragmentShader: custom.shader_utils + custom.background
         });
       }
-			let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
-	
-			trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
-			trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
-			trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
-			trail.ballTrail.scale.y = 0.4;
-			trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
-			trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
-			
-			tools.scene.add(background);
-			tools.scene.add(trail.ballTrail);
-			
-			// ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
-			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.p1textMesh, "0", 1, -1, 3.5)} );
-			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.p2textMesh, "0", 2, -1, 3.5)} );
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.latentMesh[0], " none", 3, 0, 0.85)} );
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.latentMesh[1], " none", 3, 1, 0.85)} );
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.activeMesh[0], " none", 4, 0, 0.85)} );
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.activeMesh[1], " none", 4, 1, 0.85)} );
+      let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
       
-			
-			document.addEventListener('keydown', function(event) { keys[event.code] = true; });
-			document.addEventListener('keyup', function(event) { keys[event.code] = false; });
-
+      trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
+      trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
+      trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
+      trail.ballTrail.scale.y = 0.4;
+      trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
+      trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
+      
+      tools.scene.add(background);
+      tools.scene.add(trail.ballTrail);
+      for (let i = 0; i < 5; i++)
+      {
+        tools.scene.add(objs.puGauges[0][i])
+        tools.scene.add(objs.puGauges[1][i])
+        tools.scene.add(objs.puGaugeLights[0][i])
+        tools.scene.add(objs.puGaugeLights[1][i])
+      }
+      
+      // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.p1textMesh, "0", 1, -1, 3.5)} );
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.p2textMesh, "0", 2, -1, 3.5)} );
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.latentMesh[0], " none", 3, 0, 0.85)} );
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.latentMesh[1], " none", 3, 1, 0.85)} );
+      // csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      // {printGameInfo(font, vars.activeMesh[0], " none", 4, 0, 0.85)} );
+      // csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      // {printGameInfo(font, vars.activeMesh[1], " none", 4, 1, 0.85)} );
+      
+      
+      document.addEventListener('keydown', function(event) { keys[event.code] = true; });
+      document.addEventListener('keyup', function(event) { keys[event.code] = false; });
+      
       if (gamemode === 2)
         init_socket(socket, isHost);
-			if (gamemode === 0 || (gamemode === 2 && socket && user_id))
-				animate(socket, room_id, user_id, isHost, gamemode);
+      if (gamemode === 0 || (gamemode === 2 && socket && user_id))
+      animate(socket, room_id, user_id, isHost, gamemode);
 		}, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
