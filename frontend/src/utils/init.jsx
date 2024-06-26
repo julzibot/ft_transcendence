@@ -21,11 +21,13 @@ custom.backboard_opacity = 0.95;
 custom.difficulty = 1.;
 custom.win_score = 15;
 custom.power_ups = false;
+custom.modes_colormap = [0x00ff33, 0xff0022, 0x4c4cff, 0xcc00cc, 0xffffff, 0x888888]
 
 // GAME INIT
 
 objs.sphereGeo = new THREE.SphereGeometry(CONST.BALLRADIUS, 40, 40);
 objs.ballGeo = new THREE.SphereGeometry(CONST.BALLRADIUS * 3/2, 40, 40);
+objs.pu_gaugeGeo = new THREE.SphereGeometry(0.5, 40, 40);
 objs.playerGeo = new THREE.BoxGeometry(0.5, CONST.PLAYERLEN, 0.6);
 objs.upDownBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, 0.5, 3.0);
 // objs.BackgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
@@ -37,6 +39,7 @@ objs.sphereMaterial = new THREE.MeshPhongMaterial( { color: CONST.BALL_COLOR, em
 objs.ballMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, opacity: 0.2, transparent: true } );
 // objs.trailMaterial = new THREE.ShaderMaterial( {color: 0xffffff, opacity: 1., transparent: true} );
 objs.boundaryMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff, opacity: custom.backboard_opacity, transparent: true } );
+objs.displayMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff } );
 objs.playerMaterial = new THREE.MeshStandardMaterial( { color: 0xff00ff } );
 
 
@@ -48,7 +51,22 @@ objs.topB = new THREE.Mesh( objs.upDownBoundary, objs.boundaryMaterial );
 objs.botB = new THREE.Mesh( objs.upDownBoundary, objs.boundaryMaterial );
 // objs.background = new THREE.Mesh( objs.BackgroundGeo, objs.BackgroundMaterial );
 objs.backB = new THREE.Mesh( objs.backBoundary, objs.boundaryMaterial );
-objs.display = new THREE.Mesh( objs.displayBoundary, objs.boundaryMaterial );
+objs.display = new THREE.Mesh( objs.displayBoundary, objs.displayMaterial );
+objs.puGauges = [[], []]
+objs.puGaugeLights = [[], []]
+for (let i = 0; i < 5; i++)
+{
+    const gaugecolor = custom.modes_colormap[i];
+    objs.puGauges[0].push(new THREE.Mesh(objs.pu_gaugeGeo, new THREE.MeshPhongMaterial({color: gaugecolor, transparent: true, opacity: 0.2, side: THREE.BackSide})));
+    objs.puGaugeLights[0].push(new THREE.PointLight(gaugecolor, 0, 0.9));
+    objs.puGauges[0][i].position.set(-CONST.GAMEWIDTH / 2 + 1.5 * i + 2, CONST.GAMEHEIGHT / 2 + 0.75, 1.2);
+    objs.puGaugeLights[0][i].position.set(-CONST.GAMEWIDTH / 2 + 1.5 * i + 2, CONST.GAMEHEIGHT / 2 + 0.75, 1.8);
+
+    objs.puGauges[1].push(new THREE.Mesh(objs.pu_gaugeGeo, new THREE.MeshPhongMaterial({color: gaugecolor, transparent: true, opacity: 0.2, side: THREE.BackSide})));
+    objs.puGaugeLights[1].push(new THREE.PointLight(gaugecolor, 0, 0.9));
+    objs.puGauges[1][i].position.set(CONST.GAMEWIDTH / 2 + 1.5 * i - 8, CONST.GAMEHEIGHT / 2 + 0.75, 1.2);
+    objs.puGaugeLights[1][i].position.set(CONST.GAMEWIDTH / 2 + 1.5 * i - 8, CONST.GAMEHEIGHT / 2 + 0.75, 1.8);
+}
 // objs.ballTrail = new THREE.Mesh( objs.trailGeo, objs.trailMaterial );
 
 objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
