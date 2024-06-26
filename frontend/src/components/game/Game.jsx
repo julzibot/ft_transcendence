@@ -619,12 +619,15 @@ export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gam
 			console.log(tools.camera.projectionMatrix);
 			
       let backgroundMaterial = new THREE.MeshBasicMaterial({side: THREE.BackSide, map: landscape});
-      if (custom.background != "skybox")
+      if (gameSettings.background < 4)
       {
+				let b = custom.background_default
+				if (gameSettings.background == 1)
+					b = custom.background_fractcircles;
         backgroundMaterial = new THREE.ShaderMaterial({
           side: THREE.BackSide,
           uniforms: uniformData,
-          fragmentShader: custom.shader_utils + custom.background
+          fragmentShader: custom.shader_utils + b
         });
       }
 			let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
