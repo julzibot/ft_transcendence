@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useContext } from "react";
 import { SocketContext } from "../../../context/socket";
-import ThreeScene from '../game/Game'
+import ThreeScene from '../game/Game';
 
 export default function Join({ remoteGame }) {
 
@@ -14,8 +14,7 @@ export default function Join({ remoteGame }) {
 	});
 
 	console.log('[Join] Game Settings: ' + JSON.stringify(gameSettings));
-	if (remoteGame === true)
-	{
+	if (remoteGame === true) {
 		const socket = useContext(SocketContext);
 
 		const [gameJoined, setGameJoined] = useState(false);
@@ -33,6 +32,7 @@ export default function Join({ remoteGame }) {
 				setGameJoined(true);
 			});
 		}, [socket]);
+		console.log("[JOIN] GAME SETTINGS" + JSON.stringify(gameSettings));
 		return (
 			<>
 				{gameJoined ? <ThreeScene gameSettings={gameSettings} room_id={room_id} user_id={gameSettings.userId} isHost={isHost} gamemode={2} /> : <div>Loading game...</div>}
@@ -43,7 +43,7 @@ export default function Join({ remoteGame }) {
 	{
 		return (
 			<>
-				<ThreeScene room_id={-1} user_id={gameSettings.userId} isHost={true} gamemode={0}/>
+				<ThreeScene gameSettings={gameSettings} room_id={-1} user_id={gameSettings.userId} isHost={true} gamemode={0}/>
 			</>
 			)
 	}

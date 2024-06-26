@@ -570,6 +570,7 @@ const init_socket = (socket, isHost) =>
 
 export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gamemode })
 {
+	console.log("[ThreeScene] game settings: " + JSON.stringify(gameSettings))
   const containerRef = useRef(null);
 	let socket = -1;
   if (gamemode === 2)
