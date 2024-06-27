@@ -46,20 +46,7 @@ export default function Register() {
   return (
     <>  
       <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="card shadow-lg text-center rounded-1 borexport const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context);
-  if (session) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false
-      }
-    };
-  }
-  return {
-    props: {}
-  };
-};der-0">
+        <div className="card shadow-lg text-center rounded-1 border-0">
           <div className="card-header fs-2 fw-bold">Register a new account</div>
           <div className="card-body">
             <form onSubmit={registerUser}>
