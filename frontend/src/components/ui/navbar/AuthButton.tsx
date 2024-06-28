@@ -1,17 +1,24 @@
 'use client';
 
-import { signIn,  useSession} from "next-auth/react"
+import { getSession, signIn,  useSession} from "next-auth/react"
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 export default function AuthButton() {
-  const { data: session} = useSession();
+  // const { data: session} = useSession();
+  const [session, setSession] = useState() 
 
   useEffect(() => {
+    handleSession()
     require("bootstrap/dist/js/bootstrap.bundle.min.js")
   }, []);
-
+  
+  const handleSession = async () => {
+    const session = await getSession()
+    setSession(session)
+  }
+  
   if(session && session.user) {
     return (
       <>

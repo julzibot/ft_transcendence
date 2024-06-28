@@ -9,3 +9,4 @@ psycopg2-binary
 channels[daphne]
 channels_redis
 Pillow
+drf-spectacular
