@@ -13,6 +13,12 @@ const tools = {};
 const trail = {};
 const particleEffects = [];
 const trailSegments = [];
+const powerUps = [];
+const powerUp_names = ["elongation", "golden rush", "bullet time", "confundus", "invisiball", "none"];
+// const modes_colormap = [0x00ff33, 0xff0022, 0x4c4cff, 0xcc00cc, 0xffffff, 0x888888]
+let player_powerUps = [-1, -1];
+let activated_powers = [[0,0,0,0,0], [0,0,0,0,0]];
+let power_timers = [[0,0,0,0,0], [0,0,0,0,0]];
 let opponentPos = 0.;
 let game_id = 0;
 let put_response = false;
@@ -34,7 +40,23 @@ const uniformData = {
   { value: tools.camera.matrixWorldInverse }
 };
 
-const landscape = new THREE.TextureLoader().load('../../city.jpg');
+const puUniformData = {
+  u_time:
+  { type: 'f', value: performance.now() - startTime },
+  u_color:
+  { type: 'v3', value: custom.color },
+  u_fade:
+  { type: 'f', value: 0 },
+  u_radius:
+  { type: 'f', value: 0 },
+  u_resolution:
+  { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+  projectionMatrix:
+  { value: tools.camera.projectionMatrix },
+  viewMatrix:
+  { value: tools.camera.matrixWorldInverse }
+};
+
 const sparkUniform = {
   u_time:
   { type: 'f', value: 0. },
@@ -65,26 +87,49 @@ const sparkFs = `
     }
 `;
 
-
-function printGameInfo( font, textMesh, string, mode, fontsize )
+function printGameInfo( font, textMesh, string, mode, id, fontsize )
 {
   let updatedStringGeo = new TextGeometry(string, {font: font, size: fontsize, height: 0.5 });
-  if (mode != 0 && mode < 3)
+  if (mode > 0 && mode < 3)
   {
     const textMaterial = new THREE.MeshStandardMaterial({ color: 0x0000cc, emissive: 0xdd00dd, emissiveIntensity: 0.2 });
     textMesh.material = textMaterial;
     if (mode == 1)
-      textMesh.position.set(CONST.GAMEWIDTH / 5 - CONST.GAMEWIDTH / 2, CONST.GAMEHEIGHT / 3.5, -1.5);
+      textMesh.position.set(-CONST.GAMEWIDTH / 16 - 2, CONST.GAMEHEIGHT / 2 + 0.75, 1);
     else if (mode == 2)
-      textMesh.position.set(CONST.GAMEWIDTH / 5, CONST.GAMEHEIGHT / 3.5, -1.5);
+      textMesh.position.set(CONST.GAMEWIDTH / 16, CONST.GAMEHEIGHT / 2 + 0.75, 1);
   }
   else if (mode == 3)
+  {
+    const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
+    textMesh.material = textMaterial;
+    if (id === 0)
+      textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 2.75, 1)
+    else
+      textMesh.position.set( CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 2.75, 1)
+  }
+  else if (mode == 4)
+  {
+    const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
+    textMesh.material = textMaterial;
+    if (id === 0)
+      textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 0.75, 1)
+    else
+      textMesh.position.set( CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 0.75, 1)
+  }
+  else if (mode == 5)
   {
     const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
     textMesh.material = textMaterial;
     textMesh.position.set(-11.5, -7 , -1.5);
   }
-  if (mode != 0)
+  else if (mode > 5)
+  {
+    const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[mode - 6], emissive: custom.modes_colormap[mode - 6], emissiveIntensity: 0.3 });
+    // textMesh.material.dispose();
+    textMesh.material = textMaterial;
+  }
+  if (mode > 0 && mode < 5)
     tools.scene.add(textMesh);
   textMesh.geometry.dispose();
   textMesh.geometry = updatedStringGeo;
@@ -111,15 +156,35 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
       vars.ballVect.set(-1, 0);
       vars.p1Score += 1;
       csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-      {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
+      {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, -1, 3.5);});
     }
     else
     {
       vars.ballVect.set(1, 0);
       vars.p2Score += 1;
       csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-      {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
+      {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, -1, 3.5);});
     }
+    if (custom.power_ups === true)
+    {
+      for (let i = 0; i < 2; i++)
+      {
+        if (activated_powers[i][4] == 2)
+        {
+          objs.ball.visible = true;
+          objs.ballWrap.visible = true;
+          csts.ballLight.intensity = 5;
+          activated_powers[i][4] = 0;
+          objs.puGaugeLights[i][4].intensity = 0;
+        }
+        if (activated_powers[i][1] == 2)
+        {
+          activated_powers[i][1] = 0;
+          objs.puGaugeLights[i][1].intensity = 0;
+        }
+      }
+    }
+
     objs.ball.position.set(0, 0, 0);
     objs.ballWrap.position.set(0, 0, 0);
     vars.ballSpeed = CONST.BASE_BALLSPEED;
@@ -137,7 +202,7 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
     else
       vars.endString = "GAME ENDED\nPLAYER 2 WINS";
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.endMsgMesh, vars.endString, 3, 3)} );
+      {printGameInfo(font, vars.endMsgMesh, vars.endString, 5, -1, 3)} );
     put_response = PutScores();
     if (put_response == false)
       console.log("Ouch ! Scores not updated !")
@@ -156,7 +221,7 @@ const createSparks = () =>
   if (speedFactor < 0.3)
     speedFactor = 0.3;
   const particleSize = Math.max( 1., speedFactor * 3.);
-  console.log("speedfactor: " + speedFactor);
+  // console.log("speedfactor: " + speedFactor);
   let x = objs.ball.position.x;
   let y = objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3/2);
   let z = objs.ball.position.z;
@@ -194,6 +259,68 @@ const createSparks = () =>
   tools.scene.add( light );
 }
 
+const activate_collision_pu = () =>
+{
+  if ((vars.isRebound === 1 && activated_powers[0][1] === 1) || (vars.isRebound === 2 && activated_powers[1][1] === 1))
+  {
+    vars.adjustedBallSpeed = Math.min(2. * vars.adjustedBallSpeed, 1.3 * CONST.BALLSPEED_MAX);
+    if (vars.isRebound === 1)
+      activated_powers[0][1] = 2;
+    else
+      activated_powers[1][1] = 2;
+  }
+  else if ((vars.isRebound === 1 && activated_powers[1][1] === 2) || (vars.isRebound === 2 && activated_powers[0][1] === 2))
+  {
+    if (vars.isRebound === 1)
+    {
+      activated_powers[1][1] = 0;
+      objs.puGaugeLights[1][1].intensity = 0;
+    }
+    else
+    {
+      activated_powers[0][1] = 0;
+      objs.puGaugeLights[0][1].intensity = 0;
+    }
+  }
+  if ((vars.isRebound == 1 && activated_powers[0][3] === 1) || (vars.isRebound == 2 && activated_powers[1][3] === 1))
+  {
+    if (vars.isRebound == 1)
+    {
+      power_timers[0][3] = performance.now();
+      activated_powers[0][3] = 2;
+    }
+    else
+    {
+      power_timers[1][3] = performance.now();
+      activated_powers[1][3] = 2;
+    }
+  }
+  if ((vars.isRebound === 1 && activated_powers[0][4] === 1) || (vars.isRebound === 2 && activated_powers[1][4] === 1))
+  {
+    objs.ball.visible = false;
+    objs.ballWrap.visible = false;
+    csts.ballLight.intensity = 5;
+    power_timers[vars.isRebound - 1][4] = performance.now();
+    activated_powers[vars.isRebound - 1][4] = 2;
+  }
+  else if ((vars.isRebound === 1 && activated_powers[1][4] === 2) || (vars.isRebound === 2 && activated_powers[0][4] === 2))
+  {
+    objs.ball.visible = true;
+    objs.ballWrap.visible = true;
+    csts.ballLight.intensity = 15;
+    if (vars.isRebound === 1)
+    {
+      activated_powers[1][4] = 0;
+      objs.puGaugeLights[1][4].intensity = 0;
+    }
+    else
+    {
+      activated_powers[0][4] = 0;
+      objs.puGaugeLights[0][4].intensity = 0;
+    }
+  }
+}
+
 const collisionLogic = (room_id, socket, gamemode) =>
 {
   let p1HB = new THREE.Box3().setFromObject(objs.player1);
@@ -205,7 +332,7 @@ const collisionLogic = (room_id, socket, gamemode) =>
     vars.isRebound = 1;
   else if (p2HB.intersectsBox(sph))
     vars.isRebound = 2;
-  if (vars.isRebound != 0)
+  if (vars.isRebound > 0)
   {
     // COMPUTE THE NORMALIZED REBOUND VECTOR
     vars.glowStartTime = performance.now();
@@ -246,9 +373,12 @@ const collisionLogic = (room_id, socket, gamemode) =>
       vars.adjustedBallSpeed = vars.ballSpeed;
     else if (vars.adjustedBallSpeed > CONST.BALLSPEED_MAX)
       vars.adjustedBallSpeed = CONST.BALLSPEED_MAX;
-    vars.isRebound = 0;
 
-    // SET BALL COLOR
+    // activate the pending power-ups
+    if (custom.power_ups === true)
+      activate_collision_pu();
+    vars.isRebound = 0;
+        
     setBallColor();
   }
   // CHECK TOP AND BOT BOUNDARY COLLISIONS
@@ -257,7 +387,26 @@ const collisionLogic = (room_id, socket, gamemode) =>
     vars.ballVect.y *= -1;
     if (gamemode === 2)
       socket.emit('sendWallCollision', {room_id: room_id});
-    createSparks();
+    if (custom.sparks === true)
+      createSparks();
+  }
+
+  if (custom.power_ups === true)
+  {
+    let pu_dir = 0;
+    if (vars.ballVect.x < 0)
+      pu_dir = 1;
+    for (let i = 0; i < powerUps.length; i++)
+    {
+      if (powerUps[i][4].intersectsBox(sph))
+      {
+        player_powerUps[pu_dir] = powerUps[i][5];
+        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+        {printGameInfo(font, vars.latentMesh[pu_dir], powerUp_names[player_powerUps[pu_dir]], player_powerUps[pu_dir] + 6, pu_dir, 0.85)} );
+        tools.scene.remove(powerUps[i][0]); 
+        powerUps.splice(i, 1);
+      }
+    }
   }
 }
 
@@ -302,8 +451,40 @@ const remote_update = (socket, user_id, isHost) =>
   }
 }
 
+const activate_power = ( i ) =>
+{
+  if (player_powerUps[i] > -1)
+  {
+    activated_powers[i][player_powerUps[i]] = 1;
+    objs.puGaugeLights[i][player_powerUps[i]].intensity = 5;
+    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+			{printGameInfo(font, vars.latentMesh[i], "none", 11, i, 0.85)} );
+    player_powerUps[i] = -1;
+  }
+  if (activated_powers[i][0] === 1)
+  {
+    power_timers[i][0] = performance.now();
+    if (i === 0)
+      objs.player1.scale.y = 1.4;
+    else
+      objs.player2.scale.y = 1.4;
+  }
+  else if (activated_powers[i][2] === 1)
+  {
+    power_timers[i][2] = performance.now();
+    vars.bulletTime = 0.4;
+  }
+}
+
 const local_update = () =>
 {
+  let playerlen = [CONST.PLAYERLEN, CONST.PLAYERLEN];
+  let invert_controls = [1, 1];
+  if (custom.power_ups && activated_powers[0][0] === 1)
+    playerlen[0] = 1.4 * CONST.PLAYERLEN;
+  if (custom.power_ups && activated_powers[1][0] === 1)
+    playerlen[1] = 1.4 * CONST.PLAYERLEN;
+  let blockLen = [CONST.GAMEHEIGHT / 2 - playerlen[0] / 2, CONST.GAMEHEIGHT / 2 - playerlen[1] / 2];
   if (keys['ArrowUp'] || keys['ArrowDown'])
     vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
   else
@@ -312,17 +493,26 @@ const local_update = () =>
     vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
   else
     vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
-  if (keys['ArrowUp'] && objs.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-      objs.player2.position.y += vars.playerspeed[1];
+
+  if (keys['ArrowUp'] || keys['ArrowDown'])
+    invert_controls[1] = activated_powers[0][3] === 2 ? -1 : 1;
+  if (keys['ArrowUp'] && ((invert_controls[1] == 1 && objs.player2.position.y < blockLen[1])
+                        || (invert_controls[1] == -1 && objs.player2.position.y > -blockLen[1]))) {
+    objs.player2.position.y += vars.playerspeed[1] * invert_controls[1];
   }
-  if (keys['ArrowDown'] && objs.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-      objs.player2.position.y -= vars.playerspeed[1];
+  if (keys['ArrowDown']  && ((invert_controls[1] == -1 && objs.player2.position.y < blockLen[1])
+                          || (invert_controls[1] == 1 && objs.player2.position.y > -blockLen[1]))) {
+    objs.player2.position.y -= vars.playerspeed[1] * invert_controls[1];
   }
-  if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-      objs.player1.position.y += vars.playerspeed[0];
+  if (keys['KeyW'] || keys['KeyS'])
+    invert_controls[0] = activated_powers[1][3] === 2 ? -1 : 1;
+  if (keys['KeyW'] && ((invert_controls[0] == 1 && objs.player1.position.y < blockLen[0])
+                    || (invert_controls[0] == -1 && objs.player1.position.y > -blockLen[0]))) {
+    objs.player1.position.y += vars.playerspeed[0] * invert_controls[0];
   }
-  if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-      objs.player1.position.y -= vars.playerspeed[0];
+  if (keys['KeyS'] && ((invert_controls[0] == -1 && objs.player1.position.y < blockLen[0])
+                    || (invert_controls[0] == 1 && objs.player1.position.y > -blockLen[0]))) {
+    objs.player1.position.y -= vars.playerspeed[0] * invert_controls[0];
   }
   if (keys['KeyR']) {
     objs.ball.position.set(0,0,0);
@@ -335,11 +525,11 @@ const local_update = () =>
     vars.p2Score = 0;
 
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p1textMesh, "0", 0, 4)} );
+      {printGameInfo(font, vars.p1textMesh, "0", 0, -1, 3.5)} );
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p2textMesh, "0", 0, 4)} );
+      {printGameInfo(font, vars.p2textMesh, "0", 0, -1, 3.5)} );
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.endMsgMesh, "", 3, 3)} );
+      {printGameInfo(font, vars.endMsgMesh, "", 4, -1, 3)} );
     objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
     objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
     tools.camera.position.set(0, 0, 20);
@@ -349,6 +539,12 @@ const local_update = () =>
   if (keys['KeyP']) {
     let pauseStart = performance.now();
     while (performance.now() - pauseStart < 2000) ;
+  }
+  if (keys['Space'] && custom.power_ups === true) {
+    activate_power(0);
+  }
+  if (keys['ArrowRight'] && custom.power_ups === true) {
+    activate_power(1);
   }
 }
 
@@ -396,69 +592,11 @@ async function assignId(id)
   console.log(game_id + ": game_id assigned")
 }
 
-const animate = (socket, room_id, user_id, isHost, gamemode) =>
+const render_effects = () =>
 {
-  if (isHost)
-    collisionLogic(room_id, socket, gamemode);
-  scoringLogic(room_id, socket, isHost, gamemode);
-  
-  if (vars.stopGame === true)
-    vars.ballVect.set(0, 0);
-  
-  let ballFloor = Math.floor(objs.ball.position.x * 2.);
-  const speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED) / 2.5;
-  if ( ballFloor != vars.ballFloorPos )
-  {
-    // let segment = trail.ballTrail.clone();
-    let segment = new THREE.Mesh(trail.trailGeo.clone(), trail.trailMaterial.clone());
-    let direction = 1;
-    if (vars.ballVect.x > 0) direction = -1;
-    segment.position.x = objs.ball.position.x - vars.ballVect.x * (1. + segment.geometry.parameters.height / 2.);
-    segment.position.y = objs.ball.position.y - vars.ballVect.y * (1. + segment.geometry.parameters.height / 2.);
-    segment.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2 * direction);
-    segment.scale.y = Math.sqrt(1 + Math.pow(Math.abs(vars.ballVect.y / vars.ballVect.x), 2.))
-    * (1.1 + speedFactor * 0.6);
-    tools.scene.add(segment);
-    trailSegments.push([segment, performance.now()]);
-    vars.ballFloorPos = ballFloor;
-  }
-  if ( trailSegments.length > 0 && performance.now() - trailSegments[0][1] > 120 )
-  {
-    tools.scene.remove(trailSegments[0][0]);
-    trailSegments.shift();
-  }
-  for (let i = 0; i < trailSegments.length; i++)
-  {
-    // trailSegments[i][0].material.uniforms.u_time = performance.now() - trailSegments[i][1];
-    if (Math.abs(trailSegments[i][0].position.y) > CONST.GAMEHEIGHT / 2 - 1.5)
-      trailSegments[i][0].material.opacity = 0;
-    else
-      trailSegments[i][0].material.opacity = speedFactor - ((performance.now() - trailSegments[i][1]) / 120 * speedFactor);
-    trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - trailSegments[i][1]) / 120, 1.);
-  }
-  
-  if (isHost === true)
-  {
-    objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty;
-    objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty;
-    if (gamemode === 2)
-      socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id})
-  }
-  const x = objs.ball.position.x;
-  const y = objs.ball.position.y;
-  objs.ballWrap.position.x = x;
-  objs.ballWrap.position.y = y;
-  csts.ballLight.position.x = x;
-  csts.ballLight.position.y = y;
-  trail.ballTrail.position.x = x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
-  trail.ballTrail.position.y = y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
-  trail.ballTrail.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2);
-  trail.ballTrail.material.opacity = speedFactor;
-  
   vars.glowElapsed = performance.now() - vars.glowStartTime;
-  if (vars.glowElapsed < 750)
+  if (vars.glowElapsed < 750 && activated_powers[0][4] != 2 && activated_powers[1][4] != 2)
   {
-    console.log("glowing effect activated");
     if (vars.glowElapsed < 100)
     {
       objs.ball.material.emissiveIntensity = 0.95;
@@ -503,15 +641,213 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
         sparkUniform.u_time.value = particleElapsed;
     }
   }
+}
+
+const render_trail = (x, y) =>
+{
+  let ballFloor = Math.floor(objs.ball.position.x * 2.);
+  const speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED) / 2.5;
+
+  if ( ballFloor != vars.ballFloorPos )
+  {
+    // let segment = trail.ballTrail.clone();
+    let segment = new THREE.Mesh(trail.trailGeo.clone(), trail.trailMaterial.clone());
+    let direction = 1;
+    if (vars.ballVect.x > 0) direction = -1;
+    segment.position.x = objs.ball.position.x - vars.ballVect.x * (1. + segment.geometry.parameters.height / 2.);
+    segment.position.y = objs.ball.position.y - vars.ballVect.y * (1. + segment.geometry.parameters.height / 2.);
+    segment.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2 * direction);
+    segment.scale.y = Math.sqrt(1 + Math.pow(Math.abs(vars.ballVect.y / vars.ballVect.x), 2.))
+    * (1.1 + speedFactor * 0.6);
+    tools.scene.add(segment);
+    trailSegments.push([segment, performance.now()]);
+    vars.ballFloorPos = ballFloor;
+  }
+  if ( trailSegments.length > 0 && performance.now() - trailSegments[0][1] > 120 )
+  {
+    tools.scene.remove(trailSegments[0][0]);
+    trailSegments.shift();
+  }
+  for (let i = 0; i < trailSegments.length; i++)
+  {
+    if (Math.abs(trailSegments[i][0].position.y) > CONST.GAMEHEIGHT / 2 - 1.5
+            || activated_powers[0][4] === 2 || activated_powers[1][4] === 2)
+      trailSegments[i][0].material.opacity = 0;
+    else
+      trailSegments[i][0].material.opacity = speedFactor - ((performance.now() - trailSegments[i][1]) / 120 * speedFactor);
+    trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - trailSegments[i][1]) / 120, 1.);
+  }
+
+  if (activated_powers[0][4] === 2 || activated_powers[1][4] === 2)
+    trail.ballTrail.material.opacity = 0.;
+  else
+  {
+    trail.ballTrail.position.x = x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+    trail.ballTrail.position.y = y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+    trail.ballTrail.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2);
+    trail.ballTrail.material.opacity = speedFactor;
+  }
+}
+
+const createPowerUp = () =>
+{
+  // console.log("CREATING POWERUP");
+  const radius = Math.max(0.7, Math.random() * 1.4);
+  let color = new THREE.Vector3(0., 0., 0.);
+  const powerTypeRoll = Math.random() * 10;
+  let powerType = -1;
+  const timedelta = Math.random() * 2000;
+  if (powerTypeRoll < 10/3) { powerType = 0; color.set(0., 1., 0.2); } // longer pad
+  else if (powerTypeRoll < 6) {powerType = 1; color.set(1., 0., 0.2);} // speed boost
+  else if (powerTypeRoll < 8) {powerType = 2; color.set(0.3, 0.3, 1.);} // bullet time
+  else if (powerTypeRoll < 8.6) {powerType = 3; color.set(0.8, 0., 0.8);} // invert controls
+  else {powerType = 4; color.set(1., 1., 1.);} // invisiball
+
+  let puGeo = new THREE.SphereGeometry(radius, 42, 42)
+  let puUniform =
+  {
+    u_time:
+    { type: 'f', value: performance.now() - startTime + timedelta },
+    u_color:
+    { type: 'v3', value: color },
+    u_spawn:
+    { type: 'f', value: 0 },
+    u_fade:
+    { type: 'f', value: 0 },
+    u_radius:
+    { type: 'f', value: radius },
+  }
+  let puMat = new THREE.ShaderMaterial({
+    uniforms: puUniform,
+    vertexShader: csts.pu_vs,
+    fragmentShader: csts.pu_fs,
+    transparent: true,
+    blending: THREE.NormalBlending,
+  });
+
+  let puBoxGeo = new THREE.BoxGeometry(radius * 1.6);
+  let puBoxMat = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.});
+
+  let power_up = new THREE.Mesh( puGeo, puMat );
+  let pu_box = new THREE.Mesh( puBoxGeo, puBoxMat );
+  const spawnx = THREE.MathUtils.randFloatSpread( CONST.GAMEWIDTH * 0.7 );
+  const spawny = THREE.MathUtils.randFloatSpread( CONST.GAMEHEIGHT * 0.9 );
+  power_up.position.set(spawnx, spawny, 0);
+  power_up.rotation.set(Math.PI / 2, 0, 0);
+  pu_box.position.set(spawnx, spawny, 0);
+
+  tools.scene.add(power_up);
+  // tools.scene.add(pu_box);
+  const puHB = new THREE.Box3().setFromObject(pu_box);
+  powerUps.push([power_up, performance.now(), puUniform, timedelta, puHB, powerType]);
+}
+
+const check_pu_timers = () =>
+{
+  const timestamp = performance.now()
+  for (let i = 0; i < 2; i++)
+  {
+    if (activated_powers[i][0] === 1 && timestamp - power_timers[i][0] > 10000)
+    {
+      if (i === 0)
+        objs.player1.scale.y = 1;
+      else
+        objs.player2.scale.y = 1;
+      activated_powers[i][0] = 0;
+      objs.puGaugeLights[i][0].intensity = 0;
+    }
+    if (activated_powers[i][2] === 1 && timestamp - power_timers[i][2] > 5000)
+    {
+      activated_powers[i][2] = 0;
+      objs.puGaugeLights[i][2].intensity = 0;
+    }
+    if (activated_powers[i][3] === 2 && timestamp - power_timers[i][3] > 10000)
+    {
+      activated_powers[i][3] = 0;
+      objs.puGaugeLights[i][3].intensity = 0;
+    }
+    if (activated_powers[i][4] === 2)
+      csts.ballLight.intensity = Math.max(0., Math.cos((performance.now() - power_timers[i][4]) / 80) * 5);
+  }
+  if (vars.bulletTime < 1 && activated_powers[0][2] === 0 && activated_powers[1][2] === 0)
+    vars.bulletTime = 1;
+}
+
+const create_delete_pu = () =>
+{
+  let puTimer = performance.now() - startTime;
+  if (puTimer - vars.puTimeSave > CONST.PU_TICK)
+  {
+    vars.puTimeSave = puTimer;
+    const spawnChance = Math.random() - (1 - (vars.puChanceCounter / 10));
+    if (spawnChance > 0)
+    {
+      createPowerUp();
+      vars.puChanceCounter = 1;
+    }
+    else
+      vars.puChanceCounter += 1;
+  }
+  let checkTime = 0;
+  for (let i = 0; i < powerUps.length; i++)
+  {
+    powerUps[i][2].u_time.value = performance.now() - startTime + powerUps[i][3];
+    checkTime = performance.now() - powerUps[i][1];
+    if (checkTime < 1000)
+      powerUps[i][2].u_spawn.value = checkTime;
+    else if (powerUps[i][2].u_spawn.value > 0)
+      powerUps[i][2].u_spawn.value = -1;
+
+    if (checkTime > CONST.PU_LIFESPAN)
+      {
+        tools.scene.remove(powerUps[i][0]);
+        powerUps.shift();
+      }
+    else if (checkTime > CONST.PU_LIFESPAN * 2/3)
+      powerUps[i][2].u_fade.value = checkTime - CONST.PU_LIFESPAN * 2/3
+  }
+}
+
+const animate = (socket, room_id, user_id, isHost, gamemode) =>
+{
+  if (isHost)
+    collisionLogic(room_id, socket, gamemode);
+  scoringLogic(room_id, socket, isHost, gamemode);
+  
+  if (vars.stopGame === true)
+    vars.ballVect.set(0, 0);
+  
+  if (isHost === true)
+  {
+    if (custom.power_ups === true)
+      check_pu_timers();
+    objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
+    objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
+    if (gamemode === 2)
+      socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id})
+  }
+  const x = objs.ball.position.x;
+  const y = objs.ball.position.y;
+  objs.ballWrap.position.x = x;
+  objs.ballWrap.position.y = y;
+  csts.ballLight.position.x = x;
+  csts.ballLight.position.y = y;
+
+  render_trail(x, y);
+  render_effects();
+  if (custom.power_ups === true)
+    create_delete_pu();
 
   if (gamemode === 2)
     remote_update(socket, user_id, isHost);
   else
     local_update();
-  tools.controls.update();
+  // tools.controls.update();
   tools.stats.update();
     
   uniformData.u_time.value = performance.now() - startTime;
+  if (powerUps.length > 0)
+    puUniformData.u_time.value = performance.now() - startTime;
   tools.renderer.render(tools.scene, tools.camera);
 
   setTimeout( function() {
@@ -554,13 +890,13 @@ const init_socket = (socket, isHost) =>
       {
         vars.p1Score = data.score1;
         csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-        {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, 4);});
+        {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, -1, 4);});
       }
       else
       {
         vars.p2Score = data.score2;
         csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-        {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, 4);});
+        {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, -1, 4);});
       }
       setBallColor();
       vars.stopGame = data.stopGame;
@@ -575,14 +911,14 @@ export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gam
 	let socket = -1;
   if (gamemode === 2)
     socket = useContext(SocketContext);
-
-	useEffect(() => {
-		
-			CreateGame().then(assignId);
-			tools.scene = new THREE.Scene();
-			
-			tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
-			tools.renderer.setSize( window.innerWidth, window.innerHeight );
+  
+  useEffect(() => {
+    
+    CreateGame().then(assignId);
+    tools.scene = new THREE.Scene();
+    
+    tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});
+    tools.renderer.setSize( window.innerWidth, window.innerHeight );
 			tools.controls = new OrbitControls( tools.camera, tools.renderer.domElement);
 			tools.stats = Stats()
 			document.body.appendChild( tools.renderer.domElement );
@@ -595,67 +931,105 @@ export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gam
 			tools.scene.add( objs.topB );
 			tools.scene.add( objs.botB );
 			tools.scene.add( objs.backB );
-			tools.scene.add( objs.background );
+			// tools.scene.add( objs.background );
+			tools.scene.add( objs.display );
+      
 			tools.scene.add( csts.ambLight );
 			tools.scene.add( csts.dirLight );
 			tools.scene.add( csts.ballLight );
-			
+      
+      let quaternion = new THREE.Quaternion();
 			if (custom.pov === "classic")
-				{
-					tools.camera.position.set(0, 0, 20);
-					tools.camera.lookAt(0, 0, 0);
-				}
-      else if (custom.pov === "immersive")
-        {
-          tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
-          tools.camera.lookAt(0, 0, 0);
-          let quaternion = new THREE.Quaternion();
-          quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
-          tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-          tools.camera.fov = 75;
-        }
-			
-			let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
-			console.log(tools.camera.projectionMatrix);
-			
-      let backgroundMaterial = new THREE.MeshBasicMaterial({side: THREE.BackSide, map: landscape});
-      if (gameSettings.background < 4)
       {
-				let b = custom.background_default
+        tools.camera.position.set(custom.classicCamPos.x, custom.classicCamPos.y, custom.classicCamPos.z);
+        // quaternion.setFromAxisAngle(custom.classicCamPos.clone().normalize(), -Math.PI / 2);
+        // tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+        tools.camera.lookAt(0, 2.5, 0);
+      }
+      else if (custom.pov === "immersive")
+      {
+        tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
+        tools.camera.lookAt(0, 0, 0);
+        quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
+        tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+        tools.camera.fov = 75;
+      }
+      
+      let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
+      // console.log(tools.camera.projectionMatrix);
+      
+      let decorFilePath = '';
+      let backgroundMaterial;
+      if (gameSettings.background > 3)
+      {
+        if (gameSettings.background == 4)
+          decorFilePath = '../../snow.jpg'
+        else if (gameSettings.background == 5)
+          decorFilePath = '../../city.jpg'
+        const landscape = new THREE.TextureLoader().load(decorFilePath);
+        backgroundMaterial = new THREE.MeshBasicMaterial({side: THREE.BackSide, map: landscape});
+      }
+      else
+      {
+				let b = custom.b_default
 				if (gameSettings.background == 1)
-					b = custom.background_fractcircles;
+					b = custom.b_lightsquares;
+				else if (gameSettings.background == 2)
+					b = custom.b_waves;
+				else if (gameSettings.background == 3)
+					b = custom.b_fractcircles;
         backgroundMaterial = new THREE.ShaderMaterial({
           side: THREE.BackSide,
           uniforms: uniformData,
           fragmentShader: custom.shader_utils + b
         });
       }
-			let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
-	
-			trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
-			trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
-			trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
-			trail.ballTrail.scale.y = 0.4;
-			trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
-			trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
-			
-			tools.scene.add(background);
-			tools.scene.add(trail.ballTrail);
-			
-			// ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
-			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.p1textMesh, "0", 1, 4)} );
-			csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.p2textMesh, "0", 2, 4)} );
-      
-			
-			document.addEventListener('keydown', function(event) { keys[event.code] = true; });
-			document.addEventListener('keyup', function(event) { keys[event.code] = false; });
+      let background = new THREE.Mesh( backgroundGeo, backgroundMaterial );
 
+      objs.backB.material.opacity = gameSettings.opacity / 100;
+      custom.difficulty = 0.3 + gameSettings.gameDifficulty / 6;
+      custom.win_score = gameSettings.pointsToWin;
+      custom.power_ups = gameSettings.powerUps;
+      custom.sparks = gameSettings.sparks;
+      
+      trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
+      trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
+      trail.ballTrail = new THREE.Mesh( trail.trailGeo, trail.trailMaterial );
+      trail.ballTrail.scale.y = 0.4;
+      trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
+      trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
+      
+      tools.scene.add(background);
+      tools.scene.add(trail.ballTrail);
+      for (let i = 0; i < 5; i++)
+      {
+        tools.scene.add(objs.puGauges[0][i])
+        tools.scene.add(objs.puGauges[1][i])
+        tools.scene.add(objs.puGaugeLights[0][i])
+        tools.scene.add(objs.puGaugeLights[1][i])
+      }
+      
+      // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.p1textMesh, "0", 1, -1, 3.5)} );
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.p2textMesh, "0", 2, -1, 3.5)} );
+      if (custom.power_ups === true)
+      {
+        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+        {printGameInfo(font, vars.latentMesh[0], "none", 3, 0, 0.85)} );
+        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+        {printGameInfo(font, vars.latentMesh[1], "none", 3, 1, 0.85)} );
+      }
+      
+      
+      document.addEventListener('keydown', function(event) { keys[event.code] = true; });
+      document.addEventListener('keyup', function(event) { keys[event.code] = false; });
+      
       if (gamemode === 2)
         init_socket(socket, isHost);
-			if (gamemode === 0 || (gamemode === 2 && socket && user_id))
-				animate(socket, room_id, user_id, isHost, gamemode);
+      if (gamemode === 0 || (gamemode === 2 && socket && user_id))
+      animate(socket, room_id, user_id, isHost, gamemode);
 		}, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
