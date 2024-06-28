@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
 import { Button, Modal } from 'react-bootstrap'
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowRight } from 'react-bootstrap-icons';
 import { AddTournamentData, GetTournamentData } from '@/services/tournaments';
+import { MdOutlineOpenInNew } from "react-icons/md";
 
 const gameLevel = [
   { value: 0, level: 'Beginner'},
@@ -15,6 +16,8 @@ const gameLevel = [
 
 function TournamentPage() {
   const router = useRouter();
+  const params = useParams()
+  // const gamename = JSON.parse(localStorage.getItem('gameName'))
   const [modalShow, setModalShow] = useState(false);
   const [tournamentData, setTournamentData] = useState([])
   const [selectedTournament, setSelectedTournament] = useState()
@@ -57,16 +60,17 @@ function TournamentPage() {
   
   const fetchTournamentData = async () => {
     try {
-        const tournamentData = await GetTournamentData()
-        setTournamentData(tournamentData)
+        const tournamentdata = await GetTournamentData(params?.game)
+        setTournamentData(tournamentdata?.data?.tournaments)
     } catch (error) {
         console.error('Error :', error)
     }
   }
 
-  const handleSelectedData = (id:number) => {
-    setSelectedTournament(id)
-    router.push(`/tournaments/${id}`)
+  const handleSelectedData = (item:object) => {
+    // localStorage.setItem('GameName', JSON.stringify(gameName))
+    setSelectedTournament(item?.id)
+    router.push(`/tournaments/${item?.gameName}/${item?.id}`)
   }
   
 
@@ -88,7 +92,8 @@ const handleSubmitData = async () => {
       "difficultyLevel": tounamentForm?.gameLevel,
       "isActiveTournament": tounamentForm?.isActiveTournament,
       "pointsPerGame": tounamentForm?.gamePoint,
-      "timer": Number(tounamentForm?.timer)
+      "timer": Number(tounamentForm?.timer),
+      "gameName": params?.game
     }
     try {
       await AddTournamentData(payload).then((response) => {
@@ -102,6 +107,7 @@ const handleSubmitData = async () => {
 }
 
 useEffect(() => {
+  // localStorage.setItem('GameName', JSON.stringify(null))
   fetchTournamentData()
 }, [])
 
@@ -109,17 +115,20 @@ useEffect(() => {
   return (
     <div className='d-flex justify-content-end mt-3 vh-100'>
       <div className='w-100 border rounded p-4' style={{maxWidth:'800px'}}>
-        <div className='d-flex justify-content-between border-bottom pb-3'>
-          <h3>Tournaments</h3>
+        <div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
+          <h3 className='mb-0'>Tournaments</h3>
           <Button className="btn btn-primary me-md-2" type='button' onClick={handleShow}>Create</Button>
         </div>
         <div className='w-100 pt-2' >
-          <h4>All Tournaments</h4>
+          <h4 className='py-2 fw-light'>All Tournaments</h4>
           <div className='d-flex flex-column'>
             {
-              tournamentData?.map((item:any) => {
+              tournamentData.length > 0 && tournamentData?.map((item:any, i:number) => {
                 return(
-                  <button type="button" className="btn btn-outline-secondary mt-2 col-3 d-flex align-items-center justify-content-between" key={item.id} onClick={() => handleSelectedData(item.id)}> <div className='d-block text-center w-100 fw-light' style={{ fontSize: '14px'}}>{item.name}</div> <ArrowRight /></button>
+                  <h6 style={{ cursor:'pointer', borderBottom:'1px solid #f0f0f0'}} className='d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary' key={item.id} onClick={() => handleSelectedData(item)}>
+                    <span>{i + 1}. {item.name}</span>
+                    <MdOutlineOpenInNew className='h5'/>
+                  </h6>
                 )
               })
             }
@@ -152,10 +161,10 @@ useEffect(() => {
           <label className="form-label">Number Of Players</label>
           <input type="text" className="form-control" value={tounamentForm.numberOfPlayer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'numberOfPlayer')}/>
         </div>
-        <div className="mb-3 form-check">
+        {/* <div className="mb-3 form-check">
           <input type="checkbox" className="form-check-input" value={tounamentForm.isActiveTournament} onChange={(e) => handleFormData(e, 'isActiveTournament')}/>
           <label className="form-check-label">Is Active Tournament</label>
-        </div>
+        </div> */}
         <div className="mb-3">
           <label className="form-label">Points Per Game</label>
           <input type="text" className="form-control" value={tounamentForm.gamePoint} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'gamePoint')}/>
