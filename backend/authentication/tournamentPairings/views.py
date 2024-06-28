@@ -36,6 +36,8 @@ class CreateMatchMakingView(APIView):
 		tournamentParticpant = TournamentParticipants.objects.filter(tournament_id=id, isEliminated = False)
 		serializerT = TournamentParticipantsSerializer(tournamentParticpant, many=True)
 		particpantsData = serializerT.data
+		tournamentData = TournamentData.objects.filter(id=id)
+		print("particpantsData", particpantsData)
 		while len(particpantsData) != 0:
 			rand1 = self.pop_random(particpantsData)
 			particpantsData.remove(rand1[0])
@@ -55,6 +57,7 @@ class CreateMatchMakingView(APIView):
 				user2 = None
 				
 			particpantPairing = TournamentPairingData.objects.create(tournament_id = id, player1 =user, player2 = user2, round_id = roundId)
+			tournamentData.update(round=roundId)
 			
 		return Response({'message': 'Pairing for particpants has been created.' }, status=status.HTTP_201_CREATED)	
 
@@ -69,12 +72,11 @@ class UpdateWinnerView(APIView):
 		tournamentPairings = TournamentPairingData.objects.filter(query)
 		serializerPairings = TournamentPairingSerializer(tournamentPairings, many=True)
 
-
-		if (int(serializerPairings.data[0]['player1']) == int(data["winner_id"])):
+		if (len(serializerPairings.data) > 0 and int(serializerPairings.data[0]['player1']) == int(data["winner_id"])):
 			tournamentParticpants = TournamentParticipants.objects.filter(tournament_id=data["tournament_id"], user_id=serializerPairings.data[0]['player2'])
 			serializerTournament = TournamentParticipantsSerializer(tournamentParticpants, many=True)
 			tournamentParticpants.update(isEliminated=True)
-		elif(int(serializerPairings.data[0]['player2']) == int(data["winner_id"])):
+		elif(len(serializerPairings.data) > 0 and int(serializerPairings.data[0]['player2']) == int(data["winner_id"])):
 			tournamentParticpants = TournamentParticipants.objects.filter(tournament_id=data["tournament_id"], user_id=serializerPairings.data[0]['player1'])
 			serializerTournament = TournamentParticipantsSerializer(tournamentParticpants, many=True)
 			tournamentParticpants.update(isEliminated=True)
@@ -83,8 +85,6 @@ class UpdateWinnerView(APIView):
 		tournamentParticpantsData = TournamentParticipants.objects.filter(tournament_id=data["tournament_id"], isEliminated=False)
 		serializerTournamentPartiData = TournamentParticipantsSerializer(tournamentParticpantsData, many=True)
 		
-		
-
 		try:
 			user = UserAccount.objects.get(id=data["winner_id"])
 			tournamentPairings.update(winner=user)

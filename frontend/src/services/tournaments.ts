@@ -1,8 +1,8 @@
 import { BASE_URL } from "@/utils/constants";
 
-export const GetTournamentData = async () => {
+export const GetTournamentData = async (gameName:String) => {
     try {
-        const response = await fetch(BASE_URL + 'tournament/', {
+        const response = await fetch(BASE_URL + `tournament/${gameName}`, {
             method: "GET",
         });
         if (!response.ok) {
@@ -18,7 +18,7 @@ export const GetTournamentData = async () => {
 
 export const AddTournamentData = async (payload: any) => {
     try {
-        const response = await fetch(BASE_URL + 'tournament/', {
+        const response = await fetch(BASE_URL + `tournament/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -66,6 +66,17 @@ export const leaveTournament = async (tournamentId: number, userId: number) => {
 export const createMatchMakingTournament = async (tournamentId: number, userId: number) => {
   const response = await fetch( BASE_URL + `tournamentPairings/createMatchMaking/${tournamentId}/roundId/${userId}`, {
     method: "GET",
+  })
+  const data = await response.json()
+  return data
+}
+export const createMatchMaking = async (tournamentId: number, roundId: number) => {
+  const response = await fetch( BASE_URL + `tournamentPairings/createMatchMaking/${tournamentId}/roundId/${roundId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ tournament_id: tournamentId, round_id: roundId }),
   })
   const data = await response.json()
   return data

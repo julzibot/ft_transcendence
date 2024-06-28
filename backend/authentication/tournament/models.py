@@ -14,4 +14,6 @@ class TournamentData(models.Model):
     pointsPerGame = models.PositiveIntegerField(default=0,blank=True, null=True)
     timer = models.PositiveIntegerField(default=0,blank=True, null=True)
     powerUps = ArrayField(models.CharField(max_length=60, unique=False, blank=True, null=True, default='SOME'), default=list, blank=True, null=True)
+    round = models.PositiveIntegerField(default=0,blank=True, null=True)
+    gameName = models.CharField(default='',blank=True, null=True)
 

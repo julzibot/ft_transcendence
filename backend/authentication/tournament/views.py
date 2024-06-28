@@ -31,6 +31,7 @@ class TournamentView(APIView):
 			"isActiveTournament": serializers.BooleanField(),
 			"pointsPerGame": serializers.CharField(),
 			"timer": serializers.CharField(),
+			"gameName": serializers.CharField(),
         },
     ),
     description="create tournament",
@@ -43,7 +44,7 @@ class TournamentView(APIView):
        ), 
        400: OpenApiResponse(description='user not found'),
     }
-)	
+	)	
 	
 	def post(self, request):
 		data = request.data
@@ -51,8 +52,9 @@ class TournamentView(APIView):
 		if 'powerUps' in data:
 			powerUpsData = data["powerUps"]
 		
-		new_tournament = TournamentData.objects.create(name = data['name'], numberOfPlayers = data['numberOfPlayers'], isPrivate = data['isPrivate'],difficultyLevel = data['difficultyLevel'],isActiveTournament = data['isActiveTournament'],pointsPerGame = data['pointsPerGame'],timer = data['timer'], powerUps= powerUpsData)
+		new_tournament = TournamentData.objects.create(name = data['name'], numberOfPlayers = data['numberOfPlayers'], isPrivate = data['isPrivate'],difficultyLevel = data['difficultyLevel'],isActiveTournament = data['isActiveTournament'],pointsPerGame = data['pointsPerGame'],timer = data['timer'], powerUps= powerUpsData, gameName = data['gameName'])
 		return Response({'message':'You have created tournament successfully'}, status=status.HTTP_201_CREATED)	
+
 
 class TournamentDetailView(APIView):
 	def get(self, request, id):
@@ -64,6 +66,17 @@ class TournamentDetailView(APIView):
 			return Response({'data': {'detail': serializer.data, 'particpants': serializerT.data }}, status=status.HTTP_201_CREATED)	
 		else:
 			return Response({'message': 'Record not found with this Id.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class TournamentGetView(APIView):
+	def get(self, request, gameName):
+		query = Q(tournamentWinner__isnull=True)
+		query.add(Q(tournamentWinner = None), Q.OR)
+		query.add(Q(gameName = gameName), Q.AND)
+		tournament = TournamentData.objects.filter(query)
+		serializer = TournamentSerializer(tournament, many=True)
+		return Response({'data': {'tournaments': serializer.data}}, status=status.HTTP_201_CREATED)	
+
 
 
 
