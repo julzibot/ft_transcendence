@@ -20,3 +20,5 @@ export const MINREBOUNDANGLE = 40;
 
 export const FONTPATH = "fonts/";
 export const FONTNAME = "Norwester_Regular.json";
+
+export const BASE_URL = 'http://localhost:8000/api/'
