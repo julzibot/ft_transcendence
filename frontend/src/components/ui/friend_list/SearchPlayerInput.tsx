@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import { PersonAdd  } from "react-bootstrap-icons";
 import { CustomTooltip } from "@/components/Utils/Tooltip";
 import { useSession } from "next-auth/react";
+import { BASE_URL } from "@/utils/constants";
 
 export default function SearchPlayerInput() {
   const [searchQuery, setSearchQuery] = useState([]);
@@ -12,7 +13,7 @@ export default function SearchPlayerInput() {
 
   const handleSearch = async (event: any) => {
     setInputValue(event.target.value)
-    const response = await fetch("http://localhost:8000/api/search-user/", {
+    const response = await fetch(BASE_URL + "search-user/", {
       method: "post",
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
@@ -28,7 +29,7 @@ export default function SearchPlayerInput() {
   }
 
   const handleFriendRequest = async(fromUserId: number, toUserId: number) => {
-    fetch("http://localhost:8000/api/friends/send-friend-request/", {
+    fetch(BASE_URL + "friends/send-friend-request/", {
       method: "POST",
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
