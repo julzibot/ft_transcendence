@@ -910,7 +910,7 @@ const getColorVector3 = (bgColor) =>
   const colorInt = parseInt(hex, 16);
 
   let r = colorInt >> 16 & 255;
-  let g = colorInt >> 8 && 255;
+  let g = colorInt >> 8 & 255;
   let b = colorInt & 255;
 
   return new THREE.Vector3(r/255, g/255, b/255);
