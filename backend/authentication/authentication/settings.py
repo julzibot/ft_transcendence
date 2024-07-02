@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     'chat',
     'tournament',
     'tournamentParticipants',
-    'tournamentPairings'
+    'tournamentPairings',
+		'gameCustomization'
 ]
 
 MIDDLEWARE = [
