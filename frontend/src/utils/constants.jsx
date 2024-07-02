@@ -21,3 +21,5 @@ export const PU_LIFESPAN = 20000;
 
 export const FONTPATH = "fonts/";
 export const FONTNAME = "Norwester_Regular.json";
+
+export const BASE_URL = 'http://localhost:8000/api/'

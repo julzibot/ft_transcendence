@@ -550,9 +550,9 @@ const local_update = () =>
 
 async function CreateGame()
 {
-  // const url = 'http://localhost:8000/api/game';
+  // const url = BASE_URL + 'game';
   console.log("CreateGame called");
-  const response = await fetch('http://localhost:8000/api/game/test/',
+  const response = await fetch(CONST.BASE_URL + 'game/test/',
     {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -570,7 +570,7 @@ async function CreateGame()
 
 async function PutScores()
 {
-  const response = await fetch('http://localhost:8000/api/game/update/',
+  const response = await fetch(CONST.BASE_URL + 'game/update/',
     {
       method: 'PUT',
       headers: {'Content-Type': 'application/json'},

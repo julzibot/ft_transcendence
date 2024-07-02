@@ -6,6 +6,7 @@ import { useState, FormEvent } from "react";
 import ImageUpload from "@/components/Utils/ImageUpload";
 import DOMPurify from 'dompurify'
 import { useRouter } from "next/navigation";
+import { BASE_URL } from "@/utils/constants";
 
 type Props = {
   params: {
@@ -31,7 +32,7 @@ function ProfilePage(props: Props){
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const response = await fetch('http://localhost:8000/api/update/password/', {
+    const response = await fetch(BASE_URL + 'update/password/', {
       method: 'PUT',
       headers: {'Content-type': 'application/json'},
       body: JSON.stringify({
@@ -52,7 +53,7 @@ function ProfilePage(props: Props){
   async function updateUsername(event: FormEvent<HTMLFormElement>){
     event.preventDefault();
 
-    const response = await fetch('http://localhost:8000/api/update/name/', {
+    const response = await fetch(BASE_URL + 'update/name/', {
       method: 'PUT',
       headers: {'Content-type': 'application/json'},
       body: JSON.stringify({
@@ -65,7 +66,7 @@ function ProfilePage(props: Props){
   }
 
   async function deleteAccount() {
-    const response = await fetch('http://localhost:8000/api/auth/user/delete/', {
+    const response = await fetch(BASE_URL + 'auth/user/delete/', {
       method: 'DELETE',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
