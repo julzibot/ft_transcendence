@@ -76,9 +76,3 @@ class TournamentGetView(APIView):
 		tournament = TournamentData.objects.filter(query)
 		serializer = TournamentSerializer(tournament, many=True)
 		return Response({'data': {'tournaments': serializer.data}}, status=status.HTTP_201_CREATED)	
-
-
-
-
-	
-
