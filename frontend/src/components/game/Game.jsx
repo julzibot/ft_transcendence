@@ -904,6 +904,18 @@ const init_socket = (socket, isHost) =>
   }
 }
 
+const getColorVector3 = (bgColor) =>
+{
+  const hex = bgColor.replace(/^#/, '');
+  const colorInt = parseInt(hex, 16);
+
+  let r = colorInt >> 16 & 255;
+  let g = colorInt >> 8 && 255;
+  let b = colorInt & 255;
+
+  return new THREE.Vector3(r/255, g/255, b/255);
+}
+
 export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gamemode })
 {
 	console.log("[ThreeScene] game settings: " + JSON.stringify(gameSettings))
@@ -978,6 +990,8 @@ export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gam
 					b = custom.b_waves;
 				else if (gameSettings.background == 3)
 					b = custom.b_fractcircles;
+        uniformData.u_palette.value = gameSettings.palette;
+        uniformData.u_color.value = getColorVector3(gameSettings.bgColor);
         backgroundMaterial = new THREE.ShaderMaterial({
           side: THREE.BackSide,
           uniforms: uniformData,

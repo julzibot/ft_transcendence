@@ -6,7 +6,7 @@ import { Button, Modal } from 'react-bootstrap'
 import { useParams, useRouter } from "next/navigation";
 import { ArrowRight } from 'react-bootstrap-icons';
 import { AddTournamentData, GetTournamentData } from '@/services/tournaments';
-import { MdOutlineOpenInNew } from "react-icons/md";
+// import { MdOutlineOpenInNew } from "react-icons/md";
 
 const gameLevel = [
   { value: 0, level: 'Beginner'},
