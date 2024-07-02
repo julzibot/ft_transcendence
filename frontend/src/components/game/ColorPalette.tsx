@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { SliderPicker } from 'react-color';
-import './slider.css'
 
 const ColorSliderPicker = ({ defaultColor = '#000', onChange }) => {
   const [color, setColor] = useState(defaultColor);
