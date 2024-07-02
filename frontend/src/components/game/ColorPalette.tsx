@@ -12,13 +12,12 @@ const ColorSliderPicker = ({ defaultColor = '#000', onChange }) => {
   };
 
   return (
-    <div style={{ margin: '20px auto', textAlign: 'center' }}>
-      <SliderPicker color={color} onChange={handleColorChange} />
-      <div style={{ marginTop: '10px', fontSize: '16px', color: '#333' }}>
-        Selected Color: {color}
+    <div style={{ margin: '15px auto', textAlign: 'center', width: 250 }}>
+      <div className="color-slider-container">
+        <SliderPicker color={color} onChange={handleColorChange} />
       </div>
     </div>
   );
 };
 
-export default ColorSliderPicker;
+export default ColorSliderPicker
