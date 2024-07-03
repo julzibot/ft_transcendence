@@ -23,26 +23,25 @@ export default function AuthButton() {
     return (
       <>
         <li className="dropdown me-3">
-          <button className="btn btn-light dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <button className="btn btn-light dropdown-toggle d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <div className="position-relative border border-2 border-dark-subtle rounded-circle" style={{width: '30px', height: '30px', overflow: 'hidden'}}>
             {
               session.user.image ? (
                 <>
-                  <Image className="rounded-circle me-2"
+                  <Image
                     src={`http://backend:8000${session.user.image}`}
-                    width={28}
-                    height={25}
-                    alt="42 session picture"
-                  />
-                  {session.user.nick_name}
-                </>) : (    
-                  <div className="spinner-border spinner-border-sm" role="status">
-                    <span className="sr-only"></span>
-                  </div>
+                    fill
+                    alt="profile Pic"
+                    />
+                </>) : (
+                    <div className="position-absolute start-0 top-0 spinner-grow text-secondary" role="status"></div>
             )}
+              </div>
+              <span className="ms-2">{session.user.nick_name}</span>
             </button>
           <ul className="dropdown-menu">
-						<li><Link className="dropdown-item" href="/dashboard">Dashboard</Link></li>
-            <li><Link className="dropdown-item" href={`/account/profile/${session?.user.id}`}>Profile</Link></li>
+						<li><Link className="dropdown-item" href="/account/dashboard">Dashboard</Link></li>
+            <li><Link className="dropdown-item" href='/account/profile'>Profile</Link></li>
 						<li><hr className="dropdown-divider" /></li>
             <li><Link className="dropdown-item text-primary" href="/api/auth/signout">Sign Out</Link></li>
           </ul>
