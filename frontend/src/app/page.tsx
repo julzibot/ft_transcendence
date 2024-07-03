@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { Button, Container, Row, Col, Offcanvas } from 'react-bootstrap';
 import FriendList from "@/components/ui/friend_list/FriendList";
 import { GameContext } from '@/app/context/GameContext';
 import Tournament from '@/components/Tournament';
 import { useRouter } from 'next/navigation';
+import VideoButton from '@/components/buttons/VideoButtons';
 
 enum GameType {
   PONG = 'pong',
@@ -16,11 +17,14 @@ enum GameType {
 }
 
 export default function Home() {
+  const videoRef = useRef(null)
   const [show, setShow] = useState(false);
   const [game, setGameOnPage] = useState(null);
 
   const { setGame } = useContext(GameContext);
   const router = useRouter()
+
+
 
   useEffect(() => {
     localStorage.setItem('gameName', JSON.stringify(null))
@@ -38,35 +42,13 @@ export default function Home() {
 
   return (
     !game ? (
-      <Container fluid className="h-100 vw-100">
-        <Row className="h-100">
-          <Col className="h-100">
-            <button onClick={() =>handleGame(GameType.PONG)}>
-              {GameType.PONG}
-            </button>
+      <Container className="d-flex justify-content-center align-items-center mt-5 pt-5">
+        <Row className="justify-content-center align-items-center w-100">
+          <Col className="col-6 d-flex justify-content-center align-items-center">
+            <VideoButton src="/pong.mov" gameName="pong"/>
           </Col>
-          <Col className="h-100">
-            <button onClick={() =>handleGame(GameType.PING)}>
-              {GameType.PING}
-            </button>
-          </Col>
-          <Col className="h-100">
-            <button onClick={() =>handleGame(GameType.ICRICKET)}>
-              {GameType.ICRICKET}
-            </button>
-          </Col>
-          <Col className="h-100">
-            <button onClick={() =>handleGame(GameType.TT)}>
-              {GameType.TT}
-            </button>
-          </Col>
-          <Col className="h-100">
-            <button onClick={() => handleGame(GameType.TUBE_RUSH)}
-              className="bg-transparent border-0">
-              <video width="320" height="240" autoPlay loop muted src="/pong.mov">
-              </video>
-              {GameType.TUBE_RUSH}
-            </button>
+          <Col className="col-6 d-flex justify-content-center align-items-center">
+            <VideoButton src="/pong.mov" gameName="pong"/>
           </Col>
         </Row>
       </Container>

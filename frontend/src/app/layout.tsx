@@ -6,6 +6,8 @@ import SessionProvider from "../components/SessionProvider";
 import { getServerSession } from "next-auth";
 import Navbar from "../components/ui/navbar/Navbar";
 import GameProvider from "./context/GameContext";
+import background from "/public/static/images/background-profile.jpg"
+import Image from "next/image";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,6 +30,16 @@ export default async function RootLayout({
         <GameProvider>
             <main>
               <Navbar />
+              <Image
+                className="z-n1"
+                  src={background}
+                  quality={100}
+                  fill
+                  sizes="100vw"
+                  style={{
+                    objectFit: 'cover',
+                  }}
+              />
               {children}
             </main>
           </GameProvider>
