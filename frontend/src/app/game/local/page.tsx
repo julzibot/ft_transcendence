@@ -1,10 +1,8 @@
 'use client';
 
-import Join from "../../../components/game/Join"
 import { useSession } from "next-auth/react"
 import { useEffect, useState, useContext } from "react"
 import Link from "next/link"
-import { SocketContext, socket } from "../../../../context/socket"
 import ColorSliderPicker from '../../../components/game/ColorPalette'
 import './styles.css'
 
@@ -16,45 +14,49 @@ export default function GameSettings() {
 
 	const [gameSettings, setGameSettings] = useState({
 		userId: -1,
+
 		background: 0, // 0 - 3 animated, 4 - 5 static
-		
 		palette: 0, // palette: 4 choices
 		bgColor: '#ff0000',
-		
 		opacity: 80,
 		sparks: true,
-		gameDifficulty: 1,
-		pointsToWin: 3,
+	
+		gameDifficulty: 4,
+		pointsToWin: 5,
 		powerUps: true
 	});
 	
-	useEffect(() => {
-		localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
-	}, [gameSettings]);
+	localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
 	
 	useEffect(() => {
 		if (status === "authenticated" && session) {
 			setUserId(session.user.id);
-			setGameSettings({ ...gameSettings, 'userId': session.user.id });
 		}
 	}, [session, status]);
 
-	// useEffect(() => {
-
-	// 	const fetchGameSettings = async () => {
-	// 		if (userId) {
-	// 			const response = await fetch(`http://localhost:8000/api/gameCustomization/${userId}`, {
-	// 				method: 'GET'
-	// 			});
-	// 			if (response.ok) {
-	// 				const data = await response.json();
-	// 				setGameSettings({...gameSettings, background: data.background,
-	// 					palette: data.palette, bgColor: data.bgColor, opacity: data.opacity, sparks: data.sparks})
-	// 			}
-	// 		}
-	// 	};
-	// 	fetchGameSettings()
-	// }), [userId];
+  useEffect(() => {
+    const fetchGameSettings = async () => {
+      if (userId) {
+        const response = await fetch(`http://localhost:8000/api/gameCustomization/${userId}`, {
+          method: 'GET'
+        });
+        if (response.ok) {
+          const fetched = await response.json();
+					const data = fetched.data;
+          setGameSettings({
+            ...gameSettings,
+            userId: userId,
+            background: data.background,
+            palette: data.palette,
+            bgColor: data.bgColor,
+            opacity: data.opacity,
+            sparks: data.sparks
+          });
+        }
+      }
+    };
+    fetchGameSettings();
+  }, [userId]);
 
 	if (status === "Loading" || !userId) {
 		return (
@@ -78,6 +80,29 @@ export default function GameSettings() {
 		setGameSettings({ ...gameSettings, palette: parseInt(e.target.value) });
 	}
 
+	const gameCustomDefault = () => {
+		setGameSettings({...gameSettings,
+				background: 0,
+				palette: 0,
+				bgColor: '#ff0000',
+				opacity: 80,
+				sparks: true
+			});
+	}
+
+	const gameCustomSave = async () => {
+		const	requestData = {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify(gameSettings)
+		};
+		console.log(JSON.stringify(gameSettings));
+		const response = await fetch('http://localhost:8000/api/gameCustomization/', requestData);
+		const data = await response.json();
+		console.log(data);
+		localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
+	}
+
   return (
 	<>
     <div id="initialScreen" className=" m-3 h-100">
@@ -88,7 +113,7 @@ export default function GameSettings() {
 					</div>
 				</div>
 
-				<div className="offcanvas offcanvas-start" tabindex="-1" id="offcanvasCustomization" aria-labelledby="offcanvasExampleLabel">
+				<div className="offcanvas offcanvas-start" tabIndex="-1" id="offcanvasCustomization" aria-labelledby="offcanvasExampleLabel">
 					<div className="offcanvas-header">
 						<h5 className="offcanvas-title" id="offcanvasExampleLabel">Game Customization</h5>
 						<button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -274,6 +299,11 @@ export default function GameSettings() {
 								<p>{gameSettings.opacity}%</p>
 						</div>
 
+						<div>
+						<button className="m-1 btn btn-warning" onClick={gameCustomSave}>Save</button>
+							<button className="m-1 btn btn-primary" onClick={gameCustomDefault}>Reset to Default</button>
+						</div>
+
        		</div>
 
 				</div>
@@ -361,7 +391,9 @@ export default function GameSettings() {
 				</div>
       </div>
 		</div>
-		<p>{JSON.stringify(gameSettings)}</p>
+		<div className="m-3">
+			<p>{JSON.stringify(gameSettings)}</p>
+		</div>
 	</div>
     </div>
 	</>
