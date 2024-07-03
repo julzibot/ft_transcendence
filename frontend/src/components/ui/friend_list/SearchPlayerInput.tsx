@@ -39,7 +39,7 @@ export default function SearchPlayerInput({fetchFriends}) {
   }
 
   const handleFriendRequest = async(fromUserId: number, toUserId: number) => {
-    fetch("http://localhost:8000/api/friends/send-friend-request/", {
+    fetch(BASE_URL + "friends/send-friend-request/", {
       method: "POST",
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({

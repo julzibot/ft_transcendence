@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link"
 import "bootstrap/dist/css/bootstrap.min.css"
 import DOMPurify from 'dompurify'
+import { BASE_URL } from "@/utils/constants";
 
 export default function Register() {
   const [data, setData] = useState({
@@ -24,7 +25,7 @@ export default function Register() {
     setError(null)
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/register/', {
+      const response = await fetch(BASE_URL + 'auth/register/', {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({data})
