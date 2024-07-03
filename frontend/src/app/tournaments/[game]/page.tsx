@@ -127,7 +127,7 @@ useEffect(() => {
                 return(
                   <h6 style={{ cursor:'pointer', borderBottom:'1px solid #f0f0f0'}} className='d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary' key={item.id} onClick={() => handleSelectedData(item)}>
                     <span>{i + 1}. {item.name}</span>
-                    <MdOutlineOpenInNew className='h5'/>
+                    {/* <MdOutlineOpenInNew className='h5'/> */}
                   </h6>
                 )
               })

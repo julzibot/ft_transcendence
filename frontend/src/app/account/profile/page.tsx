@@ -6,7 +6,7 @@ import { useState, FormEvent } from "react";
 import ImageUpload from "@/components/Utils/ImageUpload";
 import DOMPurify from 'dompurify'
 import { useRouter } from "next/navigation";
-import background from "/public/static/images/background-profile.jpg"
+
 
 export default function ProfilePage() {
   const { data: session, update} = useSession({required: true});
@@ -79,16 +79,6 @@ export default function ProfilePage() {
 
   return(
     <>
-    <Image
-    className="z-n1"
-      src={background}
-      quality={100}
-      fill
-      sizes="100vw"
-      style={{
-        objectFit: 'cover',
-      }}
-    />
       <div className="d-flex justify-content-center align-items-center mt-5">
         <div className="card shadow-lg text-center bg-light bg-opacity-75">
           <div className="card-body">
