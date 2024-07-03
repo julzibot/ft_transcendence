@@ -16,7 +16,10 @@ export const BALLSPEED_MAX = 0.38;
 export const BALL_COLOR = 0x0000ff;
 
 export const MINREBOUNDANGLE = 40;
-// export const WINSCORE = 2;
+export const PU_TICK = 2200;
+export const PU_LIFESPAN = 20000;
 
 export const FONTPATH = "fonts/";
 export const FONTNAME = "Norwester_Regular.json";
+
+export const BASE_URL = 'http://localhost:8000/api/'

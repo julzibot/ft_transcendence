@@ -2,6 +2,7 @@
 
 import {useState, useEffect} from 'react'
 import {useSession} from 'next-auth/react'
+import { BASE_URL } from '@/utils/constants';
 import {Upload} from 'react-bootstrap-icons'
 
 export default function ImageUpload() {
@@ -18,7 +19,7 @@ export default function ImageUpload() {
             const formData = new FormData()
             formData.append('user_id', session.user.id)
             formData.append('image', file)
-            const response = await fetch('http://localhost:8000/api/update/image/', {
+            const response = await fetch(BASE_URL + 'update/image/', {
                 method: 'PUT',
                 body: formData
             })
