@@ -10,7 +10,6 @@ import './styles.css'
 
 export default function GameSettings() {
 
-	// const [gameSetup, setGameSetup] = useState(false);
   const { data: session, status } = useSession();
 	const [userId, setUserId] = useState(null);
 	const [palette, setPalette] = useState(false);
@@ -18,30 +17,44 @@ export default function GameSettings() {
 	const [gameSettings, setGameSettings] = useState({
 		userId: -1,
 		background: 0, // 0 - 3 animated, 4 - 5 static
-
+		
 		palette: 0, // palette: 4 choices
 		bgColor: '#ff0000',
-
-		opacity: 0,
+		
+		opacity: 80,
 		sparks: true,
 		gameDifficulty: 1,
 		pointsToWin: 3,
 		powerUps: true
 	});
-
+	
 	useEffect(() => {
 		localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
-		console.log('SETTING game settings');
 	}, [gameSettings]);
-
+	
 	useEffect(() => {
 		if (status === "authenticated" && session) {
 			setUserId(session.user.id);
 			setGameSettings({ ...gameSettings, 'userId': session.user.id });
-			console.log('UserId set: ' + session.user.id);
-			console.log(gameSettings);
 		}
 	}, [session, status]);
+
+	// useEffect(() => {
+
+	// 	const fetchGameSettings = async () => {
+	// 		if (userId) {
+	// 			const response = await fetch(`http://localhost:8000/api/gameCustomization/${userId}`, {
+	// 				method: 'GET'
+	// 			});
+	// 			if (response.ok) {
+	// 				const data = await response.json();
+	// 				setGameSettings({...gameSettings, background: data.background,
+	// 					palette: data.palette, bgColor: data.bgColor, opacity: data.opacity, sparks: data.sparks})
+	// 			}
+	// 		}
+	// 	};
+	// 	fetchGameSettings()
+	// }), [userId];
 
 	if (status === "Loading" || !userId) {
 		return (
@@ -59,7 +72,6 @@ export default function GameSettings() {
 		else if (!palette)
 			setGameSettings({...gameSettings, palette: 1});
 		setPalette((prevPalette) => !prevPalette);
-		console.log(palette);
 	}
 
 	const handlePaletteRadio = (e) => {
@@ -76,12 +88,12 @@ export default function GameSettings() {
 					</div>
 				</div>
 
-				<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasCustomization" aria-labelledby="offcanvasExampleLabel">
-					<div class="offcanvas-header">
-						<h5 class="offcanvas-title" id="offcanvasExampleLabel">Game Customization</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+				<div className="offcanvas offcanvas-start" tabindex="-1" id="offcanvasCustomization" aria-labelledby="offcanvasExampleLabel">
+					<div className="offcanvas-header">
+						<h5 className="offcanvas-title" id="offcanvasExampleLabel">Game Customization</h5>
+						<button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 					</div>
-					<div class="offcanvas-body">
+					<div className="offcanvas-body">
 						<div className="d-flex flex-column align-items-center justify-content-center">
 							<div className="mb-3">
          	  		<div className="form-check">
@@ -239,9 +251,14 @@ export default function GameSettings() {
             </div>
           )}
 
-          <div className="mb-3">
+          <div className="mb-3 text-center align-items-center">
 						<div>
-     	      	<label htmlFor="bgOpacity" className="form-label">Background Opacity (0-100)</label>
+     	      	<label htmlFor="opacity" className="form-label">Backboard Opacity (0-100)</label>
+							<div>
+								<label htmlFor="opacity" className="form-label fst-italic" style={{ fontSize: '0.8em' }}>
+									<small>recommended: 80%</small>
+								</label>
+							</div>
 						</div>
             <input
               type="range"
@@ -253,25 +270,15 @@ export default function GameSettings() {
               value={gameSettings.opacity}
               onChange={(e) => setGameSettings({ ...gameSettings, opacity: parseInt(e.target.value) })}
 							/>
-          </div>
+						<div className="mb-1">
+								<p>{gameSettings.opacity}%</p>
+						</div>
 
-          <div className="form-check form-switch mb-3">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              role="switch"
-              id="flexSwitchCheckDefault"
-              checked={gameSettings.sparks}
-              onChange={() =>
-                setGameSettings({ ...gameSettings, sparks: !gameSettings.sparks })
-              }
-							/>
-            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Collision Sparks</label>
-          </div>
+       		</div>
 
-					</div>
-					</div>
 				</div>
+			</div>
+		</div>
 
 				<div className="card">
 					<div className="card-body">
@@ -279,7 +286,7 @@ export default function GameSettings() {
         <div className="d-flex flex-column align-items-center">
 
 					<div className="m-2 mb-3">
-						<button class="btn btn-primary"
+						<button className="btn btn-primary"
 							type="button"
 							data-bs-toggle="offcanvas"
 							data-bs-target="#offcanvasCustomization"
