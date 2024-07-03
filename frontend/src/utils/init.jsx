@@ -10,14 +10,16 @@ export const custom = {};
 
 // GAME CUSTOM PARAMS
 
-custom.pov = "classic";
+// custom.pov = "classic";
 custom.immersiveCamPos = new THREE.Vector3(-CONST.GAMEWIDTH / 2 - 10, 0, 18);
 custom.classicCamPos = new THREE.Vector3(0, 2.5, 25);
+
 custom.shader_utils = shaders.utils;
 custom.b_lightsquares = shaders.background_lightsquares;
 custom.b_default = shaders.background_default;
 custom.b_waves = shaders.background_waves;
 custom.b_fractcircles = shaders.background_fractcircles;
+
 custom.color = new THREE.Vector3(0.2, 0.5, 0.6);
 custom.palette = 3;
 custom.backboard_opacity = 0.8;
@@ -108,6 +110,8 @@ vars.scoreString = "";
 vars.endString = "";
 vars.glowStartTime = 0;
 vars.glowElapsed = 0;
+vars.ai_timer = 0;
+vars.playerlens = [CONST.PLAYERLEN, CONST.PLAYERLEN];
 
 vars.ballVect = new THREE.Vector2(-1, 0);
 vars.ballSpeed = CONST.BASE_BALLSPEED;
@@ -115,6 +119,8 @@ vars.playerspeed = [CONST.BASE_PLAYERSPEED, CONST.BASE_PLAYERSPEED];
 vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
 vars.ballFloorPos = 0;
 // vars.trailSegments = [];
+
+vars.ai_aim = 0;
 
 vars.dotProduct = 0;
 vars.stopGame = false;
