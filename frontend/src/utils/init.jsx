@@ -121,6 +121,7 @@ vars.ballFloorPos = 0;
 // vars.trailSegments = [];
 
 vars.ai_aim = 0;
+vars.ai_offset = 0;
 
 vars.dotProduct = 0;
 vars.stopGame = false;
