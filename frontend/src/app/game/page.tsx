@@ -13,10 +13,9 @@ export default function GameMain() {
 		<>
 		<div>
 			<div className="d-flex flex-column align-items-center justify-content-center h-100">
-				<h2 className="m-3 mb-5">Game Mainpage</h2>
+				<h2 className="m-3 mb-5 text-white">Game Mainpage</h2>
 			</div>
 			<div className="container">
-
 					<div className="row justify-content-center">
 						<div className="col-lg-auto mb-3 d-flex align-items-stretch justify-content-center">
 

@@ -6,23 +6,26 @@ import FriendList from "@/components/ui/friend_list/FriendList";
 import { GameContext } from '@/app/context/GameContext';
 import Tournament from '@/components/Tournament';
 import { useRouter } from 'next/navigation';
-import VideoButton from '@/components/buttons/VideoButtons';
+import GameCard from '@/components/cards/GameCard';
 
 enum GameType {
-  PONG = 'pong',
-  PING = 'ping',
-  ICRICKET = 'iCricket',
-  TT = 'TT ',
+  PONG = 'Pong',
   TUBE_RUSH = 'tubeRush',
 }
 
 export default function Home() {
-  const videoRef = useRef(null)
   const [show, setShow] = useState(false);
   const [game, setGameOnPage] = useState(null);
+  const [move, setMove] = useState(false);
 
   const { setGame } = useContext(GameContext);
   const router = useRouter()
+
+
+  const handleCardClick = (gameName) => {
+    setGame(gameName);
+    setMove(!move);
+  };
 
 
 
@@ -32,7 +35,6 @@ export default function Home() {
   }, [game])
   
   const handleGame = (gameName) => {
-    setGame(gameName);
     // localStorage.setItem('gameName', JSON.stringify(gameName))
     router.push(`/tournaments/${gameName}`)
   }
@@ -42,16 +44,10 @@ export default function Home() {
 
   return (
     !game ? (
-      <Container className="d-flex justify-content-center align-items-center mt-5 pt-5">
-        <Row className="justify-content-center align-items-center w-100">
-          <Col className="col-6 d-flex justify-content-center align-items-center">
-            <VideoButton src="/pong.mov" gameName="pong"/>
-          </Col>
-          <Col className="col-6 d-flex justify-content-center align-items-center">
-            <VideoButton src="/pong.mov" gameName="pong"/>
-          </Col>
-        </Row>
-      </Container>
+      <div className="d-flex flex-row justify-content-evenly mt-5 pt-5">
+        <GameCard src="/pong.mov" gameName="Pong" position="left" move={move} onClick={()=> handleCardClick(GameType.PONG)}/>
+        <GameCard src="/pong.mov" gameName="Coming Soon" position="right" move={move} onClick={() => handleCardClick(GameType.TUBE_RUSH)}/>
+      </div>
     ): (
       <Container fluid>
       <Row className="justify-content-between">
