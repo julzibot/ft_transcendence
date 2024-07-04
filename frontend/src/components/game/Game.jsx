@@ -470,20 +470,32 @@ const activate_power = (i) =>
     else
       objs.player2.scale.y = 1.4;
     vars.playerlens[i] *= 1.4;
+    activated_powers[i][0] = 2;
   }
   else if (activated_powers[i][2] === 1)
   {
     power_timers[i][2] = performance.now();
     vars.bulletTime = 0.4;
+    activated_powers[i][2] = 2;
   }
 }
 
 const computeBallMove = () =>
 {
   if (vars.ballVect.x < 0)
+  {
+    if (vars.ai_offset != 0)
+      vars.ai_offset = 0;
     return 0;
+  }
   else
   {
+    if (vars.ai_offset === 0)
+    {
+      vars.ai_offset = custom.difficulty < 1.1 ? THREE.MathUtils.randFloatSpread(9):0;
+      if (custom.difficulty === 1.3)
+        vars.ai_offset = THREE.MathUtils.randFloatSpread(3);
+    }
     let d = ((CONST.GAMEWIDTH / 2) - objs.ball.position.x) / vars.ballVect.x;
     let aim_y = objs.ball.position.y + d * vars.ballVect.y;
     let tempx = objs.ball.position.x;
@@ -501,7 +513,9 @@ const computeBallMove = () =>
       newd = ((CONST.GAMEWIDTH / 2) - tempx) / tempv.x;
       aim_y = tempy + newd * tempv.y;
     }
-    return aim_y;
+    if (activated_powers[0][4] === 2)
+      vars.ai_offset *= 2;
+    return aim_y + vars.ai_offset;
   }
 }
   
@@ -550,6 +564,11 @@ let aiMoveHandle = (invert_controls) =>
   return keyPressHandle('AIup', 'AIdown', 1, objs.player2.position.y, invert_controls);
 }
 
+let aiPuHandle = () =>
+{
+  
+}
+
 const local_update = (gamemode) =>
 {
   let invert_controls = [1, 1];
@@ -562,16 +581,17 @@ const local_update = (gamemode) =>
     objs.player2.position.y = keyPressHandle('ArrowUp', 'ArrowDown', 1, objs.player2.position.y, invert_controls[1]);
   else
     objs.player2.position.y = aiMoveHandle(invert_controls[1]);
+
   if (keys['KeyP']) {
     let pauseStart = performance.now();
     while (performance.now() - pauseStart < 2000) ;
   }
-  if (keys['Space'] && custom.power_ups === true) {
+  if (keys['Space'] && custom.power_ups === true)
     activate_power(0);
-  }
-  if (keys['ArrowRight'] && custom.power_ups === true) {
+  if (keys['ArrowRight'] && gamemode === 0 && custom.power_ups === true)
     activate_power(1);
-  }
+  else if (gamemode === 1 && custom.power_ups === true)
+    aiPuHandle();
 }
 
 async function CreateGame()
@@ -773,7 +793,7 @@ const check_pu_timers = () =>
   const timestamp = performance.now()
   for (let i = 0; i < 2; i++)
   {
-    if (activated_powers[i][0] === 1 && timestamp - power_timers[i][0] > 10000)
+    if (activated_powers[i][0] === 2 && timestamp - power_timers[i][0] > 10000)
     {
       if (i === 0)
         objs.player1.scale.y = 1;
@@ -783,7 +803,7 @@ const check_pu_timers = () =>
       activated_powers[i][0] = 0;
       objs.puGaugeLights[i][0].intensity = 0;
     }
-    if (activated_powers[i][2] === 1 && timestamp - power_timers[i][2] > 5000)
+    if (activated_powers[i][2] === 2 && timestamp - power_timers[i][2] > 5000)
     {
       activated_powers[i][2] = 0;
       objs.puGaugeLights[i][2].intensity = 0;
@@ -837,7 +857,6 @@ const create_delete_pu = () =>
 
 const animate = (socket, room_id, user_id, isHost, gamemode) =>
 {
-  gamemode = 1;
   if (isHost)
     collisionLogic(room_id, socket, gamemode);
   scoringLogic(room_id, socket, isHost, gamemode);
@@ -959,6 +978,7 @@ export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gam
 	console.log("[ThreeScene] game settings: " + JSON.stringify(gameSettings))
   const containerRef = useRef(null);
 	let socket = -1;
+  gamemode = 1;
   if (gamemode === 2)
     socket = useContext(SocketContext);
   
