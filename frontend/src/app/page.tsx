@@ -6,6 +6,7 @@ import FriendList from "@/components/ui/friend_list/FriendList";
 import { GameContext } from '@/app/context/GameContext';
 import Tournament from '@/components/Tournament';
 import { useRouter } from 'next/navigation';
+import Lobby from '@/components/Lobby';
 
 enum GameType {
   PONG = 'pong',
@@ -17,20 +18,20 @@ enum GameType {
 
 export default function Home() {
   const [show, setShow] = useState(false);
-  const [game, setGameOnPage] = useState(null);
+  // const [game, setGameOnPage] = useState(null);
 
-  const { setGame } = useContext(GameContext);
+  const { game, setGame } = useContext(GameContext);
   const router = useRouter()
 
   useEffect(() => {
-    localStorage.setItem('gameName', JSON.stringify(null))
+    // localStorage.setItem('gameName', JSON.stringify(null))
     setGame(game);
   }, [game])
   
   const handleGame = (gameName) => {
     setGame(gameName);
     // localStorage.setItem('gameName', JSON.stringify(gameName))
-    router.push(`/tournaments/${gameName}`)
+    // router.push(`/tournaments`)
   }
 
   const handleClose = () => setShow(false);
@@ -45,12 +46,12 @@ export default function Home() {
               {GameType.PONG}
             </button>
           </Col>
-          <Col className="h-100">
+          {/* <Col className="h-100">
             <button onClick={() =>handleGame(GameType.PING)}>
               {GameType.PING}
             </button>
-          </Col>
-          <Col className="h-100">
+          </Col> */}
+          {/* <Col className="h-100">
             <button onClick={() =>handleGame(GameType.ICRICKET)}>
               {GameType.ICRICKET}
             </button>
@@ -59,7 +60,7 @@ export default function Home() {
             <button onClick={() =>handleGame(GameType.TT)}>
               {GameType.TT}
             </button>
-          </Col>
+          </Col> */}
           <Col className="h-100">
             <button onClick={() => handleGame(GameType.TUBE_RUSH)}
               className="bg-transparent border-0">
@@ -74,9 +75,10 @@ export default function Home() {
       <Container fluid>
       <Row className="justify-content-between">
         <Col>
+          <Lobby/>
         </Col>
         <Col>
-          <Tournament /> 
+          <Tournament gameName={game}/> 
         </Col>
       </Row>
       <Offcanvas
