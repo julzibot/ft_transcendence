@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'game',
     'chat',
     'tournament',
+    'lobby',
     'tournamentParticipants',
     'tournamentPairings',
 		'gameCustomization'
