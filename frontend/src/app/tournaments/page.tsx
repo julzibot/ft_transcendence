@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
 import { Button, Modal } from 'react-bootstrap'
 import { useParams, useRouter } from "next/navigation";
-import { ArrowRight } from 'react-bootstrap-icons';
+import { ArrowUpRightSquare } from 'react-bootstrap-icons';
 import { AddTournamentData, GetTournamentData } from '@/services/tournaments';
 // import { MdOutlineOpenInNew } from "react-icons/md";
 
@@ -17,7 +17,7 @@ const gameLevel = [
 function TournamentPage() {
   const router = useRouter();
   const params = useParams()
-  // const gamename = JSON.parse(localStorage.getItem('gameName'))
+  const gamename = JSON.parse(localStorage.getItem('gameName'))
   const [modalShow, setModalShow] = useState(false);
   const [tournamentData, setTournamentData] = useState([])
   const [selectedTournament, setSelectedTournament] = useState()
@@ -60,7 +60,7 @@ function TournamentPage() {
   
   const fetchTournamentData = async () => {
     try {
-        const tournamentdata = await GetTournamentData(params?.game)
+        const tournamentdata = await GetTournamentData(gamename)
         setTournamentData(tournamentdata?.data?.tournaments)
     } catch (error) {
         console.error('Error :', error)
@@ -70,7 +70,8 @@ function TournamentPage() {
   const handleSelectedData = (item:object) => {
     // localStorage.setItem('GameName', JSON.stringify(gameName))
     setSelectedTournament(item?.id)
-    router.push(`/tournaments/${item?.gameName}/${item?.id}`)
+    router.push(`/tournaments/${item?.id}`)
+    // router.push(`/tournaments/${item?.gameName}/${item?.id}`)
   }
   
 
@@ -93,7 +94,7 @@ const handleSubmitData = async () => {
       "isActiveTournament": tounamentForm?.isActiveTournament,
       "pointsPerGame": tounamentForm?.gamePoint,
       "timer": Number(tounamentForm?.timer),
-      "gameName": params?.game
+      "gameName": gamename
     }
     try {
       await AddTournamentData(payload).then((response) => {
@@ -107,7 +108,7 @@ const handleSubmitData = async () => {
 }
 
 useEffect(() => {
-  // localStorage.setItem('GameName', JSON.stringify(null))
+  localStorage.setItem('GameName', JSON.stringify(null))
   fetchTournamentData()
 }, [])
 
@@ -127,7 +128,7 @@ useEffect(() => {
                 return(
                   <h6 style={{ cursor:'pointer', borderBottom:'1px solid #f0f0f0'}} className='d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary' key={item.id} onClick={() => handleSelectedData(item)}>
                     <span>{i + 1}. {item.name}</span>
-                    <MdOutlineOpenInNew className='h5'/>
+                    <ArrowUpRightSquare className='h5'/>
                   </h6>
                 )
               })
@@ -165,9 +166,12 @@ useEffect(() => {
           <input type="checkbox" className="form-check-input" value={tounamentForm.isActiveTournament} onChange={(e) => handleFormData(e, 'isActiveTournament')}/>
           <label className="form-check-label">Is Active Tournament</label>
         </div> */}
-        <div className="mb-3">
-          <label className="form-label">Points Per Game</label>
-          <input type="text" className="form-control" value={tounamentForm.gamePoint} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'gamePoint')}/>
+        <div className="mb-3 flex align-items-center">
+        <label className="form-label">Points Per Game - {tounamentForm.gamePoint}</label>
+        <input type="range" className="form-range" min="0" max="100" value={tounamentForm.gamePoint} onChange={(e) => handleFormData(e, 'gamePoint')}/>
+          {/* <label className="form-label me-3">Points Per Game</label> */}
+          {/* <input type="range" min="1" max="100" value={tounamentForm.gamePoint} className="slider" id="myRange" onChange={(e) => handleFormData(e, 'gamePoint')}/> {tounamentForm.gamePoint} */}
+          {/* <input type="text" className="form-control" value={tounamentForm.gamePoint} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'gamePoint')}/> */}
         </div>
         <div className="mb-3">
           <label className="form-label">Difficulty Level</label>
@@ -182,7 +186,7 @@ useEffect(() => {
         </div>
         <div className="mb-3">
           <label className="form-label">timer</label>
-          <input type="text" className="form-control" value={tounamentForm.timer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'timer')}/>
+          <input type="number" className="form-control" value={tounamentForm.timer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'timer')}/>
         </div>
         <div className="mb-3 form-check">
           <input type="checkbox" className="form-check-input" value={tounamentForm.isPrivate} onChange={(e) => handleFormData(e, 'isPrivate')}/>
