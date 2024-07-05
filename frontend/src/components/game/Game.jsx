@@ -490,12 +490,6 @@ const computeBallMove = () =>
   }
   else
   {
-    if (vars.ai_offset === 0)
-    {
-      vars.ai_offset = custom.difficulty < 1.1 ? THREE.MathUtils.randFloatSpread(9):0;
-      if (custom.difficulty === 1.3)
-        vars.ai_offset = THREE.MathUtils.randFloatSpread(3);
-    }
     let d = ((CONST.GAMEWIDTH / 2) - objs.ball.position.x) / vars.ballVect.x;
     let aim_y = objs.ball.position.y + d * vars.ballVect.y;
     let tempx = objs.ball.position.x;
@@ -512,6 +506,15 @@ const computeBallMove = () =>
       tempv.y *= -1;
       newd = ((CONST.GAMEWIDTH / 2) - tempx) / tempv.x;
       aim_y = tempy + newd * tempv.y;
+    }
+    if (vars.ai_offset === 0)
+    {
+      let randFactor = 6 + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 2;
+      vars.ai_offset = custom.difficulty < 1.1 ? THREE.MathUtils.randFloatSpread(randFactor):0;
+      if (custom.difficulty === 1.3)
+        vars.ai_offset = THREE.MathUtils.randFloatSpread(5);
+      else if (custom.difficulty > 1.3)
+        vars.ai_offset = THREE.MathUtils.randFloatSpread(3);
     }
     if (activated_powers[0][4] === 2)
       vars.ai_offset *= 2;
@@ -544,12 +547,12 @@ let keyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls) =>
 
 let aiMoveHandle = (invert_controls) =>
 {
-  if (vars.ai_aim < objs.player2.position.y - vars.playerlens[1] / 3)
+  if (vars.ai_aim < objs.player2.position.y)
   {
     keys['AIdown'] = true;
     keys['AIup'] = false;
   }
-  else if (vars.ai_aim > objs.player2.position.y + vars.playerlens[1] / 3)
+  else if (vars.ai_aim > objs.player2.position.y)
   {
     keys['AIup'] = true;
     keys['AIdown'] = false;
