@@ -87,7 +87,7 @@ export default function GameSettings() {
 
   return (
 	<>
-    <div id="initialScreen" className='m-3 h-100'>
+    <div id="initialScreen" className='m-3'>
       <div className="container d-flex flex-column align-items-center justify-content-center h-100">
 				<div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4 ${styles.pageTitle} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-title">
@@ -368,7 +368,7 @@ export default function GameSettings() {
 				</div>
       </div>
 		</div>
-		<p className="text-light">{JSON.stringify(gameSettings)}</p>
+		{/* <p className="text-light">{JSON.stringify(gameSettings)}</p> */}
 	</div>
     </div>
 	</>
