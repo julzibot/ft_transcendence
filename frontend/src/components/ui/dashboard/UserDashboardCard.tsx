@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function UserDashboardCard() {
 	const [DashboardData, setDashboardData] = useState([]);
-	const { data: session} = useSession();
+	const { data: session } = useSession();
 
 	const user_id = session?.user.id;
 	
