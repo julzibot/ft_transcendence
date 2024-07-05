@@ -16,6 +16,13 @@ export default function GameCard({src, gameName, position, move, onClick}) {
     }, 500);
   }
 
+  const handleOnlineButton = () => {
+    onClick()
+    const timer = setTimeout(() => {
+      router.push('/game/online')
+    }, 500);
+  }
+
   const handleMouseEnter = () => {
     if (videoRef.current) {
       videoRef.current.play();
@@ -46,7 +53,7 @@ export default function GameCard({src, gameName, position, move, onClick}) {
         </div>
         <div className="align-items-center justify-content-evenly d-flex mt-5">
           <button className="btn btn-outline-light btn-lg" onClick={handleOfflineButton}>Play Locally</button>
-          <button className="btn btn-outline-light btn-lg" onClick={onClick}>Play Online</button>
+          <button className="btn btn-outline-light btn-lg" onClick={handleOnlineButton}>Play Online</button>
         </div>
       </div>
     </> 
