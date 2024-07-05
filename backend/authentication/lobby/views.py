@@ -7,7 +7,9 @@ from rest_framework import serializers
 
 from .models import LobbyData
 from .serializers import LobbySerializer
+from users.models import UserAccount
 from rest_framework import status
+from django.core.exceptions import ObjectDoesNotExist
 
 import random
 
@@ -23,13 +25,14 @@ class LobbyView(APIView):
         name="InlineFormSerializer",
         fields={
             "name": serializers.CharField(),
-            "numberOfPlayers": serializers.CharField(),
 			"isPrivate": serializers.BooleanField(),
 			"difficultyLevel": serializers.CharField(),
 			"isActiveLobby": serializers.BooleanField(),
 			"pointsPerGame": serializers.CharField(),
 			"timer": serializers.CharField(),
 			"gameName": serializers.CharField(),
+            "powerUps": serializers.BooleanField(),
+            "user_id": serializers.CharField(),
         },
     ),
     description="create Lobby",
@@ -42,47 +45,38 @@ class LobbyView(APIView):
        ), 
        400: OpenApiResponse(description='user not found'),
     }
-	)	
-	
-	def post(self, request):
-		data = request.data
-		powerUpsData = []
-		if 'powerUps' in data:
-			powerUpsData = data["powerUps"]
-		
-		new_lobby = LobbyData.objects.create(name = data['name'], numberOfPlayers = data['numberOfPlayers'], isPrivate = data['isPrivate'],difficultyLevel = data['difficultyLevel'],isActiveLobby = data['isActiveLobby'],pointsPerGame = data['pointsPerGame'],timer = data['timer'], powerUps= powerUpsData, gameName = data['gameName'])
-		return Response({'message':'You have created lobby successfully'}, status=status.HTTP_201_CREATED)	
-
-	@extend_schema(
-    request=inline_serializer(
-        name="lobbyFormSerializer",
-        fields={
-            "lobby_id": serializers.CharField(),
-            "isActiveLobby": serializers.BooleanField(),
-        },
-    ),
-    description="update Lobby",
-    responses={
-       200: inline_serializer(
-           name='UpdateLobbyresponse',
-           fields={
-               'message': serializers.CharField(),
-           }
-       ), 
-       400: OpenApiResponse(description='lobby not found with this id'),
-    }
 	)
-	def put(self,request):
-		data = request.data
+	def post(self, request):
+			data = request.data
+			try:
+				user = UserAccount.objects.get(id=data['user_id'])
+				new_lobby = LobbyData.objects.create(name = data['name'], isPrivate = data['isPrivate'], difficultyLevel = data['difficultyLevel'],pointsPerGame = data['pointsPerGame'],timer = data['timer'], powerUps= data['powerUps'], gameName = data['gameName'], player1=user, )
+				return Response({'message':'You have created lobby successfully'}, status=status.HTTP_201_CREATED)	
+			except ObjectDoesNotExist:
+				return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
 
-		lobbyData = LobbyData.objects.filter(id=data["lobby_id"])
+class LobbyGameView(APIView):
+	def get(self, request, gameName):
+		lobby = LobbyData.objects.filter(Q(isActiveLobby=True) & Q(gameName = gameName))
+		serializer = LobbySerializer(lobby, many=True)
+		return Response(serializer.data)
+
+class LobbyUpdateView(APIView):
+	def put(self,request, lobby_id, user_id):
+		lobbyData = LobbyData.objects.filter(id=lobby_id)
 		serializerLobby = LobbySerializer(lobbyData, many=True)
 
-		if(len(serializerLobby.data) > 0):
-			lobbyData.update(isActiveLobby=data["isActiveLobby"])
-			return Response({'message': 'lobby data has been updated' }, status=status.HTTP_201_CREATED)
-		else:
-			return Response({'message': 'lobby not found with this id'}, status=status.HTTP_404_NOT_FOUND)
+		if(serializerLobby.data[0]['isActiveLobby'] == True):
+			try:
+				user = UserAccount.objects.get(id=user_id)
+				lobbyData.update(player2=user)
+				lobbyData.update(isActiveLobby=False)
+				return Response({'message':'You have updated player2 successfully'}, status=status.HTTP_201_CREATED)	
+			except ObjectDoesNotExist:
+				return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+		else:		
+			return Response({'message': 'Lobby has already 2 players'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 

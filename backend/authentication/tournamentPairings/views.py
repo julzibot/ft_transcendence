@@ -96,6 +96,18 @@ class UpdateWinnerView(APIView):
 		
 		return Response({'message': 'Winner has been updated' }, status=status.HTTP_201_CREATED)	
 
+class FilterView(APIView):
+	def get(self, request, UDID):
+		tournamentPairings = TournamentPairingData.objects.filter(linkToJoin=UDID)
+		serializerPairings = TournamentPairingSerializer(tournamentPairings, many=True)
+		if(len(serializerPairings.data) > 0):
+			tournament = TournamentData.objects.filter(id=serializerPairings.data[0]['tournament_id'])
+			serializerTournament = TournamentSerializer(tournament, many=True)
+			return Response(serializerTournament.data[0], status=status.HTTP_201_CREATED)
+		else:
+			return Response({'message': 'No record found with this UDID' }, status=status.HTTP_201_CREATED)
+
+
 
 
 	

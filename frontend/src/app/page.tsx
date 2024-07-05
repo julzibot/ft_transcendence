@@ -75,7 +75,7 @@ export default function Home() {
       <Container fluid>
       <Row className="justify-content-between">
         <Col>
-          <Lobby/>
+          <Lobby gameName={game} />
         </Col>
         <Col>
           <Tournament gameName={game}/> 
