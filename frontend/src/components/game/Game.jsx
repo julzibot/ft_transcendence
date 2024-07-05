@@ -509,7 +509,7 @@ const computeBallMove = () =>
     }
     if (vars.ai_offset === 0)
     {
-      let randFactor = 6 + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 2;
+      let randFactor = 6.5 + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 3;
       vars.ai_offset = custom.difficulty < 1.1 ? THREE.MathUtils.randFloatSpread(randFactor):0;
       if (custom.difficulty === 1.3)
         vars.ai_offset = THREE.MathUtils.randFloatSpread(5);
