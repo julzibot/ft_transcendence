@@ -32,6 +32,7 @@ class TournamentView(APIView):
 			"pointsPerGame": serializers.CharField(),
 			"timer": serializers.CharField(),
 			"gameName": serializers.CharField(),
+			"powerUps": serializers.BooleanField(),
         },
     ),
     description="create tournament",
@@ -48,7 +49,6 @@ class TournamentView(APIView):
 	
 	def post(self, request):
 		data = request.data
-		powerUpsData = []
 		if 'powerUps' in data:
 			powerUpsData = data["powerUps"]
 		
