@@ -15,10 +15,10 @@ export const GetTournamentData = async (gameName:String) => {
         throw error
     }
 }
-
-export const GetLobbyData = async () => {
+export const GetLobbyData = async (gameName:String) => {
+  // lobby/
   try{
-    const response = await fetch (BASE_URL + `lobby/`,{
+    const response = await fetch (BASE_URL + `lobby/${gameName}`,{
       method: "GET"
     });
     if (!response.ok) {
@@ -70,6 +70,26 @@ export const AddLobbyData = async (payload: any) => {
       console.error('Error adding lobby data:', error)
       throw error
     }
+}
+
+export const HandlePutLobby = async (payload: any) => {
+  try {
+    const response = await fetch(BASE_URL + `lobby/${payload?.lobby_id}/userId/${payload?.user_id}`, {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error adding lobby data:', error)
+    throw error
+  }
 }
 
 export const fetchTournamentInfo = async (tournamentId: number) => {

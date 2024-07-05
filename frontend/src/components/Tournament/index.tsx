@@ -30,11 +30,19 @@ export default function Tournament({ gameName }:props) {
 	  isActiveTournament: false,
 	  gamePoint: 0,
 	  gameLevel: '',
-	  timer: '',
-	  isPrivate: false
+	  timer: '0',
+	  isPrivate: false,
+	  powerUps: false
 	})
 	const [err, setErr] = useState('')
-	
+	const [errField, setErrFields] = useState({
+		name: '',
+		numberOfPlayer: '',
+		isActiveTournament: '',
+		gamePoint: '',
+		gameLevel: '',
+		isPrivate: '',
+	})
 	const handleShow = () => {
 	  setTounamentForm ({
 		name: '',
@@ -42,12 +50,23 @@ export default function Tournament({ gameName }:props) {
 		isActiveTournament: false,
 		gamePoint: 0,
 		gameLevel: '',
-		timer: '',
-		isPrivate: false
+		timer: '0',
+		isPrivate: false,
+		powerUps: false
+	  })
+	  setErrFields({
+		name: '',
+		numberOfPlayer: '',
+		isActiveTournament: '',
+		gamePoint: '',
+		gameLevel: '',
+		isPrivate: '',
 	  })
 	  setModalShow(true)
 	}
-  
+     
+	const [ errshow, setErrShow] = useState(false)
+
 	const handleClose = () => {
 	  setModalShow(false)
 	}
@@ -81,40 +100,125 @@ export default function Tournament({ gameName }:props) {
   const handleFormData = (e, key) => {
 	setTounamentForm({
 	  ...tounamentForm,
-	  [key]: (key === 'isActiveTournament' || key === 'isPrivate') ? e.target.checked : e.target.value
+	  [key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'powerUps') ? e.target.checked : e.target.value
 	})
   }
   
-  const handleSubmitData = async () => {
-	if (tounamentForm?.name === '') {
-	  setErr('Required field')
-	} else {
-	  const payload = {
-		"name": tounamentForm?.name,
-		"numberOfPlayers": tounamentForm?.numberOfPlayer,
-		"isPrivate": tounamentForm?.isPrivate,
-		"difficultyLevel": tounamentForm?.gameLevel,
-		"isActiveTournament": tounamentForm?.isActiveTournament,
-		"pointsPerGame": tounamentForm?.gamePoint,
-		"timer": Number(tounamentForm?.timer),
-		"gameName": gameName
-	  }
-	  try {
-		await AddTournamentData(payload).then((response) => {
-		  handleClose()
-		  fetchTournamentData()
-		})
-	  } catch (error) {
-		console.error('Error :', error)
-	  }
-	}
-  }
-  
+//   const handleError = () => {
+// 	if (tounamentForm?.name === '') {
+// 	//    setErrFields('name')
+//        setErr('Name field Required')
+// 	} else if (tounamentForm?.numberOfPlayer === '') {
+// 	//    setErrFields('numberOfPlayer')
+// 	   setErr('Add Number of player')
+// 	} else if (tounamentForm?.gamePoint === 0) {
+// 		// setErrFields('gamePoint')
+// 		setErr('Add Game point')
+// 	}  else if (tounamentForm?.gameLevel === '') {
+// 		// setErrFields('gameLevel')
+// 		setErr('Add Game point')
+// 	} else if (tounamentForm?.timer === '') {
+// 		// setErrFields('timer')
+// 		setErr('Time field Required')
+// 	} else if (tounamentForm?.isPrivate === false ) {
+// 		// setErrFields('isPrivate')
+// 		setErr('This field Required')
+// 	} else if (tounamentForm?.powerUps === false) {
+// 		// setErrFields('powerUps')
+// 		setErr('Power Ups field Required')
+// 	}
+//   }
+
+//   const handleSubmitData = async () => {
+//     if (tounamentForm?.name !== '' || tounamentForm?.numberOfPlayer !== '' || tounamentForm?.gamePoint !== '' || tounamentForm?.gameLevel !== '' || tounamentForm?.timer !== '' || tounamentForm?.isPrivate !== false || tounamentForm?.powerUps !== false) {
+// 		handleError()
+// 		setErrShow(true)
+// 	}
+
+// 	if (tounamentForm?.name !== '' && tounamentForm?.numberOfPlayer !== '' && tounamentForm?.gamePoint !== '' && tounamentForm?.gameLevel !== '' && tounamentForm?.timer !== '' && tounamentForm?.isPrivate !== false && tounamentForm?.powerUps !== false) {
+// 		setErrShow(false)
+// 		const payload = {
+// 		"name": tounamentForm?.name,
+// 		"numberOfPlayers": tounamentForm?.numberOfPlayer,
+// 		"isPrivate": tounamentForm?.isPrivate,
+// 		"difficultyLevel": tounamentForm?.gameLevel,
+// 		"isActiveTournament": tounamentForm?.isActiveTournament,
+// 		"pointsPerGame": tounamentForm?.gamePoint,
+// 		"timer": Number(tounamentForm?.timer),
+// 		"gameName": gameName,
+// 		"powerUps": tounamentForm?.powerUps,
+// 	  }
+// 	  try {
+// 		await AddTournamentData(payload).then((response) => {
+// 		  handleClose()
+// 		  fetchTournamentData()
+// 		})
+// 	  } catch (error) {
+// 		console.error('Error :', error)
+// 	  }
+// 	} 
+// 	// else {
+// 	// 	// setErr('Required')
+// 	// 	handleError()
+// 	// 	setErrShow(true)
+// 	// }
+//   }
+const handleSubmitData = async () => {
+    let errors = {};
+
+    if (tounamentForm?.name === '') {
+        errors.name = 'Name field Required';
+    }
+    if (tounamentForm?.numberOfPlayer === '') {
+        errors.numberOfPlayer = 'Add Number of player';
+    }
+    if (tounamentForm?.gamePoint === '') {
+        errors.gamePoint = 'Add Game point';
+    } else if (tounamentForm?.gamePoint === 0) {
+        errors.gamePoint = 'Game point should be greater than 0';
+    }
+    if (tounamentForm?.gameLevel === '') {
+        errors.gameLevel = 'Add Game level';
+    }
+    if (tounamentForm?.isPrivate === false) {
+        errors.isPrivate = 'Private field Required';
+    }
+
+    if (Object.keys(errors).length > 0) {
+        // There are errors, set them and show error message
+        setErrFields(errors);
+        setErrShow(true);
+    } else {
+        // No errors, proceed with form submission
+        setErrShow(false);
+
+        const payload = {
+            "name": tounamentForm?.name,
+            "numberOfPlayers": tounamentForm?.numberOfPlayer,
+            "isPrivate": tounamentForm?.isPrivate,
+            "difficultyLevel": tounamentForm?.gameLevel,
+            "isActiveTournament": tounamentForm?.isActiveTournament,
+            "pointsPerGame": tounamentForm?.gamePoint,
+            "timer": Number(tounamentForm?.timer),
+            "gameName": gameName,
+            "powerUps": tounamentForm?.powerUps,
+        };
+
+        try {
+            await AddTournamentData(payload);
+            handleClose();
+            fetchTournamentData();
+        } catch (error) {
+            console.error('Error:', error);
+            // Handle error from API call
+        }
+    }
+};
+
   useEffect(() => {
 	// localStorage.setItem('GameName', JSON.stringify(null))
 	fetchTournamentData()
   }, [])
-  
   return (
 	<div className='d-flex justify-content-end mt-3 vh-100'>
 	<div className='w-100 border rounded p-4' style={{maxWidth:'800px'}}>
@@ -157,25 +261,30 @@ export default function Tournament({ gameName }:props) {
 	  <div className="mb-3">
 		<label className="form-label">Name*</label>
 		<input type="text" className="form-control" value={tounamentForm.name} onChange={(e) => handleFormData(e, 'name')}/>
-		{err && <div className="form-text text-danger">{err}</div>}
+		{/* {err && errField === 'name' && tounamentForm?.name === '' ? <div className="form-text text-danger">{err}</div> : null} */}
+		{errField && tounamentForm?.name === '' ? <div className="form-text text-danger">{errField.name}</div> : ''}
 	  </div>
 	  <div className="mb-3">
-		<label className="form-label">Number Of Players</label>
+		<label className="form-label">Number Of Players*</label>
 		<input type="text" className="form-control" value={tounamentForm.numberOfPlayer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'numberOfPlayer')}/>
+		{/* {err && errField === 'numberOfPlayer' && tounamentForm?.numberOfPlayer === '' || tounamentForm?.numberOfPlayer === '0' ? <div className="form-text text-danger">{err}</div> : null} */}
+		{errField && tounamentForm?.numberOfPlayer === '' ? <div className="form-text text-danger">{errField.numberOfPlayer}</div> : ''}
 	  </div>
 	  {/* <div className="mb-3 form-check">
 		<input type="checkbox" className="form-check-input" value={tounamentForm.isActiveTournament} onChange={(e) => handleFormData(e, 'isActiveTournament')}/>
 		<label className="form-check-label">Is Active Tournament</label>
 	  </div> */}
 	  <div className="mb-3 flex align-items-center">
-	  <label className="form-label">Points Per Game - {tounamentForm.gamePoint}</label>
+	  <label className="form-label">Points Per Game* - {tounamentForm.gamePoint}</label>
 	  <input type="range" className="form-range" min="0" max="100" value={tounamentForm.gamePoint} onChange={(e) => handleFormData(e, 'gamePoint')}/>
+	  {errField &&  tounamentForm?.gamePoint === 0 || tounamentForm?.gamePoint === null ? <div className="form-text text-danger">{errField.gamePoint}</div> : ''}
+	  {/* {err && errField === 'gamePoint' &&  tounamentForm?.gamePoint === 0 || tounamentForm?.gamePoint === null ? <div className="form-text text-danger">{err}</div> : null} */}
 		{/* <label className="form-label me-3">Points Per Game</label> */}
 		{/* <input type="range" min="1" max="100" value={tounamentForm.gamePoint} className="slider" id="myRange" onChange={(e) => handleFormData(e, 'gamePoint')}/> {tounamentForm.gamePoint} */}
 		{/* <input type="text" className="form-control" value={tounamentForm.gamePoint} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'gamePoint')}/> */}
 	  </div>
 	  <div className="mb-3">
-		<label className="form-label">Difficulty Level</label>
+		<label className="form-label">Difficulty Level*</label>
 		<select className="form-select" aria-label="Default select example" value={tounamentForm.gameLevel} onChange={(e) => handleFormData(e, 'gameLevel')}>
 		  <option value={''}>Select Game Level</option>
 		  { 
@@ -184,14 +293,26 @@ export default function Tournament({ gameName }:props) {
 			})
 		  }
 		</select>
+		{/* {err && errField === 'gameLevel' && tounamentForm?.gameLevel === '' ? <div className="form-text text-danger">{err}</div> : null} */}
+		{errField && tounamentForm?.gameLevel === '' ? <div className="form-text text-danger">{errField.gameLevel}</div> : ''}
 	  </div>
 	  <div className="mb-3">
-		<label className="form-label">timer</label>
-		<input type="number" className="form-control" value={tounamentForm.timer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'timer')}/>
+		<label className="form-label">Timer</label>
+		<input type="text" className="form-control" value={tounamentForm.timer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'timer')}/>
+		{/* {err && errField === 'timer' && (tounamentForm?.timer === '' || tounamentForm?.timer === '0') ? <div className="form-text text-danger">{err}</div> : null} */}
 	  </div>
-	  <div className="mb-3 form-check">
-		<input type="checkbox" className="form-check-input" value={tounamentForm.isPrivate} onChange={(e) => handleFormData(e, 'isPrivate')}/>
-		<label className="form-check-label">Is This Private Tournament ?</label>
+	  <div className='d-flex items-center flex-wrap'>
+		<div className="mb-3 form-check me-5">
+			<input type="checkbox" className="form-check-input" value={tounamentForm.isPrivate} onChange={(e) => handleFormData(e, 'isPrivate')}/>
+			<label className="form-check-label">Is This Private Tournament ?*</label>
+			{errField && tounamentForm?.isPrivate === false ? <div className="form-text text-danger">{errField.isPrivate}</div> : ''}
+			{/* {err && errField === 'isPrivate' && tounamentForm?.isPrivate === false ? <div className="form-text text-danger">{err}</div> : null} */}
+		</div>
+		<div className="mb-3 form-check form-switch">
+			<input type="checkbox" className="form-check-input" value={tounamentForm.powerUps} onChange={(e) => handleFormData(e, 'powerUps')}/>
+			<label className="form-check-label">Power ups</label>
+			{/* {err && errField === 'powerUps' && tounamentForm?.powerUps === false ? <div className="form-text text-danger">{err}</div> : null} */}
+		</div>
 	  </div>
 	</form>
 	</Modal.Body>
