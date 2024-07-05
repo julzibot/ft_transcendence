@@ -180,9 +180,6 @@ const handleSubmitData = async () => {
     if (tounamentForm?.gameLevel === '') {
         errors.gameLevel = 'Add Game level';
     }
-    if (tounamentForm?.isPrivate === false) {
-        errors.isPrivate = 'Private field Required';
-    }
 
     if (Object.keys(errors).length > 0) {
         // There are errors, set them and show error message
