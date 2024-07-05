@@ -123,10 +123,7 @@ const Lobby = ({ gameName }: props) => {
 		if (lobbyForm?.difficultyLevel === '') {
 			errors.difficultyLevel = 'Add Game level';
 		}
-		if (lobbyForm?.isPrivate === false) {
-			errors.isPrivate = 'Private field Required';
-		}
-
+		
 		if (Object.keys(errors).length > 0) {
 			// There are errors, set them and show error message
 			setErrorfield(errors);
