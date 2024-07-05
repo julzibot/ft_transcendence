@@ -509,7 +509,7 @@ const computeBallMove = () =>
     }
     if (vars.ai_offset === 0)
     {
-      let randFactor = 6.5 + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 3;
+      let randFactor = 7 + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 4;
       vars.ai_offset = custom.difficulty < 1.1 ? THREE.MathUtils.randFloatSpread(randFactor):0;
       if (custom.difficulty === 1.3)
         vars.ai_offset = THREE.MathUtils.randFloatSpread(5);
@@ -547,12 +547,12 @@ let keyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls) =>
 
 let aiMoveHandle = (invert_controls) =>
 {
-  if (vars.ai_aim < objs.player2.position.y)
+  if (objs.player2.position.y > vars.ai_aim + 0.2)
   {
     keys['AIdown'] = true;
     keys['AIup'] = false;
   }
-  else if (vars.ai_aim > objs.player2.position.y)
+  else if (objs.player2.position.y < vars.ai_aim - 0.2)
   {
     keys['AIup'] = true;
     keys['AIdown'] = false;
