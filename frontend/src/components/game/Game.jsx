@@ -509,15 +509,18 @@ const computeBallMove = () =>
     }
     if (vars.ai_offset === 0)
     {
-      let randFactor = 7 + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 4;
-      vars.ai_offset = custom.difficulty < 1.1 ? THREE.MathUtils.randFloatSpread(randFactor):0;
-      if (custom.difficulty === 1.3)
+      if (custom.difficulty < 1.3)
+      {
+        let randFactor = 5.5 + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 2;
+        vars.ai_offset = THREE.MathUtils.randFloatSpread(randFactor);
+      }
+      else if (custom.difficulty === 1.3)
         vars.ai_offset = THREE.MathUtils.randFloatSpread(5);
       else if (custom.difficulty > 1.3)
         vars.ai_offset = THREE.MathUtils.randFloatSpread(3);
+      if (activated_powers[0][4] === 2)
+        vars.ai_offset *= 2;
     }
-    if (activated_powers[0][4] === 2)
-      vars.ai_offset *= 2;
     return aim_y + vars.ai_offset;
   }
 }
@@ -878,7 +881,6 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
       const ai_time = performance.now();
       if (ai_time - vars.ai_timer >= 1000)
       {
-        console.log("TOP");
         vars.ai_timer = ai_time;
         vars.ai_aim = computeBallMove();
       }
