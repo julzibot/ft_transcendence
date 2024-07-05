@@ -7,12 +7,15 @@ import Link from "next/link"
 import { SocketContext, socket } from "../../../../context/socket"
 import ColorSliderPicker from '../../../components/game/ColorPalette'
 import './styles.css'
+import styles from './GameSettingsStyles.module.css'
 
 export default function GameSettings() {
 
   const { data: session, status } = useSession();
 	const [userId, setUserId] = useState(null);
 	const [palette, setPalette] = useState(false);
+	const [isTranslated, setIsTranslated] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
 	const [gameSettings, setGameSettings] = useState({
 		userId: -1,
@@ -30,6 +33,10 @@ export default function GameSettings() {
 	
 	useEffect(() => {
 		localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 300);
+		return () => clearTimeout(timer)
 	}, [gameSettings]);
 	
 	useEffect(() => {
@@ -80,9 +87,9 @@ export default function GameSettings() {
 
   return (
 	<>
-    <div id="initialScreen" className=" m-3 h-100">
+    <div id="initialScreen" className='m-3 h-100'>
       <div className="container d-flex flex-column align-items-center justify-content-center h-100">
-				<div className="card mt-1 mb-4 m-2 p-1 ps-4 pe-4">
+				<div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4 ${styles.pageTitle} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-title">
       		  <h2 className="mt-3">Pong Game Settings</h2>
 					</div>
@@ -280,7 +287,7 @@ export default function GameSettings() {
 			</div>
 		</div>
 
-				<div className="card">
+				<div className={`card ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-body">
 
         <div className="d-flex flex-column align-items-center">
@@ -361,7 +368,7 @@ export default function GameSettings() {
 				</div>
       </div>
 		</div>
-		<p>{JSON.stringify(gameSettings)}</p>
+		<p className="text-light">{JSON.stringify(gameSettings)}</p>
 	</div>
     </div>
 	</>

@@ -12,7 +12,7 @@
   opacity: 0.9;
   position: relative;
   align-items: center;
-  transition: transform 0.5s ease-in-out, box-shadow 1.5s, border 1.5s, opacity 0.5s;
+  transition: transform 0.8s ease, box-shadow 1.5s, border 1.5s, opacity 0.5s;
 }
 
 .gameCard:hover {
@@ -52,4 +52,12 @@
 
 .right {
   transform: translateX(50vw);
+}
+
+.gameCard:hover.left {
+  transform: translateX(-50vw) scale(1.1);
+}
+
+.gameCard:hover.right {
+  transform: translateX(50vw) scale(1.1);
 }

@@ -34,10 +34,10 @@ export default function Home() {
     setGame(game);
   }, [game])
   
-  const handleGame = (gameName) => {
-    // localStorage.setItem('gameName', JSON.stringify(gameName))
-    router.push(`/tournaments/${gameName}`)
-  }
+  // const handleGame = (gameName) => {
+  //   // localStorage.setItem('gameName', JSON.stringify(gameName))
+  //   // router.push(`/tournaments/${gameName}`)
+  // }
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
