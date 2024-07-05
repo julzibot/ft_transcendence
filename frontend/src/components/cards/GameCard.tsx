@@ -1,11 +1,20 @@
 import { useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import styles from './GameCard.module.css'
+import Link from 'next/link'
 
 export default function GameCard({src, gameName, position, move, onClick}) {
   const videoRef = useRef(null)
+  const router = useRouter()
 
   const direction = position === 'left' ? styles.left : styles.right;
 
+  const handleOfflineButton = () => {
+    onClick()
+    const timer = setTimeout(() => {
+      router.push('/game/local')
+    }, 500);
+  }
 
   const handleMouseEnter = () => {
     if (videoRef.current) {
@@ -36,7 +45,7 @@ export default function GameCard({src, gameName, position, move, onClick}) {
           </video>
         </div>
         <div className="align-items-center justify-content-evenly d-flex mt-5">
-          <button className="btn btn-outline-light btn-lg" onClick={onClick}>Play Locally</button>
+          <button className="btn btn-outline-light btn-lg" onClick={handleOfflineButton}>Play Locally</button>
           <button className="btn btn-outline-light btn-lg" onClick={onClick}>Play Online</button>
         </div>
       </div>
