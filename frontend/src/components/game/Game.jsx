@@ -572,7 +572,17 @@ let aiMoveHandle = (invert_controls) =>
 
 let aiPuHandle = () =>
 {
-  
+  const pu = player_powerUps[1];
+  if (pu >= 0)
+  {
+    if ((pu === 0 && vars.ballVect.x > 0)
+      || (pu === 1 && vars.adjustedBallSpeed > 0.8 * CONST.BALLSPEED_MAX)
+      || (pu === 2 && vars.ballVect.x > 0 && vars.adjustedBallSpeed > 0.9 * CONST.BALLSPEED_MAX && Math.abs(vars.ai_aim - objs.ball.position.y) > CONST.GAMEHEIGHT / 4)
+      || pu === 3 || pu === 4)
+      {
+        activate_power(1);
+      }
+  }
 }
 
 const local_update = (gamemode) =>
@@ -592,6 +602,7 @@ const local_update = (gamemode) =>
     let pauseStart = performance.now();
     while (performance.now() - pauseStart < 2000) ;
   }
+
   if (keys['Space'] && custom.power_ups === true)
     activate_power(0);
   if (keys['ArrowRight'] && gamemode === 0 && custom.power_ups === true)
