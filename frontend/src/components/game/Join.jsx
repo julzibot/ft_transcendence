@@ -6,12 +6,57 @@ import ThreeScene from '../game/Game';
 
 export default function Join({ remoteGame }) {
 
-	const [gameSettings, setGameSettings] = useState(() => {
-		const fetchedSettings = localStorage.getItem('gameSettings');
-		const parsedSettings = JSON.parse(fetchedSettings);
-		console.log('fetched settings: ' + fetchedSettings);
-		return parsedSettings || "";
+	const { data: session, status } = useSession();
+	const [userId, setUserId] = useState(null);
+	const [gameSettings, setGameSettings] = useState({
+		userId: -1,
+
+		background: 0, // 0 - 3 animated, 4 - 5 static
+		palette: 0, // palette: 4 choices
+		bgColor: '#ff0000',
+		opacity: 80,
+		sparks: true,
+	
+		gameDifficulty: 4,
+		pointsToWin: 5,
+		powerUps: true
 	});
+
+	useEffect(() => {
+		if (status === "authenticated" && session) {
+			setUserId(session.user.id);
+		}
+	}, [session, status]);
+
+	useEffect(() => {
+		const fetchSettings = async () => {
+			if (userId) {
+				const response = await fetch(`http://localhost:8000/api/gameCustomization/${userId}`, {
+					method: 'GET'
+				});
+			}
+			if (response.ok) {
+				const fetched = await response.json();
+				const data = fetched.data;
+				setGameSettings({
+					...gameSettings,
+					userId: userId,
+					background: data.background,
+					palette: data.palette,
+					bgColor: data.bgColor,
+					opacity: data.opacity,
+					sparks: data.sparks
+				});
+			}
+		}
+		fetchSettings();
+	}, [userId]);
+	// const [gameSettings, setGameSettings] = useState(() => {
+	// 	const fetchedSettings = localStorage.getItem('gameSettings');
+	// 	const parsedSettings = JSON.parse(fetchedSettings);
+	// 	console.log('fetched settings: ' + fetchedSettings);
+	// 	return parsedSettings || "";
+	// });
 
 	console.log('[Join] Game Settings: ' + JSON.stringify(gameSettings));
 	if (remoteGame === true) {
