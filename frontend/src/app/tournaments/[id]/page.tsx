@@ -20,11 +20,14 @@ function DetailsPage() {
   const [session, setIsSession] = useState()
   const [nextRound, setNextRound] = useState(false)
   const [leaveOff, setLeaveOff] = useState(false)
+  const [loading, setLoading] = useState(false)
+
   const handleSingleTournament = async () => {
     try {
       await fetchTournamentInfo(param?.id).then((response) => {
         setTournamentData(response?.data)
         init(response?.data)
+        setLoading(false)
       })
     } catch (error) {
       console.error('Error : ', error)
@@ -32,11 +35,13 @@ function DetailsPage() {
   }
   
   const joinParticipants = async () => {
+    setLoading(true)
     try {
       await joinTournament(tournamentData?.detail[0]?.id, session?.user?.id).then((response) => {
         if (response) {
           setIsparticipent(true)
           handleSingleTournament()
+          setLoading(false)
         }
       }) 
     } catch (error) {
@@ -58,6 +63,7 @@ function DetailsPage() {
   } 
   
   useEffect(() => {
+    setLoading(true)
     if (!onceUpdate) {
       setOnceUpdate(true)
       handleSingleTournament()
@@ -82,8 +88,9 @@ function DetailsPage() {
         setJoin(true)
       }
     }
-    
+  
     if (data?.detail[0]?.numberOfPlayers === data?.particpants?.length) {
+      setLoading(true)
       const defaultRoundID = data?.detail[0]?.round > 0 ? data?.detail[0]?.round : 1
       await createMatchMakingTournament(data?.detail[0]?.id, defaultRoundID).then(async (res) => {
         if (res?.particpants === undefined) {
@@ -92,6 +99,7 @@ function DetailsPage() {
               handlePlayerKey(res?.particpants)
               setParticipantData(res?.particpants)
               setLeaveOff(true)
+              setLoading(false)
             })
           })
         } else {
@@ -109,6 +117,7 @@ function DetailsPage() {
               setLeaveOff(true)
             }
           }
+          setLoading(false)
         }
       })
     }
@@ -159,56 +168,60 @@ function DetailsPage() {
             }
           </div> }
         </div>
-        <div className='py-4'>
-            { tournamentData?.detail?.length > 0 && tournamentData?.detail.map((items,) => {
-              return (
-                <ul key={items?.name} style={{ listStyle:'none'}} className='p-0'>
-                  <li className="fw-bold fs-5">{items?.name}</li>
-                  <li> Number of Player : {items?.numberOfPlayers ? items?.numberOfPlayers : ' -- ' }</li>
-                  <li> Per Game points : {items?.pointsPerGame ? items?.pointsPerGame : ' -- ' }</li>
-                  <li> Timer : {items?.timer ? items?.timer : ' -- ' }</li>
-                </ul>
-              )
-            })}
-            {tournamentData?.particpants?.length > 0 ? '' : <p className='text-center'> No particpants Added </p>}
-        </div>
-        {tournamentData?.particpants?.length > 0  && <div className='py-2'>
-          <h5 className='mb-2 fw-bold'>Tournament Participants</h5>
-            { tournamentData?.particpants.map((items, i) => {
-              return (
-                <ul key={items?.user_id} style={{ listStyle:'none'}} className='p-0'>
-                  <li>{i+1}. {items?.user_name}</li>
-                </ul>
-              )
-            })}
-        </div>}
-        {participantData?.length > 0  && <div className='py-2 overflow-auto' style={{ height:'auto'}}>
-            { participantData?.map((items, index) => {
-              return (
-                <div key={items?.linkToJoin}>
-                  {index === 0 && <h4 className='mb-3 fw-bold text-center'>Round : {items.round_id}</h4>}
-                  <ul key={items?.user_id} style={{ listStyle:'none'}} className='p-0'>
-                      {participantKey.map((v,i) => {
-                        const player = v.replace('_name', '')
-                       return(
-                         <li key={i}>
-                            <div className='d-flex align-items-center justify-content-between'>
-                              {items?.[v] && tournamentData?.detail[0]?.tournamentWinner === null && <p className='mb-2'>{items?.[v]} <span style={{color:"#20c620", fontSize:'14px'}}>{items?.[player] === items?.winner? '- WINNER' : ''}</span></p> }
-                              {items?.[v] && tournamentData?.detail[0]?.tournamentWinner && <p className='mb-2'>{items?.[v]} <span style={{color:"#20c620", fontSize:'14px'}}>{items?.[player] === tournamentData?.detail[0]?.tournamentWinner ? '- WINNER' : ''}</span></p> }
-                              {items[player] === session?.user?.id && <p className='mb-2' style={{ fontSize:'14px'}}><Link href={items?.linkToJoin}>{items?.linkToJoin}</Link></p>}
-                            </div>
-                          </li>
-                       ) 
-                      })}
+          <div className='py-4'>
+              { tournamentData?.detail?.length > 0 && tournamentData?.detail.map((items,) => {
+                return (
+                  <ul key={items?.name} style={{ listStyle:'none'}} className='p-0'>
+                    <li className="fw-bold fs-5">{items?.name}</li>
+                    <li> Number of Player : {items?.numberOfPlayers ? items?.numberOfPlayers : ' -- ' }</li>
+                    <li> Per Game points : {items?.pointsPerGame ? items?.pointsPerGame : ' -- ' }</li>
+                    <li> Timer : {items?.timer ? items?.timer : ' -- ' }</li>
                   </ul>
-                </div>
-              )
-            })}
-        </div>}
-       {nextRound && <div className='text-end'>
-          <button type='button' className='btn btn-primary' onClick={handleNextGame}>Next Round</button>
-        </div>}
-      </div>
+                )
+              })}
+              { !loading && tournamentData?.particpants?.length === 0 && <p className='text-center'> No particpants Added </p>}
+          </div>
+          {tournamentData?.particpants?.length > 0  && <div className='py-2'>
+            <h5 className='mb-2 fw-bold'>Tournament Participants</h5>
+              { tournamentData?.particpants.map((items, i) => {
+                return (
+                  <ul key={items?.user_id} style={{ listStyle:'none'}} className='p-0'>
+                    <li>{i+1}. {items?.user_name}</li>
+                  </ul>
+                )
+              })}
+          </div>}
+          {participantData?.length > 0  && <div className='py-2 overflow-auto' style={{ height:'auto'}}>
+              { participantData?.map((items, index) => {
+                return (
+                  <div key={items?.linkToJoin}>
+                    {index === 0 && <h4 className='mb-3 fw-bold text-center'>Round : {items.round_id}</h4>}
+                    <ul key={items?.user_id} style={{ listStyle:'none'}} className='p-0'>
+                        {participantKey.map((v,i) => {
+                          const player = v.replace('_name', '')
+                        return(
+                          <li key={i}>
+                              <div className='d-flex align-items-center justify-content-between'>
+                                {items?.[v] && tournamentData?.detail[0]?.tournamentWinner === null && <p className='mb-2'>{items?.[v]} <span style={{color:"#20c620", fontSize:'14px'}}>{items?.[player] === items?.winner? '- WINNER' : ''}</span></p> }
+                                {items?.[v] && tournamentData?.detail[0]?.tournamentWinner && <p className='mb-2'>{items?.[v]} <span style={{color:"#20c620", fontSize:'14px'}}>{items?.[player] === tournamentData?.detail[0]?.tournamentWinner ? '- WINNER' : ''}</span></p> }
+                                {items[player] === session?.user?.id && <p className='mb-2' style={{ fontSize:'14px'}}><Link href={items?.linkToJoin}>{items?.linkToJoin}</Link></p>}
+                              </div>
+                            </li>
+                        ) 
+                        })}
+                    </ul>
+                  </div>
+                )
+              })}
+          </div>}
+          {nextRound && <div className='text-end'>
+            <button type='button' className='btn btn-primary' onClick={handleNextGame}>Next Round</button>
+          </div>}
+          {loading && <p className='text-center'>
+              <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              <span role="status">Loading...</span>
+          </p> }
+        </div>
     </div>
   )
 }
