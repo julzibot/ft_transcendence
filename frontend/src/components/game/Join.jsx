@@ -51,12 +51,6 @@ export default function Join({ remoteGame }) {
 		}
 		fetchSettings();
 	}, [userId]);
-	// const [gameSettings, setGameSettings] = useState(() => {
-	// 	const fetchedSettings = localStorage.getItem('gameSettings');
-	// 	const parsedSettings = JSON.parse(fetchedSettings);
-	// 	console.log('fetched settings: ' + fetchedSettings);
-	// 	return parsedSettings || "";
-	// });
 
 	console.log('[Join] Game Settings: ' + JSON.stringify(gameSettings));
 	if (remoteGame === true) {
@@ -66,7 +60,7 @@ export default function Join({ remoteGame }) {
 		const [isHost, setIsHost] = useState(false);
 		const room_id = 5;
 
-		socket.emit('join_room', { room_id: room_id, user_id: gameSettings['userId'] });
+		socket.emit('join_room', { room_id: room_id, user_id: userId });
 
 		useEffect(() => {
 			socket.on('isHost', () => {
@@ -80,7 +74,7 @@ export default function Join({ remoteGame }) {
 		console.log("[JOIN] GAME SETTINGS" + JSON.stringify(gameSettings));
 		return (
 			<>
-				{gameJoined ? <ThreeScene gameSettings={gameSettings} room_id={room_id} user_id={gameSettings.userId} isHost={isHost} gamemode={2} /> : <div>Loading game...</div>}
+				{gameJoined ? <ThreeScene gameSettings={gameSettings} room_id={room_id} user_id={userId} isHost={isHost} gamemode={2} /> : <div>Loading game...</div>}
 			</>
 			)
 	}
@@ -88,7 +82,7 @@ export default function Join({ remoteGame }) {
 	{
 		return (
 			<>
-				<ThreeScene gameSettings={gameSettings} room_id={-1} user_id={gameSettings.userId} isHost={true} gamemode={0}/>
+				<ThreeScene gameSettings={gameSettings} room_id={-1} user_id={userId} isHost={true} gamemode={0}/>
 			</>
 			)
 	}
