@@ -25,8 +25,6 @@ export default function GameSettings() {
 		powerUps: true
 	});
 
-	localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
-
 	useEffect(() => {
 		if (status === "authenticated" && session) {
 			setUserId(session.user.id);

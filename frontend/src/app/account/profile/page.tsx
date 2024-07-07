@@ -36,8 +36,6 @@ export default function ProfilePage() {
 		powerUps: true
 	});
 
-	localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
-
 	const router = useRouter()
 
 	async function changePassword(event: FormEvent<HTMLFormElement>) {

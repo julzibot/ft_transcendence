@@ -7,8 +7,6 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 
 	const [palette, setPalette] = useState(false);
 
-	localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
-
 	useEffect(() => {
 		const fetchGameSettings = async () => {
 			if (userId) {
@@ -70,7 +68,6 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 		const response = await fetch('http://localhost:8000/api/gameCustomization/', requestData);
 		const data = await response.json();
 		console.log(data);
-		localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
 	}
 
 	return (
