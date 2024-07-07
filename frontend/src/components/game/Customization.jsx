@@ -6,19 +6,6 @@ import ColorSliderPicker from './ColorPalette'
 export default function Customization({ updateSettings, gameSettings, userId }) {
 
 	const [palette, setPalette] = useState(false);
-	// const [gameSettings, setGameSettings] = useState({
-	// 	userId: -1,
-
-	// 	background: 0, // 0 - 3 animated, 4 - 5 static
-	// 	palette: 0, // palette: 4 choices
-	// 	bgColor: '#ff0000',
-	// 	opacity: 80,
-	// 	sparks: true,
-
-	// 	gameDifficulty: 4,
-	// 	pointsToWin: 5,
-	// 	powerUps: true
-	// });
 
 	localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
 
