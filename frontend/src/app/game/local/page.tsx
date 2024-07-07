@@ -10,7 +10,6 @@ export default function GameSettings() {
 
 	const { data: session, status } = useSession();
 	const [userId, setUserId] = useState(null);
-	// const [palette, setPalette] = useState(false);
 
 	const [gameSettings, setGameSettings] = useState({
 		userId: -1,
