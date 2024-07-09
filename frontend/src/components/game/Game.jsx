@@ -189,6 +189,7 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
     objs.ballWrap.position.set(0, 0, 0);
     vars.ballSpeed = CONST.BASE_BALLSPEED;
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
+    vars.ai_aim = 0;
     setBallColor();
     if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score)
         vars.stopGame = true;
@@ -387,7 +388,7 @@ const collisionLogic = (room_id, socket, gamemode) =>
     vars.ballVect.y *= -1;
     if (gamemode === 2)
       socket.emit('sendWallCollision', {room_id: room_id});
-    if (custom.sparks === true)
+    if (custom.sparks === true && particleEffects.length < 4)
       createSparks();
   }
 
@@ -451,7 +452,7 @@ const remote_update = (socket, user_id, isHost) =>
   }
 }
 
-const activate_power = ( i ) =>
+const activate_power = (i) =>
 {
   if (player_powerUps[i] > -1)
   {
@@ -468,84 +469,146 @@ const activate_power = ( i ) =>
       objs.player1.scale.y = 1.4;
     else
       objs.player2.scale.y = 1.4;
+    vars.playerlens[i] *= 1.4;
+    activated_powers[i][0] = 2;
   }
   else if (activated_powers[i][2] === 1)
   {
     power_timers[i][2] = performance.now();
     vars.bulletTime = 0.4;
+    activated_powers[i][2] = 2;
   }
 }
 
-const local_update = () =>
+const computeBallMove = () =>
 {
-  let playerlen = [CONST.PLAYERLEN, CONST.PLAYERLEN];
+  if (vars.ballVect.x < 0)
+  {
+    if (vars.ai_offset != 0)
+      vars.ai_offset = 0;
+    return 0;
+  }
+  else
+  {
+    let d = ((CONST.GAMEWIDTH / 2) - objs.ball.position.x) / vars.ballVect.x;
+    let aim_y = objs.ball.position.y + d * vars.ballVect.y;
+    let tempx = objs.ball.position.x;
+    let tempy = objs.ball.position.y;
+    let tempv = new THREE.Vector2(vars.ballVect.x, vars.ballVect.y);
+    let newd = d;
+    let ydir = 1;
+    while (Math.abs(aim_y) > CONST.GAMEHEIGHT / 2)
+    {
+      ydir = tempv.y < 0 ? -1:1;
+      d = (ydir * (CONST.GAMEHEIGHT / 2) - tempy) / tempv.y;
+      tempx += tempv.x * d;
+      tempy = ydir * CONST.GAMEHEIGHT / 2;
+      tempv.y *= -1;
+      newd = ((CONST.GAMEWIDTH / 2) - tempx) / tempv.x;
+      aim_y = tempy + newd * tempv.y;
+    }
+    if (vars.ai_offset === 0)
+    {
+      if (custom.difficulty < 1.3)
+      {
+        let randFactor = 5.5 + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 2;
+        vars.ai_offset = THREE.MathUtils.randFloatSpread(randFactor);
+      }
+      else if (custom.difficulty === 1.3)
+        vars.ai_offset = THREE.MathUtils.randFloatSpread(5);
+      else if (custom.difficulty > 1.3)
+        vars.ai_offset = THREE.MathUtils.randFloatSpread(3);
+      if (activated_powers[0][4] === 2)
+        vars.ai_offset *= 2;
+    }
+    return aim_y + vars.ai_offset;
+  }
+}
+  
+let keyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls) =>
+{
+  const blockLen = CONST.GAMEHEIGHT / 2 - vars.playerlens[player_id] / 2;
+  let opp_id = 0;
+  if (player_id === 0)
+    opp_id = 1;
+
+  if (keys[keyUp] || keys[keyDown])
+    vars.playerspeed[player_id] = Math.min(vars.playerspeed[player_id] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+  else
+    vars.playerspeed[player_id] = CONST.BASE_PLAYERSPEED;
+  if (keys[keyUp] && ((invert_controls == 1 && player_y < blockLen)
+    || (invert_controls == -1 && player_y > -blockLen))) {
+  player_y += vars.playerspeed[player_id] * invert_controls;
+  }
+  if (keys[keyDown] && ((invert_controls == -1 && player_y < blockLen)
+    || (invert_controls == 1 && player_y > -blockLen))) {
+  player_y -= vars.playerspeed[player_id] * invert_controls;
+  }
+
+  return player_y;
+}
+
+let aiMoveHandle = (invert_controls) =>
+{
+  if (objs.player2.position.y > vars.ai_aim + 0.2)
+  {
+    keys['AIdown'] = true;
+    keys['AIup'] = false;
+  }
+  else if (objs.player2.position.y < vars.ai_aim - 0.2)
+  {
+    keys['AIup'] = true;
+    keys['AIdown'] = false;
+  }
+  else
+  {
+    if (keys['AIdown'] === true)
+      keys['AIdown'] = false;
+    if (keys['AIup'] === true)
+      keys['AIup'] = false;
+  }
+  return keyPressHandle('AIup', 'AIdown', 1, objs.player2.position.y, invert_controls);
+}
+
+let aiPuHandle = () =>
+{
+  const pu = player_powerUps[1];
+  if (pu >= 0)
+  {
+    if ((pu === 0 && vars.ballVect.x > 0)
+      || (pu === 1 && vars.adjustedBallSpeed > 0.8 * CONST.BALLSPEED_MAX)
+      || (pu === 2 && vars.ballVect.x > 0 && vars.adjustedBallSpeed > 0.9 * CONST.BALLSPEED_MAX && Math.abs(vars.ai_aim - objs.ball.position.y) > CONST.GAMEHEIGHT / 4)
+      || pu === 3 || pu === 4)
+      {
+        activate_power(1);
+      }
+  }
+}
+
+const local_update = (gamemode) =>
+{
   let invert_controls = [1, 1];
-  if (custom.power_ups && activated_powers[0][0] === 1)
-    playerlen[0] = 1.4 * CONST.PLAYERLEN;
-  if (custom.power_ups && activated_powers[1][0] === 1)
-    playerlen[1] = 1.4 * CONST.PLAYERLEN;
-  let blockLen = [CONST.GAMEHEIGHT / 2 - playerlen[0] / 2, CONST.GAMEHEIGHT / 2 - playerlen[1] / 2];
-  if (keys['ArrowUp'] || keys['ArrowDown'])
-    vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
-  else
-    vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
-  if (keys['KeyW'] || keys['KeyS'])
-    vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
-  else
-    vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
+  invert_controls[0] = activated_powers[1][3] === 2 ? -1 : 1;
+  invert_controls[1] = activated_powers[0][3] === 2 ? -1 : 1;
 
-  if (keys['ArrowUp'] || keys['ArrowDown'])
-    invert_controls[1] = activated_powers[0][3] === 2 ? -1 : 1;
-  if (keys['ArrowUp'] && ((invert_controls[1] == 1 && objs.player2.position.y < blockLen[1])
-                        || (invert_controls[1] == -1 && objs.player2.position.y > -blockLen[1]))) {
-    objs.player2.position.y += vars.playerspeed[1] * invert_controls[1];
-  }
-  if (keys['ArrowDown']  && ((invert_controls[1] == -1 && objs.player2.position.y < blockLen[1])
-                          || (invert_controls[1] == 1 && objs.player2.position.y > -blockLen[1]))) {
-    objs.player2.position.y -= vars.playerspeed[1] * invert_controls[1];
-  }
-  if (keys['KeyW'] || keys['KeyS'])
-    invert_controls[0] = activated_powers[1][3] === 2 ? -1 : 1;
-  if (keys['KeyW'] && ((invert_controls[0] == 1 && objs.player1.position.y < blockLen[0])
-                    || (invert_controls[0] == -1 && objs.player1.position.y > -blockLen[0]))) {
-    objs.player1.position.y += vars.playerspeed[0] * invert_controls[0];
-  }
-  if (keys['KeyS'] && ((invert_controls[0] == -1 && objs.player1.position.y < blockLen[0])
-                    || (invert_controls[0] == 1 && objs.player1.position.y > -blockLen[0]))) {
-    objs.player1.position.y -= vars.playerspeed[0] * invert_controls[0];
-  }
-  if (keys['KeyR']) {
-    objs.ball.position.set(0,0,0);
-    objs.ballWrap.position.set(0,0,0);
-    vars.ballSpeed = CONST.BASE_BALLSPEED;
-    vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
-    vars.ballVect.set(-1, 0, 0);
-    tools.scene.remove(vars.scoreMsg);
-    vars.p1Score = 0;
-    vars.p2Score = 0;
+  objs.player1.position.y = keyPressHandle('KeyW', 'KeyS', 0, objs.player1.position.y, invert_controls[0]);
 
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p1textMesh, "0", 0, -1, 3.5)} );
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p2textMesh, "0", 0, -1, 3.5)} );
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.endMsgMesh, "", 4, -1, 3)} );
-    objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
-    objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
-    tools.camera.position.set(0, 0, 20);
-    tools.camera.lookAt(0, 0, 0);
-    vars.stopGame = false;
-  }
+  if (gamemode === 0)
+    objs.player2.position.y = keyPressHandle('ArrowUp', 'ArrowDown', 1, objs.player2.position.y, invert_controls[1]);
+  else
+    objs.player2.position.y = aiMoveHandle(invert_controls[1]);
+
   if (keys['KeyP']) {
     let pauseStart = performance.now();
     while (performance.now() - pauseStart < 2000) ;
   }
-  if (keys['Space'] && custom.power_ups === true) {
+
+  if (keys['Space'] && custom.power_ups === true)
     activate_power(0);
-  }
-  if (keys['ArrowRight'] && custom.power_ups === true) {
+  if (keys['ArrowRight'] && gamemode === 0 && custom.power_ups === true)
     activate_power(1);
-  }
+  else if (gamemode === 1 && custom.power_ups === true)
+    aiPuHandle();
 }
 
 async function CreateGame()
@@ -747,16 +810,17 @@ const check_pu_timers = () =>
   const timestamp = performance.now()
   for (let i = 0; i < 2; i++)
   {
-    if (activated_powers[i][0] === 1 && timestamp - power_timers[i][0] > 10000)
+    if (activated_powers[i][0] === 2 && timestamp - power_timers[i][0] > 10000)
     {
       if (i === 0)
         objs.player1.scale.y = 1;
       else
         objs.player2.scale.y = 1;
+      vars.playerlens[i] = CONST.PLAYERLEN;
       activated_powers[i][0] = 0;
       objs.puGaugeLights[i][0].intensity = 0;
     }
-    if (activated_powers[i][2] === 1 && timestamp - power_timers[i][2] > 5000)
+    if (activated_powers[i][2] === 2 && timestamp - power_timers[i][2] > 5000)
     {
       activated_powers[i][2] = 0;
       objs.puGaugeLights[i][2].intensity = 0;
@@ -823,7 +887,16 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
       check_pu_timers();
     objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
     objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
-    if (gamemode === 2)
+    if (gamemode === 1)
+    {
+      const ai_time = performance.now();
+      if (ai_time - vars.ai_timer >= 1000)
+      {
+        vars.ai_timer = ai_time;
+        vars.ai_aim = computeBallMove();
+      }
+    }
+    else if (gamemode === 2)
       socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id})
   }
   const x = objs.ball.position.x;
@@ -841,7 +914,7 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
   if (gamemode === 2)
     remote_update(socket, user_id, isHost);
   else
-    local_update();
+    local_update(gamemode);
   // tools.controls.update();
   tools.stats.update();
     
@@ -921,6 +994,7 @@ export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gam
 	console.log("[ThreeScene] game settings: " + JSON.stringify(gameSettings))
   const containerRef = useRef(null);
 	let socket = -1;
+  gamemode = 1;
   if (gamemode === 2)
     socket = useContext(SocketContext);
   
@@ -951,21 +1025,10 @@ export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gam
 			tools.scene.add( csts.ballLight );
       
       let quaternion = new THREE.Quaternion();
-			if (custom.pov === "classic")
-      {
-        tools.camera.position.set(custom.classicCamPos.x, custom.classicCamPos.y, custom.classicCamPos.z);
-        // quaternion.setFromAxisAngle(custom.classicCamPos.clone().normalize(), -Math.PI / 2);
-        // tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-        tools.camera.lookAt(0, 2.5, 0);
-      }
-      else if (custom.pov === "immersive")
-      {
-        tools.camera.position.set(custom.immersiveCamPos.x, custom.immersiveCamPos.y, custom.immersiveCamPos.z);
-        tools.camera.lookAt(0, 0, 0);
-        quaternion.setFromAxisAngle(custom.immersiveCamPos.clone().normalize(), -Math.PI / 2);
-        tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-        tools.camera.fov = 75;
-      }
+      tools.camera.position.set(custom.classicCamPos.x, custom.classicCamPos.y, custom.classicCamPos.z);
+      // quaternion.setFromAxisAngle(custom.classicCamPos.clone().normalize(), -Math.PI / 2);
+      // tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
+      tools.camera.lookAt(0, 2.5, 0);
       
       let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
       // console.log(tools.camera.projectionMatrix);
@@ -1005,6 +1068,9 @@ export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gam
       custom.win_score = gameSettings.pointsToWin;
       custom.power_ups = gameSettings.powerUps;
       custom.sparks = gameSettings.sparks;
+
+      if (gamemode === 1)
+        vars.ai_timer = startTime;
       
       trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
       trail.trailMaterial = new THREE.MeshBasicMaterial( {color: 0xffffff, opacity: 0, transparent: true} );
@@ -1036,14 +1102,13 @@ export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gam
         {printGameInfo(font, vars.latentMesh[1], "none", 3, 1, 0.85)} );
       }
       
-      
       document.addEventListener('keydown', function(event) { keys[event.code] = true; });
       document.addEventListener('keyup', function(event) { keys[event.code] = false; });
       
       if (gamemode === 2)
         init_socket(socket, isHost);
-      if (gamemode === 0 || (gamemode === 2 && socket && user_id))
-      animate(socket, room_id, user_id, isHost, gamemode);
+      if (gamemode < 2 || (gamemode === 2 && socket && user_id))
+        animate(socket, room_id, user_id, isHost, gamemode);
 		}, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
