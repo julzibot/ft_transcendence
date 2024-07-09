@@ -125,6 +125,7 @@ vars.ballFloorPos = 0;
 
 vars.ai_aim = 0;
 vars.ai_offset = 0;
+vars.ai_invert = 1;
 
 vars.dotProduct = 0;
 vars.stopGame = false;

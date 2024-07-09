@@ -531,6 +531,8 @@ let keyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls) =>
   let opp_id = 0;
   if (player_id === 0)
     opp_id = 1;
+  else
+    invert_controls *= vars.ai_invert;
 
   if (keys[keyUp] || keys[keyDown])
     vars.playerspeed[player_id] = Math.min(vars.playerspeed[player_id] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
@@ -544,7 +546,6 @@ let keyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls) =>
     || (invert_controls == 1 && player_y > -blockLen))) {
   player_y -= vars.playerspeed[player_id] * invert_controls;
   }
-
   return player_y;
 }
 
@@ -765,6 +766,7 @@ const createPowerUp = () =>
   else if (powerTypeRoll < 8) {powerType = 2; color.set(0.3, 0.3, 1.);} // bullet time
   else if (powerTypeRoll < 8.6) {powerType = 3; color.set(0.8, 0., 0.8);} // invert controls
   else {powerType = 4; color.set(1., 1., 1.);} // invisiball
+  // powerType = 3; color.set(0.8, 0., 0.8);
 
   let puGeo = new THREE.SphereGeometry(radius, 42, 42)
   let puUniform =
@@ -805,7 +807,7 @@ const createPowerUp = () =>
   powerUps.push([power_up, performance.now(), puUniform, timedelta, puHB, powerType]);
 }
 
-const check_pu_timers = () =>
+const check_pu_timers = (gamemode) =>
 {
   const timestamp = performance.now()
   for (let i = 0; i < 2; i++)
@@ -825,10 +827,17 @@ const check_pu_timers = () =>
       activated_powers[i][2] = 0;
       objs.puGaugeLights[i][2].intensity = 0;
     }
-    if (activated_powers[i][3] === 2 && timestamp - power_timers[i][3] > 10000)
+    if (activated_powers[i][3] === 2)
     {
-      activated_powers[i][3] = 0;
-      objs.puGaugeLights[i][3].intensity = 0;
+      if (timestamp - power_timers[i][3] > 10000)
+      {
+        activated_powers[i][3] = 0;
+        objs.puGaugeLights[i][3].intensity = 0;
+        if (i === 0 && gamemode === 1)
+          vars.ai_invert = 1;
+      }
+      else if (i === 0 && gamemode === 1 && timestamp - power_timers[i][3] > 10000 - 6000 * custom.difficulty)
+        vars.ai_invert = -1;
     }
     if (activated_powers[i][4] === 2)
       csts.ballLight.intensity = Math.max(0., Math.cos((performance.now() - power_timers[i][4]) / 80) * 5);
@@ -884,7 +893,7 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
   if (isHost === true)
   {
     if (custom.power_ups === true)
-      check_pu_timers();
+      check_pu_timers(gamemode);
     objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
     objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
     if (gamemode === 1)
