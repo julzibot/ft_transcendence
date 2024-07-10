@@ -1,0 +1,54 @@
+.pageTitle {
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: transform 0.8s ease;
+}
+
+.pageTitle.mounted {
+  opacity: 1;
+  transform: translateY(0);
+  transition: transform 1s ease, opacity 0.5s ease;
+}
+
+.pageTitle.top {
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: transform 1s ease, opacity 0.5s ease;
+}
+
+
+.localCard {
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: transform 0.8s ease;
+}
+
+.localCard.mounted {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 1s ease, opacity 0.5s ease;
+}
+
+.localCard.left {
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: transform 1s ease, opacity 0.5s ease;
+}
+
+.onlineCard{
+  opacity: 0;
+  transform: translateX(100%);
+  transition: transform 0.8s ease;
+}
+
+.onlineCard.mounted {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 1s ease, opacity 0.5s ease;
+}
+
+.onlineCard.right {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: transform 1s ease, opacity 0.5s ease;
+}

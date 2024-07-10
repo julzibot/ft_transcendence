@@ -88,8 +88,8 @@ export default function GameSettings() {
   return (
 	<>
     <div id="initialScreen" className='m-3'>
-      <div className="container d-flex flex-column align-items-center justify-content-center h-100">
-				<div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4 ${styles.pageTitle} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
+      <div className="container d-flex flex-column align-items-center justify-content-center">
+				<div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4 ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-title">
       		  <h2 className="mt-3">Pong Game Settings</h2>
 					</div>
