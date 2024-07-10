@@ -1,6 +1,6 @@
 .gameSettingsCard {
   opacity: 0;
-  transform: translateX(300%);
+  transform: translateX(-300%);
   transition: transform 0.8s ease;
 }
 
