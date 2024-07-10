@@ -199,7 +199,7 @@ const Lobby = ({ gameName }: props) => {
 	}, [])
 
 	return (
-		<div className='d-flex justify-content-start mt-3 vh-100'>
+		<div className='text-light d-flex justify-content-start mt-3 vh-100'>
 			<div className='w-100 border rounded p-4' style={{ maxWidth: '800px' }}>
 				<div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
 					<h3 className='mb-0'>Lobby</h3>
