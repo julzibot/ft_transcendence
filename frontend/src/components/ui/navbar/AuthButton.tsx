@@ -40,8 +40,7 @@ export default function AuthButton() {
               <span className="ms-2">{session.user.nick_name}</span>
             </button>
           <ul className="dropdown-menu">
-						<li><Link className="dropdown-item" href="/account/dashboard">Dashboard</Link></li>
-            <li><Link className="dropdown-item" href='/account/profile'>Profile</Link></li>
+            <li><Link className="dropdown-item" href='/account'>Account</Link></li>
 						<li><hr className="dropdown-divider" /></li>
             <li><Link className="dropdown-item text-primary" href="/api/auth/signout">Sign Out</Link></li>
           </ul>

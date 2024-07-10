@@ -36,8 +36,8 @@ services:
       - POSTGRES_DB=postgres
     volumes:
       # - /Users/miky/42mac/ft_transcendence/.dbdata:/var/lib/postgresql/data
-      - /Users/julzibot/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
-      # - /home/anloisea/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
+      # - /Users/julzibot/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
+      - /home/anloisea/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
     ports:
       - 33066:5432
 
@@ -45,7 +45,7 @@ services:
   backend:
     container_name: backend
     build:
-      context: ./backend/authentication
+      context: ./backend/core
       dockerfile: Dockerfile
     restart: always
     ports:
@@ -54,9 +54,9 @@ services:
       - db
       # - redis
     volumes:
-      - ./backend/authentication/:/app
+      - ./backend/core/:/app
     env_file:
-      - ./backend/authentication/.env.example
+      - ./backend/core/.env.example
 
   # redis:
   #   container_name: redis
