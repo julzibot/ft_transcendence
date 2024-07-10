@@ -37,9 +37,9 @@ export default function SimpleGamePage() {
   return (
 		<>
 			{/* Page Title */}
-			<div className="d-flex justify-content-center">
-				<div className={`card mt-3 ${styles.pageTitle} ${isMounted ? styles.mounted : ''} ${move ? styles.top : ''}`}>
-						<h2 className="card-title m-1 p-2">Simple Game</h2>
+			<div className="d-flex justify-content-center mt-5 pt-5">
+				<div className={`card mt-5 ${styles.pageTitle} ${isMounted ? styles.mounted : ''} ${move ? styles.top : ''}`}>
+						<h2 className="card-title m-3 p-2">Simple Game</h2>
 				</div>
 			</div>
 
