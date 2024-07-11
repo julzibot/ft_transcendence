@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import ColorSliderPicker from './ColorPalette';
+import styles from './CustomizationStyles.module.css'
 
 export default function Customization({ updateSettings, gameSettings, userId }) {
 
 	const [palette, setPalette] = useState(false);
+	const [isMounted, setIsMounted] = useState(false);
 
 	useEffect(() => {
 		const fetchGameSettings = async () => {
@@ -37,6 +39,10 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 			}
 		};
 		fetchGameSettings();
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 1000);
+		return () => clearTimeout(timer)
 	}, [userId]);
 
 	const handleColorChange = (color) => {
@@ -296,7 +302,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 				<div className="d-flex flex-column align-items-center">
 
 					<div className="m-2">
-						<button className="btn btn-primary"
+						<button className={`btn btn-primary ${styles.button} ${isMounted ? styles.mounted : ''}`}
 							type="button"
 							data-bs-toggle="offcanvas"
 							data-bs-target="#offcanvasCustomization"
