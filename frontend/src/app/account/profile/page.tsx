@@ -23,7 +23,7 @@ export default function ProfilePage() {
 		pwDelete: ''
 	})
 	const [gameSettings, setGameSettings] = useState({
-		userId: -1,
+		user_id: userId,
 
 		background: 0, // 0 - 3 animated, 4 - 5 static
 		palette: 0, // palette: 4 choices
@@ -96,6 +96,7 @@ export default function ProfilePage() {
 	useEffect(() => {
 		if (status === "authenticated" && session) {
 			setUserId(session.user.id);
+			setGameSettings({...gameSettings, user_id: session.user.id})
 		}
 	}, [session, status]);
 

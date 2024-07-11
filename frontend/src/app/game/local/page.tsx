@@ -1,9 +1,9 @@
 'use client';
 
 import { useSession } from "next-auth/react"
-import { useEffect, useState, useContext } from "react"
-import Link from "next/link"
+import { useEffect, useState } from "react"
 import Customization from "@/components/game/Customization";
+import LocalMultiplayer from "@/components/game/LocalMultiplayer";
 import './styles.css'
 
 export default function GameSettings() {
@@ -12,7 +12,7 @@ export default function GameSettings() {
 	const [userId, setUserId] = useState(null);
 
 	const [gameSettings, setGameSettings] = useState({
-		userId: -1,
+		user_id: userId,
 
 		background: 0, // 0 - 3 animated, 4 - 5 static
 		palette: 0, // palette: 4 choices
@@ -28,12 +28,17 @@ export default function GameSettings() {
 	useEffect(() => {
 		if (status === "authenticated" && session) {
 			setUserId(session.user.id);
+			setGameSettings({ ...gameSettings, user_id: session.user.id });
 		}
 	}, [session, status]);
 
 	if (status === "Loading" || !userId) {
 		return (
-			<div>Loading...</div>
+			<div class="d-flex justify-content-center">
+				<div class="spinner-border" role="status">
+					<span class="visually-hidden">Loading...</span>
+				</div>
+			</div>
 		);
 	}
 
@@ -53,7 +58,15 @@ export default function GameSettings() {
 							<div className="d-flex flex-column align-items-center">
 
 								<div className="m-2 mb-3">
-									<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={userId} />
+									{
+										userId ? (
+										<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={userId} />
+										) : (
+											<button class="btn btn-primary" type="button" disabled>
+											<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+											<span role="status">Loading...</span>
+										</button>)
+									}
 								</div>
 
 								<div className="mb-3 text-center">
@@ -116,9 +129,7 @@ export default function GameSettings() {
 
 							</div>
 							<div className="d-flex justify-content-center mb-3">
-								<Link href='/game/local/play/'>
-									<button type="button" className="btn btn-secondary mx-3">Local Multiplayer</button>
-								</Link>
+								<LocalMultiplayer remoteGame={false} userId={userId} />
 							</div>
 						</div>
 					</div>
