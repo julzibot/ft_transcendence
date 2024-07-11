@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useContext } from "react";
-import ColorSliderPicker from './ColorPalette'
+import { useEffect, useState } from "react";
+import ColorSliderPicker from './ColorPalette';
 
 export default function Customization({ updateSettings, gameSettings, userId }) {
 
@@ -14,17 +14,25 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 					method: 'GET'
 				});
 				if (response.ok) {
-					const fetched = await response.json();
-					const data = fetched.data;
-					updateSettings({
-						...gameSettings,
-						userId: userId,
-						background: data.background,
-						palette: data.palette,
-						bgColor: data.bgColor,
-						opacity: data.opacity,
-						sparks: data.sparks
-					});
+					if (response.status === 204) {
+						console.log('No Settings saved for this user');
+					} else {
+						const fetched = await response.json();
+						const data = fetched.data;
+						updateSettings({
+							...gameSettings,
+							user_id: userId,
+							background: data.background,
+							palette: data.palette,
+							bgColor: data.bgColor,
+							opacity: data.opacity,
+							sparks: data.sparks
+						});
+					}
+				} else if (response.status === 404) {
+					console.error('404 - User Does Not Exist');
+				} else {
+					console.error('Error: ' + response.status);
 				}
 			}
 		};
@@ -56,6 +64,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 			opacity: 80,
 			sparks: true
 		});
+		gameCustomSave();
 	}
 
 	const gameCustomSave = async () => {
@@ -72,7 +81,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 
 	return (
 		<>
-			<div id="initialScreen" className=" m-3 h-100">
+			<div id="initialScreen" className="m-1 h-100">
 
 				<div className="offcanvas offcanvas-start" tabIndex="-1" id="offcanvasCustomization" aria-labelledby="offcanvasExampleLabel">
 					<div className="offcanvas-header">
@@ -287,7 +296,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 
 				<div className="d-flex flex-column align-items-center">
 
-					<div className="m-2 mb-3">
+					<div className="m-2">
 						<button className="btn btn-primary"
 							type="button"
 							data-bs-toggle="offcanvas"
