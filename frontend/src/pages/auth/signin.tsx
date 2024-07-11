@@ -51,7 +51,7 @@ export default function SignIn() {
                 width={30}
                 height={30}
                 alt="42 Logo"
-                priority
+                fetchpriority="true"
               />
             </button>
             <p>Or</p>

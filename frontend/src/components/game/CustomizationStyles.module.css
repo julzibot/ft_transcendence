@@ -1,0 +1,10 @@
+.button{
+  opacity: 0;
+  transform: scale(0.1);
+  transition: transform 0.8s ease, opacity 2s;
+}
+
+.button.mounted {
+  opacity:1;
+  transform: scale(1);
+}
