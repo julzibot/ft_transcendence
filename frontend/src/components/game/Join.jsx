@@ -1,11 +1,10 @@
 'use client'
 
-import { useSession } from "next-auth/react";
 import { useEffect, useState, useContext } from "react";
 import { SocketContext } from "../../../context/socket";
 import ThreeScene from '../game/Game';
 
-export default function Join({ remoteGame, userId }) {
+export default function Join({ gameMode, userId }) {
 
 	const [receivedSettings, setReceivedSettings] = useState(false);
 	const [gameSettings, setGameSettings] = useState({
@@ -41,25 +40,13 @@ export default function Join({ remoteGame, userId }) {
 						sparks: data.sparks
 					});
 				}
-				// if (response.status === 204) {
-				// 	setGameSettings({
-				// 		...gameSettings,
-				// 		user_id: userId,
-				// 		background: data.background,
-				// 		palette: data.palette,
-				// 		bgColor: data.bgColor,
-				// 		opacity: data.opacity,
-				// 		sparks: data.sparks
-				// 	});
-				// }
 				setReceivedSettings(true);
 			}
 		}
 		fetchSettings();
 	}, [userId]);
 
-	console.log('[Join] Game Settings: ' + JSON.stringify(gameSettings));
-	if (remoteGame === true) {
+	if (gameMode === 2) {
 		const socket = useContext(SocketContext);
 
 		const [gameJoined, setGameJoined] = useState(false);
@@ -77,8 +64,6 @@ export default function Join({ remoteGame, userId }) {
 				setGameJoined(true);
 			});
 		}, [socket]);
-
-		console.log("[JOIN] GAME SETTINGS" + JSON.stringify(gameSettings));
 		return (
 			<>
 				{receivedSettings && gameJoined ? <ThreeScene gameSettings={gameSettings} room_id={room_id} user_id={userId} isHost={isHost} gamemode={2} /> : <div>Loading game...</div>}
@@ -89,7 +74,7 @@ export default function Join({ remoteGame, userId }) {
 		return (
 			<>
 				{
-					receivedSettings && <ThreeScene gameSettings={gameSettings} room_id={-1} user_id={userId} isHost={true} gamemode={0} />
+					receivedSettings && <ThreeScene gameSettings={gameSettings} room_id={-1} user_id={userId} isHost={true} gamemode={gameMode} />
 				}
 			</>
 		)
