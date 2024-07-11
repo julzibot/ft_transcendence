@@ -24,15 +24,14 @@ class LobbyView(APIView):
     request=inline_serializer(
         name="InlineFormSerializer",
         fields={
-            "name": serializers.CharField(),
-			"isPrivate": serializers.BooleanField(),
-			"difficultyLevel": serializers.CharField(),
-			"isActiveLobby": serializers.BooleanField(),
-			"pointsPerGame": serializers.CharField(),
-			"timer": serializers.CharField(),
-			"gameName": serializers.CharField(),
-            "powerUps": serializers.BooleanField(),
-            "user_id": serializers.CharField(),
+					"name": serializers.CharField(),
+					"isPrivate": serializers.BooleanField(),
+					"difficultyLevel": serializers.CharField(),
+					"isActiveLobby": serializers.BooleanField(),
+					"pointsPerGame": serializers.CharField(),
+					"timer": serializers.CharField(),
+					"powerUps": serializers.BooleanField(),
+					"user_id": serializers.CharField(),
         },
     ),
     description="create Lobby",
@@ -50,14 +49,22 @@ class LobbyView(APIView):
 			data = request.data
 			try:
 				user = UserAccount.objects.get(id=data['user_id'])
-				new_lobby = LobbyData.objects.create(name = data['name'], isPrivate = data['isPrivate'], difficultyLevel = data['difficultyLevel'],pointsPerGame = data['pointsPerGame'],timer = data['timer'], powerUps= data['powerUps'], gameName = data['gameName'], player1=user, )
+				new_lobby = LobbyData.objects.create(
+					name=data['name'],
+					isPrivate=data['isPrivate'],
+					difficultyLevel=data['difficultyLevel'],
+					pointsPerGame=data['pointsPerGame'],
+					timer=data['timer'],
+					powerUps=data['powerUps'],
+					player1=user
+				)
 				return Response({'message':'You have created lobby successfully'}, status=status.HTTP_201_CREATED)	
 			except ObjectDoesNotExist:
 				return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class LobbyGameView(APIView):
-	def get(self, request, gameName):
-		lobby = LobbyData.objects.filter(Q(isActiveLobby=True) & Q(gameName = gameName))
+	def get(self, request):
+		lobby = LobbyData.objects.filter(Q(isActiveLobby=True))
 		serializer = LobbySerializer(lobby, many=True)
 		return Response(serializer.data)
 

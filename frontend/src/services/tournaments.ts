@@ -1,8 +1,8 @@
 import { BASE_URL } from "@/utils/constants";
 
-export const GetTournamentData = async (gameName:String) => {
+export const GetTournamentData = async () => {
     try {
-        const response = await fetch(BASE_URL + `tournament/${gameName}`, {
+        const response = await fetch(`${BASE_URL}tournament/`, {
             method: "GET",
         });
         if (!response.ok) {
@@ -15,10 +15,10 @@ export const GetTournamentData = async (gameName:String) => {
         throw error
     }
 }
-export const GetLobbyData = async (gameName:String) => {
+export const GetLobbyData = async () => {
   // lobby/
   try{
-    const response = await fetch (BASE_URL + `lobby/${gameName}`,{
+    const response = await fetch (`${BASE_URL}lobby/`,{
       method: "GET"
     });
     if (!response.ok) {

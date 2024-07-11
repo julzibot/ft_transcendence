@@ -19,7 +19,7 @@ export default function GameCard({src}) {
     setMove(!move)
     setDirection(styles.right)
     const timer = setTimeout(() => {
-      router.push('/game/tournaments')
+      router.push('/tournaments')
     }, 500);
   }
 

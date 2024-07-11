@@ -15,7 +15,6 @@ class LobbyData(models.Model):
     timer = models.PositiveIntegerField(default=0,blank=True, null=True)
     powerUps = models.BooleanField(default=False,blank=True, null=True)
     round = models.PositiveIntegerField(default=0,blank=True, null=True)
-    gameName = models.CharField(default='',blank=True, null=True)
     linkToJoin = models.UUIDField(default=uuid4, editable=False)
     player1 = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, related_name='lobby_player1')
     player2 = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, related_name='lobby_player2')

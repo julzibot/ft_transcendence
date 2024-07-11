@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
 import { Button, Modal } from 'react-bootstrap'
-import { ArrowUpRightSquare } from 'react-bootstrap-icons';
 import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournaments';
 import { getSession } from 'next-auth/react';
 
@@ -10,10 +9,8 @@ const gameLevel = [
 	{ value: 1, level: 'Intermediate' },
 	{ value: 2, level: 'Expert' }
 ]
-interface props {
-	gameName?: string
-}
-const Lobby = ({ gameName }: props) => {
+
+const Lobby = () => {
 	const [session, setSession] = useState()
 	const [lobbyData, setLobbyData] = useState([])
 	const [modalShow, setModalShow] = useState(false);
@@ -32,7 +29,6 @@ const Lobby = ({ gameName }: props) => {
 		isActiveLobby: false,
 		pointsPerGame: '0',
 		timer: '0',
-		gameName: '',
 		powerUps: false
 	})
 	const handleShow = () => {
@@ -44,7 +40,6 @@ const Lobby = ({ gameName }: props) => {
 			isActiveLobby: false,
 			pointsPerGame: '0',
 			timer: '0',
-			gameName: '',
 			powerUps: false
 		})
 		setErrorfield(
@@ -140,7 +135,6 @@ const Lobby = ({ gameName }: props) => {
 				"difficultyLevel": lobbyForm?.difficultyLevel,
 				"pointsPerGame": lobbyForm?.pointsPerGame,
 				"timer": lobbyForm?.timer,
-				"gameName": gameName,
 				"powerUps": lobbyForm?.powerUps,
 				"user_id": session?.user?.id
 			}
@@ -177,9 +171,10 @@ const Lobby = ({ gameName }: props) => {
 
 	const fetchLobbyData = async () => {
 		try {
-			const lobbydata = await GetLobbyData(gameName)
+			const lobbydata = await GetLobbyData()
 			if (lobbydata) {
 				setLobbyData(lobbydata)
+				console.log(lobbyData)
 			}
 		} catch (error) {
 			console.error('Error :', error)
@@ -199,11 +194,11 @@ const Lobby = ({ gameName }: props) => {
 	}, [])
 
 	return (
-		<div className='text-light d-flex justify-content-start mt-3 vh-100'>
+		<div className='text-light d-flex justify-content-center mt-3'>
 			<div className='w-100 border rounded p-4' style={{ maxWidth: '800px' }}>
 				<div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
 					<h3 className='mb-0'>Lobby</h3>
-					<Button className="btn btn-primary me-md-2" type='button' onClick={handleShow}>Create</Button>
+					<Button className="btn btn-outline-light me-md-2" type='button' onClick={handleShow}>Create</Button>
 				</div>
 				<div className='w-100 pt-2' >
 					<div className='d-flex flex-column'>
