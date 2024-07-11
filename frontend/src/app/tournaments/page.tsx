@@ -6,7 +6,6 @@ import { Button, Modal } from 'react-bootstrap'
 import { useParams, useRouter } from "next/navigation";
 import { ArrowUpRightSquare } from 'react-bootstrap-icons';
 import { AddTournamentData, GetTournamentData } from '@/services/tournaments';
-// import { MdOutlineOpenInNew } from "react-icons/md";
 
 const gameLevel = [
   { value: 0, level: 'Beginner'},
@@ -17,7 +16,6 @@ const gameLevel = [
 function TournamentPage() {
   const router = useRouter();
   const params = useParams()
-  const gamename = JSON.parse(localStorage.getItem('gameName'))
   const [modalShow, setModalShow] = useState(false);
   const [tournamentData, setTournamentData] = useState([])
   const [selectedTournament, setSelectedTournament] = useState()
@@ -28,7 +26,8 @@ function TournamentPage() {
     gamePoint: 0,
     gameLevel: '',
     timer: '',
-    isPrivate: false
+    isPrivate: false,
+    powerUps: false
   })
   const [err, setErr] = useState('')
   
@@ -60,25 +59,23 @@ function TournamentPage() {
   
   const fetchTournamentData = async () => {
     try {
-        const tournamentdata = await GetTournamentData(gamename)
-        setTournamentData(tournamentdata?.data?.tournaments)
+        const tournamentdata = await GetTournamentData()
+        setTournamentData(tournamentdata)
     } catch (error) {
         console.error('Error :', error)
     }
   }
 
   const handleSelectedData = (item:object) => {
-    // localStorage.setItem('GameName', JSON.stringify(gameName))
     setSelectedTournament(item?.id)
     router.push(`/tournaments/${item?.id}`)
-    // router.push(`/tournaments/${item?.gameName}/${item?.id}`)
   }
   
 
 const handleFormData = (e, key) => {
   setTounamentForm({
     ...tounamentForm,
-    [key]: (key === 'isActiveTournament' || key === 'isPrivate') ? e.target.checked : e.target.value
+    [key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'powerUps') ? e.target.checked : e.target.value
   })
 }
 
@@ -94,7 +91,7 @@ const handleSubmitData = async () => {
       "isActiveTournament": tounamentForm?.isActiveTournament,
       "pointsPerGame": tounamentForm?.gamePoint,
       "timer": Number(tounamentForm?.timer),
-      "gameName": gamename
+      "powerUps": tounamentForm?.powerUps
     }
     try {
       await AddTournamentData(payload).then((response) => {
@@ -108,17 +105,16 @@ const handleSubmitData = async () => {
 }
 
 useEffect(() => {
-  localStorage.setItem('GameName', JSON.stringify(null))
   fetchTournamentData()
 }, [])
 
 
   return (
-    <div className='d-flex justify-content-end mt-3 vh-100'>
+    <div className='d-flex justify-content-center mt-3 text-light'>
       <div className='w-100 border rounded p-4' style={{maxWidth:'800px'}}>
         <div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
           <h3 className='mb-0'>Tournaments</h3>
-          <Button className="btn btn-primary me-md-2" type='button' onClick={handleShow}>Create</Button>
+          <Button className="btn btn-outline-light me-md-2" type='button' onClick={handleShow}>Create</Button>
         </div>
         <div className='w-100 pt-2' >
           <h4 className='py-2 fw-light'>All Tournaments</h4>
@@ -191,6 +187,10 @@ useEffect(() => {
         <div className="mb-3 form-check">
           <input type="checkbox" className="form-check-input" value={tounamentForm.isPrivate} onChange={(e) => handleFormData(e, 'isPrivate')}/>
           <label className="form-check-label">Is This Private Tournament ?</label>
+        </div>
+        <div className="mb-3 form-check form-switch">
+          <input type="checkbox" className="form-check-input" value={tounamentForm.powerUps} onChange={(e) => handleFormData(e, 'powerUps')} />
+          <label className="form-check-label">Power ups</label>
         </div>
       </form>
       </Modal.Body>

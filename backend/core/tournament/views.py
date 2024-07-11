@@ -31,7 +31,6 @@ class TournamentView(APIView):
 			"isActiveTournament": serializers.BooleanField(),
 			"pointsPerGame": serializers.CharField(),
 			"timer": serializers.CharField(),
-			"gameName": serializers.CharField(),
 			"powerUps": serializers.BooleanField(),
         },
     ),
@@ -52,7 +51,17 @@ class TournamentView(APIView):
 		if 'powerUps' in data:
 			powerUpsData = data["powerUps"]
 		
-		new_tournament = TournamentData.objects.create(name = data['name'], numberOfPlayers = data['numberOfPlayers'], isPrivate = data['isPrivate'],difficultyLevel = data['difficultyLevel'],isActiveTournament = data['isActiveTournament'],pointsPerGame = data['pointsPerGame'],timer = data['timer'], powerUps= powerUpsData, gameName = data['gameName'])
+		new_tournament = TournamentData.objects.create(
+			name=data['name'], 
+			numberOfPlayers=data['numberOfPlayers'], 
+			isPrivate=data['isPrivate'],
+			difficultyLevel=data['difficultyLevel'],
+			isActiveTournament=data['isActiveTournament'],
+			pointsPerGame=data['pointsPerGame'],
+			timer=data['timer'], 
+			powerUps=powerUpsData
+		)
+
 		return Response({'message':'You have created tournament successfully'}, status=status.HTTP_201_CREATED)	
 
 
@@ -69,10 +78,9 @@ class TournamentDetailView(APIView):
 
 
 class TournamentGetView(APIView):
-	def get(self, request, gameName):
+	def get(self, request):
 		query = Q(tournamentWinner__isnull=True)
 		query.add(Q(tournamentWinner = None), Q.OR)
-		query.add(Q(gameName = gameName), Q.AND)
 		tournament = TournamentData.objects.filter(query)
 		serializer = TournamentSerializer(tournament, many=True)
 		return Response({'data': {'tournaments': serializer.data}}, status=status.HTTP_201_CREATED)	
