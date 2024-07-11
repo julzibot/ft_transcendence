@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import Customization from "@/components/game/Customization";
-import LocalMultiplayer from "@/components/game/LocalMultiplayer";
+import LocalGame from "@/components/game/LocalGame";
 import './styles.css'
 
 export default function GameSettings() {
@@ -60,12 +60,12 @@ export default function GameSettings() {
 								<div className="m-2 mb-3">
 									{
 										userId ? (
-										<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={userId} />
+											<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={userId} />
 										) : (
 											<button class="btn btn-primary" type="button" disabled>
-											<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-											<span role="status">Loading...</span>
-										</button>)
+												<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+												<span role="status">Loading...</span>
+											</button>)
 									}
 								</div>
 
@@ -123,14 +123,15 @@ export default function GameSettings() {
 									<label className="form-check-label" htmlFor="flexSwitchCheckChecked">Power-ups</label>
 								</div>
 
-								<div className="d-flex justify-content-center mb-3">
-									<button type="button" className="btn btn-secondary mx-3">Play Against AI</button>
-								</div>
 
+							</div>
+							<LocalGame userId={userId} />
+							{/* <div className="d-flex justify-content-center mb-3">
+								<button type="button" className="btn btn-secondary mx-3">Play Against AI</button>
 							</div>
 							<div className="d-flex justify-content-center mb-3">
 								<LocalMultiplayer remoteGame={false} userId={userId} />
-							</div>
+							</div> */}
 						</div>
 					</div>
 					<div className="m-3">

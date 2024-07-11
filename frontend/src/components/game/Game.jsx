@@ -989,12 +989,14 @@ const getColorVector3 = (bgColor) =>
   return new THREE.Vector3(r/255, g/255, b/255);
 }
 
+// 0 -> local multiplayer
+// 1 -> AI
+// 2 -> remote
 export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gamemode })
 {
 	console.log("[ThreeScene] game settings: " + JSON.stringify(gameSettings))
   const containerRef = useRef(null);
 	let socket = -1;
-  gamemode = 1;
   if (gamemode === 2)
     socket = useContext(SocketContext);
   

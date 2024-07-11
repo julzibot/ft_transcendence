@@ -73,7 +73,6 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(gameSettings)
 		};
-		console.log(JSON.stringify(gameSettings));
 		const response = await fetch('http://localhost:8000/api/gameCustomization/', requestData);
 		const data = await response.json();
 		console.log(data);
