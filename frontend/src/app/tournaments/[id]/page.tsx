@@ -157,7 +157,7 @@ function DetailsPage() {
   }
 
   return (
-    <div className='d-flex justify-content-center mt-3 vh-100'>
+    <div className='text-light d-flex justify-content-center mt-3'>
       <div className='w-100 border rounded p-4' style={{maxWidth:'800px'}}>
         <div className='d-flex justify-content-between'>
           <h4>Tournament Details</h4>
@@ -169,7 +169,7 @@ function DetailsPage() {
           </div> }
         </div>
           <div className='py-4'>
-              { tournamentData?.detail?.length > 0 && tournamentData?.detail.map((items,) => {
+              { tournamentData?.detail?.length > 0 && tournamentData?.detail.map((items) => {
                 return (
                   <ul key={items?.name} style={{ listStyle:'none'}} className='p-0'>
                     <li className="fw-bold fs-5">{items?.name}</li>
