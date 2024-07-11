@@ -68,10 +68,8 @@ function TournamentPage() {
   }
 
   const handleSelectedData = (item:object) => {
-    // localStorage.setItem('GameName', JSON.stringify(gameName))
     setSelectedTournament(item?.id)
     router.push(`/tournaments/${item?.id}`)
-    // router.push(`/tournaments/${item?.gameName}/${item?.id}`)
   }
   
 
@@ -162,16 +160,9 @@ useEffect(() => {
           <label className="form-label">Number Of Players</label>
           <input type="text" className="form-control" value={tounamentForm.numberOfPlayer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'numberOfPlayer')}/>
         </div>
-        {/* <div className="mb-3 form-check">
-          <input type="checkbox" className="form-check-input" value={tounamentForm.isActiveTournament} onChange={(e) => handleFormData(e, 'isActiveTournament')}/>
-          <label className="form-check-label">Is Active Tournament</label>
-        </div> */}
         <div className="mb-3 flex align-items-center">
         <label className="form-label">Points Per Game - {tounamentForm.gamePoint}</label>
         <input type="range" className="form-range" min="0" max="100" value={tounamentForm.gamePoint} onChange={(e) => handleFormData(e, 'gamePoint')}/>
-          {/* <label className="form-label me-3">Points Per Game</label> */}
-          {/* <input type="range" min="1" max="100" value={tounamentForm.gamePoint} className="slider" id="myRange" onChange={(e) => handleFormData(e, 'gamePoint')}/> {tounamentForm.gamePoint} */}
-          {/* <input type="text" className="form-control" value={tounamentForm.gamePoint} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'gamePoint')}/> */}
         </div>
         <div className="mb-3">
           <label className="form-label">Difficulty Level</label>
