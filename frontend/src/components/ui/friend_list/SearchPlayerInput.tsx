@@ -93,7 +93,7 @@ export default function SearchPlayerInput({fetchFriends}) {
                       height={20}
                       width={20}
                     />
-                    <span>{user.nick_name}</span>
+                    <span>{user.username}</span>
                     <CustomTooltip text="Send Friend Request" position="bottom">
                       <button className="btn" onClick={() => handleFriendRequest(session?.user.id, user.id)}>
                         <PersonAdd color="green" width={15} />

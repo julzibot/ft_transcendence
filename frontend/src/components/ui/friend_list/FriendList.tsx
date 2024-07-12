@@ -81,7 +81,7 @@ export default function FriendList() {
 												/>
 											</div>
 											<div className="">
-												<h3>{friend.user.nick_name}</h3>
+												<h3>{friend.user.username}</h3>
 											</div>
 											<div className="">
 												<CustomTooltip text="Invite to play" position="top">
@@ -131,7 +131,7 @@ export default function FriendList() {
 												width={50}/>
 											</div>
 											<div className="">
-												<h3>{friend.user.nick_name}</h3>
+												<h3>{friend.user.username}</h3>
 											</div>
 											<div className="">
 												{

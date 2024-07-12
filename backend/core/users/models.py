@@ -42,7 +42,7 @@ def upload_image_to(instance, filename):
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
-    nick_name = models.CharField(max_length=60)
+    username = models.CharField(max_length=60, unique=True)
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
@@ -62,15 +62,11 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     objects = UserAccountManager()
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email"]
 
     def __str__(self):
-        return self.email
-
-    def save(self, *args, **kwargs):
-        if not self.nick_name:
-            self.nick_name = f"User #{self.id}"
-        super(UserAccount, self).save(*args, **kwargs)
+        return self.username
 
     def delete_image(self):
         if self.image:
