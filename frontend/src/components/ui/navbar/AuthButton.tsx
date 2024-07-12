@@ -6,24 +6,17 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 
 export default function AuthButton() {
-  // const { data: session} = useSession();
-  const [session, setSession] = useState() 
+  const { data: session} = useSession();
 
   useEffect(() => {
-    handleSession()
     require("bootstrap/dist/js/bootstrap.bundle.min.js")
   }, []);
-  
-  const handleSession = async () => {
-    const session = await getSession()
-    setSession(session)
-  }
-  
+
   if(session && session.user) {
     return (
       <>
-        <li className="dropdown me-3">
-          <button className="btn btn-light dropdown-toggle d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <div className="dropdown me-3">
+          <button className="btn btn-light btn-lg dropdown-toggle d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <div className="position-relative border border-2 border-dark-subtle rounded-circle" style={{width: '30px', height: '30px', overflow: 'hidden'}}>
             {
               session.user.image ? (
@@ -44,7 +37,7 @@ export default function AuthButton() {
 						<li><hr className="dropdown-divider" /></li>
             <li><Link className="dropdown-item text-primary" href="/api/auth/signout">Sign Out</Link></li>
           </ul>
-        </li>
+        </div>
       </>
     );
   }
