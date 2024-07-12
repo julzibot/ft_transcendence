@@ -2,15 +2,16 @@
 
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import ImageUpload from "@/components/Utils/ImageUpload";
 import DOMPurify from 'dompurify'
 import { useRouter } from "next/navigation";
 import UserDashboardCard from "@/components/ui/dashboard/UserDashboardCard"
-
+import Customization from "@/components/game/Customization";
 
 export default function ProfilePage() {
-  const { data: session, update} = useSession({required: true});
+  const { data: session, status, update} = useSession({required: true});
+  const [userId, setUserId] = useState(null);
   const [isEditing, setIsEditing] = useState(false)
   const [isEditPw, setIsEditPw] = useState(false)
   const [data, setData] = useState({
@@ -18,9 +19,24 @@ export default function ProfilePage() {
     oldPassword: '',
     newPassword: '',
     rePassword: '',
+    usernameError: '',
     error: '',
     pwDelete: ''
   })
+
+  const [gameSettings, setGameSettings] = useState({
+		user_id: userId,
+
+		background: 0, // 0 - 3 animated, 4 - 5 static
+		palette: 0, // palette: 4 choices
+		bgColor: '#ff0000',
+		opacity: 80,
+		sparks: true,
+
+		gameDifficulty: 4,
+		pointsToWin: 5,
+		powerUps: true
+	});
   const router = useRouter()
 
   async function changePassword(event: FormEvent<HTMLFormElement>) {
@@ -55,7 +71,14 @@ export default function ProfilePage() {
         'name': data.username
       })
     })
-    update({name: data.username})
+    if(response.ok) {
+      update({username: data.username})
+      setIsEditing(false);
+    }
+    else {
+      const res = await response.json()
+      setData({...data, usernameError: res.message})
+    }
     setIsEditing(false);
   }
 
@@ -77,6 +100,13 @@ export default function ProfilePage() {
       setData({...data, error: res.message})
     }
   }
+
+	useEffect(() => {
+		if (status === "authenticated" && session) {
+			setUserId(session.user.id);
+			setGameSettings({...gameSettings, user_id: session.user.id})
+		}
+	}, [session, status]);
 
   return(
     <>
@@ -114,14 +144,23 @@ export default function ProfilePage() {
                     </>
                   ) : (
                     <>
-                      <h5 className="card-title me-2">{session.user.nick_name}</h5>
+                      <h5 className="card-title me-2">{session.user.username}</h5>
                       <button className="btn btn-sm btn-primary rounded-pill" onClick={() => setIsEditing(true)}>Edit</button>
                     </>
                   )
                 }
               </div>
+              <div className="text-danger">{data.usernameError}</div>
               <hr />
               <span className="card-subtitle text-body-secondary fw-semibold">{session.user.email}</span>
+              <hr />
+              {
+							userId ? (
+								<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={userId} />
+							) : (
+								<p>Loading...</p>
+							)
+						  }
               <hr />
               <div className="d-flex flex-row justify-content-center align-items-center">
                 {
@@ -166,7 +205,7 @@ export default function ProfilePage() {
                     value={data.pwDelete} 
                     onChange={(e) => setData({...data, pwDelete: DOMPurify.sanitize(e.target.value)})}
                     />
-                  <div className="form-text text-danger">{data.error}</div>
+                  <span className="form-text text-danger">{data.error}</span>
                 </form>
               </div>
               <div className="modal-footer">

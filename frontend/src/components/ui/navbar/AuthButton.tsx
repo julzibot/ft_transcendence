@@ -37,7 +37,7 @@ export default function AuthButton() {
                     <div className="position-absolute start-0 top-0 spinner-grow text-secondary" role="status"></div>
             )}
               </div>
-              <span className="ms-2">{session.user.nick_name}</span>
+              <span className="ms-2">{session.user.username}</span>
             </button>
           <ul className="dropdown-menu">
             <li><Link className="dropdown-item" href='/account'>Account</Link></li>

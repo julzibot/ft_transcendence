@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
       profile(profile) {
         return {
           id: profile.id,
-          nick_name: profile.first_name,
+          username: profile.login,
           email: profile.email,
           image_url: profile.image.versions.medium
         }
@@ -78,9 +78,11 @@ export const authOptions: NextAuthOptions = {
           return token
         }
       }
-      if(trigger === 'update' && session?.name) {
-        token.name = session.name
-        token.image = session.image
+      if(trigger === 'update' && session?.username) {
+        if(session.username)
+          token.user.username = session.username
+        if(session.image)
+          token.image = session.image
       }
       if(new Date().getTime() / 1000 < token.backendTokens.expiresIn) {
         return token
