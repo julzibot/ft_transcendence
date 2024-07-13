@@ -139,3 +139,4 @@ vars.puTimeSave = 0;
 vars.puSpawnChance = 0;
 vars.puChanceCounter = 1;
 vars.bulletTime = 1;
+vars.puIdCount = 0;

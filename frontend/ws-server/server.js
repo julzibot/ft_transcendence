@@ -62,6 +62,18 @@ io.on("connection", async (socket) => {
     socket.to(data.room_id).emit('updateScore', {score1: data.score1, score2: data.score2, game_ended: data.stopGame});
   })
 
+  socket.on('sendCreatePU', data => {
+    socket.to(data.room_id).emit('updateCreatePU', {pu_id: data.pu_id, powerType: data.type, radius: data.radius, spawnx: data.x, spawny: data.y});
+  })
+
+  socket.on('sendCollectPU', data => {
+    socket.to(data.room_id).emit('updateCollectPU', {player_id: data.player_id, powerType: data.power_id});
+  })
+
+  socket.on('sendDeletePU', data => {
+    socket.to(data.room_id).emit('updateDeletePU', {pu_id: data.pu_id});
+  })
+
   socket.on('disconnect', () => {
     console.log(socket.id + " disconnected");
   });
