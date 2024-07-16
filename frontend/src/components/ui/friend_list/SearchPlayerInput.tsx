@@ -8,6 +8,9 @@ import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
 import { Toast, ToastContainer } from 'react-bootstrap'
 import Image from "next/image";
 
+const BASE_URL = "http://localhost:8000"
+const BACKEND_URL = 'http://backend:8000'
+
 export default function SearchPlayerInput({fetchFriends}) {
   const [searchQuery, setSearchQuery] = useState([]);
   const [inputValue, setInputValue] = useState<string>('');
@@ -84,7 +87,7 @@ export default function SearchPlayerInput({fetchFriends}) {
                 searchQuery.map((user, index) => (
                   <div key={index} className="border border-2 text-dark">
                     <Image 
-                      src={`http://backend:8000/media/${user.image}`}
+                      src={`${BACKEND_URL}${user.image}`}
                       className="rounded-circle border ms-2 me-2"
                       alt="user image"
                       height={20}

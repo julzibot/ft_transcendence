@@ -162,10 +162,8 @@ const LineChart = ({ data, labels }) => {
 );
 };
 
-return (
-	<>
-			<h2 className="m-3 ms-5 me-5">Dashboard</h2>
-			<hr />
+	return (
+		<>
 			<div className="container text-center">
 				<div className="row justify-content-around">
 					<div className="col-md-5 col-sm-11 col-9 bg-primary-subtle p-3 m-4 mb-3">
