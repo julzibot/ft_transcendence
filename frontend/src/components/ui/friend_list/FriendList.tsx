@@ -107,7 +107,7 @@ export default function FriendList() {
 					</div>
 				</div>
 				<button 
-					class="btn btn-secondary btn-sm dropdown-toggle" 
+					className="btn btn-secondary btn-sm dropdown-toggle" 
 					type="button" 
 					data-bs-toggle="collapse" 
 					data-bs-target="#friendRequestsCollapse" 
@@ -139,19 +139,19 @@ export default function FriendList() {
 														<>
 															<CustomTooltip text="Approuve Request" position="top">
 																<button className='btn text-success' onClick={() => approveFriendRequest(friend.user)}>
-																<i class="bi bi-check-circle-fill"></i>
+																<i className="bi bi-check-circle-fill"></i>
 																</button>
 															</CustomTooltip>
 															<CustomTooltip text="Deny Request" position="top">
 																<button className='btn text-danger' onClick={() => deleteFriendship(friend.user)}>
-																<i class="bi bi-x-circle-fill"></i>
+																<i className="bi bi-x-circle-fill"></i>
 																</button>
 															</CustomTooltip>
 														</>
 													) : (
 														<CustomTooltip text="Cancel Request" position="top">
 															<button className='btn text-danger' onClick={() => deleteFriendship(friend.user)}>
-																<i class="bi bi-x-circle-fill"></i>
+																<i className="bi bi-x-circle-fill"></i>
 															</button>
 														</CustomTooltip>
 													)

@@ -1,18 +1,10 @@
-from django.shortcuts import render
-from rest_framework.decorators import api_view
-from django.http import request
-import jwt, os, datetime
-
 from .models import DashboardData
+from users.models import UserAccount
 from .serializers import DashboardSerializer
 # REST framework
 from rest_framework import status
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-from rest_framework_simplejwt.views import (TokenRefreshView)
 
 # Create your views here.
 class DashboardView(APIView):
@@ -22,18 +14,33 @@ class DashboardView(APIView):
 		return Response(serializer.data)
 	
 	def post(self, request):
-		data = DashboardSerializer(request)
+		data = request.data
+		user_id = data.get('user_id')
+		try:
+			user = UserAccount.objects.get(id=user_id)
+		except UserAccount.DoesNotExist:
+			return Response({'message': f'[{id}] User not found'}, status=status.HTTP_404_NOT_FOUND)
+		
+		try:
+			dashboard = DashboardData.objects.get(user_id=user_id)
+			serializer = DashboardSerializer(dashboard, data=request.data, partial=True)
+			if serializer.is_valid():
+				serializer.save()
+				return Response({'message': f'[{id}] Dashboard Data saved successfully'}, status=status.HTTP_202_ACCEPTED)
+			return Response({'message': f'{serializer.errors}'}, status=status.HTTP_400_BAD_REQUEST)
+		except DashboardData.DoesNotExist:
+			return Response({'message': f'[{id}] Dashboard Data not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class DashboardDetail(APIView):
-	def get(self, request, *args, **kwargs):
+	def get(self, request, id):
 		try:
-			id = self.kwargs['id']
-		except:
-			return Response(status.HTTP_400_BAD_REQUEST)
+			user = UserAccount.objects.get(id=id)
+		except UserAccount.DoesNotExist:
+			return Response({'message': f'[{id}] User not found'}, status=status.HTTP_404_NOT_FOUND)
 		try:
 			dashboard_detail = DashboardData.objects.get(user_id=id)
 		except:
-			return Response(status.HTTP_404_NOT_FOUND)
+			return Response({'message': f'[{id}] No Dashboard Data'}, status.HTTP_404_NOT_FOUND)
 		serializer = DashboardSerializer(dashboard_detail)
 		return Response(serializer.data)
 		

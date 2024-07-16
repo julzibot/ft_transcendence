@@ -3,40 +3,41 @@
 import { useEffect, useState } from "react";
 import ColorSliderPicker from './ColorPalette';
 
+export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
+	if (user_id) {
+		const response = await fetch(`http://localhost:8000/api/gameCustomization/${user_id}`, {
+			method: 'GET'
+		});
+		if (response.ok) {
+			if (response.status === 204) {
+				console.log('No Settings saved for this user');
+			} else {
+				const fetched = await response.json();
+				const data = fetched.data;
+				updateSettings({
+					...gameSettings,
+					user_id: user_id,
+					background: data.background,
+					palette: data.palette,
+					bgColor: data.bgColor,
+					opacity: data.opacity,
+					sparks: data.sparks
+				});
+			}
+		} else if (response.status === 404) {
+			console.error('404 - User Does Not Exist');
+		} else {
+			console.error('Error: ' + response.status);
+		}
+	}
+};
+
 export default function Customization({ updateSettings, gameSettings, userId }) {
 
 	const [palette, setPalette] = useState(false);
 
 	useEffect(() => {
-		const fetchGameSettings = async () => {
-			if (userId) {
-				const response = await fetch(`http://localhost:8000/api/gameCustomization/${userId}`, {
-					method: 'GET'
-				});
-				if (response.ok) {
-					if (response.status === 204) {
-						console.log('No Settings saved for this user');
-					} else {
-						const fetched = await response.json();
-						const data = fetched.data;
-						updateSettings({
-							...gameSettings,
-							user_id: userId,
-							background: data.background,
-							palette: data.palette,
-							bgColor: data.bgColor,
-							opacity: data.opacity,
-							sparks: data.sparks
-						});
-					}
-				} else if (response.status === 404) {
-					console.error('404 - User Does Not Exist');
-				} else {
-					console.error('Error: ' + response.status);
-				}
-			}
-		};
-		fetchGameSettings();
+		fetchGameSettings(userId, updateSettings, gameSettings);
 	}, [userId]);
 
 	const handleColorChange = (color) => {

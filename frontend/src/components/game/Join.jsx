@@ -3,6 +3,7 @@
 import { useEffect, useState, useContext } from "react";
 import { SocketContext } from "../../../context/socket";
 import ThreeScene from '../game/Game';
+import { fetchGameSettings } from "./Customization";
 
 export default function Join({ gameMode, userId }) {
 
@@ -22,28 +23,8 @@ export default function Join({ gameMode, userId }) {
 	});
 
 	useEffect(() => {
-		const fetchSettings = async () => {
-			if (userId) {
-				const response = await fetch(`http://localhost:8000/api/gameCustomization/${userId}`, {
-					method: 'GET'
-				});
-				if (response.ok) {
-					const fetched = await response.json();
-					const data = fetched.data;
-					setGameSettings({
-						...gameSettings,
-						user_id: userId,
-						background: data.background,
-						palette: data.palette,
-						bgColor: data.bgColor,
-						opacity: data.opacity,
-						sparks: data.sparks
-					});
-				}
-				setReceivedSettings(true);
-			}
-		}
-		fetchSettings();
+		fetchGameSettings(userId, setGameSettings, gameSettings);
+		setReceivedSettings(true);
 	}, [userId]);
 
 	if (gameMode === 2) {

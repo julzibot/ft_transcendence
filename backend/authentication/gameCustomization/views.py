@@ -27,10 +27,8 @@ class UpdateGameCustomizationView(APIView):
 		user_id = data.get('user_id')
 		try:
 			user = UserAccount.objects.get(id=user_id)
-		except Exception as e:
-			return Response({'message': f'User not found {user_id}'}, status=status.HTTP_404_NOT_FOUND)
-		
-		# user = UserAccount.objects.get(id=user_id)
+		except UserAccount.DoesNotExist:
+			return Response({'message': f'[{id}] User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 		try:
 			obj = GameCustomizationData.objects.get(user_id=user_id)
@@ -42,7 +40,6 @@ class UpdateGameCustomizationView(APIView):
 			obj.save()
 			return Response({'message': 'Game customization settings updated successfully'}, status=status.HTTP_202_ACCEPTED)
 		except GameCustomizationData.DoesNotExist:
-			print('Game Settings Data do not exist')
 			newObj = GameCustomizationData.objects.create(user_id=user, background=data['background'], palette=data['palette'], bgColor=data['bgColor'], opacity=data['opacity'], sparks=data['sparks'])
 			newObj.save()
 			return Response({'message': 'Game customization settings created successfully'}, status=status.HTTP_202_ACCEPTED)

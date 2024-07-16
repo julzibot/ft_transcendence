@@ -34,9 +34,9 @@ export default function GameSettings() {
 
 	if (status === "Loading" || !userId) {
 		return (
-			<div class="d-flex justify-content-center">
-				<div class="spinner-border" role="status">
-					<span class="visually-hidden">Loading...</span>
+			<div className="d-flex justify-content-center">
+				<div className="spinner-border" role="status">
+					<span className="visually-hidden">Loading...</span>
 				</div>
 			</div>
 		);
@@ -62,8 +62,8 @@ export default function GameSettings() {
 										userId ? (
 											<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={userId} />
 										) : (
-											<button class="btn btn-primary" type="button" disabled>
-												<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+											<button className="btn btn-primary" type="button" disabled>
+												<span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
 												<span role="status">Loading...</span>
 											</button>)
 									}
@@ -126,12 +126,6 @@ export default function GameSettings() {
 
 							</div>
 							<LocalGame userId={userId} />
-							{/* <div className="d-flex justify-content-center mb-3">
-								<button type="button" className="btn btn-secondary mx-3">Play Against AI</button>
-							</div>
-							<div className="d-flex justify-content-center mb-3">
-								<LocalMultiplayer remoteGame={false} userId={userId} />
-							</div> */}
 						</div>
 					</div>
 					<div className="m-3">
