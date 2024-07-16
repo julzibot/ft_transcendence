@@ -69,6 +69,26 @@ io.on("connection", async (socket) => {
   socket.on('sendCollectPU', data => {
     socket.to(data.room_id).emit('updateCollectPU', {player_id: data.player_id, powerType: data.power_id});
   })
+  
+  socket.on('sendActivatePU1', data => {
+    socket.to(data.room_id).emit('updateActivatePU1', {powerType: data.powerType});
+  })
+
+  socket.on('sendActivatePU2', data => {
+    socket.to(data.room_id).emit('updateActivatePU2', {powerType: data.powerType});
+  })
+
+  socket.on('sendInvert', data => {
+    socket.to(data.room_id).emit('updateInvert');
+  })
+
+  socket.on('sendInvisiball', data => {
+    socket.to(data.room_id).emit('updateInvisiball', {id: data.player_id});
+  })
+
+  socket.on('sendDeactivatePU', data => {
+    socket.to(data.room_id).emit('updateDeactivatePU', {player_id: data.player_id, type: data.type});
+  })
 
   socket.on('sendDeletePU', data => {
     socket.to(data.room_id).emit('updateDeletePU', {pu_id: data.pu_id});
