@@ -40,23 +40,6 @@ const uniformData = {
   { value: tools.camera.matrixWorldInverse }
 };
 
-const puUniformData = {
-  u_time:
-  { type: 'f', value: performance.now() - startTime },
-  u_color:
-  { type: 'v3', value: custom.color },
-  u_fade:
-  { type: 'f', value: 0 },
-  u_radius:
-  { type: 'f', value: 0 },
-  u_resolution:
-  { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-  projectionMatrix:
-  { value: tools.camera.projectionMatrix },
-  viewMatrix:
-  { value: tools.camera.matrixWorldInverse }
-};
-
 const sparkUniform = {
   u_time:
   { type: 'f', value: 0. },
@@ -146,6 +129,7 @@ const setBallColor = () =>
   csts.ballLight.color.set(color);
 }
 
+// CUT
 const scoringLogic = (room_id, socket, isHost, gamemode) =>
 {
   // RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
@@ -169,18 +153,17 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
     {
       for (let i = 0; i < 2; i++)
       {
-        if (activated_powers[i][4] == 2)
-        {
-          objs.ball.visible = true;
-          objs.ballWrap.visible = true;
-          csts.ballLight.intensity = 5;
-          activated_powers[i][4] = 0;
-          objs.puGaugeLights[i][4].intensity = 0;
-        }
         if (activated_powers[i][1] == 2)
         {
-          activated_powers[i][1] = 0;
-          objs.puGaugeLights[i][1].intensity = 0;
+          if (gamemode === 2)
+            socket.emit('sendDeactivatePU', {room_id: room_id, player_id: i, type: 1})
+          deactivate_power(i, 1, gamemode);
+        }
+        if (activated_powers[i][4] == 2)
+        {
+          if (gamemode === 2)
+            socket.emit('sendDeactivatePU', {room_id: room_id, player_id: i, type: 4})
+          deactivate_power(i, 4, gamemode);
         }
       }
     }
@@ -194,7 +177,7 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
     if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score)
         vars.stopGame = true;
     if (gamemode === 2)
-      socket.emit('sendScore', {room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, game_ended: vars.stopGame})
+      socket.emit('sendScore', {room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, game_ended: vars.stopGame});
   }
   if (vars.stopGame === true)
   {
@@ -260,7 +243,8 @@ const createSparks = () =>
   tools.scene.add( light );
 }
 
-const activate_collision_pu = () =>
+// CUT
+const collision_pu_handle = (room_id, socket, gamemode) =>
 {
   if ((vars.isRebound === 1 && activated_powers[0][1] === 1) || (vars.isRebound === 2 && activated_powers[1][1] === 1))
   {
@@ -272,21 +256,19 @@ const activate_collision_pu = () =>
   }
   else if ((vars.isRebound === 1 && activated_powers[1][1] === 2) || (vars.isRebound === 2 && activated_powers[0][1] === 2))
   {
+    let id = 0;
     if (vars.isRebound === 1)
-    {
-      activated_powers[1][1] = 0;
-      objs.puGaugeLights[1][1].intensity = 0;
-    }
-    else
-    {
-      activated_powers[0][1] = 0;
-      objs.puGaugeLights[0][1].intensity = 0;
-    }
+      id = 1;
+    if (gamemode === 2)
+      socket.emit('sendDeactivatePU', {room_id: room_id, player_id: id, type: 1});
+    deactivate_power(id, 1, gamemode);
   }
   if ((vars.isRebound == 1 && activated_powers[0][3] === 1) || (vars.isRebound == 2 && activated_powers[1][3] === 1))
   {
     if (vars.isRebound == 1)
     {
+      if (gamemode === 2)
+        socket.emit('sendInvert', {room_id: room_id})
       power_timers[0][3] = performance.now();
       activated_powers[0][3] = 2;
     }
@@ -298,6 +280,8 @@ const activate_collision_pu = () =>
   }
   if ((vars.isRebound === 1 && activated_powers[0][4] === 1) || (vars.isRebound === 2 && activated_powers[1][4] === 1))
   {
+    if (gamemode === 2)
+      socket.emit('sendInvisiball', {room_id: room_id, player_id: vars.isRebound - 1});
     objs.ball.visible = false;
     objs.ballWrap.visible = false;
     csts.ballLight.intensity = 5;
@@ -306,22 +290,16 @@ const activate_collision_pu = () =>
   }
   else if ((vars.isRebound === 1 && activated_powers[1][4] === 2) || (vars.isRebound === 2 && activated_powers[0][4] === 2))
   {
-    objs.ball.visible = true;
-    objs.ballWrap.visible = true;
-    csts.ballLight.intensity = 15;
+    let id = 0;
     if (vars.isRebound === 1)
-    {
-      activated_powers[1][4] = 0;
-      objs.puGaugeLights[1][4].intensity = 0;
-    }
-    else
-    {
-      activated_powers[0][4] = 0;
-      objs.puGaugeLights[0][4].intensity = 0;
-    }
+      id = 1;
+    if (gamemode === 2)
+      socket.emit('sendDeactivatePU', {room_id: room_id, player_id: id, type: 4});
+    deactivate_power(id, 4, gamemode);
   }
 }
 
+// CUT
 const collisionLogic = (room_id, socket, gamemode) =>
 {
   let p1HB = new THREE.Box3().setFromObject(objs.player1);
@@ -377,7 +355,7 @@ const collisionLogic = (room_id, socket, gamemode) =>
 
     // activate the pending power-ups
     if (custom.power_ups === true)
-      activate_collision_pu();
+      collision_pu_handle(room_id, socket, gamemode);
     vars.isRebound = 0;
         
     setBallColor();
@@ -404,6 +382,11 @@ const collisionLogic = (room_id, socket, gamemode) =>
         player_powerUps[pu_dir] = powerUps[i][5];
         csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
         {printGameInfo(font, vars.latentMesh[pu_dir], powerUp_names[player_powerUps[pu_dir]], player_powerUps[pu_dir] + 6, pu_dir, 0.85)} );
+        if (gamemode === 2)
+        {
+          socket.emit('sendCollectPU', { player_id: pu_dir, power_id: powerUps[i][5], room_id: room_id });
+          socket.emit('sendDeletePU', { pu_id: powerUps[i][6], room_id: room_id})
+        }
         tools.scene.remove(powerUps[i][0]); 
         powerUps.splice(i, 1);
       }
@@ -411,48 +394,7 @@ const collisionLogic = (room_id, socket, gamemode) =>
   }
 }
 
-const remote_update = (socket, user_id, isHost) =>
-{
-  if (isHost)
-  {
-    if (keys['KeyW'] || keys['KeyS'])
-      vars.playerspeed[0] = Math.min(vars.playerspeed[0] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
-    else
-      vars.playerspeed[0] = CONST.BASE_PLAYERSPEED;
-    objs.player2.position.y = opponentPos;
-    // objs.player2.position.y = 0;
-    if (keys['KeyW'] && objs.player1.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-        objs.player1.position.y += vars.playerspeed[0];
-        socket.emit('sendPlayer1Pos', {room_id: 5, user_id: user_id, player1pos: objs.player1.position.y});
-    }
-    if (keys['KeyS'] && objs.player1.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-        objs.player1.position.y -= vars.playerspeed[0];
-        socket.emit('sendPlayer1Pos', {room_id: 5, user_id: user_id, player1pos: objs.player1.position.y});
-    }
-  }
-  else
-  {
-    if (keys['ArrowUp'] || keys['ArrowDown'])
-      vars.playerspeed[1] = Math.min(vars.playerspeed[1] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
-    else
-      vars.playerspeed[1] = CONST.BASE_PLAYERSPEED;
-    objs.player1.position.y = opponentPos;
-    // objs.player1.position.y = 0;
-    if (keys['ArrowUp'] && objs.player2.position.y < CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2) {
-        objs.player2.position.y += vars.playerspeed[1];
-				console.log("Sending [Player2] position to server: " + objs.player2.position.y);
-        socket.emit('sendPlayer2Pos', {room_id: 5, user_id: user_id, player2pos: objs.player2.position.y});
-    }
-    if (keys['ArrowDown'] && objs.player2.position.y > -(CONST.GAMEHEIGHT / 2 - CONST.PLAYERLEN / 2)) {
-        objs.player2.position.y -= vars.playerspeed[1];
-				console
-				console.log("Sending [Player2] position to server: " + objs.player2.position.y);
-        socket.emit('sendPlayer2Pos', {room_id: 5, user_id: user_id, player2pos: objs.player2.position.y});
-    }
-  }
-}
-
-const activate_power = (i) =>
+const activate_power = (i, mode) =>
 {
   if (player_powerUps[i] > -1)
   {
@@ -472,7 +414,7 @@ const activate_power = (i) =>
     vars.playerlens[i] *= 1.4;
     activated_powers[i][0] = 2;
   }
-  else if (activated_powers[i][2] === 1)
+  else if (mode === 0 && activated_powers[i][2] === 1)
   {
     power_timers[i][2] = performance.now();
     vars.bulletTime = 0.4;
@@ -511,7 +453,7 @@ const computeBallMove = () =>
     {
       if (custom.difficulty < 1.3)
       {
-        let randFactor = 5.5 + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 2;
+        let randFactor = 6.7 - custom.difficulty + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 2;
         vars.ai_offset = THREE.MathUtils.randFloatSpread(randFactor);
       }
       else if (custom.difficulty === 1.3)
@@ -528,14 +470,14 @@ const computeBallMove = () =>
 let keyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls) =>
 {
   const blockLen = CONST.GAMEHEIGHT / 2 - vars.playerlens[player_id] / 2;
-  let opp_id = 0;
-  if (player_id === 0)
-    opp_id = 1;
+  if (player_id === 1)
+    invert_controls *= vars.ai_invert;
 
   if (keys[keyUp] || keys[keyDown])
     vars.playerspeed[player_id] = Math.min(vars.playerspeed[player_id] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
   else
     vars.playerspeed[player_id] = CONST.BASE_PLAYERSPEED;
+
   if (keys[keyUp] && ((invert_controls == 1 && player_y < blockLen)
     || (invert_controls == -1 && player_y > -blockLen))) {
   player_y += vars.playerspeed[player_id] * invert_controls;
@@ -544,7 +486,6 @@ let keyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls) =>
     || (invert_controls == 1 && player_y > -blockLen))) {
   player_y -= vars.playerspeed[player_id] * invert_controls;
   }
-
   return player_y;
 }
 
@@ -598,17 +539,66 @@ const local_update = (gamemode) =>
   else
     objs.player2.position.y = aiMoveHandle(invert_controls[1]);
 
-  if (keys['KeyP']) {
-    let pauseStart = performance.now();
-    while (performance.now() - pauseStart < 2000) ;
-  }
-
   if (keys['Space'] && custom.power_ups === true)
     activate_power(0);
   if (keys['ArrowRight'] && gamemode === 0 && custom.power_ups === true)
     activate_power(1);
   else if (gamemode === 1 && custom.power_ups === true)
     aiPuHandle();
+}
+
+let remoteKeyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls, socket, room_id) =>
+{
+  const blockLen = CONST.GAMEHEIGHT / 2 - vars.playerlens[player_id] / 2;
+
+  if (keys[keyUp] || keys[keyDown])
+    vars.playerspeed[player_id] = Math.min(vars.playerspeed[player_id] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+  else
+    vars.playerspeed[player_id] = CONST.BASE_PLAYERSPEED;
+
+  if (keys[keyUp] && ((invert_controls == 1 && player_y < blockLen)
+    || (invert_controls == -1 && player_y > -blockLen))) {
+  player_y += vars.playerspeed[player_id] * invert_controls;
+  }
+  if (keys[keyDown] && ((invert_controls == -1 && player_y < blockLen)
+    || (invert_controls == 1 && player_y > -blockLen))) {
+  player_y -= vars.playerspeed[player_id] * invert_controls;
+  }
+  if (player_id === 0)
+    socket.emit('sendPlayer1Pos', {room_id: room_id, player1pos: player_y});
+  else
+    socket.emit('sendPlayer2Pos', {room_id: room_id, player2pos: player_y});
+  return player_y;
+}
+
+const remote_update = (socket, room_id, isHost) =>
+{
+  let invert_controls = [1, 1];
+  invert_controls[0] = activated_powers[1][3] === 2 ? -1 : 1;
+  invert_controls[1] = activated_powers[0][3] === 2 ? -1 : 1;
+
+  if (isHost)
+  {
+    objs.player1.position.y = remoteKeyPressHandle('KeyW', 'KeyS', 0, objs.player1.position.y, invert_controls[0], socket, room_id);
+    objs.player2.position.y = opponentPos;
+
+    if (keys['Space'] && custom.power_ups === true && player_powerUps[0] > -1)
+    {
+      socket.emit('sendActivatePU1', {room_id: room_id, powerType: player_powerUps[0]});
+      activate_power(0, 0);
+    }
+  }
+  else
+  {
+    objs.player2.position.y = remoteKeyPressHandle('ArrowUp', 'ArrowDown', 1, objs.player2.position.y, invert_controls[1], socket, room_id);
+    objs.player1.position.y = opponentPos;
+
+    if (keys['ArrowRight'] && custom.power_ups === true && player_powerUps[1] > -1)
+    {
+      socket.emit('sendActivatePU2', {room_id: room_id, powerType: player_powerUps[1]});
+      activate_power(1, 1);
+    }
+  }
 }
 
 async function CreateGame()
@@ -752,19 +742,16 @@ const render_trail = (x, y) =>
   }
 }
 
-const createPowerUp = () =>
+const createPUObject = (powerType, radius, spawnx, spawny) =>
 {
-  // console.log("CREATING POWERUP");
-  const radius = Math.max(0.7, Math.random() * 1.4);
-  let color = new THREE.Vector3(0., 0., 0.);
-  const powerTypeRoll = Math.random() * 10;
-  let powerType = -1;
   const timedelta = Math.random() * 2000;
-  if (powerTypeRoll < 10/3) { powerType = 0; color.set(0., 1., 0.2); } // longer pad
-  else if (powerTypeRoll < 6) {powerType = 1; color.set(1., 0., 0.2);} // speed boost
-  else if (powerTypeRoll < 8) {powerType = 2; color.set(0.3, 0.3, 1.);} // bullet time
-  else if (powerTypeRoll < 8.6) {powerType = 3; color.set(0.8, 0., 0.8);} // invert controls
-  else {powerType = 4; color.set(1., 1., 1.);} // invisiball
+
+  let color = new THREE.Vector3(0., 0., 0.);
+  if (powerType === 0) color.set(0., 1., 0.2); // longer pad
+  else if (powerType === 1) color.set(1., 0., 0.2); // speed boost
+  else if (powerType === 2) color.set(0.3, 0.3, 1.); // bullet time
+  else if (powerType === 3) color.set(0.8, 0., 0.8); // invert controls
+  else color.set(1., 1., 1.);
 
   let puGeo = new THREE.SphereGeometry(radius, 42, 42)
   let puUniform =
@@ -790,63 +777,108 @@ const createPowerUp = () =>
 
   let puBoxGeo = new THREE.BoxGeometry(radius * 1.6);
   let puBoxMat = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.});
-
   let power_up = new THREE.Mesh( puGeo, puMat );
   let pu_box = new THREE.Mesh( puBoxGeo, puBoxMat );
-  const spawnx = THREE.MathUtils.randFloatSpread( CONST.GAMEWIDTH * 0.7 );
-  const spawny = THREE.MathUtils.randFloatSpread( CONST.GAMEHEIGHT * 0.9 );
   power_up.position.set(spawnx, spawny, 0);
   power_up.rotation.set(Math.PI / 2, 0, 0);
   pu_box.position.set(spawnx, spawny, 0);
 
   tools.scene.add(power_up);
-  // tools.scene.add(pu_box);
   const puHB = new THREE.Box3().setFromObject(pu_box);
-  powerUps.push([power_up, performance.now(), puUniform, timedelta, puHB, powerType]);
+  powerUps.push([power_up, performance.now(), puUniform, timedelta, puHB, powerType, vars.puIdCount]);
+  vars.puIdCount += 1;
 }
 
-const check_pu_timers = () =>
+const createPowerUp = (gamemode, socket, room_id) =>
+{
+  const powerTypeRoll = Math.random() * 10;
+  let powerType = -1;
+  if (powerTypeRoll < 10/3) {powerType = 3;} // longer pad
+  else if (powerTypeRoll < 6) {powerType = 1;} // speed boost
+  else if (powerTypeRoll < 8) {powerType = 2;} // bullet time
+  else if (powerTypeRoll < 8.6) {powerType = 3;} // invert controls
+  else {powerType = 4;} // invisiball
+  const radius = Math.max(0.7, Math.random() * 1.4);
+  const spawnx = THREE.MathUtils.randFloatSpread( CONST.GAMEWIDTH * 0.7 );
+  const spawny = THREE.MathUtils.randFloatSpread( CONST.GAMEHEIGHT * 0.9 );
+  // powerType = 3; color.set(0.8, 0., 0.8);
+  if (gamemode === 2)
+    socket.emit('sendCreatePU', {pu_id: vars.puIdCount, type: powerType, radius: radius, x: spawnx, y: spawny, room_id: room_id});
+  createPUObject(powerType, radius, spawnx, spawny);
+}
+
+const deactivate_power = (player_id, type, gamemode) =>
+{
+  activated_powers[player_id][type] = 0;
+  objs.puGaugeLights[player_id][type].intensity = 0;
+  if (type === 0)
+  {
+    if (player_id === 0)
+      objs.player1.scale.y = 1;
+    else
+      objs.player2.scale.y = 1;
+    vars.playerlens[player_id] = CONST.PLAYERLEN;
+    activated_powers[player_id][0] = 0;
+    objs.puGaugeLights[player_id][0].intensity = 0;
+  }
+  else if (type === 3)
+  {
+    activated_powers[player_id][3] = 0;
+    objs.puGaugeLights[player_id][3].intensity = 0;
+    if (player_id === 0 && gamemode === 1)
+      vars.ai_invert = 1;
+  }
+  else if (type === 4)
+  {
+    objs.ball.visible = true;
+    objs.ballWrap.visible = true;
+    csts.ballLight.intensity = 5;
+  }
+}
+
+const check_pu_timers = (gamemode, socket, room_id) =>
 {
   const timestamp = performance.now()
   for (let i = 0; i < 2; i++)
   {
     if (activated_powers[i][0] === 2 && timestamp - power_timers[i][0] > 10000)
     {
-      if (i === 0)
-        objs.player1.scale.y = 1;
-      else
-        objs.player2.scale.y = 1;
-      vars.playerlens[i] = CONST.PLAYERLEN;
-      activated_powers[i][0] = 0;
-      objs.puGaugeLights[i][0].intensity = 0;
+      if (gamemode === 2)
+        socket.emit('sendDeactivatePU', {room_id: room_id, player_id: i, type: 0});
+      deactivate_power(i, 0, gamemode);
     }
     if (activated_powers[i][2] === 2 && timestamp - power_timers[i][2] > 5000)
     {
-      activated_powers[i][2] = 0;
-      objs.puGaugeLights[i][2].intensity = 0;
+      if (gamemode === 2)
+        socket.emit('sendDeactivatePU', {room_id: room_id, player_id: i, type: 2})
+      deactivate_power(i, 2, gamemode);
     }
-    if (activated_powers[i][3] === 2 && timestamp - power_timers[i][3] > 10000)
+    if (activated_powers[i][3] === 2)
     {
-      activated_powers[i][3] = 0;
-      objs.puGaugeLights[i][3].intensity = 0;
+      if (timestamp - power_timers[i][3] > 10000)
+      {
+        if (gamemode === 2)
+          socket.emit('sendDeactivatePU', {room_id: room_id, player_id: i, type: 3})
+        deactivate_power(i, 3, gamemode);
+      }
+      else if (i === 0 && gamemode === 1 && timestamp - power_timers[i][3] > 10000 - 6000 * custom.difficulty)
+        vars.ai_invert = -1;
     }
-    if (activated_powers[i][4] === 2)
-      csts.ballLight.intensity = Math.max(0., Math.cos((performance.now() - power_timers[i][4]) / 80) * 5);
   }
   if (vars.bulletTime < 1 && activated_powers[0][2] === 0 && activated_powers[1][2] === 0)
     vars.bulletTime = 1;
 }
 
-const create_delete_pu = () =>
+const create_delete_pu = (isHost, gamemode, socket, room_id) =>
 {
   let puTimer = performance.now() - startTime;
-  if (puTimer - vars.puTimeSave > CONST.PU_TICK)
+  if (isHost === true && puTimer - vars.puTimeSave > CONST.PU_TICK)
   {
     vars.puTimeSave = puTimer;
     const spawnChance = Math.random() - (1 - (vars.puChanceCounter / 10));
     if (spawnChance > 0)
     {
-      createPowerUp();
+      createPowerUp(gamemode, socket, room_id);
       vars.puChanceCounter = 1;
     }
     else
@@ -862,17 +894,20 @@ const create_delete_pu = () =>
     else if (powerUps[i][2].u_spawn.value > 0)
       powerUps[i][2].u_spawn.value = -1;
 
-    if (checkTime > CONST.PU_LIFESPAN)
-      {
-        tools.scene.remove(powerUps[i][0]);
-        powerUps.shift();
-      }
+    if (isHost === true && checkTime > CONST.PU_LIFESPAN)
+    {
+      tools.scene.remove(powerUps[i][0]);
+      if (gamemode === 2)
+        socket.emit('sendDeletePU', {pu_id: powerUps[i][6], room_id: room_id});
+      powerUps.splice(i, 1);
+    }
     else if (checkTime > CONST.PU_LIFESPAN * 2/3)
       powerUps[i][2].u_fade.value = checkTime - CONST.PU_LIFESPAN * 2/3
   }
 }
 
-const animate = (socket, room_id, user_id, isHost, gamemode) =>
+// CUT
+const animate = (socket, room_id, isHost, gamemode) =>
 {
   if (isHost)
     collisionLogic(room_id, socket, gamemode);
@@ -883,10 +918,10 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
   
   if (isHost === true)
   {
-    if (custom.power_ups === true)
-      check_pu_timers();
     objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
     objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
+    if (custom.power_ups === true)
+      check_pu_timers(gamemode, socket, room_id);
     if (gamemode === 1)
     {
       const ai_time = performance.now();
@@ -899,6 +934,12 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
     else if (gamemode === 2)
       socket.emit('sendBallPos', {x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id})
   }
+  for (let i = 0; i < 2; i++)
+  {
+    if (activated_powers[i][4] === 2)
+      csts.ballLight.intensity = Math.max(0., Math.cos((performance.now() - power_timers[i][4]) / 80) * 5);
+  }
+
   const x = objs.ball.position.x;
   const y = objs.ball.position.y;
   objs.ballWrap.position.x = x;
@@ -909,36 +950,37 @@ const animate = (socket, room_id, user_id, isHost, gamemode) =>
   render_trail(x, y);
   render_effects();
   if (custom.power_ups === true)
-    create_delete_pu();
+    create_delete_pu(isHost, gamemode, socket, room_id);
 
   if (gamemode === 2)
-    remote_update(socket, user_id, isHost);
+    remote_update(socket, room_id, isHost);
   else
     local_update(gamemode);
   // tools.controls.update();
   tools.stats.update();
     
   uniformData.u_time.value = performance.now() - startTime;
-  if (powerUps.length > 0)
-    puUniformData.u_time.value = performance.now() - startTime;
   tools.renderer.render(tools.scene, tools.camera);
 
   setTimeout( function() {
-    requestAnimationFrame( () => animate(socket, room_id, user_id, isHost, gamemode) );
+    requestAnimationFrame( () => animate(socket, room_id, isHost, gamemode) );
   }, 5 );
 }
 
+// CUT
 const init_socket = (socket, isHost) =>
 {
   if (isHost) {
     socket.on('updatePlayer2Pos', position => {
-      // console.log("Receiving player 2 pos: " + position.player2pos);
       opponentPos = position.player2pos;
+    })
+    socket.on('updateActivatePU2', data =>{
+      if (data.powerType === player_powerUps[1])
+        activate_power(1, 0);
     })
   }
   else {
     socket.on('updatePlayer1Pos', position => {
-      // console.log("Receiving player 1 pos: " + position.player1pos);
       opponentPos = position.player1pos;
     });
     socket.on('updateBallPos', data => {
@@ -974,6 +1016,46 @@ const init_socket = (socket, isHost) =>
       setBallColor();
       vars.stopGame = data.stopGame;
     });
+    socket.on('updateCreatePU', data => {
+      console.log("PU CREATION SIGNAL");
+      if (data.pu_id === vars.puIdCount)
+        createPUObject(data.powerType, data.radius, data.spawnx, data.spawny);
+    })
+    socket.on('updateCollectPU', data => {
+      const p = data.player_id;
+      player_powerUps[p] = data.powerType;
+      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
+      {printGameInfo(font, vars.latentMesh[p], powerUp_names[data.powerType], player_powerUps[p] + 6, p, 0.85)} );
+    })
+    socket.on('updateActivatePU1', data => {
+      // if (data.powerType === player_powerUps[0])
+      activate_power(0, 1);
+    })
+    socket.on('updateInvisiball', data => {
+      objs.ball.visible = false;
+      objs.ballWrap.visible = false;
+      csts.ballLight.intensity = 5;
+      power_timers[data.id][4] = performance.now();
+      activated_powers[data.id][4] = 2;
+    })
+    socket.on('updateInvert', () => {
+      activated_powers[0][3] = 2;
+    })
+    socket.on('updateDeactivatePU', data => {
+      deactivate_power(data.player_id, data.type, 2);
+    })
+    socket.on('updateDeletePU', data => {
+      console.log("PU DESTRUCTION SIGNAL");
+      for (let j = 0; j < powerUps.length; j++)
+      {
+        if (powerUps[j][6] === data.pu_id)
+        {
+          tools.scene.remove(powerUps[j][0]);
+          powerUps.splice(j, 1);
+          break;
+        }
+      }
+    })
   }
 }
 
@@ -989,6 +1071,7 @@ const getColorVector3 = (bgColor) =>
   return new THREE.Vector3(r/255, g/255, b/255);
 }
 
+// CUT
 // 0 -> local multiplayer
 // 1 -> AI
 // 2 -> remote
@@ -1110,7 +1193,7 @@ export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gam
       if (gamemode === 2)
         init_socket(socket, isHost);
       if (gamemode < 2 || (gamemode === 2 && socket && user_id))
-        animate(socket, room_id, user_id, isHost, gamemode);
+        animate(socket, room_id, isHost, gamemode);
 		}, []);
   return <canvas className='fixed-top' ref={containerRef} />;
 };
