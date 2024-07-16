@@ -10,7 +10,7 @@
         },
         {
           protocol: 'http',
-          hostname: 'backend2',
+          hostname: 'localhost',
         },
       ],
     },

@@ -2,42 +2,47 @@
 
 import { useEffect, useState } from "react";
 import ColorSliderPicker from './ColorPalette';
-
-export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
-	if (user_id) {
-		const response = await fetch(`http://localhost:8000/api/gameCustomization/${user_id}`, {
-			method: 'GET'
-		});
-		if (response.ok) {
-			if (response.status === 204) {
-				console.log('No Settings saved for this user');
-			} else {
-				const fetched = await response.json();
-				const data = fetched.data;
-				updateSettings({
-					...gameSettings,
-					user_id: user_id,
-					background: data.background,
-					palette: data.palette,
-					bgColor: data.bgColor,
-					opacity: data.opacity,
-					sparks: data.sparks
-				});
-			}
-		} else if (response.status === 404) {
-			console.error('404 - User Does Not Exist');
-		} else {
-			console.error('Error: ' + response.status);
-		}
-	}
-};
+import styles from './CustomizationStyles.module.css'
 
 export default function Customization({ updateSettings, gameSettings, userId }) {
 
 	const [palette, setPalette] = useState(false);
+	const [isMounted, setIsMounted] = useState(false);
 
 	useEffect(() => {
-		fetchGameSettings(userId, updateSettings, gameSettings);
+		const fetchGameSettings = async () => {
+			if (userId) {
+				const response = await fetch(`http://localhost:8000/api/gameCustomization/${userId}`, {
+					method: 'GET'
+				});
+				if (response.ok) {
+					if (response.status === 204) {
+						console.log('No Settings saved for this user');
+					} else {
+						const fetched = await response.json();
+						const data = fetched.data;
+						updateSettings({
+							...gameSettings,
+							user_id: userId,
+							background: data.background,
+							palette: data.palette,
+							bgColor: data.bgColor,
+							opacity: data.opacity,
+							sparks: data.sparks
+						});
+					}
+				} else if (response.status === 404) {
+					console.error('404 - User Does Not Exist');
+				} else {
+					console.error('Error: ' + response.status);
+				}
+			}
+		};
+		fetchGameSettings();
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 1000);
+		return () => clearTimeout(timer)
 	}, [userId]);
 
 	const handleColorChange = (color) => {
@@ -297,7 +302,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 				<div className="d-flex flex-column align-items-center">
 
 					<div className="m-2">
-						<button className="btn btn-primary"
+						<button className={`btn btn-primary ${styles.button} ${isMounted ? styles.mounted : ''}`}
 							type="button"
 							data-bs-toggle="offcanvas"
 							data-bs-target="#offcanvasCustomization"

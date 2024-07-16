@@ -150,32 +150,33 @@ export default function Tournament({ gameName }: props) {
 		}
 	};
 
-	useEffect(() => {
-		fetchTournamentData()
-	}, [])
-	return (
-		<div className='d-flex justify-content-end mt-3 vh-100'>
-			<div className='w-100 border rounded p-4' style={{ maxWidth: '800px' }}>
-				<div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
-					<h3 className='mb-0'>Tournaments</h3>
-					<Button className="btn btn-primary me-md-2" type='button' onClick={handleShow}>Create</Button>
-				</div>
-				<div className='w-100 pt-2' >
-					<h4 className='py-2 fw-light'>All Tournaments</h4>
-					<div className='d-flex flex-column'>
-						{
-							tournamentData.length > 0 && tournamentData?.map((item: any, i: number) => {
-								return (
-									<h6 style={{ cursor: 'pointer', borderBottom: '1px solid #f0f0f0' }} className='d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary' key={item.id} onClick={() => handleSelectedData(item)}>
-										<span>{i + 1}. {item.name}</span>
-										<ArrowUpRightSquare className='h5' />
-									</h6>
-								)
-							})
-						}
-					</div>
-				</div>
-			</div>
+  useEffect(() => {
+	// localStorage.setItem('GameName', JSON.stringify(null))
+	fetchTournamentData()
+  }, [])
+  return (
+	<div className='text-light d-flex justify-content-end mt-3 vh-100'>
+	<div className='w-100 border rounded p-4' style={{maxWidth:'800px'}}>
+	  <div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
+		<h3 className='mb-0'>Tournaments</h3>
+		<Button className="btn btn-primary me-md-2" type='button' onClick={handleShow}>Create</Button>
+	  </div>
+	  <div className='w-100 pt-2' >
+		<h4 className='py-2 fw-light'>All Tournaments</h4>
+		<div className='d-flex flex-column'>
+		  {
+			tournamentData.length > 0 && tournamentData?.map((item:any, i:number) => {
+			  return(
+				<h6 style={{ cursor:'pointer', borderBottom:'1px solid #f0f0f0'}} className='d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary' key={item.id} onClick={() => handleSelectedData(item)}>
+				  <span>{i + 1}. {item.name}</span>
+				  <ArrowUpRightSquare className='h5'/>
+				</h6>
+			  )
+			})
+		  }
+		</div>
+	  </div>
+	</div>
 
 
 			<Modal

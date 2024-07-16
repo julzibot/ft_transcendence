@@ -45,7 +45,7 @@ services:
   backend:
     container_name: backend
     build:
-      context: ./backend/authentication
+      context: ./backend/core
       dockerfile: Dockerfile
     restart: always
     ports:
@@ -54,9 +54,9 @@ services:
       - db
       # - redis
     volumes:
-      - ./backend/authentication/:/app
+      - ./backend/core/:/app
     env_file:
-      - ./backend/authentication/.env.example
+      - ./backend/core/.env.example
 
   # redis:
   #   container_name: redis
