@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Join from './Join';
+import { SocketContext } from '../../../context/socket';
 
 export default function LocalGame({ userId }) {
 

@@ -6,7 +6,8 @@ import { Button } from 'react-bootstrap'
 import { useParams } from 'next/navigation'
 import { createMatchMaking, createMatchMakingTournament, fetchTournamentInfo, joinTournament, leaveTournament } from '@/services/tournaments'
 import { getSession, useSession } from 'next-auth/react'
-import Link from 'next/link'
+import JoinGameRoom from '@/components/Tournament/JoinGameRoom'
+import { SocketContext, socket } from "../../../../context/socket";
 
 function DetailsPage() {
   const param = useParams<any>()
@@ -204,7 +205,11 @@ function DetailsPage() {
                               <div className='d-flex align-items-center justify-content-between'>
                                 {items?.[v] && tournamentData?.detail[0]?.tournamentWinner === null && <p className='mb-2'>{items?.[v]} <span style={{color:"#20c620", fontSize:'14px'}}>{items?.[player] === items?.winner? '- WINNER' : ''}</span></p> }
                                 {items?.[v] && tournamentData?.detail[0]?.tournamentWinner && <p className='mb-2'>{items?.[v]} <span style={{color:"#20c620", fontSize:'14px'}}>{items?.[player] === tournamentData?.detail[0]?.tournamentWinner ? '- WINNER' : ''}</span></p> }
-                                {items[player] === session?.user?.id && <p className='mb-2' style={{ fontSize:'14px'}}><Link href={items?.linkToJoin}>{items?.linkToJoin}</Link></p>}
+                                {/* {items[player] === session?.user?.id && <p className='mb-2' style={{ fontSize:'14px'}}><Link href={items?.linkToJoin}>{items?.linkToJoin}</Link></p> } */}
+																{items[player] === session?.user?.id &&
+																(<SocketContext.Provider value={socket}>
+																	<JoinGameRoom room_id={items?.linkToJoin} user_id={session?.user?.id} />
+																</SocketContext.Provider>)}
                               </div>
                             </li>
                         ) 

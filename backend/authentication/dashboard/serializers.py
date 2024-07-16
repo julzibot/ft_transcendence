@@ -4,4 +4,4 @@ from .models import DashboardData
 class DashboardSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = DashboardData
-		fields = ['user_id', 'wins', 'losses']
+		fields = '__all__'
