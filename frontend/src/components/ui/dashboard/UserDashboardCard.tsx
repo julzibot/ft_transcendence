@@ -2,6 +2,7 @@
 import { useSession } from "next-auth/react"
 import { useEffect, useState, useRef } from "react";
 import Chart from 'chart.js/auto';
+import 'chartjs-adapter-luxon';
 import * as Utils from './Utils'
 
 export default function UserDashboardCard() {
@@ -70,19 +71,20 @@ export default function UserDashboardCard() {
 				type: 'bar',
 				data: data,
 				options: {
-					plugins: {
-						title: {
-							display: true,
-							text: 'Past 7 Days'
-						},
-					},
+					// plugins: {
+					// 	title: {
+					// 		display: false,
+					// 		text: 'Past 7 Days'
+					// 	},
+					// },
 					responsive: true,
 					scales: {
 						x: {
 							stacked: true,
 						},
 						y: {
-							stacked: true
+							stacked: true,
+							beginAtZero: true
 						}
 					}
 				}
@@ -97,7 +99,7 @@ export default function UserDashboardCard() {
 		}, [data, labels]);
 		
 		return (
-			<div>
+			<div className="m-3">
       <canvas ref={chartRef}></canvas>
     </div>
   );
@@ -134,15 +136,20 @@ const LineChart = ({ data, labels }) => {
 			type: 'line',
 			data: lineData,
 			options: {
+				scales: {
+					y: {
+						beginAtZero: true
+					}
+				},
 				responsive: true,
 				plugins: {
 					legend: {
 						position: 'top',
 					},
-					title: {
-						display: true,
-						text: 'Chart.js Line Chart'
-					}
+					// title: {
+					// 	display: false,
+					// 	text: 'Chart.js Line Chart'
+					// }
 				}
 			}
 		});
@@ -156,10 +163,10 @@ const LineChart = ({ data, labels }) => {
 	}, [lineData, lineLabels]);
 	
 	return (
-		<div>
-		<canvas ref={chartRef}></canvas>
-	</div>
-);
+		<div className="m-3">
+			<canvas ref={chartRef}></canvas>
+		</div>
+	);
 };
 
 	return (
