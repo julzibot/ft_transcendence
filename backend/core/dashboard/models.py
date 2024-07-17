@@ -6,7 +6,7 @@ class DashboardData(models.Model):
 	user_id = models.ForeignKey(UserAccount, related_name='user_id', on_delete=models.CASCADE)
 
 	wins = models.IntegerField(default=0)
-	prevResult = models.BooleanField(default=False)
+	prev_result = models.BooleanField(default=False)
 	streak = models.IntegerField(default=0)
 	games_played = models.IntegerField(default=0)
 
