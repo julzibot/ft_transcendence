@@ -133,6 +133,21 @@ export default function FriendList() {
 									<>
 										<div key={friend.user.id} className="d-flex flex-row justify-content-between">
 											<div className="">
+											{
+													friend.user.is_active ? (
+														<>
+															<CustomTooltip text="Online" position="bottom">
+																	<CircleFill color="green" />
+															</CustomTooltip>
+														</>
+													) : (
+														<>
+															<CustomTooltip text="Offline" position="bottom">
+																<CircleFill color="red" />
+															</CustomTooltip>													
+														</>
+													)
+												}
 												<img 
 												src={`http://localhost:8000${friend.user.image}`} 
 												className="rounded-circle border ms-2 me-2"

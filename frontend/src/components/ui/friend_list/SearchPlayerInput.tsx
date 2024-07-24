@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react"
-import { PersonAdd  } from "react-bootstrap-icons";
+import { PersonAdd, CircleFill  } from "react-bootstrap-icons";
 import { CustomTooltip } from "@/components/Utils/Tooltip";
 import { useSession } from "next-auth/react";
 import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
@@ -87,6 +87,21 @@ export default function SearchPlayerInput({fetchFriends}) {
               {
                 searchQuery.map((user, index) => (
                   <div key={index} className="border border-2 text-dark">
+										{
+													user.is_active ? (
+														<>
+															<CustomTooltip text="Online" position="bottom">
+																	<CircleFill color="green" />
+															</CustomTooltip>
+														</>
+													) : (
+														<>
+															<CustomTooltip text="Offline" position="bottom">
+																<CircleFill color="red" />
+															</CustomTooltip>													
+														</>
+													)
+												}
                     <Image 
                       src={`${BACKEND_URL}${user.image}`}
                       className="rounded-circle border ms-2 me-2"
