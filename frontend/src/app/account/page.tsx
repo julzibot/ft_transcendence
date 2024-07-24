@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useState, FormEvent, useEffect } from "react";
 import ImageUpload from "@/components/Utils/ImageUpload";
@@ -21,7 +21,6 @@ export default function ProfilePage() {
     rePassword: '',
     usernameError: '',
     error: '',
-    pwDelete: ''
   })
 
   const [gameSettings, setGameSettings] = useState({
@@ -88,12 +87,10 @@ export default function ProfilePage() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         'user_id': session.user.id,
-        'password': data.pwDelete
       })
     })
     if(response.status === 204) {
-      // TODO: router does not push
-      router.push('/')
+      signOut({'redirectUrl': '/auth/signin'})
     }
     else {
       const res = await response.json()
@@ -161,25 +158,30 @@ export default function ProfilePage() {
 								<p>Loading...</p>
 							)
 						  }
-              <hr />
-              <div className="d-flex flex-row justify-content-center align-items-center">
-                {
-                  isEditPw ? (
-                    <>
-                      <form onSubmit={changePassword}>
-                        <input placeholder="Current Password" className="form-control form-control-sm" type="password" value={data.oldPassword} onChange={(e) => setData({...data, oldPassword: DOMPurify.sanitize(e.target.value)})} />
-                        <input placeholder="New Password" className="form-control form-control-sm" type="password" value={data.newPassword} onChange={(e) => setData({...data, newPassword: DOMPurify.sanitize(e.target.value)})} />
-                        <input placeholder="Confirm Password" className="form-control form-control-sm" type="password" value={data.rePassword} onChange={(e) => setData({...data, rePassword: DOMPurify.sanitize(e.target.value)})} />
-                        <button type="submit" className="btn btn-primary btn-sm rounded-pill">Submit</button>
-                        <button type="button" onClick={() => setIsEditPw(false)} className="btn btn-secondary rounded-pill btn-sm">Cancel</button>
-                        <div className="form-text text-danger">{data.error}</div>
-                      </form>   
-                    </>
-                  ) : (
-                    <button className="btn btn-primary btn-sm rounded-pill" onClick={() => setIsEditPw(true) }>Change Password</button>
-                  )
-                }
-              </div>
+              {
+                session.provider !== '42-school' && (
+                  <>
+                    <hr />
+                    <div className="d-flex flex-row justify-content-center align-items-center">
+                      {
+                        isEditPw ? (
+                          <>
+                            <form onSubmit={changePassword}>
+                              <input placeholder="Current Password" className="form-control form-control-sm" type="password" value={data.oldPassword} onChange={(e) => setData({...data, oldPassword: DOMPurify.sanitize(e.target.value)})} />
+                              <input placeholder="New Password" className="form-control form-control-sm" type="password" value={data.newPassword} onChange={(e) => setData({...data, newPassword: DOMPurify.sanitize(e.target.value)})} />
+                              <input placeholder="Confirm Password" className="form-control form-control-sm" type="password" value={data.rePassword} onChange={(e) => setData({...data, rePassword: DOMPurify.sanitize(e.target.value)})} />
+                              <button type="submit" className="btn btn-primary btn-sm rounded-pill">Submit</button>
+                              <button type="button" onClick={() => setIsEditPw(false)} className="btn btn-secondary rounded-pill btn-sm">Cancel</button>
+                              <div className="form-text text-danger">{data.error}</div>
+                            </form>   
+                          </>
+                        ) : (
+                          <button className="btn btn-primary btn-sm rounded-pill" onClick={() => setIsEditPw(true) }>Change Password</button>
+                        )
+                      }
+                    </div> 
+              </>)
+            }
               <hr />
               <button type="button" className="btn btn-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                 Delete Account
@@ -193,20 +195,6 @@ export default function ProfilePage() {
               <div className="modal-header">
                 <h1 className="modal-title fs-5" id="staticBackdropLabel">We are sad to see you leaving 😔</h1>
                 <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div className="modal-body">
-                <form onSubmit={deleteAccount}>
-                  <label htmlFor="confirm-password-input" className="form-label">Please confirm your password to proceed</label>
-                  <input 
-                    className="form-control" 
-                    id="confirm-password-input" 
-                    placeholder="Password" 
-                    type="password" 
-                    value={data.pwDelete} 
-                    onChange={(e) => setData({...data, pwDelete: DOMPurify.sanitize(e.target.value)})}
-                    />
-                  <span className="form-text text-danger">{data.error}</span>
-                </form>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">I Changed My Mind</button>

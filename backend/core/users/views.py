@@ -207,7 +207,8 @@ class SearchUserView(APIView):
           'id': user.id,
           'username': user.username,
           'image': user.image.url if user.image else None,
-          'friendship_status': friendship_status
+          'friendship_status': friendship_status,
+          'is_active' : user.is_active
         }
         users_data.append(user_data)
       return Response({"users": users_data})
@@ -236,17 +237,10 @@ class DeleteAccountView(APIView):
       user = UserAccount.objects.get(id=data['user_id'])
     except ObjectDoesNotExist:
       return Response({'message': 'user does not exists'}, status=status.HTTP_404_NOT_FOUND)
-    if not user.password:
-      user.delete_image()
-      user.delete()
-      return Response(status=status.HTTP_204_NO_CONTENT)
+    user.delete_image()
+    user.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
-    if not check_password(data['password'], user.password):
-      return Response({'message': 'password does not match our record'}, status=status.HTTP_401_UNAUTHORIZED)
-    else:
-      user.delete_image()
-      user.delete()
-      return Response(status=status.HTTP_204_NO_CONTENT)
     
 class SignOutView(APIView):
   def put(self, request):
@@ -254,3 +248,4 @@ class SignOutView(APIView):
     user = UserAccount.objects.get(id=data)
     user.is_active = False
     user.save()
+    return Response(status=status.HTTP_200_OK)

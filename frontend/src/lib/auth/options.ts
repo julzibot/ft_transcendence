@@ -76,6 +76,7 @@ export const authOptions: NextAuthOptions = {
         if (res.ok)
         {
           token = await res.json()
+          token.provider = account.provider
           return token
         }
       }
@@ -99,6 +100,7 @@ export const authOptions: NextAuthOptions = {
       })
       if(response.ok) {
         session.user = await response.json()
+        session.provider = token.provider;
       }
       return session
     }
