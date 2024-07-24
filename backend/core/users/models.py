@@ -5,6 +5,7 @@ import requests, os
 from django.core.files import File
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+import uuid
 
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **kwargs):
@@ -37,7 +38,7 @@ class UserAccountManager(BaseUserManager):
 def upload_image_to(instance, filename):
     # Generate a new filename
     extension = filename.split('.')[-1]
-    new_filename = f"{instance.id}.{extension}"
+    new_filename = f"{uuid.uuid4()}.{extension}"
     return os.path.join('images/', new_filename)
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
