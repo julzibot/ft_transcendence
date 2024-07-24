@@ -23,7 +23,7 @@ class DashboardView(APIView):
 		
 		try:
 			dashboard = DashboardData.objects.get(user_id=user_id)
-			serializer = DashboardSerializer(dashboard, data=request.data, partial=True)
+			serializer = DashboardSerializer(dashboard, data=request.data, partial=True) 
 			if serializer.is_valid():
 				serializer.save()
 				return Response({'message': f'[{id}] Dashboard Data saved successfully'}, status=status.HTTP_202_ACCEPTED)

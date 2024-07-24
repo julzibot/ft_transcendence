@@ -2,15 +2,16 @@
 
 import { useState } from 'react';
 import Join from './Join';
-import { SocketContext } from '../../../context/socket';
+import { SocketContext, socket } from '../../../context/socket';
 
-export default function LocalGame({ userId }) {
+export default function LocalGame({ userId, gameSettings }) {
 
 	const [gameStarted, setGameStarted] = useState(false);
 	const [gameMode, setGameMode] = useState(0);
 
+	// HARD CODED ONLINE GAME TO 2 CHANGE TO 0 !!!
 	const startLocalGame = () => {
-		setGameMode(0);
+		setGameMode(2);
 		setGameStarted(true);
 	}
 
@@ -21,9 +22,11 @@ export default function LocalGame({ userId }) {
 
 	return (
 		<>
+			<SocketContext.Provider value={socket}>
 			{
+
 				gameStarted ? (
-					userId && <Join gameMode={gameMode} userId={userId} />
+					userId && <Join gameMode={gameMode} gameSettings={gameSettings} userId={userId} />
 				) : (
 				<>
 					<div className="d-flex justify-content-center mb-3">
@@ -35,6 +38,7 @@ export default function LocalGame({ userId }) {
 				</>
 				)
 			}
+			</SocketContext.Provider>
 		</>
 	)
 }

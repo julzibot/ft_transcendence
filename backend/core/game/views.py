@@ -36,40 +36,39 @@ class UserGameHistory(APIView):
 		serializer = GameMatchSerializer(history, many=True)
 		return Response({'data': serializer.data}, status=status.HTTP_200_OK)
 
-# Need to find a way to POST player2's user id
 class	GameDataView(APIView):
-		def post(self, request):
-			data = request.data
-			user1_id = data.get['player1']
-			# user2_id = data.get['player2']
-			if user1_id.exists():
-							try:
-								user1 = UserAccount.objects.get(id=user1_id)
-							except UserAccount.DoesNotExist:
-								return Response({'message': f'[{user1_id}] Player 1: Unknown User'}, status=status.HTTP_404_NOT_FOUND)
-			# if user2_id.exists():
-			# 				try:
-			# 					user2 = UserAccount.objects.get(id=user2_id)
-			# 				except UserAccount.DoesNotExist:
-			# 					return Response({'message': f'[{user2_id}] Player 2: Unknown User'}, status=status.HTTP_404_NOT_FOUND)
-
-			new_game = GameMatch.objects.create(player1=user1)
+	def post(self, request):
+		data = request.data
+		user1_id = data.get('player1')
+		user2_id = data.get('player2')
+		game_mode = data.get('game_mode')
+		if user1_id is not None and game_mode is not None and (game_mode <= 3 and game_mode >= 0):
+			try:
+				user1 = UserAccount.objects.get(id=user1_id)
+			except UserAccount.DoesNotExist:
+				return Response({'message': f'[{user1_id}] Player 1: Unknown User'}, status=status.HTTP_404_NOT_FOUND)
+			try:
+				user2 = UserAccount.objects.get(id=user2_id)
+			except UserAccount.DoesNotExist:
+				return Response({'message': f'[{user2_id}] Player 2: Unknown User'}, status=status.HTTP_404_NOT_FOUND)
+			new_game = GameMatch.objects.create(player1=user1, player2=user2, game_mode=game_mode)
 			return Response({'id': new_game.id}, status=status.HTTP_201_CREATED)
+		return Response({'message': '[POST] Invalid Game Match Creation Request'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdateGameInfos(APIView):
-		def put(self, request):
-				id = request.data['id']
-				try:
-					instance = GameMatch.objects.get(id=id)
-				except GameMatch.DoesNotExist:
-					return Response({'message': f'[{id}] Unknown Game Match'}, status=status.HTTP_404_NOT_FOUND)
-				# instance = get_object_or_404(YourModel, pk=pk)
-				instance.score1 = request.data['score1']
-				instance.score2 = request.data['score2']
-				instance.save()
-
-				return Response({'message': 'scoring put in db'}, status=status.HTTP_200_OK)
-				
-		# def get(self, request):
-
+	def put(self, request, id):
+		try:
+			game = GameMatch.objects.get(id=id)
+		except GameMatch.DoesNotExist:
+			return Response({'message': f'[{id}] Unknown Game Match'}, status=status.HTTP_404_NOT_FOUND)
+		
+		data = request.data
+		score1 = data.get('score1')
+		score2 = data.get('score2')
+		if score1 is not None and score2 is not None:
+			game.score1 = score1
+			game.score2 = score2
+			game.save()
+			return Response({'message': f'[{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
+		return Response({'message': '[POST] Invalid Game Match Creation Request'}, status=status.HTTP_400_BAD_REQUEST)
 

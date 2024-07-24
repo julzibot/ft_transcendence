@@ -18,13 +18,6 @@ export default function GameSettings() {
 
 	const [gameSettings, setGameSettings] = useState({
 		user_id: userId,
-
-		background: 0, // 0 - 3 animated, 4 - 5 static
-		palette: 0, // palette: 4 choices
-		bgColor: '#ff0000',
-		opacity: 80,
-		sparks: true,
-
 		gameDifficulty: 4,
 		pointsToWin: 5,
 		powerUps: true
@@ -135,7 +128,15 @@ export default function GameSettings() {
 
 
 							</div>
-							<LocalGame userId={userId} />
+							{
+								userId ? (<LocalGame userId={userId} gameSettings={gameSettings} />) :
+								(
+									<button className="btn btn-primary" type="button" disabled>
+										<span className="spinner-grow spinner-grow-sm" aria-hidden="true"></span>
+										<span role="status">Loading...</span>
+									</button>
+								)
+							}
 						</div>
 					</div>
 				</div>

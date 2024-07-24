@@ -5,7 +5,7 @@ from .serializers import DashboardSerializer
 
 @receiver(pre_save, sender=DashboardData)
 def	preSaveDashboard(sender, instance, **kwargs):
-	if instance.prevResult:
+	if instance.prev_result:
 		instance.streak += 1
 	else:
 		instance.streak = 0
@@ -13,7 +13,7 @@ def	preSaveDashboard(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=DashboardSerializer)
 def	preSaveDashboardSerializer(sender, instance, **kwargs):
-	if instance.prevResult:
+	if instance.prev_result:
 		instance.streak += 1
 	else:
 		instance.streak = 0
