@@ -1,8 +1,8 @@
 'use client';
 
-import { getSession, signIn,  useSession} from "next-auth/react"
+import {signIn, signOut, useSession} from "next-auth/react"
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect} from "react";
 import Image from "next/image";
 
 export default function AuthButton() {
@@ -11,6 +11,17 @@ export default function AuthButton() {
   useEffect(() => {
     require("bootstrap/dist/js/bootstrap.bundle.min.js")
   }, []);
+
+  async function handleSignOut() {
+    const response = await fetch('http://localhost:8000/api/auth/signout/', {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        'id': session?.user.id
+      })
+    })
+    signOut({callbackUrl: 'http://localhost:3000/auth/signin'})
+  }
 
   if(session && session.user) {
     return (
@@ -34,10 +45,27 @@ export default function AuthButton() {
             </button>
           <ul className="dropdown-menu">
             <li><Link className="dropdown-item" href='/account'>Account</Link></li>
-						<li><hr className="dropdown-divider" /></li>
-            <li><Link className="dropdown-item text-primary" href="/api/auth/signout">Sign Out</Link></li>
+						<li><hr className="dropdown-divider"/></li>
+            <li><button className="dropdown-item btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Sign Out</button></li>
           </ul>
         </div>
+        <div className="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="exampleModalLabel">Signout</h1>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              <span className="card-subtitle">Are you sure you want to sign out?</span>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline-secondary me-md-2" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+              <button className="btn btn-outline-danger" type="button" onClick={handleSignOut}>Sign out</button>
+            </div>
+          </div>
+        </div>
+      </div>
       </>
     );
   }

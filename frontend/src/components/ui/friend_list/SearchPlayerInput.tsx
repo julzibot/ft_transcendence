@@ -8,7 +8,7 @@ import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
 import { Toast, ToastContainer } from 'react-bootstrap'
 import Image from "next/image";
 
-const BASE_URL = "http://localhost:8000"
+const BASE_URL = "http://localhost:8000/api/"
 const BACKEND_URL = 'http://backend:8000'
 
 export default function SearchPlayerInput({fetchFriends}) {
@@ -42,6 +42,7 @@ export default function SearchPlayerInput({fetchFriends}) {
   }
 
   const handleFriendRequest = async(fromUserId: number, toUserId: number) => {
+    console.log('click')
     fetch(BASE_URL + "friends/send-friend-request/", {
       method: "POST",
       headers: {'Content-Type': 'application/json'},

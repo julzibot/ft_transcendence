@@ -82,6 +82,8 @@ class OauthView(APIView):
       user.save_image_from_url()
 
     backendTokens = get_tokens_for_user(user)
+    user.is_active = True
+    user.save()
     response = Response({
       'user': {
         'id': user.id,
@@ -131,6 +133,7 @@ class SigninView(APIView):
           "error": "Unauthorized",
           "message": "The password provided does not match our records. Please double-check your password and try again."
         }, status=status.HTTP_401_UNAUTHORIZED)
+      user.is_active = True
       response = Response({
         'id': user.id,
         'username': user.username,
@@ -245,4 +248,9 @@ class DeleteAccountView(APIView):
       user.delete()
       return Response(status=status.HTTP_204_NO_CONTENT)
     
-    
+class SignOutView(APIView):
+  def put(self, request):
+    data = request.data['id']
+    user = UserAccount.objects.get(id=data)
+    user.is_active = False
+    user.save()
