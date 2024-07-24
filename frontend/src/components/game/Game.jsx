@@ -6,7 +6,6 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts, custom } from '../../utils/init';
 import { SocketContext } from '../../../context/socket';
-import io from 'socket.io-client'
 
 let keys = {};
 const tools = {};
@@ -601,42 +600,38 @@ const remote_update = (socket, room_id, isHost) =>
   }
 }
 
-async function CreateGame()
-{
-  // const url = BASE_URL + 'game';
+async function CreateGame(user_id, player2_id, game_mode) {
   console.log("CreateGame called");
-  const response = await fetch(CONST.BASE_URL + 'game/test/',
-    {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        "player1_id": 1 
-      })
-    })
-    if(response.status === 201) {
-      const res = await response.json()
-      return parseInt(res.id)
-    }
-    else
-      return -1
+  const response = await fetch(CONST.BASE_URL + 'game/create', {
+		method: 'POST',
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify({
+			'player1': user_id,
+			'player2': player2_id,
+			'game_mode': game_mode
+		})
+	})
+	if(response.status === 201) {
+		const res = await response.json()
+		return parseInt(res.id)
+	}
+	else
+		return (-1)
 }
 
-async function PutScores()
-{
-  const response = await fetch(CONST.BASE_URL + 'game/update/',
+async function PutScores() {
+  const response = await fetch(CONST.BASE_URL + `game/update/${game_id}`,
     {
       method: 'PUT',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        "id": game_id,
         "score1": vars.p1Score,
         "score2": vars.p2Score 
       })
     })
     if(response.ok)
       return true
-    else
-      return false
+    return false
 }
 
 async function assignId(id)
@@ -1075,17 +1070,19 @@ const getColorVector3 = (bgColor) =>
 // 0 -> local multiplayer
 // 1 -> AI
 // 2 -> remote
-export default function ThreeScene({ gameSettings, room_id, user_id, isHost, gamemode })
+export default function ThreeScene({ gameSettings, room_id, user_id, player2_id, isHost, gamemode })
 {
+	console.log('player2 id: ' + player2_id);
 	console.log("[ThreeScene] game settings: " + JSON.stringify(gameSettings))
   const containerRef = useRef(null);
 	let socket = -1;
   if (gamemode === 2)
-    socket = useContext(SocketContext);
-  
+		socket = useContext(SocketContext);
+	if (gamemode === 2 && isHost)
+		CreateGame(user_id, player2_id, gamemode).then(assignId);
+
   useEffect(() => {
-    
-    CreateGame().then(assignId);
+	
     tools.scene = new THREE.Scene();
     
     tools.renderer = new THREE.WebGLRenderer({canvas: containerRef.current});

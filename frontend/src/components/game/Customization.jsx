@@ -12,6 +12,15 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 		if (response.ok) {
 			if (response.status === 204) {
 				console.log('No Settings saved for this user');
+				updateSettings({
+					...gameSettings,
+					user_id: userId,
+					background: 0,
+					palette: 0,
+					bgColor: '#ff0000',
+					opacity: 80,
+					sparks: true,
+				})
 			} else {
 				const fetched = await response.json();
 				const data = fetched.data;
@@ -27,8 +36,26 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 			}
 		} else if (response.status === 404) {
 			console.error('404 - User Does Not Exist');
+			updateSettings({
+					...gameSettings,
+					user_id: userId,
+					background: 0,
+					palette: 0,
+					bgColor: '#ff0000',
+					opacity: 80,
+					sparks: true,
+				})
 		} else {
 			console.error('Error: ' + response.status);
+			updateSettings({
+				...gameSettings,
+				user_id: userId,
+				background: 0,
+				palette: 0,
+				bgColor: '#ff0000',
+				opacity: 80,
+				sparks: true,
+			})
 		}
 	}
 };
