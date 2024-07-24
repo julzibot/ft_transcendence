@@ -15,7 +15,6 @@ export default function GameSettings() {
 	const [isTranslated, setIsTranslated] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-
 	const [gameSettings, setGameSettings] = useState({
 		user_id: userId,
 		gameDifficulty: 4,
@@ -71,7 +70,6 @@ export default function GameSettings() {
 
 							<div className="d-flex flex-column align-items-center">
 
-
 								<div className="mb-3 text-center">
 									<label htmlFor="gameDifficulty" className="form-label">Game Difficulty</label>
 									<select
@@ -107,7 +105,7 @@ export default function GameSettings() {
 										value={gameSettings.pointsToWin}
 										onChange={(e) => setGameSettings({ ...gameSettings, pointsToWin: parseInt(e.target.value) })}
 									/>
-									<div className="container d-flex align-items-center justify-content-center">
+									<div className="d-flex align-items-center justify-content-center">
 										<p><strong>{gameSettings.pointsToWin}</strong></p>
 									</div>
 								</div>
