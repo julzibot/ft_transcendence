@@ -125,6 +125,7 @@ vars.ballFloorPos = 0;
 
 vars.ai_aim = 0;
 vars.ai_offset = 0;
+vars.ai_invert = 1;
 
 vars.dotProduct = 0;
 vars.stopGame = false;
@@ -138,3 +139,4 @@ vars.puTimeSave = 0;
 vars.puSpawnChance = 0;
 vars.puChanceCounter = 1;
 vars.bulletTime = 1;
+vars.puIdCount = 0;
