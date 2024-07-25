@@ -99,13 +99,14 @@ class OauthView(APIView):
 class AccessTokenView(APIView):
   def post(self, request):
     data = request.data['user']
-    # fetch user in database
+    
     try:
       if 'email' not in data:
         return HttpResponseBadRequest({'Bad Request: email field is required'})
       user = UserAccount.objects.get(email=data['email'])
     except ObjectDoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
     DashboardData.objects.create(user_id=user)
     backendTokens = get_tokens_for_user(user)
     response = Response({
@@ -134,6 +135,7 @@ class SigninView(APIView):
           "message": "The password provided does not match our records. Please double-check your password and try again."
         }, status=status.HTTP_401_UNAUTHORIZED)
       user.is_active = True
+      user.save()
       response = Response({
         'id': user.id,
         'username': user.username,
@@ -145,12 +147,12 @@ class SigninView(APIView):
 class UserView(APIView):
   def get(self, request):
     access_token = request.META.get('HTTP_AUTHORIZATION')
+
     if not access_token:
       return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
     access_token = access_token.split(' ')
     if access_token[0] != 'Bearer':
       return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
-
     access_token = access_token[1]
     if not access_token:
       raise AuthenticationFailed('Unauthenticated')
@@ -245,6 +247,7 @@ class DeleteAccountView(APIView):
 class SignOutView(APIView):
   def put(self, request):
     data = request.data['id']
+    print(data)
     user = UserAccount.objects.get(id=data)
     user.is_active = False
     user.save()
