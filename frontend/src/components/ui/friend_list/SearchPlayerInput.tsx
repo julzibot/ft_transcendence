@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react"
-import { PersonAdd  } from "react-bootstrap-icons";
+import { PersonAdd, CircleFill  } from "react-bootstrap-icons";
 import { CustomTooltip } from "@/components/Utils/Tooltip";
 import { useSession } from "next-auth/react";
 import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
 import { Toast, ToastContainer } from 'react-bootstrap'
 import Image from "next/image";
 
-const BASE_URL = "http://localhost:8000"
+const BASE_URL = "http://localhost:8000/api/"
 const BACKEND_URL = 'http://backend:8000'
 
 export default function SearchPlayerInput({fetchFriends}) {
@@ -42,6 +42,7 @@ export default function SearchPlayerInput({fetchFriends}) {
   }
 
   const handleFriendRequest = async(fromUserId: number, toUserId: number) => {
+    console.log('click')
     fetch(BASE_URL + "friends/send-friend-request/", {
       method: "POST",
       headers: {'Content-Type': 'application/json'},
@@ -86,6 +87,21 @@ export default function SearchPlayerInput({fetchFriends}) {
               {
                 searchQuery.map((user, index) => (
                   <div key={index} className="border border-2 text-dark">
+										{
+													user.is_active ? (
+														<>
+															<CustomTooltip text="Online" position="bottom">
+																	<CircleFill color="green" />
+															</CustomTooltip>
+														</>
+													) : (
+														<>
+															<CustomTooltip text="Offline" position="bottom">
+																<CircleFill color="red" />
+															</CustomTooltip>													
+														</>
+													)
+												}
                     <Image 
                       src={`${BACKEND_URL}${user.image}`}
                       className="rounded-circle border ms-2 me-2"
@@ -93,7 +109,7 @@ export default function SearchPlayerInput({fetchFriends}) {
                       height={20}
                       width={20}
                     />
-                    <span>{user.nick_name}</span>
+                    <span>{user.username}</span>
                     <CustomTooltip text="Send Friend Request" position="bottom">
                       <button className="btn" onClick={() => handleFriendRequest(session?.user.id, user.id)}>
                         <PersonAdd color="green" width={15} />

@@ -50,7 +50,10 @@ class TournamentView(APIView):
 		data = request.data
 		if 'powerUps' in data:
 			powerUpsData = data["powerUps"]
+		else:
+			powerUpsData=False
 		
+		print(data)
 		new_tournament = TournamentData.objects.create(
 			name=data['name'], 
 			numberOfPlayers=data['numberOfPlayers'], 

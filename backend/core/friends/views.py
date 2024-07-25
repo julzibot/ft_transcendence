@@ -58,7 +58,7 @@ class GetFriendsView(APIView):
     users = UserAccount.objects.filter(id__in=user_ids)
 
     # Create a dictionary mapping user IDs to user data
-    user_data = {user.id: {'id': user.id, 'nick_name': user.nick_name, 'image': user.image.url} for user in users}
+    user_data = {user.id: {'id': user.id, 'username': user.username, 'image': user.image.url, 'is_active': user.is_active} for user in users}
 
     # Serialize friendship data along with user data
     serialized_data = [

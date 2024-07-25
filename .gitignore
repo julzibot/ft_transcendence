@@ -45,4 +45,4 @@ __pycache__/
 .dbdata
 dbdata
 
-backend/authentication/media/
+backend/core/media/

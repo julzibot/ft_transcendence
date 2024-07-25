@@ -57,8 +57,8 @@ export default function SignIn() {
             <p>Or</p>
             <form onSubmit={loginUser}>
               <div className="mb-3">
-                <label htmlFor="email" className="form-label" >Email address</label>
-                <input type="email" id="email" className ="form-control" value={data.email} onChange={(e) => setData({...data, email:DOMPurify.sanitize(e.target.value)})}/>
+                <label htmlFor="email" className="form-label" >Email or Username</label>
+                <input type="text" id="text" className ="form-control" value={data.email} onChange={(e) => setData({...data, email:DOMPurify.sanitize(e.target.value)})}/>
               </div>
               <div className="mb-3">
                 <label htmlFor="password" className="form-label">Password</label>
