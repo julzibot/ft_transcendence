@@ -38,7 +38,7 @@ export default async function RootLayout({
               <Image
                 className="z-n1"
                   src={background}
-                  quality={100}
+                  alt="background"
                   fill
                   sizes="100vw"
                   style={{

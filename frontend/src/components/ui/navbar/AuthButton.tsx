@@ -28,28 +28,31 @@ export default function AuthButton() {
       <>
         <div className="dropdown me-3">
           <button className="btn btn-light btn-lg dropdown-toggle d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <div className="position-relative border border-2 border-dark-subtle rounded-circle" style={{width: '30px', height: '30px', overflow: 'hidden'}}>
             {
               session.user.image ? (
                 <>
-                  <Image
-                    src={`http://backend:8000${session.user.image}`}
-                    fill
-                    alt="profile Pic"
-                    />
-                </>) : (
-                    <div className="position-absolute start-0 top-0 spinner-grow text-secondary" role="status"></div>
-            )}
-              </div>
+                  <div className="position-relative border border-2 border-dark-subtle rounded-circle" style={{width: '30px', height: '30px', overflow: 'hidden'}}>
+                    <Image
+                      alt="profile picture"
+                      src={`http://backend:8000${session.user.image}`}
+                      fill
+                      sizes="100vw"
+                      />
+                  </div>
+                </>
+                ) : (
+                      <div className="spinner-border text-secondary" role="status"></div>
+                )}
               <span className="ms-2">{session.user.username}</span>
             </button>
+
           <ul className="dropdown-menu">
             <li><Link className="dropdown-item" href='/account'>Account</Link></li>
 						<li><hr className="dropdown-divider"/></li>
             <li><button className="dropdown-item btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Sign Out</button></li>
           </ul>
         </div>
-        <div className="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">

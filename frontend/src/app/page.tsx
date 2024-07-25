@@ -1,10 +1,7 @@
-'use client';
-
 import GameCard from '@/components/cards/GameCard';
 
 
 export default function Home() {
-
 
   return (
     <>

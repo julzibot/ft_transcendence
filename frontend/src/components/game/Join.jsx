@@ -24,7 +24,7 @@ export default function Join({ gameMode, userId }) {
 	useEffect(() => {
 		const fetchSettings = async () => {
 			if (userId) {
-				const response = await fetch(`http://localhost:8000/api/gameCustomization/${userId}`, {
+				const response = await fetch(`http://localhost:8000/api/gameCustomization/${userId}/`, {
 					method: 'GET'
 				});
 				if (response.ok) {
