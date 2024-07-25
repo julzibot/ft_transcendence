@@ -33,7 +33,7 @@ export default function GameSettings() {
 	useEffect(() => {
     const timer = setTimeout(() => {
       setIsMounted(true);
-    }, 1000);
+    }, 500);
 		return () => clearTimeout(timer)
 	}, []);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import 'bootstrap-icons/font/bootstrap-icons.css'
-import { Trash3Fill, Joystick, ChatDotsFill } from 'react-bootstrap-icons';
+import { Trash3Fill, Joystick, ChatDotsFill, CircleFill } from 'react-bootstrap-icons';
 import { CustomTooltip } from '@/components/Utils/Tooltip';
 import SearchPlayerInput from './SearchPlayerInput';
 import { useEffect, useState } from 'react'
@@ -72,6 +72,21 @@ export default function FriendList() {
 									<>
 										<div key={friend.user.id} className="d-flex flex-row justify-content-between">
 											<div className="">
+												{
+													friend.user.is_active ? (
+														<>
+															<CustomTooltip text="Online" position="bottom">
+																	<CircleFill color="green" />
+															</CustomTooltip>
+														</>
+													) : (
+														<>
+															<CustomTooltip text="Offline" position="bottom">
+																<CircleFill color="red" />
+															</CustomTooltip>													
+														</>
+													)
+												}
 												<img 
 												src={`http://localhost:8000${friend.user.image}`}
 												className="rounded-circle border ms-2 me-2"
@@ -81,22 +96,17 @@ export default function FriendList() {
 												/>
 											</div>
 											<div className="">
-												<h3>{friend.user.nick_name}</h3>
+												<h3>{friend.user.username}</h3>
 											</div>
 											<div className="">
-												<CustomTooltip text="Invite to play" position="top">
+												{/* <CustomTooltip text="Invite to play" position="top">
 													<button className='btn'>
 														<Joystick color="green" />
 													</button>
-												</CustomTooltip>
+												</CustomTooltip> */}
 												<CustomTooltip text="remove friend" position="top">
 													<button className='btn' onClick={() => deleteFriendship(friend.user)}>
 														<Trash3Fill color="red" />
-													</button>
-												</CustomTooltip>
-												<CustomTooltip text="Send message" position="top">
-													<button className='btn'>
-														<ChatDotsFill color="blue" />
 													</button>
 												</CustomTooltip>
 											</div>
@@ -123,6 +133,21 @@ export default function FriendList() {
 									<>
 										<div key={friend.user.id} className="d-flex flex-row justify-content-between">
 											<div className="">
+											{
+													friend.user.is_active ? (
+														<>
+															<CustomTooltip text="Online" position="bottom">
+																	<CircleFill color="green" />
+															</CustomTooltip>
+														</>
+													) : (
+														<>
+															<CustomTooltip text="Offline" position="bottom">
+																<CircleFill color="red" />
+															</CustomTooltip>													
+														</>
+													)
+												}
 												<img 
 												src={`http://localhost:8000${friend.user.image}`} 
 												className="rounded-circle border ms-2 me-2"
@@ -131,7 +156,7 @@ export default function FriendList() {
 												width={50}/>
 											</div>
 											<div className="">
-												<h3>{friend.user.nick_name}</h3>
+												<h3>{friend.user.username}</h3>
 											</div>
 											<div className="">
 												{
