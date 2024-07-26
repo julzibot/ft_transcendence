@@ -6,6 +6,7 @@ from django.db.models import Q
 from users.models import UserAccount
 from .models import GameMatch
 from .serializers import GameMatchSerializer
+from dashboard.models import DashboardData
 
 class GameHistory(APIView):
 	def get(self, request, id=None):
@@ -42,6 +43,7 @@ class	GameDataView(APIView):
 		user1_id = data.get('player1')
 		user2_id = data.get('player2')
 		game_mode = data.get('game_mode')
+
 		if user1_id is not None and game_mode is not None and (game_mode <= 3 and game_mode >= 0):
 			try:
 				user1 = UserAccount.objects.get(id=user1_id)
@@ -69,6 +71,29 @@ class UpdateGameInfos(APIView):
 			game.score1 = score1
 			game.score2 = score2
 			game.save()
+
+			try:
+				player1 = UserAccount.objects.get(user=game.player1)
+				player2 = UserAccount.objects.get(user=game.player2)
+			except UserAccount.DoesNotExist:
+				return Response({'message': '[PUT] Unknown Player(s)'}, status=status.HTTP_404_NOT_FOUND)
+			
+			if score1 > score2:
+				winner = DashboardData.objects.get(user=player1)
+				loser = DashboardData.objects.get(user=player2)
+			else:
+				loser = DashboardData.objects.get(user=player1)
+				winner = DashboardData.objects.get(user=player2)
+
+			winner.games_played += 1
+			winner.wins += 1
+			winner.prev_result = True
+			winner.save()
+
+			loser.games_played += 1
+			loser.prev_result = False
+			loser.save()
+
 			return Response({'message': f'[{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
 		return Response({'message': '[POST] Invalid Game Match Creation Request'}, status=status.HTTP_400_BAD_REQUEST)
 

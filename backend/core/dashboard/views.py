@@ -22,7 +22,7 @@ class DashboardView(APIView):
 			return Response({'message': f'[{id}] User not found'}, status=status.HTTP_404_NOT_FOUND)
 		
 		try:
-			dashboard = DashboardData.objects.get(user_id=user_id)
+			dashboard = DashboardData.objects.get(user=user_id)
 			serializer = DashboardSerializer(dashboard, data=request.data, partial=True) 
 			if serializer.is_valid():
 				serializer.save()
@@ -31,14 +31,14 @@ class DashboardView(APIView):
 		except DashboardData.DoesNotExist:
 			return Response({'message': f'[{id}] Dashboard Data not found'}, status=status.HTTP_404_NOT_FOUND)
 
-class DashboardDetail(APIView):
+class DashboardUserDetail(APIView):
 	def get(self, request, id):
 		try:
 			user = UserAccount.objects.get(id=id)
 		except UserAccount.DoesNotExist:
 			return Response({'message': f'[{id}] User not found'}, status=status.HTTP_404_NOT_FOUND)
 		try:
-			dashboard_detail = DashboardData.objects.get(user_id=id)
+			dashboard_detail = DashboardData.objects.get(user=id)
 		except:
 			return Response({'message': f'[{id}] No Dashboard Data'}, status.HTTP_404_NOT_FOUND)
 		serializer = DashboardSerializer(dashboard_detail)

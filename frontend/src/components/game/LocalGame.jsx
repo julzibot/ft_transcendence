@@ -1,17 +1,15 @@
 'use client'
 
 import { useState } from 'react';
-import Join from './Join';
-import { SocketContext, socket } from '../../../context/socket';
+import ThreeScene from './Game';
 
 export default function LocalGame({ userId, gameSettings }) {
 
 	const [gameStarted, setGameStarted] = useState(false);
 	const [gameMode, setGameMode] = useState(0);
 
-	// HARD CODED ONLINE GAME TO 2 CHANGE TO 0 !!!
-	const startLocalGame = () => {
-		setGameMode(2);
+	const startLocal = () => {
+		setGameMode(0);
 		setGameStarted(true);
 	}
 
@@ -22,23 +20,21 @@ export default function LocalGame({ userId, gameSettings }) {
 
 	return (
 		<>
-			<SocketContext.Provider value={socket}>
 			{
 
 				gameStarted ? (
-					userId && <Join gameMode={gameMode} gameSettings={gameSettings} userId={userId} />
+					userId && <ThreeScene gameSettings={gameSettings} room_id={-1} user_id={userId} isHost={true} gamemode={gameMode} />
 				) : (
 				<>
 					<div className="d-flex justify-content-center mb-3">
 						<button type="button" className="btn btn-secondary mx-3" onClick={startAI}>Play Against AI</button>
 					</div>
 					<div className="d-flex justify-content-center mb-3">
-						<button type="button" className="btn btn-secondary mx-3" onClick={startLocalGame}>Local Multiplayer</button>
+						<button type="button" className="btn btn-secondary mx-3" onClick={startLocal}>Local Multiplayer</button>
 					</div>
 				</>
 				)
 			}
-			</SocketContext.Provider>
 		</>
 	)
 }

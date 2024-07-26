@@ -102,7 +102,7 @@ class AccessTokenView(APIView):
       user = UserAccount.objects.get(email=data['email'])
     except ObjectDoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    DashboardData.objects.create(user_id=user)
+    DashboardData.objects.create(user=user)
     backendTokens = get_tokens_for_user(user)
     response = Response({
       'user': {
