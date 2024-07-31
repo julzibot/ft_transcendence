@@ -602,6 +602,8 @@ const remote_update = (socket, room_id, isHost) =>
 
 async function CreateGame(user_id, player2_id, game_mode) {
   console.log("CreateGame called");
+	if (game_mode === 1)
+		player2_id = -1
   const response = await fetch(CONST.BASE_URL + 'game/create', {
 		method: 'POST',
 		headers: {'Content-Type': 'application/json'},
@@ -1078,7 +1080,7 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
 	let socket = -1;
   if (gamemode === 2)
 		socket = useContext(SocketContext);
-	if (gamemode === 2 && isHost)
+	if (isHost)
 		CreateGame(user_id, player2_id, gamemode).then(assignId);
 
   useEffect(() => {

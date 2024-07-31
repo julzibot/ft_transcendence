@@ -14,7 +14,7 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 				console.log('No Settings saved for this user');
 				updateSettings({
 					...gameSettings,
-					user_id: userId,
+					user_id: user_id,
 					background: 0,
 					palette: 0,
 					bgColor: '#ff0000',
@@ -38,7 +38,7 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 			console.error('404 - User Does Not Exist');
 			updateSettings({
 					...gameSettings,
-					user_id: userId,
+					user_id: user_id,
 					background: 0,
 					palette: 0,
 					bgColor: '#ff0000',
@@ -49,7 +49,7 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 			console.error('Error: ' + response.status);
 			updateSettings({
 				...gameSettings,
-				user_id: userId,
+				user_id: user_id,
 				background: 0,
 				palette: 0,
 				bgColor: '#ff0000',

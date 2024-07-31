@@ -1,7 +1,7 @@
 'use client'
 import { useSession } from "next-auth/react"
 import { useEffect, useState, useRef } from "react";
-import Chart from 'chart.js/auto';
+import { Chart } from 'chart.js/auto';
 import 'chartjs-adapter-luxon';
 import * as Utils from './Utils'
 
@@ -81,6 +81,10 @@ export default function UserDashboardCard() {
 					scales: {
 						x: {
 							stacked: true,
+							type: 'time',
+							time: {
+								unit: 'hour'
+							}
 						},
 						y: {
 							stacked: true,
