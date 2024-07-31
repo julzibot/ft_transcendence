@@ -8,11 +8,12 @@ TOKEN_SIGNING_KEY=$(python3 -c 'from django.core.management.utils import get_ran
 python manage.py makemigrations
 python manage.py migrate
 
-if [ "$DJANGO_SUPERUSER_EMAIL" ]
+if [ "$DJANGO_SUPERUSER_USERNAME" ]
 then
     python manage.py createsuperuser \
         --noinput \
-        --email $DJANGO_SUPERUSER_EMAIL
+        --email $DJANGO_SUPERUSER_EMAIL \
+        --username $DJANGO_SUPERUSER_USERNAME
 fi
 
 python manage.py runserver 0.0.0.0:8000

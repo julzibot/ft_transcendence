@@ -57,13 +57,15 @@ class CustomTokenRefreshView(TokenRefreshView):
 class RegisterView(APIView):
   def post(self, request):
     data = request.data['data']
-    if len(data['email']) < 1 or len(data['nick_name']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
+    if len(data['email']) < 1 or len(data['username']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
       return Response({'message': 'email, nick name and password are required'}, status=status.HTTP_400_BAD_REQUEST)
     if  UserAccount.objects.filter(email=data['email']).exists():
       return Response({'message': 'user already exists try another email'}, status=status.HTTP_409_CONFLICT)
+    if  UserAccount.objects.filter(username=data['username']).exists():
+      return Response({'message': 'username is already taken'}, status=status.HTTP_409_CONFLICT)
     if data['password'] != data['rePass']:
       return Response({'message': 'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
-    user = UserAccount.objects.create(nick_name=data['nick_name'], email=data['email'], password=make_password(data['password']))
+    user = UserAccount.objects.create(username=data['username'], email=data['email'], password=make_password(data['password']))
     user.save_image_from_url()
     serializer = UserAccountSerializer(user)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -80,10 +82,12 @@ class OauthView(APIView):
       user.save_image_from_url()
 
     backendTokens = get_tokens_for_user(user)
+    user.is_active = True
+    user.save()
     response = Response({
       'user': {
         'id': user.id,
-        'nick_name': user.nick_name,
+        'username': user.username,
         'email': user.email,
         'image': user.image.url
       },
@@ -95,7 +99,7 @@ class OauthView(APIView):
 class AccessTokenView(APIView):
   def post(self, request):
     data = request.data['user']
-    # fetch user in database
+    
     try:
       if 'email' not in data:
         return HttpResponseBadRequest({'Bad Request: email field is required'})
@@ -107,7 +111,7 @@ class AccessTokenView(APIView):
     response = Response({
       'user': {
         'id': user.id,
-        'nick_name': user.nick_name,
+        'username': user.username,
         'email': user.email,
         'image': user.image.url
       },
@@ -121,7 +125,7 @@ class SigninView(APIView):
       if len(data['email']) < 1:
         return Response(status=status.HTTP_400_BAD_REQUEST)
       try:
-        user = UserAccount.objects.get(email=data['email'])
+        user = UserAccount.objects.get(Q(email=data['email']) | Q(username=data['email']))
       except ObjectDoesNotExist:
         return Response({'message': 'User does not exists, try different credentials'}, status=status.HTTP_404_NOT_FOUND)
       if not check_password(data['password'], user.password):
@@ -129,9 +133,11 @@ class SigninView(APIView):
           "error": "Unauthorized",
           "message": "The password provided does not match our records. Please double-check your password and try again."
         }, status=status.HTTP_401_UNAUTHORIZED)
+      user.is_active = True
+      user.save()
       response = Response({
         'id': user.id,
-        'nick_name': user.nick_name,
+        'username': user.username,
         'email': user.email,
         'image': user.image.url,
       })
@@ -140,12 +146,12 @@ class SigninView(APIView):
 class UserView(APIView):
   def get(self, request):
     access_token = request.META.get('HTTP_AUTHORIZATION')
+
     if not access_token:
       return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
     access_token = access_token.split(' ')
     if access_token[0] != 'Bearer':
       return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
-
     access_token = access_token[1]
     if not access_token:
       raise AuthenticationFailed('Unauthenticated')
@@ -165,11 +171,11 @@ class UpdateNameView(APIView):
     newName = request.data.get('name', None)
     if newName is not None:
       try:
-        instance.nick_name = newName
+        instance.username = newName
         instance.save()
         return Response({'message': 'username updated successfully'})
       except:
-        return Response({'error': 'name already exists'}, status=409)
+        return Response({'message': 'This username is already taken'}, status=409)
     else:
       return Response({'error': 'could not update username'})
 
@@ -187,7 +193,7 @@ class SearchUserView(APIView):
     id = request.query_params.get('id')
     query_user = UserAccount.objects.get(id=id)
     if len(query) > 0:
-      query_set = UserAccount.objects.filter(nick_name__istartswith=query).exclude(id=id)
+      query_set = UserAccount.objects.filter(username__istartswith=query).exclude(id=id)
       if not query_set:
         return Response(status=status.HTTP_404_NOT_FOUND)
       users_data = []
@@ -200,9 +206,10 @@ class SearchUserView(APIView):
           friendship_status = 'NONE'
         user_data = {
           'id': user.id,
-          'nick_name': user.nick_name,
+          'username': user.username,
           'image': user.image.url if user.image else None,
-          'friendship_status': friendship_status
+          'friendship_status': friendship_status,
+          'is_active' : user.is_active
         }
         users_data.append(user_data)
       return Response({"users": users_data})
@@ -231,16 +238,16 @@ class DeleteAccountView(APIView):
       user = UserAccount.objects.get(id=data['user_id'])
     except ObjectDoesNotExist:
       return Response({'message': 'user does not exists'}, status=status.HTTP_404_NOT_FOUND)
-    if not user.password:
-      user.delete_image()
-      user.delete()
-      return Response(status=status.HTTP_204_NO_CONTENT)
+    user.delete_image()
+    user.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
-    if not check_password(data['password'], user.password):
-      return Response({'message': 'password does not match our record'}, status=status.HTTP_401_UNAUTHORIZED)
-    else:
-      user.delete_image()
-      user.delete()
-      return Response(status=status.HTTP_204_NO_CONTENT)
     
-    
+class SignOutView(APIView):
+  def put(self, request):
+    data = request.data['id']
+    print(data)
+    user = UserAccount.objects.get(id=data)
+    user.is_active = False
+    user.save()
+    return Response(status=status.HTTP_200_OK)

@@ -12,7 +12,7 @@ import { BASE_URL } from "@/utils/constants";
 
 export default function Register() {
   const [data, setData] = useState({
-    nick_name: '',
+    username: '',
     email:'',
     password:'',
     rePass:''
@@ -55,11 +55,11 @@ export default function Register() {
             <form onSubmit={registerUser}>
               <div className="mb-3">
                 <label htmlFor="nick-name" className="form-label" >
-                  Nick Name
+                  Username
                   <span className="text-danger">*</span>
                 </label>
-                <input type="text" id="nick-name" className ="form-control"value={data.nick_name} onChange={(e) => setData({...data, nick_name: DOMPurify.sanitize(e.target.value)})}/>
-                <div className="form-text">Will be displayed to other players</div>
+                <input type="text" id="nick-name" className ="form-control"value={data.username} onChange={(e) => setData({...data, username: DOMPurify.sanitize(e.target.value)})}/>
+                <div className="form-text">A unique username that will be displayed to other players</div>
               </div>
               <div className="mb-3">
                 <label htmlFor="email" className="form-label" >
