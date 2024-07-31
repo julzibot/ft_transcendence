@@ -186,7 +186,7 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
       vars.endString = "GAME ENDED\nPLAYER 2 WINS";
     csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
       {printGameInfo(font, vars.endMsgMesh, vars.endString, 5, -1, 3)} );
-    put_response = PutScores();
+    put_response = PutScores(gamemode);
     if (put_response == false)
       console.log("Ouch ! Scores not updated !")
   }
@@ -621,8 +621,11 @@ async function CreateGame(user_id, player2_id, game_mode) {
 		return (-1)
 }
 
-async function PutScores() {
-  const response = await fetch(CONST.BASE_URL + `game/update/${game_id}`,
+async function PutScores(gameMode) {
+	let putPath = 'local';
+	if (gameMode >= 2)
+		putPath = 'online';
+  const response = await fetch(CONST.BASE_URL + `game/${putPath}/update/${game_id}`,
     {
       method: 'PUT',
       headers: {'Content-Type': 'application/json'},
@@ -1072,6 +1075,7 @@ const getColorVector3 = (bgColor) =>
 // 0 -> local multiplayer
 // 1 -> AI
 // 2 -> remote
+// 3 -> Tournament (?)
 export default function ThreeScene({ gameSettings, room_id, user_id, player2_id, isHost, gamemode })
 {
 	console.log('player2 id: ' + player2_id);
