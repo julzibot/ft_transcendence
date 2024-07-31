@@ -191,7 +191,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 									{!palette &&
 										<div className="mb-3 text-center">
 											<label htmlFor="favcolor" className="form-label">Select color</label>
-											<div className="container align-items-center justify-content-center">
+											<div className="align-items-center justify-content-center">
 												<ColorSliderPicker
 													defaultColor="#00f"
 													onChange={handleColorChange}
