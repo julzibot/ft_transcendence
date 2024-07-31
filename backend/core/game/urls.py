@@ -1,12 +1,13 @@
 from django.urls import path
-from .views import GameHistory, UserGameHistory, GameDataView, UpdateGameInfos
+from .views import GameHistory, UserGameHistory, GameDataView, UpdateLocalGame, UpdateOnlineGame
 
 urlpatterns = [
-    path('create', 							GameDataView.as_view()),
-    path('update/<int:id>',				UpdateGameInfos.as_view()),
-		path('history', 							GameHistory.as_view(), name='all-game-history'), # get all match history
-		path('history/<int:id>',			GameHistory.as_view(), name='match-history'), # get specific match
-		path('history/user/<int:id>',	UserGameHistory.as_view(), name='user-game-history'), # get user's match history
+    path('create', 									GameDataView.as_view()),
+    path('online/update/<int:id>',	UpdateOnlineGame.as_view(), name='update-online-game'),
+		path('local/update/<int:id>',		UpdateLocalGame.as_view(), name='update-local-game'),
+		path('history', 								GameHistory.as_view(), name='all-game-history'), # get all match history
+		path('history/<int:id>',				GameHistory.as_view(), name='match-history'), # get specific match
+		path('history/user/<int:id>',		UserGameHistory.as_view(), name='user-game-history'), # get user's match history
 ]
 
 # get history of all matches

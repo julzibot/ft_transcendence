@@ -54,11 +54,13 @@ class	GameDataView(APIView):
 					user2 = UserAccount.objects.get(id=user2_id)
 				except UserAccount.DoesNotExist:
 					return Response({'message': f'[{user2_id}] Player 2: Unknown User'}, status=status.HTTP_404_NOT_FOUND)
-			new_game = GameMatch.objects.create(player1=user1, player2=user2, game_mode=game_mode)
+				new_game = GameMatch.objects.create(player1=user1, player2=user2, game_mode=game_mode)
+			else:
+				new_game = GameMatch.objects.create(player1=user1, player2=None, game_mode=game_mode)
 			return Response({'id': new_game.id}, status=status.HTTP_201_CREATED)
 		return Response({'message': '[POST] Invalid Game Match Creation Request'}, status=status.HTTP_400_BAD_REQUEST)
 
-class UpdateGameInfos(APIView):
+class UpdateLocalGame(APIView):
 	def put(self, request, id):
 		try:
 			game = GameMatch.objects.get(id=id)
@@ -74,23 +76,62 @@ class UpdateGameInfos(APIView):
 			game.save()
 
 			try:
-				player1 = UserAccount.objects.get(user=game.player1)
+				player1 = UserAccount.objects.get(id=game.player1.id)
 			except UserAccount.DoesNotExist:
 				return Response({'message': f'[PUT] [{game.id}] Unknown Player 1'}, status=status.HTTP_404_NOT_FOUND)
-			if game.game_mode >= 2:
-				try:
-					player2 = UserAccount.objects.get(user=game.player2)
-				except UserAccount.DoesNotExist:
-					return Response({'message': f'[PUT] [{game.id}] Unknown Player 2'}, status=status.HTTP_404_NOT_FOUND)
-			else:
-				player2 = UserAccount.objects.create()
+			try:
+				dashboard = DashboardData.objects.get(user=player1)
+			except DashboardData.DoesNotExist:
+				return Response({'message': f'[PUT] [{game.id}] Player 1: No Dashboard Data'}, status=status.HTTP_404_NOT_FOUND)
 
 			if score1 > score2:
-				winner = player1
-				loser = player2
+				dashboard.games_played += 1
+				dashboard.wins += 1
+				dashboard.prev_result = True
 			else:
-				loser = player1
-				winner = player2
+				dashboard.games_played += 1
+				dashboard.prev_result = False
+			dashboard.save()
+
+			return Response({'message': f'[{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
+	
+		return Response({'message': '[PUT] Invalid Game Match Request'}, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdateOnlineGame(APIView):
+	def put(self, request, id):
+		try:
+			game = GameMatch.objects.get(id=id)
+		except GameMatch.DoesNotExist:
+			return Response({'message': f'[{id}] Unknown Game Match'}, status=status.HTTP_404_NOT_FOUND)
+		
+		data = request.data
+		score1 = data.get('score1')
+		score2 = data.get('score2')
+		if score1 is not None and score2 is not None:
+			game.score1 = score1
+			game.score2 = score2
+			game.save()
+
+			try:
+				player1 = UserAccount.objects.get(id=game.player1.id)
+			except UserAccount.DoesNotExist:
+				return Response({'message': f'[PUT] [{game.id}] Unknown Player 1'}, status=status.HTTP_404_NOT_FOUND)
+			try:
+				player2 = UserAccount.objects.get(id=game.player2.id)
+			except UserAccount.DoesNotExist:
+				return Response({'message': f'[PUT] [{game.id}] Unknown Player 2'}, status=status.HTTP_404_NOT_FOUND)
+			try:
+				dashboard1 = DashboardData.objects.get(user=player1)
+				dashboard2 = DashboardData.objects.get(user=player2)
+			except DashboardData.DoesNotExist:
+				return Response({'message': f'[PUT] [{game.id}] Player(s): No Dashboard Data'}, status=status.HTTP_404_NOT_FOUND)
+
+			if score1 > score2:
+				winner = dashboard1
+				loser = dashboard2
+			else:
+				loser = dashboard1
+				winner = dashboard2
 
 			winner.games_played += 1
 			winner.wins += 1
@@ -101,9 +142,6 @@ class UpdateGameInfos(APIView):
 			loser.prev_result = False
 			loser.save()
 
-			if game.game_mode < 2:
-				player2.delete()
-
 			return Response({'message': f'[{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
-		return Response({'message': '[POST] Invalid Game Match Creation Request'}, status=status.HTTP_400_BAD_REQUEST)
+		return Response({'message': '[PUT] Invalid Game Match Request'}, status=status.HTTP_400_BAD_REQUEST)
 
