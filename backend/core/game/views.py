@@ -86,7 +86,6 @@ class UpdateLocalGame(APIView):
 
 			if score1 > score2:
 				dashboard.games_played += 1
-				dashboard.wins += 1
 				dashboard.prev_result = True
 			else:
 				dashboard.games_played += 1
@@ -134,7 +133,6 @@ class UpdateOnlineGame(APIView):
 				winner = dashboard2
 
 			winner.games_played += 1
-			winner.wins += 1
 			winner.prev_result = True
 			winner.save()
 
