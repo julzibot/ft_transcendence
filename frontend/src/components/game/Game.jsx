@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts, custom } from '../../utils/init';
-import { SocketContext } from '../../../context/socket';
+import { useSocketContext } from '../../context/socket';
 
 let keys = {};
 const tools = {};
@@ -1083,7 +1083,7 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
   const containerRef = useRef(null);
 	let socket = -1;
   if (gamemode === 2)
-		socket = useContext(SocketContext);
+		socket = useSocketContext();
 	if (isHost)
 		CreateGame(user_id, player2_id, gamemode).then(assignId);
 

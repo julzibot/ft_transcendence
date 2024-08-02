@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useContext } from 'react';
 import ThreeScene from '../game/Game';
-import { SocketContext } from "../../../context/socket";
+import { useSocketContext } from "../../context/socket";
 import { fetchGameSettings } from '../game/Customization';
 
 export default function JoinGameRoom({ room_id, user_id }) {
 
-	const socket = useContext(SocketContext);
+	const socket = useSocketContext();
 	const [userJoined, setUserJoined] = useState(false);
 	const [receivedSettings, setReceivedSettings] = useState(false);
 	const [gameSettings, setGameSettings] = useState({

@@ -1,16 +1,15 @@
 'use client'
-import { useSession } from "next-auth/react"
-import { useEffect, useState, useRef } from "react";
-import { Chart } from 'chart.js/auto';
-import 'chartjs-adapter-luxon';
-import * as Utils from './Utils'
 
-export default function UserDashboardCard() {
+import { useEffect, useState, useRef } from "react";
+import 'chartjs-adapter-luxon';
+import ScoreChart from './ScoreChart';
+import ActivityChart from "./ActivityChart";
+
+import createScoreData from "./ChartDataUtils";
+
+export default function UserDashboardCard({user_id}) {
 	const [DashboardData, setDashboardData] = useState([]);
 	const [fetchedDashboard, setFetchedDashboard] = useState(false);
-	const { data: session } = useSession();
-
-	const user_id = session?.user.id;
 	
 	useEffect(() => {
 		const fetchDashboardDetail = async () => {
@@ -31,147 +30,43 @@ export default function UserDashboardCard() {
 	}, [user_id]);
 
 	const dataObj = JSON.parse(JSON.stringify(DashboardData));
-
 	let winPerc : number = (dataObj.wins / (dataObj.games_played)) * 100;
 	let lossPerc : number = ((dataObj.games_played - dataObj.wins) / (dataObj.games_played)) * 100;
 
-	const DATA_COUNT = 7;
-	const NUMBER_CFG = {count: DATA_COUNT, min: 0, max: 20};
-
-	const labels = Utils.days({count: 7});
-	const data = {
-		labels: labels,
-		datasets: [
-			{
-				label: 'Wins',
-				data: [2, 5, 6, 3, 2, 1, 5],
-				backgroundColor: Utils.CHART_COLORS.green,
-			},
-			{
-				label: 'Losses',
-				data: [2, 5, 6, 3, 2, 1, 5],
-				backgroundColor: Utils.CHART_COLORS.red,
-			},
-		]
-	};
-	
-	const BarChart = ({ data, labels }) => {
-		const chartRef = useRef(null);
-		const chartInstance = useRef(null);
-		
-		useEffect(() => {
-			const ctx = chartRef.current.getContext('2d');
-			
-			// If a chart instance already exists, destroy it before creating a new one
-			if (chartInstance.current) {
-				chartInstance.current.destroy();
-			}
-			
-			chartInstance.current = new Chart(ctx, {
-				type: 'bar',
-				data: data,
-				options: {
-					// plugins: {
-					// 	title: {
-					// 		display: false,
-					// 		text: 'Past 7 Days'
-					// 	},
-					// },
-					responsive: true,
-					scales: {
-						x: {
-							stacked: true,
-							type: 'time',
-							time: {
-								unit: 'hour'
-							}
-						},
-						y: {
-							stacked: true,
-							beginAtZero: true
-						}
-					}
-				}
-			});
-
-			// Cleanup function to destroy the chart instance when the component unmounts
-			return () => {
-				if (chartInstance.current) {
-					chartInstance.current.destroy();
-				}
-			};
-		}, [data, labels]);
-		
-		return (
-			<div className="m-3">
-      <canvas ref={chartRef}></canvas>
-    </div>
-  );
-};
-
-const LINE_DATA_COUNT = 7;
-const LINE_NUMBER_CFG = {count: LINE_DATA_COUNT, min: 0, max: 20};
-
-const lineLabels = Utils.days({count: 7});
-const lineData = {
-	labels: labels,
-	datasets: [
-		{
-			label: 'Activity',
-			data: [1, 4, 0, 2, 6, 7, 2],
-			// backgroundColor: Utils.CHART_COLORS.green
-		},
-	]
-};
-
-const LineChart = ({ data, labels }) => {
-	const chartRef = useRef(null);
-	const chartInstance = useRef(null);
-	
+	const [userHistory, setUserHistory] = useState({});
 	useEffect(() => {
-		const ctx = chartRef.current.getContext('2d');
-		
-		// If a chart instance already exists, destroy it before creating a new one
-		if (chartInstance.current) {
-			chartInstance.current.destroy();
-		}
-		
-		chartInstance.current = new Chart(ctx, {
-			type: 'line',
-			data: lineData,
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true
-					}
-				},
-				responsive: true,
-				plugins: {
-					legend: {
-						position: 'top',
-					},
-					// title: {
-					// 	display: false,
-					// 	text: 'Chart.js Line Chart'
-					// }
-				}
+		const fetchUserHistory = async () => {
+			const response = await fetch(`http://localhost:8000/api/game/history/user/${user_id}`, {
+				method: "GET"
+			});
+			if (response.ok) {
+				const data = await response.json();
+				console.log('User Game History successfully fetched:', response.status);
+				setUserHistory(data);
 			}
-		});
-
-		// Cleanup function to destroy the chart instance when the component unmounts
-		return () => {
-			if (chartInstance.current) {
-				chartInstance.current.destroy();
+			else {
+				console.log('Error fetching User Game History:', response.status);
 			}
 		};
-	}, [lineData, lineLabels]);
+		fetchUserHistory();
+
+	}, [user_id]);
 	
-	return (
-		<div className="m-3">
-			<canvas ref={chartRef}></canvas>
-		</div>
-	);
-};
+		// Data
+		const [dataCreated, setDataCreated] = useState(false);
+		const [winData, setWinData] = useState([]);
+		const [lossData, setLossData] = useState([]);
+		const [activityData, setActivityData] = useState([]);
+		const [minDate, setMinDate] = useState(new Date());
+	
+	useEffect(() => {
+		createScoreData(user_id, userHistory.data,
+				winData, setWinData,
+				lossData, setLossData,
+				activityData, setActivityData,
+				minDate, setMinDate);
+		setDataCreated(true);
+	}, [userHistory]);
 
 	return (
 		<>
@@ -187,9 +82,16 @@ const LineChart = ({ data, labels }) => {
 							</ul>
 							<p>Current streak record: {dataObj.streak}</p>
 							<p>Number of matches played: {dataObj.games_played}</p>
-							<BarChart data={data} labels={labels} />
-							<LineChart data={lineData} labels={lineLabels} />
-							<button>Reset</button>
+							{
+								dataCreated ? (
+									<>
+										<ScoreChart winData={winData} lossData={lossData} minDate={minDate} />
+										<ActivityChart activityData={activityData} minDate={minDate} />
+									</>
+								) : (
+								<div>Loading...</div>
+								)
+							}
 							</>
 							) : (
 								<div className="d-flex justify-content-center">

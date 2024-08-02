@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useState, useContext } from "react";
-import { SocketContext, socket } from "../../../context/socket";
+import { useSocketContext } from "../../context/socket";
 import ThreeScene from './Game';
 
 // Join is a component for Online Game
 export default function Join({ gameMode, gameSettings, userId }) {
 
-	const socket = useContext(SocketContext);
+	const socket = useSocketContext();
 
 		const [gameJoined, setGameJoined] = useState(false);
 		const [isHost, setIsHost] = useState(false);
