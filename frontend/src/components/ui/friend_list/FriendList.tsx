@@ -6,6 +6,7 @@ import { CustomTooltip } from '@/components/Utils/Tooltip';
 import SearchPlayerInput from './SearchPlayerInput';
 import { useEffect, useState } from 'react'
 import {useSession} from 'next-auth/react'
+import Image from "next/image";
 
 export default function FriendList() {
 	const {data: session} = useSession()
@@ -54,9 +55,10 @@ export default function FriendList() {
 
 	return (
 		<>
-			<div>
+				<SearchPlayerInput fetchFriends={fetchFriends}/>
+
 				<button 
-					className="btn btn-secondary btn-sm dropdown-toggle" 
+					className="btn btn-secondary btn-sm dropdown-toggle w-100 mt-3" 
 					type="button" 
 					data-bs-toggle="collapse" 
 					data-bs-target="#friendsCollapse" 
@@ -64,16 +66,15 @@ export default function FriendList() {
 					aria-controls="friendsCollapse">
 					Friends ({friends.filter(friend => friend.status === 'FRIENDS').length})
 				</button>
-				<div className="collapse" id="friendsCollapse">
-					<div className="card card-body">
+
+				<ul className="collapse border" id="friendsCollapse">
 						{
 							friends.map((friend) => (
 								friend.status === 'FRIENDS' && (
 									<>
-										<div key={friend.user.id} className="d-flex flex-row justify-content-between">
-											<div className="">
+										<li key={friend.user.id} className="list-group-item">
 												{
-													friend.user.is_active ? (
+													friend.user.is_online ? (
 														<>
 															<CustomTooltip text="Online" position="bottom">
 																	<CircleFill color="green" />
@@ -87,37 +88,27 @@ export default function FriendList() {
 														</>
 													)
 												}
-												<img 
-												src={`http://localhost:8000${friend.user.image}`}
-												className="rounded-circle border ms-2 me-2"
-												alt="user image"
-												height={50}
-												width={50}
+												<Image
+													src={`http://backend:8000${friend.user.image}`}
+													className="rounded-circle border ms-2 me-2"
+													alt="friend image"
+													height={20}
+													width={20}
 												/>
-											</div>
-											<div className="">
-												<h3>{friend.user.username}</h3>
-											</div>
-											<div className="">
-												{/* <CustomTooltip text="Invite to play" position="top">
-													<button className='btn'>
-														<Joystick color="green" />
-													</button>
-												</CustomTooltip> */}
+												<span>{friend.user.username}</span>
 												<CustomTooltip text="remove friend" position="top">
 													<button className='btn' onClick={() => deleteFriendship(friend.user)}>
 														<Trash3Fill color="red" />
 													</button>
 												</CustomTooltip>
-											</div>
-										</div>
+										</li>
 								</>
 							)))
 						}
-					</div>
-				</div>
+				</ul>
+
 				<button 
-					class="btn btn-secondary btn-sm dropdown-toggle" 
+					class="btn btn-secondary btn-sm dropdown-toggle w-100 mt-3" 
 					type="button" 
 					data-bs-toggle="collapse" 
 					data-bs-target="#friendRequestsCollapse" 
@@ -125,16 +116,15 @@ export default function FriendList() {
 					aria-controls="friendRequestsCollapse">
 					Friend Requests ({friends.filter(friend => friend.status === 'REQUEST').length})
 				</button>
-				<div className="collapse" id="friendRequestsCollapse">
-					<div className="card card-body">
+
+				<ul className="collapse border" id="friendRequestsCollapse">
 						{
 							friends.map((friend) => (
 								friend.status === 'REQUEST' && (
 									<>
-										<div key={friend.user.id} className="d-flex flex-row justify-content-between">
-											<div className="">
+										<li key={friend.user.id} className="list-group-item">
 											{
-													friend.user.is_active ? (
+													friend.user.is_online ? (
 														<>
 															<CustomTooltip text="Online" position="bottom">
 																	<CircleFill color="green" />
@@ -148,28 +138,25 @@ export default function FriendList() {
 														</>
 													)
 												}
-												<img 
-												src={`http://localhost:8000${friend.user.image}`} 
-												className="rounded-circle border ms-2 me-2"
-												alt="user image"
-												height={50}
-												width={50}/>
-											</div>
-											<div className="">
-												<h3>{friend.user.username}</h3>
-											</div>
-											<div className="">
+												<Image
+													src={`http://backend:8000${friend.user.image}`} 
+													className="rounded-circle border ms-2 me-2"
+													alt="user image"
+													height={30}
+													width={30}
+												/>
+												<span>{friend.user.username}</span>
 												{
 													(friend.user.id === friend.requestor) ? (
 														<>
 															<CustomTooltip text="Approuve Request" position="top">
 																<button className='btn text-success' onClick={() => approveFriendRequest(friend.user)}>
-																<i class="bi bi-check-circle-fill"></i>
+																	<i class="bi bi-check-circle-fill"></i>
 																</button>
 															</CustomTooltip>
 															<CustomTooltip text="Deny Request" position="top">
 																<button className='btn text-danger' onClick={() => deleteFriendship(friend.user)}>
-																<i class="bi bi-x-circle-fill"></i>
+																	<i class="bi bi-x-circle-fill"></i>
 																</button>
 															</CustomTooltip>
 														</>
@@ -181,15 +168,11 @@ export default function FriendList() {
 														</CustomTooltip>
 													)
 												}
-											</div>
-										</div>
+										</li>
 								</>
 							)))
 						}
-					</div>
-				</div>
-				<SearchPlayerInput fetchFriends={fetchFriends}/>
-			</div>
+					</ul>
 		</>
   )
 }

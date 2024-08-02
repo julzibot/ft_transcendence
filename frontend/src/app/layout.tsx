@@ -8,6 +8,7 @@ import Navbar from "../components/ui/navbar/Navbar";
 import GameProvider from "./context/GameContext";
 import background from "/public/static/images/background-profile.jpg"
 import Image from "next/image";
+import Sidenav from "@/components/ui/sidenav/Sidenav";
 
 const roboto = Roboto({
   weight: ['400', '700'],
@@ -32,7 +33,6 @@ export default async function RootLayout({
     <html lang="en">
       <body className={roboto.className}>
         <SessionProvider session={session}>
-        <GameProvider>
             <main>
               <Navbar />
               <Image
@@ -46,8 +46,8 @@ export default async function RootLayout({
                   }}
               />
               {children}
+              <Sidenav />
             </main>
-          </GameProvider>
         </SessionProvider>
       </body>
     </html>

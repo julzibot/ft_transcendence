@@ -22,7 +22,7 @@ export default function SearchPlayerInput({fetchFriends}) {
     show: false
   })
 
-  const debounce = useDebounce(inputValue, 800)
+  const debounce = useDebounce(inputValue, 500)
 
   useEffect(() => {
     fetchData()
@@ -78,24 +78,27 @@ export default function SearchPlayerInput({fetchFriends}) {
       <input
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)} 
-        type="search" 
+        type="text" 
+        className="form-control position-aboslute"
         placeholder="Search Player" 
       />
         {
           searchQuery.length > 0 && (
-            <div className="pt-5 text-dark align-items-center">
+            <div className="">
+              <ul className=" border pt-1" id="searchCollapse">
               {
                 searchQuery.map((user, index) => (
-                  <div key={index} className="border border-2 text-dark">
+                  <li index={index} className="list-group-item">
+
 										{
-													user.is_active ? (
-														<>
+                      user.is_online ? (
+                        <>
 															<CustomTooltip text="Online" position="bottom">
 																	<CircleFill color="green" />
 															</CustomTooltip>
 														</>
 													) : (
-														<>
+                            <>
 															<CustomTooltip text="Offline" position="bottom">
 																<CircleFill color="red" />
 															</CustomTooltip>													
@@ -106,18 +109,19 @@ export default function SearchPlayerInput({fetchFriends}) {
                       src={`${BACKEND_URL}${user.image}`}
                       className="rounded-circle border ms-2 me-2"
                       alt="user image"
-                      height={20}
-                      width={20}
-                    />
+                      height={25}
+                      width={25}
+                      />
                     <span>{user.username}</span>
                     <CustomTooltip text="Send Friend Request" position="bottom">
                       <button className="btn" onClick={() => handleFriendRequest(session?.user.id, user.id)}>
                         <PersonAdd color="green" width={15} />
                       </button>
                     </CustomTooltip>
-                  </div>
+                    </li>
                 ))
               }
+              </ul>
             </div>)
         }
         <ToastContainer
