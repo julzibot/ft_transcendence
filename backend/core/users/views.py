@@ -82,7 +82,7 @@ class OauthView(APIView):
       user.save_image_from_url()
 
     backendTokens = get_tokens_for_user(user)
-    user.is_active = True
+    user.is_online = True
     user.save()
     response = Response({
       'user': {
@@ -134,7 +134,7 @@ class SigninView(APIView):
           "error": "Unauthorized",
           "message": "The password provided does not match our records. Please double-check your password and try again."
         }, status=status.HTTP_401_UNAUTHORIZED)
-      user.is_active = True
+      user.is_online = True
       user.save()
       response = Response({
         'id': user.id,
@@ -210,7 +210,7 @@ class SearchUserView(APIView):
           'username': user.username,
           'image': user.image.url if user.image else None,
           'friendship_status': friendship_status,
-          'is_active' : user.is_active
+          'is_online' : user.is_online
         }
         users_data.append(user_data)
       return Response({"users": users_data})
@@ -249,6 +249,6 @@ class SignOutView(APIView):
     data = request.data['id']
     print(data)
     user = UserAccount.objects.get(id=data)
-    user.is_active = False
+    user.is_online = False
     user.save()
     return Response(status=status.HTTP_200_OK)

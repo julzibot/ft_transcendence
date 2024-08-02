@@ -27,27 +27,6 @@ export default function Navbar() {
 						<span className="ms-1 text-light fw-semibold">Transcendence</span>
 					</Link>
 				</div>
-
-				<button
-					className="btn btn-primary btn-lg"
-					onClick={() => setShow(true)}
-					>
-					Friends
-				</button>
-				<Offcanvas
-					show={show}
-					onHide={() => setShow(false)}
-					placement="end"
-					scroll={false}
-					> 
-					<Offcanvas.Header closeButton>
-						<Offcanvas.Title>Friend List</Offcanvas.Title>
-					</Offcanvas.Header>
-					<Offcanvas.Body>
-						<FriendList />
-					</Offcanvas.Body>
-				</Offcanvas>
-
 				<AuthButton/>
 			</div>
 		</nav>
