@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation'
 import { createMatchMaking, createMatchMakingTournament, fetchTournamentInfo, joinTournament, leaveTournament } from '@/services/tournaments'
 import { getSession, useSession } from 'next-auth/react'
 import JoinGameRoom from '@/components/Tournament/JoinGameRoom'
-import { SocketContext, socket } from "../../../../context/socket";
+import { SocketProvider } from "../../../context/socket";
 
 function DetailsPage() {
   const param = useParams<any>()
@@ -207,9 +207,9 @@ function DetailsPage() {
                                 {items?.[v] && tournamentData?.detail[0]?.tournamentWinner && <p className='mb-2'>{items?.[v]} <span style={{color:"#20c620", fontSize:'14px'}}>{items?.[player] === tournamentData?.detail[0]?.tournamentWinner ? '- WINNER' : ''}</span></p> }
                                 {/* {items[player] === session?.user?.id && <p className='mb-2' style={{ fontSize:'14px'}}><Link href={items?.linkToJoin}>{items?.linkToJoin}</Link></p> } */}
 																{items[player] === session?.user?.id &&
-																(<SocketContext.Provider value={socket}>
+																(<SocketProvider>
 																	<JoinGameRoom room_id={items?.linkToJoin} user_id={session?.user?.id} />
-																</SocketContext.Provider>)}
+																</SocketProvider>)}
                               </div>
                             </li>
                         ) 

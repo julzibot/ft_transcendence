@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Join from './Join';
-import { SocketContext, socket } from '../../../context/socket';
+import { SocketProvider } from '../../context/socket';
 
 export default function OnlineGame({ userId, gameSettings }) {
 
@@ -21,7 +21,7 @@ export default function OnlineGame({ userId, gameSettings }) {
 
 	return (
 		<>
-			<SocketContext.Provider value={socket}>
+			<SocketProvider>
 			{
 				gameStarted ? (
 					userId && <Join gameMode={gameMode} gameSettings={gameSettings} userId={userId} />
@@ -36,7 +36,7 @@ export default function OnlineGame({ userId, gameSettings }) {
 				</>
 				)
 			}
-			</SocketContext.Provider>
+			</SocketProvider>
 		</>
 	)
 }
