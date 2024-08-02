@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import 'chartjs-adapter-luxon';
 import ScoreChart from './ScoreChart';
 import ActivityChart from "./ActivityChart";
