@@ -143,3 +143,19 @@ class UpdateOnlineGame(APIView):
 			return Response({'message': f'[{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
 		return Response({'message': '[PUT] Invalid Game Match Request'}, status=status.HTTP_400_BAD_REQUEST)
 
+class MutualGameHistory(APIView):
+	def get(self, request, id1, id2):
+		try:
+			player1 = UserAccount.objects.get(id=id1)
+		except UserAccount.DoesNotExist:
+			return Response({'message': f'[GET] [{id1}] Unknown Player 1'}, status=status.HTTP_404_NOT_FOUND) 
+		try:
+			player2 = UserAccount.objects.get(id=id2)
+		except UserAccount.DoesNotExist:
+			return Response({'message': f'[GET] [{id2}] Unknown Player 2'}, status=status.HTTP_404_NOT_FOUND) 
+		history = GameMatch.objects.filter(Q(player1=player1) | Q(player2=player1) and Q(player1=player2) | Q(player2=player2))
+
+		if not history:
+			return Response({'message': f'[GET] [{player1.username} and {player2.username}] No match history'}, status=status.HTTP_404_NOT_FOUND)
+		serializer = GameMatchSerializer(history, many=True)
+		return Response({'data': serializer.data}, status=status.HTTP_200_OK)

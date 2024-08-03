@@ -1,29 +1,15 @@
 'use client';
 
-interface Entry {
-	x: Date,
-	y: number
-}
+import { GameMatch, MatchEntry } from "./DashboardInterfaces";
 
-interface GameMatch {
-	player1: number,
-	player2: number,
-	score1: number,
-	score2: number,
-	date: Date
-
-}
-
-const parseActivity = (newActivityData : Array<Entry>) => {
+const parseActivity = (newActivityData : Array<MatchEntry>) => {
 					
 	if (Array.isArray(newActivityData)) {
 		for (let i = 0; i < newActivityData.length - 1; i++) {
 			const cmpDate = new Date(newActivityData[i].x);
 			cmpDate.setDate(cmpDate.getDate() + 1);
-			if (cmpDate.getTime() !== newActivityData[i + 1].x.getTime()) {
+			if (cmpDate.getTime() !== newActivityData[i + 1].x.getTime())
 				newActivityData.splice(i + 1, 0, {x: cmpDate, y: 0})
-				i = 0;
-			}
 		}
 	}
 }
@@ -31,11 +17,11 @@ const parseActivity = (newActivityData : Array<Entry>) => {
 export default function createScoreData(
 	user_id: number,
 	data: Array<GameMatch>,
-	winData: Array<Entry>,
+	winData: Array<MatchEntry>,
 	setWinData: Function,
-	lossData: Array<Entry>,
+	lossData: Array<MatchEntry>,
 	setLossData: Function,
-	activityData: Array<Entry>,
+	activityData: Array<MatchEntry>,
 	setActivityData: Function,
 	minDate: Date,
 	setMinDate: Function
@@ -70,14 +56,20 @@ export default function createScoreData(
 					existingDate.y += 1;
 			}
 			// Activity data
+			
 			const activityDate = newActivityData.find(obj => obj.x.getTime() === dateISO);
 			if (activityDate === undefined)
 				newActivityData.push({x: new Date(dateISO), y: 1});
 			else
 				activityDate.y += 1;
 		})		
+		newActivityData.forEach((i) => {
+			console.log("before: " + i.x + " - " + i.y);
+		})
 		parseActivity(newActivityData);
-
+		newActivityData.forEach((i) => {
+			console.log("after: " + i.x + " - " + i.y);
+		})
 		setActivityData(newActivityData);
 		setWinData(newWinData);
 		setLossData(newLossData);

@@ -3,7 +3,14 @@ import { useEffect, useState, useRef } from "react";
 import { Chart } from 'chart.js/auto';
 import 'chartjs-adapter-luxon';
 
-export default function ActivityChart({ activityData, minDate }) {
+import { MatchEntry } from "./DashboardInterfaces";
+
+interface ActivityChartProps {
+	activityData : MatchEntry,
+	minDate : Date
+}
+
+export default function ActivityChart({ activityData, minDate } : ActivityChartProps) {
 	const chartRef = useRef(null);
 	const chartInstance = useRef(null);
 
