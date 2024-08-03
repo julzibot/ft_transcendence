@@ -6,8 +6,13 @@ import ScoreChart from './ScoreChart';
 import ActivityChart from "./ActivityChart";
 
 import createScoreData from "./ChartDataUtils";
+import { GameMatch } from "./DashboardInterfaces";
 
-export default function UserDashboardCard({user_id}) {
+interface DashboardProps {
+	user_id : number
+}
+
+export default function UserDashboardCard({user_id} : DashboardProps) {
 	const [DashboardData, setDashboardData] = useState([]);
 	const [fetchedDashboard, setFetchedDashboard] = useState(false);
 	
@@ -60,13 +65,20 @@ export default function UserDashboardCard({user_id}) {
 		const [minDate, setMinDate] = useState(new Date());
 	
 	useEffect(() => {
-		createScoreData(user_id, userHistory.data,
+		if (userHistory.data && userHistory.data.length > 0 && !dataCreated) {
+			setWinData([]);
+			setLossData([]);
+			setActivityData([]);
+
+			createScoreData(
+				user_id, userHistory.data,
 				winData, setWinData,
 				lossData, setLossData,
 				activityData, setActivityData,
 				minDate, setMinDate);
-		setDataCreated(true);
-	}, [userHistory]);
+			setDataCreated(true);
+		}
+	}, [userHistory, dataCreated]);
 
 	return (
 		<>
@@ -80,8 +92,24 @@ export default function UserDashboardCard({user_id}) {
 								<li>Wins: {dataObj.wins} ({ winPerc.toFixed(1) }%)</li>
 								<li>Losses: {dataObj.games_played - dataObj.wins} ({ lossPerc.toFixed(1) }%)</li>
 							</ul>
-							<p>Current streak record: {dataObj.streak}</p>
+							<p>Current streak record: {dataObj.record_streak}</p>
 							<p>Number of matches played: {dataObj.games_played}</p>
+						<div>
+							{/* <button className="btn btn-success">Show Match History</button> */}
+							<h4>Game History</h4>
+								{
+									Array.isArray(userHistory.data) && userHistory.data.map((obj : GameMatch, index : number) => (
+										<div className="card m-2">
+											<div className="card-body">
+												<h5 className="card-title">{obj.date}</h5>
+												<p>Player 1: {obj.player1}</p>
+												<p>Player 2: {obj.player2 ? obj.player2 : <span>No player</span>}</p>
+												<p>Score: {obj.score1} - {obj.score2}</p>
+											</div>
+										</div>
+									))
+								}
+						</div>
 							{
 								dataCreated ? (
 									<>

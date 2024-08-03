@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import GameHistory, UserGameHistory, GameDataView, UpdateLocalGame, UpdateOnlineGame
+from .views import GameHistory, UserGameHistory, GameDataView, UpdateLocalGame, UpdateOnlineGame, MutualGameHistory
 
 urlpatterns = [
     path('create', 									GameDataView.as_view()),
@@ -8,6 +8,7 @@ urlpatterns = [
 		path('history', 								GameHistory.as_view(), name='all-game-history'), # get all match history
 		path('history/<int:id>',				GameHistory.as_view(), name='match-history'), # get specific match
 		path('history/user/<int:id>',		UserGameHistory.as_view(), name='user-game-history'), # get user's match history
+		path('history/user/<int:id1>/<int:id2>',	MutualGameHistory.as_view(), name='mutual-game-history'),
 ]
 
 # get history of all matches

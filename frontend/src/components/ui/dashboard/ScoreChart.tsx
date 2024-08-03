@@ -4,7 +4,15 @@ import { Chart } from 'chart.js/auto';
 import * as Utils from './Utils';
 import 'chartjs-adapter-luxon';
 
-export default function ScoreChart({ winData, lossData, minDate }) {
+import { MatchEntry } from "./DashboardInterfaces";
+
+interface ScoreChartProps {
+	winData: MatchEntry,
+	lossData: MatchEntry,
+	minDate: Date
+}
+
+export default function ScoreChart({ winData, lossData, minDate } : ScoreChartProps) {
 	const chartRef = useRef(null);
 	const chartInstance = useRef(null);
 	
