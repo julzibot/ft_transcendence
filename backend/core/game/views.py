@@ -142,6 +142,29 @@ class UpdateOnlineGame(APIView):
 
 			return Response({'message': f'[{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
 		return Response({'message': '[PUT] Invalid Game Match Request'}, status=status.HTTP_400_BAD_REQUEST)
+	
+class UserGameModeHistory(APIView):
+	def get(self, request, id):
+		try:
+			user = UserAccount.objects.get(id=id)
+		except user.DoesNotExist:
+			return Response({'message': f'[GET] [{id}] Unknown User'}, status=status.HTTP_404_NOT_FOUND)
+		
+		history = GameMatch.objects.filter(Q(player1=user) | Q(player2=user))
+		if not history.exists():
+			return Response({'message': f'[GET] [{user.username}] No match history'}, status=status.HTTP_404_NOT_FOUND)
+		
+		local = history.filter(game_mode=0).count()
+		AI = history.filter(game_mode=1).count()
+		online = history.filter(game_mode=2).count()
+		tournament = history.filter(game_mode=3).count()
+		responseData = {
+			'local': local,
+			'AI': AI,
+			'online': online,
+			'tournament': tournament
+		}
+		return Response({'data': responseData}, status=status.HTTP_200_OK)
 
 class MutualGameHistory(APIView):
 	def get(self, request, id1, id2):
@@ -156,6 +179,6 @@ class MutualGameHistory(APIView):
 		history = GameMatch.objects.filter(Q(player1=player1) | Q(player2=player1) and Q(player1=player2) | Q(player2=player2))
 
 		if not history:
-			return Response({'message': f'[GET] [{player1.username} and {player2.username}] No match history'}, status=status.HTTP_404_NOT_FOUND)
+			return Response({'message': f'[GET] [{player1.username} and {player2.username}] No mutual match history'}, status=status.HTTP_404_NOT_FOUND)
 		serializer = GameMatchSerializer(history, many=True)
 		return Response({'data': serializer.data}, status=status.HTTP_200_OK)

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import 'chartjs-adapter-luxon';
 import ScoreChart from './ScoreChart';
 import ActivityChart from "./ActivityChart";
+import GameModesChart from "./GameModesChart";
 
 import createScoreData from "./ChartDataUtils";
 import { GameMatch } from "./DashboardInterfaces";
@@ -62,6 +63,7 @@ export default function UserDashboardCard({user_id} : DashboardProps) {
 		const [winData, setWinData] = useState([]);
 		const [lossData, setLossData] = useState([]);
 		const [activityData, setActivityData] = useState([]);
+		const [gameModesData, setGameModesData] = useState([]);
 		const [minDate, setMinDate] = useState(new Date());
 	
 	useEffect(() => {
@@ -75,10 +77,36 @@ export default function UserDashboardCard({user_id} : DashboardProps) {
 				winData, setWinData,
 				lossData, setLossData,
 				activityData, setActivityData,
+				gameModesData, setGameModesData,
 				minDate, setMinDate);
 			setDataCreated(true);
 		}
 	}, [userHistory, dataCreated]);
+
+	const [statsToggle, setStatsToggle] = useState(true);
+
+	const handleStatsToggle = (e) => {
+		setStatsToggle(!statsToggle)
+	}
+
+	useEffect(() => {
+		console.log(statsToggle);
+	}, [statsToggle]);
+
+	let currentDate = new Date();
+	currentDate.setDate(currentDate.getDate() - 7);
+	let ISOdate = currentDate.toISOString();
+	let sevenDays = ISOdate.split('T')[0];
+
+	const [displayedDate, setDisplayedDate] = useState(sevenDays);
+
+	const handleAllTimeBtn = () => {
+		setDisplayedDate(minDate);
+	}
+
+	const handle7DaysBtn = () => {
+		setDisplayedDate(sevenDays);
+	}
 
 	return (
 		<>
@@ -95,26 +123,77 @@ export default function UserDashboardCard({user_id} : DashboardProps) {
 							<p>Current streak record: {dataObj.record_streak}</p>
 							<p>Number of matches played: {dataObj.games_played}</p>
 						<div>
-							{/* <button className="btn btn-success">Show Match History</button> */}
-							<h4>Game History</h4>
-								{
-									Array.isArray(userHistory.data) && userHistory.data.map((obj : GameMatch, index : number) => (
-										<div className="card m-2">
-											<div className="card-body">
-												<h5 className="card-title">{obj.date}</h5>
-												<p>Player 1: {obj.player1}</p>
-												<p>Player 2: {obj.player2 ? obj.player2 : <span>No player</span>}</p>
-												<p>Score: {obj.score1} - {obj.score2}</p>
-											</div>
-										</div>
-									))
-								}
+														{/* <!-- Button trigger modal --> */}
+														<button type="button" className="btn btn-info mb-2" data-bs-toggle="modal" data-bs-target="#history-modal">
+															Show Match History
+														</button>
+
+														{/* <!-- Modal --> */}
+														<div class="modal fade" id="history-modal" tabindex="-1" aria-labelledby="history-modal-label" aria-hidden="true">
+															<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+																<div class="modal-content">
+																	<div class="modal-header">
+																		<h1 class="modal-title fs-5" id="history-modal-label">Game History</h1>
+																		<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+																	</div>
+																	<div class="modal-body">
+																	{
+																		Array.isArray(userHistory.data) && userHistory.data.map((obj : GameMatch, index : number) => (
+																			<div className="card m-2">
+																				<div className="card-body">
+																					<h5 className="card-title mb-3">{new Date(obj.date).toLocaleDateString()}</h5>
+																						{obj.player2 ? (
+																							<>
+																								<p>{obj.player1} vs {obj.player2}</p>
+																								<p>Score</p>
+																								<p>{obj.score1} - {obj.score2}</p>
+																							</>
+																						) : (
+																							<>
+																								<p>Player: {obj.player1}</p>
+																								<p>Score: {obj.score1} - {obj.score2}</p>
+																							</>
+																						)}
+																				</div>
+																			</div>
+																		))
+																	}
+																	</div>
+																	<div class="modal-footer">
+																		<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+																		<button type="button" class="btn btn-primary">Save changes</button>
+																	</div>
+																</div>
+															</div>
+														</div>
 						</div>
 							{
 								dataCreated ? (
 									<>
-										<ScoreChart winData={winData} lossData={lossData} minDate={minDate} />
-										<ActivityChart activityData={activityData} minDate={minDate} />
+										<button type='button' className='btn btn-primary m-1' onClick={handle7DaysBtn}>Past 7 days</button>
+										<button type='button' className='btn btn-primary m-1' onClick={handleAllTimeBtn}>All time</button>
+										<input
+											type="checkbox"
+											className="btn-check"
+											id="btn-check"
+											autocomplete="off"
+											checked={!statsToggle}
+											onChange={handleStatsToggle} />
+										{
+											statsToggle ? (
+												<>
+													<label className="btn btn-secondary m-2" for="btn-check">Without Stats</label>
+													<ActivityChart activityData={activityData} displayedDate={displayedDate} />
+												</>
+											) : (
+												<>
+													<label className="btn btn-danger m-2" for="btn-check">With Stats</label>
+													<ScoreChart winData={winData} lossData={lossData} displayedDate={displayedDate} />
+												</>
+											)
+										}
+										
+										<GameModesChart displayedDate={displayedDate} data={gameModesData} />
 									</>
 								) : (
 								<div>Loading...</div>
