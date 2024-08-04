@@ -23,6 +23,8 @@ export default function createScoreData(
 	setLossData: Function,
 	activityData: Array<MatchEntry>,
 	setActivityData: Function,
+	gameModesData : Array<MatchEntry>,
+	setGameModesData : Function,
 	minDate: Date,
 	setMinDate: Function
 	) {
@@ -30,6 +32,7 @@ export default function createScoreData(
 		const newWinData = [...winData];
 		const newLossData = [...lossData];
 		const newActivityData = [...activityData];
+		const newGameModesData = [...gameModesData];
 		
 		data.forEach((item) => {
 			const itemDate = new Date(item.date);
@@ -55,23 +58,18 @@ export default function createScoreData(
 				else
 					existingDate.y += 1;
 			}
-			// Activity data
-			
+			// Activity & Game Mode data
 			const activityDate = newActivityData.find(obj => obj.x.getTime() === dateISO);
 			if (activityDate === undefined)
 				newActivityData.push({x: new Date(dateISO), y: 1});
 			else
 				activityDate.y += 1;
+			newGameModesData.push({x: new Date(dateISO), y: item.game_mode})
 		})		
-		newActivityData.forEach((i) => {
-			console.log("before: " + i.x + " - " + i.y);
-		})
 		parseActivity(newActivityData);
-		newActivityData.forEach((i) => {
-			console.log("after: " + i.x + " - " + i.y);
-		})
-		setActivityData(newActivityData);
 		setWinData(newWinData);
 		setLossData(newLossData);
+		setActivityData(newActivityData);
+		setGameModesData(newGameModesData);
 	}
 }

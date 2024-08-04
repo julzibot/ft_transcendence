@@ -7,27 +7,27 @@ import { MatchEntry } from "./DashboardInterfaces";
 
 interface ActivityChartProps {
 	activityData : MatchEntry,
-	minDate : Date
+	displayedDate : Date
 }
 
-export default function ActivityChart({ activityData, minDate } : ActivityChartProps) {
+export default function ActivityChart({ activityData, displayedDate } : ActivityChartProps) {
 	const chartRef = useRef(null);
 	const chartInstance = useRef(null);
 
-	let currentDate = new Date();
-	currentDate.setDate(currentDate.getDate() - 7);
-	let ISOdate = currentDate.toISOString();
-	let sevenDays = ISOdate.split('T')[0];
+	// let currentDate = new Date();
+	// currentDate.setDate(currentDate.getDate() - 7);
+	// let ISOdate = currentDate.toISOString();
+	// let sevenDays = ISOdate.split('T')[0];
 
-	const [displayedDate, setDisplayedDate] = useState(sevenDays);
+	// const [displayedDate, setDisplayedDate] = useState(sevenDays);
 
-	const handleAllTimeBtn = () => {
-		setDisplayedDate(minDate);
-	}
+	// const handleAllTimeBtn = () => {
+	// 	setDisplayedDate(minDate);
+	// }
 
-	const handle7DaysBtn = () => {
-		setDisplayedDate(sevenDays);
-	}
+	// const handle7DaysBtn = () => {
+	// 	setDisplayedDate(sevenDays);
+	// }
 	
 	useEffect(() => {
 		const ctx = chartRef.current.getContext('2d');
@@ -92,10 +92,6 @@ export default function ActivityChart({ activityData, minDate } : ActivityChartP
 		<>
 			<div className="m-3">
 				<canvas ref={chartRef} />
-			</div>
-			<div>
-					<button type='button' className='btn btn-primary m-1' onClick={handle7DaysBtn}>Past 7 days</button>
-					<button type='button' className='btn btn-primary m-1' onClick={handleAllTimeBtn}>All time</button>
 			</div>
 		</>
 	);

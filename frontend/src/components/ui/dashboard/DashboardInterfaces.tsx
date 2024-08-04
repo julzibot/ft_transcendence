@@ -10,5 +10,6 @@ export interface GameMatch {
 	player2: number,
 	score1: number,
 	score2: number,
+	game_mode: number,
 	date: Date
 }
