@@ -199,7 +199,7 @@ class SearchUserView(APIView):
         return Response(status=status.HTTP_404_NOT_FOUND)
       users_data = []
       for user in query_set:
-        friendship = Friendship.objects.filter(Q(user1=user, user2=query_user) | Q(user1=query_user, user2=user)).exclude(status='REQUEST').first()
+        friendship = Friendship.objects.filter(Q(user1=user, user2=query_user) | Q(user1=query_user, user2=user)).first()
 
         if friendship:
           friendship_status = friendship.status
@@ -247,8 +247,18 @@ class DeleteAccountView(APIView):
 class SignOutView(APIView):
   def put(self, request):
     data = request.data['id']
-    print(data)
     user = UserAccount.objects.get(id=data)
     user.is_online = False
     user.save()
     return Response(status=status.HTTP_200_OK)
+
+class GetUserView(APIView):
+  get(self, request, id):
+    id = request.query_params.get('id')
+    user = UserAccount.objects.get(id=id)
+    user_data = {
+      'id': user.id,
+      'username': user.username,
+      'image': user.image.url if user.image else None
+    }
+    return Response({'user': user_data})

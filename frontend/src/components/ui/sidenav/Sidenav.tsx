@@ -13,7 +13,7 @@ export default function Sidenav() {
         <ul className="nav flex-column position-absolute top-100 end-0">
           <li className="nav-item">
             <button className="btn btn-light btn-lg" onClick={() => setShow(true)}>
-            <i class="bi bi-caret-left-fill"></i>
+            <i className="bi bi-caret-left-fill"></i>
             <i className="ms-1 bi bi-people-fill"></i>
             </button>
           </li>
