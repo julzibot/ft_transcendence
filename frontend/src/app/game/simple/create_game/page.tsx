@@ -1,11 +1,6 @@
 'use client';
 
 import Link from "next/link"
-import Join from "../../../components/game/Join"
-import { useSession } from "next-auth/react"
-import { useEffect, useState, useContext } from "react"
-import io from "socket.io-client"
-import { SocketContext, socket } from "../../../../context/socket"
 
 export default function CreateGame() {
 

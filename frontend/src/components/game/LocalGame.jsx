@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react';
-import Join from './Join';
+import ThreeScene from './Game';
 
-export default function LocalGame({ userId }) {
+export default function LocalGame({ userId, gameSettings }) {
 
 	const [gameStarted, setGameStarted] = useState(false);
 	const [gameMode, setGameMode] = useState(0);
 
-	const startLocalGame = () => {
+	const startLocal = () => {
 		setGameMode(0);
 		setGameStarted(true);
 	}
@@ -21,15 +21,16 @@ export default function LocalGame({ userId }) {
 	return (
 		<>
 			{
+
 				gameStarted ? (
-					userId && <Join gameMode={gameMode} userId={userId} />
+					userId && <ThreeScene gameSettings={gameSettings} room_id={-1} user_id={userId} isHost={true} gamemode={gameMode} />
 				) : (
 				<>
 					<div className="d-flex justify-content-center mb-3">
 						<button type="button" className="btn btn-secondary mx-3" onClick={startAI}>Play Against AI</button>
 					</div>
 					<div className="d-flex justify-content-center mb-3">
-						<button type="button" className="btn btn-secondary mx-3" onClick={startLocalGame}>Local Multiplayer</button>
+						<button type="button" className="btn btn-secondary mx-3" onClick={startLocal}>Local Multiplayer</button>
 					</div>
 				</>
 				)

@@ -1,0 +1,235 @@
+.card-body {
+	padding: 20px;
+	/* Adjust padding as needed */
+	max-width: 100%;
+	overflow: hidden;
+	/* Ensure content stays within the card */
+}
+
+.canvas-container {
+	display: flex;
+	flex-direction: row;
+	/* Ensure canvases are aligned horizontally */
+	flex-wrap: wrap;
+	/* Allow wrapping to the next line */
+	justify-content: space-between;
+	gap: 20px;
+}
+
+canvas {
+	width: 100%;
+	max-width: 48%;
+	/* Adjust depending on how many charts are side by side */
+	height: auto;
+	box-sizing: border-box;
+}
+
+.ag-format-container {
+	width: 1142px;
+	margin: 0 auto;
+}
+
+
+body {
+	background-color: #000;
+}
+
+.match_box {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-align: start;
+	-ms-flex-align: start;
+	align-items: flex-start;
+	-ms-flex-wrap: wrap;
+	flex-wrap: wrap;
+
+	padding: 50px 0;
+}
+
+.match_item {
+	-ms-flex-preferred-size: calc(33.33333% - 30px);
+	flex-basis: calc(33.33333% - 30px);
+
+	margin: 0 15px 30px;
+
+	overflow: hidden;
+
+	border-radius: 28px;
+}
+
+.match_item_link {
+	display: block;
+	padding: 30px 20px;
+	background-color: #121212;
+
+	overflow: hidden;
+
+	position: relative;
+}
+
+.match_item_link:hover,
+.match_item_link:hover .match_item_date {
+	text-decoration: none;
+	color: #FFF;
+}
+
+.match_item_link:hover .match_item_bg {
+	-webkit-transform: scale(10);
+	-ms-transform: scale(10);
+	transform: scale(10);
+}
+
+.match_item_title {
+	min-height: 60px;
+	margin: 0 0 25px;
+
+	overflow: hidden;
+
+	font-weight: bold;
+	font-size: 30px;
+	color: #FFF;
+
+	z-index: 2;
+	position: relative;
+}
+
+.match_item_date-box {
+	font-size: 24px;
+	color: #FFF;
+
+	z-index: 2;
+	position: relative;
+}
+
+.match_item_date {
+	font-weight: bold;
+	color: #f9b234;
+
+	-webkit-transition: color .5s ease;
+	-o-transition: color .5s ease;
+	transition: color .5s ease
+}
+
+.match_item_bg {
+	height: 128px;
+	width: 128px;
+	background-color: #f9b234;
+
+	z-index: 1;
+	position: absolute;
+	top: -75px;
+	right: -75px;
+
+	border-radius: 50%;
+
+	-webkit-transition: all .5s ease;
+	-o-transition: all .5s ease;
+	transition: all .5s ease;
+}
+
+
+.local .match_item_bg {
+	background-color: #f9b234;
+}
+
+.ai .match_item_bg {
+	background-color: #02cde4;
+}
+
+.online .match_item_bg {
+	background-color: #3ecd5e;
+}
+
+.tournament .match_item_bg {
+	background-color: #e44002;
+}
+
+
+
+@media only screen and (max-width: 979px) {
+	.match_item {
+		-ms-flex-preferred-size: calc(50% - 30px);
+		flex-basis: calc(50% - 30px);
+	}
+
+	.match_item_title {
+		font-size: 24px;
+	}
+}
+
+@media only screen and (max-width: 767px) {
+	.ag-format-container {
+		width: 96%;
+	}
+
+}
+
+@media only screen and (max-width: 639px) {
+	.match_item {
+		-ms-flex-preferred-size: 100%;
+		flex-basis: 100%;
+	}
+
+	.match_item_title {
+		min-height: 72px;
+		line-height: 1;
+
+		font-size: 24px;
+	}
+
+	.match_item_link {
+		padding: 22px 40px;
+	}
+
+	.match_item_date-box {
+		font-size: 20px;
+	}
+}
+
+/* Tables */
+.table.match-table th,
+.table.match-table td {
+	color: white !important;
+	border: none !important;
+	/* Enforce no borders */
+	padding: 8px;
+	/* Adjust padding for spacing */
+	text-align: center;
+	/* Center the text */
+	background-color: transparent !important;
+	/* Enforce transparent background on cells */
+}
+
+.match-table-row {
+	width: 33%;
+}
+
+/* Legend badges */
+
+.modal-footer {
+	display: flex;
+	justify-content: space-between;
+	/* Space between the badge container and close button */
+	align-items: center;
+	/* Align items vertically in the center */
+	padding: 15px;
+	/* Adjust padding as needed */
+	background-color: transparent;
+	/* Transparent background if needed */
+	border-top: none;
+	/* Remove top border if needed */
+}
+
+.badge-container {
+	display: flex;
+	gap: 10px;
+	/* Space between each badge */
+}
+
+.badge {
+	display: inline-block;
+	padding: 5px 10px;
+	margin: 0;
+	/* Remove margin */
+}
