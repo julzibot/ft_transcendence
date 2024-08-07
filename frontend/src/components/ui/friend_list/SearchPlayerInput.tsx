@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react"
-import { PersonAdd, CircleFill  } from "react-bootstrap-icons";
+import { PersonFillAdd, CircleFill, PersonDashFill, XCircleFill, Joystick } from "react-bootstrap-icons";
 import { CustomTooltip } from "@/components/Utils/Tooltip";
 import { useSession } from "next-auth/react";
 import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
@@ -11,10 +11,11 @@ import Image from "next/image";
 const BASE_URL = "http://localhost:8000/api/"
 const BACKEND_URL = 'http://backend:8000'
 
-export default function SearchPlayerInput({fetchFriends}) {
+export default function SearchPlayerInput({ fetchFriends }) {
   const [searchQuery, setSearchQuery] = useState([]);
   const [inputValue, setInputValue] = useState<string>('');
-  const {data: session} = useSession()
+  const [click, setClick] = useState<boolean>(false)
+  const { data: session } = useSession()
   const [toastParams, setToastParams] = useState({
     text: '',
     color: '',
@@ -22,18 +23,17 @@ export default function SearchPlayerInput({fetchFriends}) {
     show: false
   })
 
-  const debounce = useDebounce(inputValue, 800)
+  const debounce = useDebounce(inputValue, 500)
 
   useEffect(() => {
     fetchData()
-  }, [debounce])
-
+  }, [debounce, click])
 
   const fetchData = async () => {
     const response = await fetch(`http://localhost:8000/api/search-user/?query=${inputValue}&id=${session.user.id}`, {
       method: "GET",
     })
-    if(!response.ok) {
+    if (!response.ok) {
       setSearchQuery([])
       return false
     }
@@ -41,21 +41,36 @@ export default function SearchPlayerInput({fetchFriends}) {
     setSearchQuery(data.users)
   }
 
-  const handleFriendRequest = async(fromUserId: number, toUserId: number) => {
-    console.log('click')
+  async function deleteFriendship(friend) {
+    const response = await fetch('http://localhost:8000/api/friends/delete-friendship/', {
+      method: 'DELETE',
+      headers: { 'Content-type': 'application/json' },
+      body: JSON.stringify({
+        'user_id1': session.user.id,
+        'user_id2': friend.id
+      })
+    })
+    if (response.status === 204)
+      fetchFriends()
+    setClick(!click)
+  }
+
+
+  const handleFriendRequest = async (fromUserId: number, toUserId: number) => {
     fetch(BASE_URL + "friends/send-friend-request/", {
       method: "POST",
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         "from_user": fromUserId,
         "to_user": toUserId
       })
     }).then(response => {
+      setClick(!click)
       if (response.status === 201) {
         setToastParams({
-          text: 'Request successfully sent', 
-          color: 'success', 
-          title: 'Success', 
+          text: 'Request successfully sent',
+          color: 'success',
+          title: 'Success',
           show: true,
         })
         fetchFriends()
@@ -63,8 +78,8 @@ export default function SearchPlayerInput({fetchFriends}) {
       else {
         setToastParams({
           text: 'A request is pending with this user, check your friend requests',
-          color: 'warning', 
-          title: 'Warning', 
+          color: 'warning',
+          title: 'Warning',
           show: true
         })
       }
@@ -73,66 +88,96 @@ export default function SearchPlayerInput({fetchFriends}) {
     });
   }
 
-  return(
+  function renderStatus(user) {
+    switch (user.friendship_status) {
+      case 'FRIENDS':
+        return (
+          <>
+            <CustomTooltip text="Invite to Play" position="top">
+              <Joystick size={35} role="button" color="#46C253" className="me-3" />
+            </CustomTooltip>
+            <CustomTooltip text="Unfriend" position="top">
+              <PersonDashFill size={35} role="button" onClick={() => deleteFriendship(user)} color="red" />
+            </CustomTooltip>
+          </>
+        )
+      case 'REQUEST':
+        return (
+          <>
+            <CustomTooltip text="Cancel Request" position="top">
+              <XCircleFill size={35} role="button" onClick={() => deleteFriendship(user)} color="red" />
+            </CustomTooltip>
+          </>
+        )
+      default:
+        return (
+          <CustomTooltip text="Send Friend Request" position="bottom">
+            <PersonFillAdd size={35} role="button" onClick={() => handleFriendRequest(session?.user.id, user.id)} color="green" />
+          </CustomTooltip>
+        )
+    }
+  }
+
+  return (
     <>
       <input
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)} 
-        type="search" 
-        placeholder="Search Player" 
+        onChange={(e) => setInputValue(e.target.value)}
+        type="search"
+        className="form-control"
+        placeholder="Search Player"
       />
+
+      <div className="border border-bottom-0">
         {
-          searchQuery.length > 0 && (
-            <div className="pt-5 text-dark align-items-center">
-              {
-                searchQuery.map((user, index) => (
-                  <div key={index} className="border border-2 text-dark">
-										{
-													user.is_active ? (
-														<>
-															<CustomTooltip text="Online" position="bottom">
-																	<CircleFill color="green" />
-															</CustomTooltip>
-														</>
-													) : (
-														<>
-															<CustomTooltip text="Offline" position="bottom">
-																<CircleFill color="red" />
-															</CustomTooltip>													
-														</>
-													)
-												}
-                    <Image 
-                      src={`${BACKEND_URL}${user.image}`}
-                      className="rounded-circle border ms-2 me-2"
-                      alt="user image"
-                      height={20}
-                      width={20}
+          searchQuery.length > 0 && searchQuery.map((user) => (
+            <div key={user.id} className="container">
+              <div className="row p-2 align-items-center border-bottom">
+                <div className="col-auto">
+                  {
+                    user.is_online ? (
+                      <CircleFill color="green" size={12} />
+                    ) : (
+                      <CircleFill color="red" size={12} />
+                    )
+                  }
+                </div>
+                <div className="col-auto">
+                  <div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
+                    <Image
+                      objectFit="cover"
+                      alt="profile picture"
+                      src={`http://backend:8000${user.image}`}
+                      fill
                     />
-                    <span>{user.username}</span>
-                    <CustomTooltip text="Send Friend Request" position="bottom">
-                      <button className="btn" onClick={() => handleFriendRequest(session?.user.id, user.id)}>
-                        <PersonAdd color="green" width={15} />
-                      </button>
-                    </CustomTooltip>
                   </div>
-                ))
-              }
-            </div>)
+                </div>
+                <div className="col overflow-hidden">
+                  <span className="d-block fs-4 fw-semibold text-truncate">
+                    {user.username}
+                  </span>
+                </div>
+                <div className="col-auto">
+                  {renderStatus(user)}
+                </div>
+              </div>
+            </div>
+          ))
         }
-        <ToastContainer
-          className="p-3"
-          position='bottom-center'
-          style={{ zIndex: 1 }}
+      </div >
+      <ToastContainer
+        className="p-3"
+        position='bottom-center'
+        style={{ zIndex: 1 }}
+      >
+        <Toast
+          onClose={() => setToastParams((params) => ({ ...params, show: false }))}
+          show={toastParams.show}
+          delay={5000}
+          autohide
+          bg={toastParams.color}
         >
-          <Toast 
-            onClose={() => setToastParams((params) => ({...params, show: false}))} 
-            show={toastParams.show} 
-            delay={5000} 
-            autohide
-            bg={toastParams.color}
-            >
-            <Toast.Header className={(toastParams.title === 'Success') ? "text-success" : "text-secondary"}>
+          <Toast.Header className={(toastParams.title === 'Success') ? "text-success" : "text-secondary"}>
             {
               (toastParams.title === 'Success') ? (
                 <i className="bi bi-check-circle-fill"></i>
@@ -141,10 +186,10 @@ export default function SearchPlayerInput({fetchFriends}) {
               )
             }
             <strong className="ms-1 me-auto">{toastParams.title}</strong>
-            </Toast.Header>
-            <Toast.Body className="text-light">{toastParams.text}</Toast.Body>
-          </Toast>
-        </ToastContainer>
-  </>
+          </Toast.Header>
+          <Toast.Body className="text-light">{toastParams.text}</Toast.Body>
+        </Toast>
+      </ToastContainer>
+    </>
   )
 }

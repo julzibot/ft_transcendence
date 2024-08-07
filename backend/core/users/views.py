@@ -58,7 +58,7 @@ class RegisterView(APIView):
   def post(self, request):
     data = request.data['data']
     if len(data['email']) < 1 or len(data['username']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
-      return Response({'message': 'email, nick name and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'message': 'email, username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
     if  UserAccount.objects.filter(email=data['email']).exists():
       return Response({'message': 'user already exists try another email'}, status=status.HTTP_409_CONFLICT)
     if  UserAccount.objects.filter(username=data['username']).exists():
@@ -80,9 +80,10 @@ class OauthView(APIView):
       serializer.is_valid(raise_exception=True)
       user = UserAccount.objects.create(**data)
       user.save_image_from_url()
+      DashboardData.objects.create(user=user)
 
     backendTokens = get_tokens_for_user(user)
-    user.is_active = True
+    user.is_online = True
     user.save()
     response = Response({
       'user': {
@@ -133,7 +134,7 @@ class SigninView(APIView):
           "error": "Unauthorized",
           "message": "The password provided does not match our records. Please double-check your password and try again."
         }, status=status.HTTP_401_UNAUTHORIZED)
-      user.is_active = True
+      user.is_online = True
       user.save()
       response = Response({
         'id': user.id,
@@ -198,7 +199,7 @@ class SearchUserView(APIView):
         return Response(status=status.HTTP_404_NOT_FOUND)
       users_data = []
       for user in query_set:
-        friendship = Friendship.objects.filter(Q(user1=user, user2=query_user) | Q(user1=query_user, user2=user)).exclude(status='REQUEST').first()
+        friendship = Friendship.objects.filter(Q(user1=user, user2=query_user) | Q(user1=query_user, user2=user)).first()
 
         if friendship:
           friendship_status = friendship.status
@@ -209,7 +210,7 @@ class SearchUserView(APIView):
           'username': user.username,
           'image': user.image.url if user.image else None,
           'friendship_status': friendship_status,
-          'is_active' : user.is_active
+          'is_online' : user.is_online
         }
         users_data.append(user_data)
       return Response({"users": users_data})
@@ -246,8 +247,18 @@ class DeleteAccountView(APIView):
 class SignOutView(APIView):
   def put(self, request):
     data = request.data['id']
-    print(data)
     user = UserAccount.objects.get(id=data)
-    user.is_active = False
+    user.is_online = False
     user.save()
     return Response(status=status.HTTP_200_OK)
+
+# class GetUserView(APIView):
+#   get(self, request, id):
+#     id = request.query_params.get('id')
+#     user = UserAccount.objects.get(id=id)
+#     user_data = {
+#       'id': user.id,
+#       'username': user.username,
+#       'image': user.image.url if user.image else None
+#     }
+#     return Response({'user': user_data})
