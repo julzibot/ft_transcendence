@@ -203,7 +203,9 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-        <UserDashboardCard />
+        {
+					userId ? <UserDashboardCard user_id={userId} /> : <div>Loading...</div>
+				}
       </div>
     </>
   )
