@@ -58,7 +58,7 @@ class RegisterView(APIView):
   def post(self, request):
     data = request.data['data']
     if len(data['email']) < 1 or len(data['username']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
-      return Response({'message': 'email, nick name and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'message': 'email, username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
     if  UserAccount.objects.filter(email=data['email']).exists():
       return Response({'message': 'user already exists try another email'}, status=status.HTTP_409_CONFLICT)
     if  UserAccount.objects.filter(username=data['username']).exists():
@@ -80,6 +80,7 @@ class OauthView(APIView):
       serializer.is_valid(raise_exception=True)
       user = UserAccount.objects.create(**data)
       user.save_image_from_url()
+      DashboardData.objects.create(user=user)
 
     backendTokens = get_tokens_for_user(user)
     user.is_online = True
@@ -106,8 +107,7 @@ class AccessTokenView(APIView):
       user = UserAccount.objects.get(email=data['email'])
     except ObjectDoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-    DashboardData.objects.create(user_id=user)
+    DashboardData.objects.create(user=user)
     backendTokens = get_tokens_for_user(user)
     response = Response({
       'user': {
@@ -252,13 +252,13 @@ class SignOutView(APIView):
     user.save()
     return Response(status=status.HTTP_200_OK)
 
-class GetUserView(APIView):
-  get(self, request, id):
-    id = request.query_params.get('id')
-    user = UserAccount.objects.get(id=id)
-    user_data = {
-      'id': user.id,
-      'username': user.username,
-      'image': user.image.url if user.image else None
-    }
-    return Response({'user': user_data})
+# class GetUserView(APIView):
+#   get(self, request, id):
+#     id = request.query_params.get('id')
+#     user = UserAccount.objects.get(id=id)
+#     user_data = {
+#       'id': user.id,
+#       'username': user.username,
+#       'image': user.image.url if user.image else None
+#     }
+#     return Response({'user': user_data})

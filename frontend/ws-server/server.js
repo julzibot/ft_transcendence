@@ -3,6 +3,8 @@ import { Server } from "socket.io";
 
 const PORT = 6500;
 
+let player2assigned = false;
+
 const server = createServer();
 
 const io = new Server(server, {
@@ -17,22 +19,26 @@ io.on("connection", async (socket) => {
   console.log("User connected through socket: " + socket.id);
 
   socket.on('join_room', data => {
-		const roomExists = io.sockets.adapter.rooms.get(data.room_id);
+		const room = io.sockets.adapter.rooms.get(data.room_id);
 	
-    if (!roomExists || roomExists.size === 0) {
+    if (!room || room.size === 0) {
 			console.log("[HOST] Client [" + data.user_id + "] joining room: " + data.room_id);
       socket.emit('isHost');
     }
 		else {
 			console.log("[NOT HOST] Client [" + data.user_id + "] joining room: " + data.room_id);
+			socket.to(data.room_id).emit('player2_id', {player2_id: data.user_id});
+			console.log('player2: ' + data.user_id);
+			player2assigned = true;
 		}
 
 		socket.join(data.room_id);
 
-		if (io.sockets.adapter.rooms.get(data.room_id) && io._nsps.get('/').adapter.rooms.get(data.room_id).size === 2) {
-			console.log("users in a room: " + io._nsps.get('/').adapter.rooms.get(data.room_id).size);
+		const roomSize = io._nsps.get('/').adapter.rooms.get(data.room_id).size;
+
+		if (room && roomSize === 2 && player2assigned) {
 			console.log('Starting game...');
-			socket.to(data.room_id).emit('startGame');
+			io.in(data.room_id).emit('startGame');
 		}
   });
 
@@ -41,12 +47,10 @@ io.on("connection", async (socket) => {
   })
 
   socket.on('sendPlayer1Pos', data => {
-    // console.log("Room[" + data.room_id + "]: " + "[" + data.user_id + "]'s position: '" + data.player1pos + "'");
     socket.to(data.room_id).emit('updatePlayer1Pos', {player1pos: data.player1pos});
   });
 
   socket.on('sendPlayer2Pos', data => {
-    // console.log("Room[" + data.room_id + "]: " + "[" + data.user_id + "]'s position: '" + data.player2pos + "'");
     socket.to(data.room_id).emit('updatePlayer2Pos', {player2pos: data.player2pos});
   });
 

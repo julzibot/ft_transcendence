@@ -54,11 +54,11 @@ export default function Register() {
           <div className="card-body">
             <form onSubmit={registerUser}>
               <div className="mb-3">
-                <label htmlFor="nick-name" className="form-label" >
+                <label htmlFor="username" className="form-label" >
                   Username
                   <span className="text-danger">*</span>
                 </label>
-                <input type="text" id="nick-name" className ="form-control"value={data.username} onChange={(e) => setData({...data, username: DOMPurify.sanitize(e.target.value)})}/>
+                <input type="text" id="username" className ="form-control"value={data.username} onChange={(e) => setData({...data, username: DOMPurify.sanitize(e.target.value)})}/>
                 <div className="form-text">A unique username that will be displayed to other players</div>
               </div>
               <div className="mb-3">
