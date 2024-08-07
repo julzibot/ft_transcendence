@@ -31,12 +31,14 @@ export default function AuthButton() {
             {
               session.user.image ? (
                 <>
-                  <div className="position-relative border border-2 border-dark-subtle rounded-circle" style={{width: '30px', height: '30px', overflow: 'hidden'}}>
+                  <div className=" border border-2 border-dark-subtle rounded-circle" style={{width: '30px', height: '30px', overflow: 'hidden', position: 'relative'}}>
                     <Image
-                    objectFit="cover"
+                      style={{objectFit: 'cover'}}
+                      priority={true}
                       alt="profile picture"
                       src={`http://backend:8000${session.user.image}`}
                       fill
+                      sizes="10vw"
                       />
                   </div>
                 </>

@@ -134,12 +134,12 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 											</button>
 
 											{/* <!-- Modal --> */}
-											<div class="modal fade" id="history-modal" tabindex="-1" aria-labelledby="history-modal-label" aria-hidden="true">
-												<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-													<div class="modal-content">
-														<div class="modal-header">
-															<h1 class="modal-title fs-5" id="history-modal-label">Game History</h1>
-															<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+											<div className="modal fade" id="history-modal" tabIndex="-1" aria-labelledby="history-modal-label" aria-hidden="true">
+												<div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+													<div className="modal-content">
+														<div className="modal-header">
+															<h1 className="modal-title fs-5" id="history-modal-label">Game History</h1>
+															<button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 														</div>
 														<div className="modal-body">
 															{
@@ -228,17 +228,17 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 														type="checkbox"
 														className="btn-check"
 														id="btn-check"
-														autocomplete="off"
+														autoComplete="off"
 														checked={!statsToggle}
 														onChange={handleStatsToggle} />
 													{
 														statsToggle ? (
 															<>
-																<label className="btn btn-secondary m-2" for="btn-check">Without Stats</label>
+																<label className="btn btn-secondary m-2" htmlFor="btn-check">Without Stats</label>
 															</>
 														) : (
 															<>
-																<label className="btn btn-danger m-2" for="btn-check">With Stats</label>
+																<label className="btn btn-danger m-2" htmlFor="btn-check">With Stats</label>
 															</>
 														)
 													}
