@@ -33,10 +33,10 @@ export default function AuthButton() {
                 <>
                   <div className="position-relative border border-2 border-dark-subtle rounded-circle" style={{width: '30px', height: '30px', overflow: 'hidden'}}>
                     <Image
+                    objectFit="cover"
                       alt="profile picture"
                       src={`http://backend:8000${session.user.image}`}
                       fill
-                      sizes="100vw"
                       />
                   </div>
                 </>

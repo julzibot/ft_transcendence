@@ -33,6 +33,6 @@ class DashboardData(models.Model):
 
 	def __str__(self):
 		try:
-			return f'[Dashboard Data] {self.user.nick_name}'
+			return f'[Dashboard Data] {self.user.username}'
 		except:
 			return f'[Dashboard Data] {self.user.id}'
