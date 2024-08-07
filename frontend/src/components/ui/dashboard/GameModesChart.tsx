@@ -2,17 +2,18 @@
 import { useEffect, useState, useRef } from "react";
 import { Chart } from 'chart.js/auto';
 import 'chartjs-adapter-luxon';
+import './styles.css';
 
 import { MatchEntry } from "./DashboardInterfaces";
 
 interface GameModesProps {
-	displayedDate : Date,
+	displayedDate: Date,
 	data: Array<MatchEntry>
 }
 
-const extractGameModesData = (data : Array<MatchEntry>, setDisplayedData : Function, displayedDate : Date) => {
+const extractGameModesData = (data: Array<MatchEntry>, setDisplayedData: Function, displayedDate: Date) => {
 
-	const newData : Array<number> = [0, 0, 0, 0];
+	const newData: Array<number> = [0, 0, 0, 0];
 	if (Array.isArray(data)) {
 		data.forEach((item) => {
 			const date = new Date(displayedDate);
@@ -32,7 +33,7 @@ const extractGameModesData = (data : Array<MatchEntry>, setDisplayedData : Funct
 	}
 }
 
-export default function GameModesChart({displayedDate, data} : GameModesProps) {
+export default function GameModesChart({ displayedDate, data }: GameModesProps) {
 	const chartRef = useRef(null);
 	const chartInstance = useRef(null);
 
@@ -41,11 +42,10 @@ export default function GameModesChart({displayedDate, data} : GameModesProps) {
 	useEffect(() => {
 		extractGameModesData(data, setDisplayData, displayedDate);
 	}, [data])
-	
+
 	useEffect(() => {
 		const ctx = chartRef.current.getContext('2d');
-		
-		console.log('displayData: ' + displayData);
+
 		const data = {
 			labels: [
 				'Local',
@@ -65,26 +65,39 @@ export default function GameModesChart({displayedDate, data} : GameModesProps) {
 				hoverOffset: 4
 			}]
 		};
-		
+
 		// If a chart instance already exists, destroy it before creating a new one
 		if (chartInstance.current) {
 			chartInstance.current.destroy();
 		}
-		
+
 		chartInstance.current = new Chart(ctx, {
 			type: 'pie',
 			data: data,
 			options: {
 				locale: 'en-us',
 				responsive: true,
+				maintainAspectRatio: false,
 				plugins: {
 					legend: {
-						position: 'left',
+						onClick: null,
+						position: 'bottom',
+						labels: {
+							font: {
+								size: 16
+							}
+						}
 					},
-					// title: {
-					// 	display: false,
-					// 	text: 'Chart.js Line Chart'
-					// }
+					title: {
+						display: true,
+						text: 'Game Mode Chart',
+						padding: {
+							bottom: 20
+						},
+						font: {
+							size: 20
+						}
+					}
 				}
 			}
 		});
@@ -96,12 +109,10 @@ export default function GameModesChart({displayedDate, data} : GameModesProps) {
 			}
 		};
 	}, [displayData, displayedDate]);
-	
+
 	return (
 		<>
-			<div className="m-3">
-				<canvas ref={chartRef} />
-			</div>
+			<canvas ref={chartRef} />
 		</>
 	);
 };

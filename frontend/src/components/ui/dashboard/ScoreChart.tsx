@@ -3,19 +3,20 @@ import { useEffect, useState, useRef } from "react";
 import { Chart } from 'chart.js/auto';
 import * as Utils from './Utils';
 import 'chartjs-adapter-luxon';
+import './styles.css';
 
 import { MatchEntry } from "./DashboardInterfaces";
 
 interface ScoreChartProps {
-	winData: MatchEntry,
-	lossData: MatchEntry,
+	winData: Array<MatchEntry>,
+	lossData: Array<MatchEntry>,
 	displayedDate: Date
 }
 
-export default function ScoreChart({ winData, lossData, displayedDate } : ScoreChartProps) {
+export default function ScoreChart({ winData, lossData, displayedDate }: ScoreChartProps) {
 	const chartRef = useRef(null);
 	const chartInstance = useRef(null);
-	
+
 	useEffect(() => {
 		const ctx = chartRef.current.getContext('2d');
 		const data = {
@@ -33,7 +34,7 @@ export default function ScoreChart({ winData, lossData, displayedDate } : ScoreC
 				},
 			]
 		};
-		
+
 		chartInstance.current = new Chart(ctx, {
 			type: 'bar',
 			data: data,
@@ -41,11 +42,27 @@ export default function ScoreChart({ winData, lossData, displayedDate } : ScoreC
 				locale: 'en-us',
 				plugins: {
 					title: {
-						display: false,
-						text: 'Past 7 Days'
+						display: true,
+						text: 'Activity/Score Chart',
+						padding: {
+							bottom: 20
+						},
+						font: {
+							size: 20
+						},
+					},
+					legend: {
+						onClick: null,
+						position: 'bottom',
+						labels: {
+							font: {
+								size: 16
+							}
+						}
 					},
 				},
 				responsive: true,
+				maintainAspectRatio: false,
 				scales: {
 					x: {
 						stacked: true,
@@ -71,12 +88,10 @@ export default function ScoreChart({ winData, lossData, displayedDate } : ScoreC
 			}
 		};
 	}, [winData, lossData, displayedDate]);
-	
+
 	return (
 		<>
-			<div className="m-3">
-				<canvas ref={chartRef} />
-			</div>
+			<canvas ref={chartRef} />
 		</>
 	);
 };
