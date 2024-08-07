@@ -145,10 +145,11 @@ export default function SearchPlayerInput({ fetchFriends }) {
                 <div className="col-auto">
                   <div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
                     <Image
-                      objectFit="cover"
+                      style={{objectFit: 'cover'}}
                       alt="profile picture"
                       src={`http://backend:8000${user.image}`}
                       fill
+                      sizes="20vw"
                     />
                   </div>
                 </div>

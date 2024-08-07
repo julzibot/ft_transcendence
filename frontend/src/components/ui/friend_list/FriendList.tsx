@@ -86,11 +86,11 @@ export default function FriendList() {
 										<div className="col-auto">
 											<div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
 												<Image
-													objectFit="cover"
+													style={{objectFit: 'cover'}}
 													alt="profile picture"
 													src={`http://backend:8000${friend.user.image}`}
 													fill
-													size={30}
+													sizes="20vw"
 												/>
 											</div>
 										</div>
@@ -128,7 +128,6 @@ export default function FriendList() {
 				{
 					friends.map((friend) => (
 						friend.status === 'REQUEST' && (
-							<>
 								<div key={friend.user.id} className="container">
 									<div className="row p-2 align-items-center border-bottom">
 										<div className="col-1">
@@ -151,11 +150,11 @@ export default function FriendList() {
 										<div className="col-auto">
 											<div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
 												<Image
-													objectFit="cover"
+													style={{objectFit: 'cover'}}
 													alt="profile picture"
 													src={`http://backend:8000${friend.user.image}`}
 													fill
-													size={30}
+													sizes={"20vw"}
 												/>
 											</div>
 										</div>
@@ -184,7 +183,6 @@ export default function FriendList() {
 										</div>
 									</div>
 								</div>
-							</>
 						)))
 				}
 			</div>
