@@ -5,10 +5,8 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import SessionProvider from "../components/SessionProvider";
 import { getServerSession } from "next-auth";
 import Navbar from "../components/ui/navbar/Navbar";
-import GameProvider from "./context/GameContext";
-import background from "/public/static/images/background-profile.jpg"
-import Image from "next/image";
 import Sidenav from "@/components/ui/sidenav/Sidenav";
+import './global.css';
 
 const roboto = Roboto({
   weight: ['400', '700'],
@@ -35,16 +33,17 @@ export default async function RootLayout({
         <SessionProvider session={session}>
             <main>
               <Navbar />
-              <Image
-                className="z-n1"
+              {/* <div className="" style={{top: '0px', left: '0px', height: '1080px', width: '1920px', position: 'relative'}}>
+                <Image
+                  className="z-n1"
                   src={background}
                   alt="background"
-                  fill
                   sizes="100vw"
-                  style={{
-                    objectFit: 'cover',
-                  }}
-              />
+                  fill
+                  object-fit="cover"
+                  priority={true}
+                  />
+              </div> */}
               {children}
               <Sidenav />
             </main>

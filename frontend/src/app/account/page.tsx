@@ -115,11 +115,12 @@ export default function ProfilePage() {
                 {
                   session.user.image ? (
                     <>
-                      <Image
-                        objectFit="cover"
+                      <Image style={{objectFit: 'cover'}}
                         fill
                         src={`http://backend:8000${session.user.image}`}
                         alt="Profile Picture"
+                        priority={true}
+                        sizes="25vw"
                         />
                       </>
                     ) : (
