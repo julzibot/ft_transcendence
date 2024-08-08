@@ -34,7 +34,11 @@ export default async function RootLayout({
             <main>
               <Navbar />
               {children}
-              <Sidenav />
+              {
+                session && (
+                  <Sidenav />
+                )
+              }
             </main>
         </SessionProvider>
       </body>

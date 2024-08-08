@@ -1,20 +1,19 @@
+"use client"
 
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation";
 import Image from "next/image"
 import Link from "next/link"
 import { useState, FormEvent } from "react"
 import "bootstrap/dist/css/bootstrap.min.css"
 import DOMPurify from 'dompurify'
-import { getSession } from 'next-auth/react';
-import { GetServerSideProps } from 'next';
+
 
 export default function SignIn() {
   const [data, setData] = useState({
     email:'',
     password:''
   });
-  const router = useRouter();
+
   const [error, setError] = useState<string | null>(null)
 
   async function loginUser(e: FormEvent<HTMLFormElement>) {
@@ -23,20 +22,15 @@ export default function SignIn() {
 
     const result = await signIn('credentials', {
       ...data,
-      redirect: false
+      callbackUrl: "/"
     })
     if(!result?.ok)
       setError("Authentication failed, please check your credentials.")
-    else
-      router.push("/")
   }
   return (
     <>
-      <div className="overflow-hidden position-fixed">
-        <video className="object-fit-cover" src="/static/videos/background2.mp4" autoPlay loop muted />
-      </div>
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="card shadow-lg text-center rounded-4 border border-light border-1 border-opacity-25 bg-light bg-gradient bg-opacity-50">
+      <div className="d-flex justify-content-center align-items-center p-5 m-5">
+        <div className="card shadow-lg text-center rounded-4 border border-light border-1 border-opacity-25 bg-light bg-gradient bg-opacity-75">
           <div className="card-header fs-2 fw-bold">Sign in to your account</div>
           <div className="card-body">
             <button className="btn btn-dark  fs-4 fw-bold"onClick={() => signIn('42-school', {
@@ -76,18 +70,3 @@ export default function SignIn() {
     </>
   )
 }
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context);
-  if (session) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false
-      }
-    };
-  }
-  return {
-    props: {}
-  };
-};
