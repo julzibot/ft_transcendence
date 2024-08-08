@@ -1,7 +1,7 @@
 'use client'
 
 export interface MatchEntry {
-	x: Date,
+	x: number,
 	y: number
 }
 

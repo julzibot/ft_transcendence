@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from "react";
-import ColorSliderPicker from './ColorPalette';
+// import ColorSliderPicker from './ColorPalette';
+import { HexColorPicker } from "react-colorful";
 import styles from './CustomizationStyles.module.css'
 
 export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
@@ -37,14 +38,14 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 		} else if (response.status === 404) {
 			console.error('404 - User Does Not Exist');
 			updateSettings({
-					...gameSettings,
-					user_id: user_id,
-					background: 0,
-					palette: 0,
-					bgColor: '#ff0000',
-					opacity: 80,
-					sparks: true,
-				})
+				...gameSettings,
+				user_id: user_id,
+				background: 0,
+				palette: 0,
+				bgColor: '#ff0000',
+				opacity: 80,
+				sparks: true,
+			})
 		} else {
 			console.error('Error: ' + response.status);
 			updateSettings({
@@ -67,9 +68,9 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 
 	useEffect(() => {
 		fetchGameSettings(userId, updateSettings, gameSettings);
-    const timer = setTimeout(() => {
-      setIsMounted(true);
-    }, 1000);
+		const timer = setTimeout(() => {
+			setIsMounted(true);
+		}, 1000);
 		return () => clearTimeout(timer)
 	}, [userId]);
 
@@ -192,8 +193,8 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 										<div className="mb-3 text-center">
 											<label htmlFor="favcolor" className="form-label">Select color</label>
 											<div className="align-items-center justify-content-center">
-												<ColorSliderPicker
-													defaultColor="#00f"
+												<HexColorPicker
+													color="#00f"
 													onChange={handleColorChange}
 												/>
 											</div>

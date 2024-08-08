@@ -1,23 +1,28 @@
 import React, { useState } from 'react';
-import { SliderPicker } from 'react-color';
+import { SliderPicker, ColorResult } from 'react-color';
 
-const ColorSliderPicker = ({ defaultColor = '#000', onChange }) => {
-  const [color, setColor] = useState(defaultColor);
+interface ColorSliderPickerProps {
+	defaultColor?: string;
+	onChange?: (color: ColorResult) => void;
+}
 
-  const handleColorChange = (newColor) => {
-    setColor(newColor.hex);
-    if (onChange) {
-      onChange(newColor);
-    }
-  };
+const ColorSliderPicker: React.FC<ColorSliderPickerProps> = ({ defaultColor = '#000', onChange }) => {
+	const [color, setColor] = useState(defaultColor);
 
-  return (
-    <div style={{ margin: '15px auto', textAlign: 'center', width: 250 }}>
-      <div className="color-slider-container">
-        <SliderPicker color={color} onChange={handleColorChange} />
-      </div>
-    </div>
-  );
+	const handleColorChange = (newColor: ColorResult) => {
+		setColor(newColor.hex);
+		if (onChange) {
+			onChange(newColor);
+		}
+	};
+
+	return (
+		<div style={{ margin: '15px auto', textAlign: 'center', width: 250 }}>
+			<div className="color-slider-container">
+				<SliderPicker color={color} onChange={handleColorChange} />
+			</div>
+		</div>
+	);
 };
 
-export default ColorSliderPicker
+export default ColorSliderPicker;
