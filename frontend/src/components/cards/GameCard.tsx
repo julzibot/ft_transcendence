@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import styles from './GameCard.module.css'
 import { useState } from 'react'
 
-export default function GameCard({src}) {
+export default function GameCard({src}: {src: string}) {
   const router = useRouter()
   const [move, setMove] = useState(false)
   const [direction, setDirection] = useState('')

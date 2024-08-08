@@ -5,13 +5,11 @@ import Image from "next/image";
 import { useState, FormEvent, useEffect } from "react";
 import ImageUpload from "@/components/Utils/ImageUpload";
 import DOMPurify from 'dompurify'
-import { useRouter } from "next/navigation";
 import UserDashboardCard from "@/components/ui/dashboard/UserDashboardCard"
 import Customization from "@/components/game/Customization";
 
 export default function ProfilePage() {
   const { data: session, status, update} = useSession({required: true});
-  const [userId, setUserId] = useState(null);
   const [isEditing, setIsEditing] = useState(false)
   const [isEditPw, setIsEditPw] = useState(false)
   const [data, setData] = useState({
@@ -24,8 +22,6 @@ export default function ProfilePage() {
   })
 
   const [gameSettings, setGameSettings] = useState({
-		user_id: userId,
-
 		background: 0, // 0 - 3 animated, 4 - 5 static
 		palette: 0, // palette: 4 choices
 		bgColor: '#ff0000',
@@ -36,7 +32,6 @@ export default function ProfilePage() {
 		pointsToWin: 5,
 		powerUps: true
 	});
-  const router = useRouter()
 
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -45,7 +40,7 @@ export default function ProfilePage() {
       method: 'PUT',
       headers: {'Content-type': 'application/json'},
       body: JSON.stringify({
-        'user_id': session.user.id,
+        'user_id': session?.user.id,
         'old_password': data.oldPassword,
         'new_password': data.newPassword,
         'rePass': data.rePassword
@@ -86,24 +81,17 @@ export default function ProfilePage() {
       method: 'DELETE',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        'user_id': session.user.id,
+        'user_id': session?.user.id,
       })
     })
     if(response.status === 204) {
-      signOut({'redirectUrl': '/auth/signin'})
+      signOut({"callbackUrl": '/auth/signin'})
     }
     else {
       const res = await response.json()
       setData({...data, error: res.message})
     }
   }
-
-	useEffect(() => {
-		if (status === "authenticated" && session) {
-			setUserId(session.user.id);
-			setGameSettings({...gameSettings, user_id: session.user.id})
-		}
-	}, [session, status]);
 
   return(
     <>
@@ -113,13 +101,14 @@ export default function ProfilePage() {
             <div className="card-body">
               <div className="position-relative border border-4 border-dark-subtle rounded-circle" style={{width: '280px', height: '280px', overflow: 'hidden'}}>
                 {
-                  session.user.image ? (
+                  session?.user.image ? (
                     <>
-                      <Image
-                        objectFit="cover"
+                      <Image style={{objectFit: 'cover'}}
                         fill
                         src={`http://backend:8000${session.user.image}`}
                         alt="Profile Picture"
+                        priority={true}
+                        sizes="25vw"
                         />
                       </>
                     ) : (
@@ -141,7 +130,7 @@ export default function ProfilePage() {
                     </>
                   ) : (
                     <>
-                      <h5 className="card-title me-2">{session.user.username}</h5>
+                      <h5 className="card-title me-2">{session?.user.username}</h5>
                       <button className="btn btn-sm btn-primary rounded-pill" onClick={() => setIsEditing(true)}>Edit</button>
                     </>
                   )
@@ -149,17 +138,17 @@ export default function ProfilePage() {
               </div>
               <div className="text-danger">{data.usernameError}</div>
               <hr />
-              <span className="card-subtitle text-body-secondary fw-semibold">{session.user.email}</span>
+              <span className="card-subtitle text-body-secondary fw-semibold">{session?.user.email}</span>
               <hr />
               {
-							userId ? (
-								<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={userId} />
+							session ? (
+								<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
 							) : (
 								<p>Loading...</p>
 							)
 						  }
               {
-                session.provider !== '42-school' && (
+                session?.provider !== '42-school' && (
                   <>
                     <hr />
                     <div className="d-flex flex-row justify-content-center align-items-center">
@@ -189,7 +178,7 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-        <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1} aria-labelledby="staticBackdropLabel" aria-hidden="true">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
@@ -204,7 +193,7 @@ export default function ProfilePage() {
           </div>
         </div>
         {
-					userId ? <UserDashboardCard user_id={userId} /> : <div>Loading...</div>
+			    session ? <UserDashboardCard user_id={session.user.id} /> : <div>Loading...</div>
 				}
       </div>
     </>

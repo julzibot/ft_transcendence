@@ -1,0 +1,6 @@
+body {
+  background-image: url('../../public/static/images/background-profile.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
