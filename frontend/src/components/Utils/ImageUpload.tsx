@@ -7,7 +7,7 @@ import {Upload} from 'react-bootstrap-icons'
 
 export default function ImageUpload() {
     const {data: session, update} = useSession()
-    const [file, setFile] = useState(null)
+    const [file, setFile] = useState<File | null>(null)
 
 		useEffect(() => {
 			if(file)
@@ -17,8 +17,10 @@ export default function ImageUpload() {
     async function uploadImage() {
         try {
             const formData = new FormData()
-            formData.append('user_id', session.user.id)
-            formData.append('image', file)
+            formData.append('user_id', String(session?.user.id))
+            if (file) {
+                formData.append('image', file);
+            }
             const response = await fetch(BASE_URL + 'update/image/', {
                 method: 'PUT',
                 body: formData
@@ -38,13 +40,18 @@ export default function ImageUpload() {
 					<label htmlFor="file-upload" className="btn btn-dark rounded-circle">
 						<Upload />
 					</label>
-					<input
-						id="file-upload"
-						type="file"
-						accept="image/*"
-						className="d-none"
-						onChange={(e) => setFile(e.target.files[0])}
-					/>
+                    <input
+                        id="file-upload"
+                        type="file"
+                        accept="image/*"
+                        className="d-none"
+                        onChange={(e) => {
+                            const files = e.target.files;
+                            if (files && files.length > 0) {
+                                setFile(files[0] as File);
+                            }
+                        }}
+                    />
 				</form>
     </>
     )

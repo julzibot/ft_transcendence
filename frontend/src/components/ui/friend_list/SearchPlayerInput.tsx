@@ -8,11 +8,15 @@ import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
 import { Toast, ToastContainer } from 'react-bootstrap'
 import Image from "next/image";
 
-const BASE_URL = "http://localhost:8000/api/"
-const BACKEND_URL = 'http://backend:8000'
+import { Friend } from "@/types/Friend";
+import { User } from "@/types/User";
+import { SearchPlayerInputProps } from "@/types/Props"; 
 
-export default function SearchPlayerInput({ fetchFriends }) {
-  const [searchQuery, setSearchQuery] = useState([]);
+const BASE_URL = "http://localhost:8000/api/"
+
+
+export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputProps) {
+  const [searchQuery, setSearchQuery] = useState<User[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [click, setClick] = useState<boolean>(false)
   const { data: session } = useSession()
@@ -30,7 +34,7 @@ export default function SearchPlayerInput({ fetchFriends }) {
   }, [debounce, click])
 
   const fetchData = async () => {
-    const response = await fetch(`http://localhost:8000/api/search-user/?query=${inputValue}&id=${session.user.id}`, {
+    const response = await fetch(`http://localhost:8000/api/search-user/?query=${inputValue}&id=${session?.user.id}`, {
       method: "GET",
     })
     if (!response.ok) {
@@ -41,12 +45,12 @@ export default function SearchPlayerInput({ fetchFriends }) {
     setSearchQuery(data.users)
   }
 
-  async function deleteFriendship(friend) {
+  async function deleteFriendship(friend: Friend) {
     const response = await fetch('http://localhost:8000/api/friends/delete-friendship/', {
       method: 'DELETE',
       headers: { 'Content-type': 'application/json' },
       body: JSON.stringify({
-        'user_id1': session.user.id,
+        'user_id1': session?.user.id,
         'user_id2': friend.id
       })
     })
@@ -56,7 +60,12 @@ export default function SearchPlayerInput({ fetchFriends }) {
   }
 
 
-  const handleFriendRequest = async (fromUserId: number, toUserId: number) => {
+  const handleFriendRequest = async (fromUserId: number | undefined, toUserId: number | undefined) => {
+    if (!fromUserId || !toUserId) {
+      console.error('Session is undifined')
+      return
+    }
+
     fetch(BASE_URL + "friends/send-friend-request/", {
       method: "POST",
       headers: { 'Content-Type': 'application/json' },
@@ -88,7 +97,7 @@ export default function SearchPlayerInput({ fetchFriends }) {
     });
   }
 
-  function renderStatus(user) {
+  function renderStatus(user: User) {
     switch (user.friendship_status) {
       case 'FRIENDS':
         return (
@@ -145,10 +154,11 @@ export default function SearchPlayerInput({ fetchFriends }) {
                 <div className="col-auto">
                   <div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
                     <Image
-                      objectFit="cover"
+                      style={{objectFit: 'cover'}}
                       alt="profile picture"
                       src={`http://backend:8000${user.image}`}
                       fill
+                      sizes="20vw"
                     />
                   </div>
                 </div>
