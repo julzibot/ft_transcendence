@@ -20,7 +20,7 @@ export default function Register() {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter();
 
-  async function registerUser(e: FormEvent<HTMLInputElement>) {
+  async function registerUser(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
 
@@ -38,7 +38,7 @@ export default function Register() {
         router.push('/auth/signin')
       )
     } 
-    catch(error) {
+    catch(error: any) {
       setError(error.message)
     }
   }

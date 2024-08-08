@@ -34,7 +34,7 @@ export default function AuthButton() {
                   <div className=" border border-2 border-dark-subtle rounded-circle" style={{width: '30px', height: '30px', overflow: 'hidden', position: 'relative'}}>
                     <Image
                       style={{objectFit: 'cover'}}
-                      priority={true}
+                      fetchPriority="high"
                       alt="profile picture"
                       src={`http://backend:8000${session.user.image}`}
                       fill
@@ -54,7 +54,7 @@ export default function AuthButton() {
             <li><button className="dropdown-item btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Sign Out</button></li>
           </ul>
         </div>
-        <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div className="modal fade" id="exampleModal" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">

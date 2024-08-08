@@ -1,7 +1,8 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, User } from "next-auth";
 import FortyTwoProvider from "next-auth/providers/42-school";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { JWT } from "next-auth/jwt";
+
 
 const backend_url = process.env.BACKEND_URL
 
@@ -76,7 +77,7 @@ export const authOptions: NextAuthOptions = {
         if (res.ok)
         {
           token = await res.json()
-          token.provider = account.provider
+          token.provider = account?.provider
           return token
         }
       }
@@ -99,8 +100,9 @@ export const authOptions: NextAuthOptions = {
         headers: {'Authorization': `Bearer ${token.backendTokens.access}`},
       })
       if(response.ok) {
-        session.user = await response.json()
-        session.provider = token.provider;
+        const data  = await response.json()
+        session.user = data
+        session.provider = token.provider
       }
       return session
     }

@@ -25,7 +25,7 @@ export default function SignIn() {
       ...data,
       redirect: false
     })
-    if(!result.ok)
+    if(!result?.ok)
       setError("Authentication failed, please check your credentials.")
     else
       router.push("/")
@@ -45,14 +45,14 @@ export default function SignIn() {
             })}>
             Sign in with
             <Image
-                className="ms-1 me-1"
-                src="/static/images/42.png"
-                style={{filter: "invert(100%)"}}
-                width={30}
-                height={30}
-                alt="42 Logo"
-                fetchpriority="true"
-              />
+              className="ms-1 me-1"
+              src="/static/images/42.png"
+              style={{filter: "invert(100%)"}}
+              width={30}
+              height={30}
+              alt="42 Logo"
+              fetchPriority="high"
+            />
             </button>
             <p>Or</p>
             <form onSubmit={loginUser}>
