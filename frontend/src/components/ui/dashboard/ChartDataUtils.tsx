@@ -11,15 +11,12 @@ const parseActivity = (newActivityData: Array<MatchEntry>) => {
 			cmpDate.setDate(cmpDate.getDate() + 1);
 
 			if (i + 1 < newActivityData.length
-				&& cmpDate.getTime() !== newActivityData[i + 1].x.getTime()) {
-				newActivityData.splice(i + 1, 0, { x: cmpDate, y: 0 })
+				&& cmpDate.getTime() !== newActivityData[i + 1].x) {
+				newActivityData.splice(i + 1, 0, { x: cmpDate.getTime(), y: 0 })
 				i++;
 			}
 			i++;
 		}
-	}
-	for (let i = 0; i < newActivityData.length; i++) {
-		console.log('date: ' + newActivityData[i].x);
 	}
 }
 
@@ -53,28 +50,28 @@ export default function createScoreData(
 
 			// Wins and losses
 			if ((item.player1 === user_id && item.score1 > item.score2) || (item.player2 === user_id && item.score1 < item.score2)) {
-				const existingDate = newWinData.find(obj => obj.x.getTime() === dateISO);
+				const existingDate = newWinData.find(obj => obj.x === dateISO);
 
 				if (existingDate === undefined)
-					newWinData.push({ x: new Date(dateISO), y: 1 });
+					newWinData.push({ x: dateISO, y: 1 });
 				else
 					existingDate.y += 1;
 			}
 			else {
-				const existingDate = newLossData.find(obj => obj.x.getTime() === dateISO);
+				const existingDate = newLossData.find(obj => obj.x === dateISO);
 
 				if (existingDate === undefined)
-					newLossData.push({ x: new Date(dateISO), y: 1 });
+					newLossData.push({ x: dateISO, y: 1 });
 				else
 					existingDate.y += 1;
 			}
 			// Activity & Game Mode data
-			const activityDate = newActivityData.find(obj => obj.x.getTime() === dateISO);
+			const activityDate = newActivityData.find(obj => obj.x === dateISO);
 			if (activityDate === undefined)
-				newActivityData.push({ x: new Date(dateISO), y: 1 });
+				newActivityData.push({ x: dateISO, y: 1 });
 			else
 				activityDate.y += 1;
-			newGameModesData.push({ x: new Date(dateISO), y: item.game_mode })
+			newGameModesData.push({ x: dateISO, y: item.game_mode })
 		})
 		parseActivity(newActivityData);
 		setMinDate(newMinDate);

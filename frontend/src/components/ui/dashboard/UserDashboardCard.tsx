@@ -9,10 +9,14 @@ import ActivityChart from "./ActivityChart";
 import GameModesChart from "./GameModesChart";
 
 import createScoreData from "./ChartDataUtils";
-import { GameMatch } from "./DashboardInterfaces";
+import { GameMatch, MatchEntry } from "./DashboardInterfaces";
 
 interface DashboardProps {
 	user_id: number
+}
+
+type UserHistory = {
+	data: Array<GameMatch>;
 }
 
 export default function UserDashboardCard({ user_id }: DashboardProps) {
@@ -30,7 +34,6 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 					const data = await response.json();
 					setDashboardData(data);
 					setFetchedDashboard(true);
-					console.log('set to true');
 				}
 				else {
 					console.log('fetchDashboardDetail: ' + response.status);
@@ -45,7 +48,7 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 	let winPerc: number = (dataObj.wins / (dataObj.games_played)) * 100;
 	let lossPerc: number = ((dataObj.games_played - dataObj.wins) / (dataObj.games_played)) * 100;
 
-	const [userHistory, setUserHistory] = useState({});
+	const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
 	useEffect(() => {
 		const fetchUserHistory = async () => {
 			const response = await fetch(`http://localhost:8000/api/game/history/user/${user_id}`, {
@@ -73,15 +76,14 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 	const [minDate, setMinDate] = useState(new Date());
 
 	let currentDate = new Date();
-	currentDate.setDate(currentDate.getDate() - 7);
+	currentDate.setDate(currentDate.getDate() - 6);
 	let ISOdate = currentDate.toISOString();
 	let sevenDays = ISOdate.split('T')[0];
 
-	const [displayedDate, setDisplayedDate] = useState(sevenDays);
-
+	const [displayedDate, setDisplayedDate] = useState(new Date(sevenDays));
 	const [statsToggle, setStatsToggle] = useState(true);
 
-	const handleStatsToggle = (e) => {
+	const handleStatsToggle = () => {
 		setStatsToggle(!statsToggle)
 	}
 
@@ -90,11 +92,11 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 	}
 
 	const handle7DaysBtn = () => {
-		setDisplayedDate(sevenDays);
+		setDisplayedDate(new Date(sevenDays));
 	}
 
 	useEffect(() => {
-		if (userHistory.data && userHistory.data.length > 0 && !dataCreated) {
+		if (userHistory?.data && userHistory.data.length > 0 && !dataCreated) {
 			setWinData([]);
 			setLossData([]);
 			setActivityData([]);
@@ -119,7 +121,7 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 							<div className="card-body">
 								<h3 className="mb-4">Stats</h3>
 
-								{fetchedDashboard ? (
+								{fetchedDashboard && dataCreated ? (
 									<>
 										<ul className="list-unstyled">
 											<li>Wins: {dataObj.wins} ({winPerc.toFixed(1)}%)</li>
@@ -134,7 +136,7 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 											</button>
 
 											{/* <!-- Modal --> */}
-											<div className="modal fade" id="history-modal" tabIndex="-1" aria-labelledby="history-modal-label" aria-hidden="true">
+											<div className="modal fade" id="history-modal" tabIndex={-1} aria-labelledby="history-modal-label" aria-hidden="true">
 												<div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
 													<div className="modal-content">
 														<div className="modal-header">
@@ -143,7 +145,7 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 														</div>
 														<div className="modal-body">
 															{
-																Array.isArray(userHistory.data) && userHistory.data.map((obj: GameMatch, index: number) => {
+																Array.isArray(userHistory?.data) && userHistory?.data.toReversed().map((obj: GameMatch, index: number) => {
 																	let cardColor = '';
 
 																	switch (obj.game_mode) {
