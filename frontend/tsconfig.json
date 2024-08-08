@@ -34,7 +34,7 @@
     ".next/types/**/*.ts",
     "src/**/*.js",
     "src/**/*.jsx"
-  ],
+, "src/app/auth/register"  ],
   "exclude": [
     "node_modules"
   ]

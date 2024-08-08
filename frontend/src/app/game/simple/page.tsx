@@ -36,7 +36,6 @@ export default function SimpleGamePage() {
 
   return (
 		<>
-			{/* Page Title */}
 			<div className="d-flex justify-content-center mt-5 pt-5">
 				<div className={`card mt-5 ${styles.pageTitle} ${isMounted ? styles.mounted : ''} ${move ? styles.top : ''}`}>
 						<h2 className="card-title m-3 p-2">Simple Game</h2>
@@ -53,7 +52,7 @@ export default function SimpleGamePage() {
 									<span className="card-subtitle">Play Against AI</span>
 								</li>
 								<li>
-									<span className="card-subtitle">Play Against Player</span>
+									<span className="card-subtitle">Play Locally</span>
 								</li>
 							</ul>
 						</div>

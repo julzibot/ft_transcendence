@@ -79,7 +79,7 @@ class GetFriendsView(APIView):
     serialized_data = [
             {
                 'user': user_data[friend.user1.id] if friend.user1.id != user.id else user_data[friend.user2.id],
-                'status': friend.status,
+                'friendship_status': friend.status,
                 'requestor': friend.requestor_id
             }
             for friend in friendships
