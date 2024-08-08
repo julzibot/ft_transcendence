@@ -81,8 +81,11 @@ export default function Register() {
               <button type="submit" className="btn btn-dark fw-bold">Submit</button>
             </form>
           </div>
-          <div className="card-footer">Already have an account ?
-            <Link className="text-decoration-none"href="/auth/signin"> Sign In</Link>
+          <div className="card-footer">
+            <span>Already have an account ?</span>
+            <Link href="/auth/signin">
+              <button className="ms-2 btn btn-primary btn-sm">Sign In</button>
+            </Link>
           </div>
         </div>
       </div>

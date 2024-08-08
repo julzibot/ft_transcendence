@@ -31,9 +31,9 @@ export default function SignIn() {
     <>
       <div className="d-flex justify-content-center align-items-center p-5 m-5">
         <div className="card shadow-lg text-center rounded-4 border border-light border-1 border-opacity-25 bg-light bg-gradient bg-opacity-75">
-          <div className="card-header fs-2 fw-bold">Sign in to your account</div>
+          <div className="card-header fs-4 fw-bold">Sign in to your account</div>
           <div className="card-body">
-            <button className="btn btn-dark  fs-4 fw-bold"onClick={() => signIn('42-school', {
+            <button className="btn btn-dark mb-1 fs-4 "onClick={() => signIn('42-school', {
               redirect: true,
               callbackUrl: "/"
             })}>
@@ -48,7 +48,8 @@ export default function SignIn() {
               fetchPriority="high"
             />
             </button>
-            <p>Or</p>
+            <hr />
+            <p className="fw-3 fw-bold ">Or</p>
             <form onSubmit={loginUser}>
               <div className="mb-3">
                 <label htmlFor="email" className="form-label" >Email or Username</label>
@@ -59,11 +60,14 @@ export default function SignIn() {
                 <input type="password" className="form-control" value={data.password} onChange={(e) => setData({...data, password:DOMPurify.sanitize(e.target.value)})}/>
               </div>
               <div className="form-text text-danger">{error}</div>
-              <button type="submit" className="btn btn-dark fw-bold">Submit</button>
+              <button type="submit" className="btn btn-dark   ">Submit</button>
             </form>
           </div>
-          <div className="card-footer">Not Registered Yet ? 
-            <Link className="text-decoration-none"href="/auth/register"> Register</Link>
+          <div className="card-footer">
+            <span>Not Registered Yet ? </span>
+            <Link href="/auth/register">
+              <button className="ms-2 btn btn-primary btn-sm">Register</button>
+            </Link>
           </div>
         </div>
       </div>
