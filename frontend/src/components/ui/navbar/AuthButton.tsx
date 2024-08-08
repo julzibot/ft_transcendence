@@ -74,11 +74,12 @@ export default function AuthButton() {
       </>
     );
   }
-  return (
-    <>
-      <button className="btn btn-light me-2" onClick={() => signIn()}>
-        Sign In
-      </button>
-    </>
-  )
+  return
+  // return (
+  //   <>
+  //     <button className="btn btn-light me-2" onClick={() => signIn()}>
+  //       Sign In
+  //     </button>
+  //   </>
+  // )
 }

@@ -16,9 +16,9 @@ function DetailsPage() {
   const [join, setJoin] = useState(false)
   const [isparticipent, setIsparticipent]= useState(false)
   const [participantData, setParticipantData] = useState([])
-  const [participantKey, setparticipentKey] = useState([])
+  const [participantKey, setparticipentKey] = useState<string[]>([])
   const [onceUpdate, setOnceUpdate] = useState(false)
-  const [session, setIsSession] = useState()
+  const [session, setIsSession] = useState<any>()
   const [nextRound, setNextRound] = useState(false)
   const [leaveOff, setLeaveOff] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -71,10 +71,10 @@ function DetailsPage() {
     }
 	}, [onceUpdate])
  
-  const init = async (data) => {
+  const init = async (data: any) => {
     const session = await getSession()
     setIsSession(session)
-    const userjoin = data?.particpants?.find((v) => v.user_id === session.user.id)
+    const userjoin = data?.particpants?.find((v: any) => v.user_id === session?.user.id)
     if (userjoin !== undefined) {
       setIsparticipent(true)
       if (data?.detail[0]?.numberOfPlayers < data?.particpants?.length) {
@@ -131,7 +131,7 @@ function DetailsPage() {
     }
   }
 
-  const handleWinner = (data) => {
+  const handleWinner = (data: any) => {
     let count = 0
     for (let index = 0; index < data?.length; index++) {
       const ele = data[index]
@@ -170,7 +170,7 @@ function DetailsPage() {
           </div> }
         </div>
           <div className='py-4'>
-              { tournamentData?.detail?.length > 0 && tournamentData?.detail.map((items) => {
+              { tournamentData?.detail?.length > 0 && tournamentData?.detail.map((items: any) => {
                 return (
                   <ul key={items?.name} style={{ listStyle:'none'}} className='p-0'>
                     <li className="fw-bold fs-5">{items?.name}</li>
@@ -184,7 +184,7 @@ function DetailsPage() {
           </div>
           {tournamentData?.particpants?.length > 0  && <div className='py-2'>
             <h5 className='mb-2 fw-bold'>Tournament Participants</h5>
-              { tournamentData?.particpants.map((items, i) => {
+              { tournamentData?.particpants.map((items: any, i: number) => {
                 return (
                   <ul key={items?.user_id} style={{ listStyle:'none'}} className='p-0'>
                     <li>{i+1}. {items?.user_name}</li>
@@ -193,7 +193,7 @@ function DetailsPage() {
               })}
           </div>}
           {participantData?.length > 0  && <div className='py-2 overflow-auto' style={{ height:'auto'}}>
-              { participantData?.map((items, index) => {
+              { participantData?.map((items: any, index) => {
                 return (
                   <div key={items?.linkToJoin}>
                     {index === 0 && <h4 className='mb-3 fw-bold text-center'>Round : {items.round_id}</h4>}
