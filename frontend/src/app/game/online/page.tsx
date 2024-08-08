@@ -10,14 +10,12 @@ import styles from './GameSettingsStyles.module.css'
 export default function OnlineGamePage() {
 
 	const { data: session, status } = useSession();
-	const [userId, setUserId] = useState(null);
 
 	const [isTranslated, setIsTranslated] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
 
 	const [gameSettings, setGameSettings] = useState({
-		user_id: userId,
 		gameDifficulty: 4,
 		pointsToWin: 5,
 		powerUps: true
@@ -30,24 +28,6 @@ export default function OnlineGamePage() {
 		return () => clearTimeout(timer)
 	}, []);
 
-
-	useEffect(() => {
-		if (status === "authenticated" && session) {
-			setUserId(session.user.id);
-			setGameSettings({ ...gameSettings, user_id: session.user.id });
-		}
-	}, [session, status]);
-
-	if (status === "Loading" || !userId) {
-		return (
-			<div className="d-flex justify-content-center">
-				<div className="spinner-border" role="status">
-					<span className="visually-hidden">Loading...</span>
-				</div>
-			</div>
-		);
-	}
-
 	return (
 		<>
 				<div className="container d-flex flex-column align-items-center justify-content-center">
@@ -57,15 +37,8 @@ export default function OnlineGamePage() {
 						</div>
 					</div>
 					{
-						userId ? (
-							<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={userId} />
-						) : (
-							<button className="btn btn-primary" type="button" disabled>
-								<span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-								<span role="status">Loading...</span>
-							</button>)
+						session && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
 					}
-
 					<div className={`card ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 						<div className="card-body">
 
@@ -129,13 +102,7 @@ export default function OnlineGamePage() {
 
 							</div>
 							{
-								userId ? (<Lobby />) :
-								(
-									<button className="btn btn-primary" type="button" disabled>
-										<span className="spinner-grow spinner-grow-sm" aria-hidden="true"></span>
-										<span role="status">Loading...</span>
-									</button>
-								)
+								session && <Lobby />
 							}
 						</div>
 					</div>

@@ -11,13 +11,11 @@ import styles from './GameSettingsStyles.module.css'
 export default function GameSettings() {
 
 	const { data: session, status } = useSession();
-	const [userId, setUserId] = useState(null);
 
 	const [isTranslated, setIsTranslated] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
 	const [gameSettings, setGameSettings] = useState({
-		user_id: userId,
 		gameDifficulty: 4,
 		pointsToWin: 5,
 		powerUps: true
@@ -31,23 +29,6 @@ export default function GameSettings() {
 	}, []);
 
 
-	useEffect(() => {
-		if (status === "authenticated" && session) {
-			setUserId(session.user.id);
-			setGameSettings({ ...gameSettings, user_id: session.user.id });
-		}
-	}, [session, status]);
-
-	if (status === "Loading" || !userId) {
-		return (
-			<div className="d-flex justify-content-center">
-				<div className="spinner-border" role="status">
-					<span className="visually-hidden">Loading...</span>
-				</div>
-			</div>
-		);
-	}
-
 	return (
 		<div className="d-flex flex-column align-items-center justify-content-center">
 			<div className={`card mt-1 m-2 p-1 ps-4 pe-4 ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
@@ -56,13 +37,7 @@ export default function GameSettings() {
 				</div>
 			</div>
 			{
-				userId ? (
-					<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={userId} />
-				) : (
-					<button className="btn btn-primary" type="button" disabled>
-						<span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-						<span role="status">Loading...</span>
-					</button>)
+				session && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
 			}
 
 			<div className={`card ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
@@ -127,16 +102,11 @@ export default function GameSettings() {
 
 					</div>
 					{
-						userId ? (
+						session && (
 							<>
-								<LocalGame userId={userId} gameSettings={gameSettings} />
-								<OnlineGame userId={userId} gameSettings={gameSettings} />
+								<LocalGame userId={session.user.id} gameSettings={gameSettings} />
+								<OnlineGame userId={session.user.id} gameSettings={gameSettings} />
 							</>
-							) : (
-							<button className="btn btn-primary" type="button" disabled>
-								<span className="spinner-grow spinner-grow-sm" aria-hidden="true"></span>
-								<span role="status">Loading...</span>
-							</button>
 						)
 					}
 				</div>

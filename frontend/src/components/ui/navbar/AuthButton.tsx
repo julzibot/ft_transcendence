@@ -31,12 +31,14 @@ export default function AuthButton() {
             {
               session.user.image ? (
                 <>
-                  <div className="position-relative border border-2 border-dark-subtle rounded-circle" style={{width: '30px', height: '30px', overflow: 'hidden'}}>
+                  <div className=" border border-2 border-dark-subtle rounded-circle" style={{width: '30px', height: '30px', overflow: 'hidden', position: 'relative'}}>
                     <Image
-                    objectFit="cover"
+                      style={{objectFit: 'cover'}}
+                      fetchPriority="high"
                       alt="profile picture"
                       src={`http://backend:8000${session.user.image}`}
                       fill
+                      sizes="10vw"
                       />
                   </div>
                 </>
@@ -52,7 +54,7 @@ export default function AuthButton() {
             <li><button className="dropdown-item btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Sign Out</button></li>
           </ul>
         </div>
-        <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div className="modal fade" id="exampleModal" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
@@ -72,11 +74,12 @@ export default function AuthButton() {
       </>
     );
   }
-  return (
-    <>
-      <button className="btn btn-light me-2" onClick={() => signIn()}>
-        Sign In
-      </button>
-    </>
-  )
+  return
+  // return (
+  //   <>
+  //     <button className="btn btn-light me-2" onClick={() => signIn()}>
+  //       Sign In
+  //     </button>
+  //   </>
+  // )
 }
