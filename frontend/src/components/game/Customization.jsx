@@ -109,7 +109,6 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 		};
 		const response = await fetch('http://localhost:8000/api/gameCustomization/', requestData);
 		const data = await response.json();
-		console.log(data);
 	}
 
 	return (
@@ -317,7 +316,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 								</div>
 
 								<div>
-									<button className="m-1 btn btn-warning" onClick={gameCustomSave}>Save</button>
+									<button className="m-1 btn btn-warning" data-bs-dismiss="offcanvas" onClick={gameCustomSave}>Save</button>
 									<button className="m-1 btn btn-primary" onClick={gameCustomDefault}>Reset to Default</button>
 								</div>
 

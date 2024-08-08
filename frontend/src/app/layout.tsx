@@ -33,17 +33,6 @@ export default async function RootLayout({
         <SessionProvider session={session}>
             <main>
               <Navbar />
-              {/* <div className="" style={{top: '0px', left: '0px', height: '1080px', width: '1920px', position: 'relative'}}>
-                <Image
-                  className="z-n1"
-                  src={background}
-                  alt="background"
-                  sizes="100vw"
-                  fill
-                  object-fit="cover"
-                  priority={true}
-                  />
-              </div> */}
               {children}
               <Sidenav />
             </main>

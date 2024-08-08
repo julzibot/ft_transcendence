@@ -1,16 +1,9 @@
-'use client';
 import Link from "next/link"
 import AuthButton from "./AuthButton"
 import Image from "next/image"
-import { useState } from "react";
 import "./styles.css"
-import FriendList from "../friend_list/FriendList";
-import { Offcanvas } from 'react-bootstrap'
 
 export default function Navbar() {
-  const [show, setShow] = useState(false);
-
-
   return (
 		<nav className="navbar navbar-expand-lg bg-dark">
 			<div className="container-fluid justify-content-between">
@@ -23,6 +16,7 @@ export default function Navbar() {
 							width={35}
 							height={35}
 							alt="42 Logo"
+							fetchPriority="high"
 							/>
 						<span className="ms-1 text-light fw-semibold">Transcendence</span>
 					</Link>

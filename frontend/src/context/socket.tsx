@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect } from "react"
 const socket = io("http://localhost:6500");
 const SocketContext = createContext(socket);
 
-export function SocketProvider({ children }) {
+export function SocketProvider({ children }: { children: React.ReactNode }) {
 	
 
 	useEffect(() => {
