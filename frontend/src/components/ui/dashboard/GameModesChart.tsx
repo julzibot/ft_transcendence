@@ -17,7 +17,7 @@ const extractGameModesData = (data: Array<MatchEntry>, setDisplayedData: Functio
 	if (Array.isArray(data)) {
 		data.forEach((item) => {
 			const date = new Date(displayedDate);
-			if (date.getTime() >= date.getTime()) {
+			if (item.x >= date.getTime()) {
 				if (item.y === 0)
 					newData[0] += 1;
 				else if (item.y === 1)
@@ -28,86 +28,92 @@ const extractGameModesData = (data: Array<MatchEntry>, setDisplayedData: Functio
 					newData[3] += 1;
 			}
 		})
-		console.log(newData);
 		setDisplayedData(newData);
 	}
 }
 
 export default function GameModesChart({ displayedDate, data }: GameModesProps) {
-	const chartRef = useRef(null);
-	const chartInstance = useRef(null);
+	const chartRef = useRef<HTMLCanvasElement>(null);
+	const chartInstance = useRef<Chart<"pie", number[], string> | null>(null);
 
 	const [displayData, setDisplayData] = useState<Array<number>>([]);
 
 	useEffect(() => {
 		extractGameModesData(data, setDisplayData, displayedDate);
-	}, [data])
+	}, [data, displayedDate])
 
 	useEffect(() => {
-		const ctx = chartRef.current.getContext('2d');
+		if (chartRef.current) {
 
-		const data = {
-			labels: [
-				'Local',
-				'AI',
-				'Online',
-				'Tournament'
-			],
-			datasets: [{
-				label: 'Total',
-				data: displayData,
-				backgroundColor: [
-					'rgb(255, 99, 132)',
-					'rgb(54, 162, 235)',
-					'rgb(255, 205, 86)',
-					'rgb(245, 105, 86)'
+			const ctx = chartRef.current.getContext('2d');
+
+			const data = {
+				labels: [
+					'Local',
+					'AI',
+					'Online',
+					'Tournament'
 				],
-				hoverOffset: 4
-			}]
-		};
+				datasets: [{
+					label: 'Total',
+					data: displayData,
+					backgroundColor: [
+						'rgb(255, 99, 132)',
+						'rgb(54, 162, 235)',
+						'rgb(255, 205, 86)',
+						'rgb(245, 105, 86)'
+					],
+					hoverOffset: 4
+				}]
+			};
 
-		// If a chart instance already exists, destroy it before creating a new one
-		if (chartInstance.current) {
-			chartInstance.current.destroy();
-		}
-
-		chartInstance.current = new Chart(ctx, {
-			type: 'pie',
-			data: data,
-			options: {
-				locale: 'en-us',
-				responsive: true,
-				maintainAspectRatio: false,
-				plugins: {
-					legend: {
-						onClick: null,
-						position: 'bottom',
-						labels: {
-							font: {
-								size: 16
-							}
-						}
-					},
-					title: {
-						display: true,
-						text: 'Game Mode Chart',
-						padding: {
-							bottom: 20
-						},
-						font: {
-							size: 20
-						}
-					}
-				}
-			}
-		});
-
-		// Cleanup function to destroy the chart instance when the component unmounts
-		return () => {
+			// If a chart instance already exists, destroy it before creating a new one
 			if (chartInstance.current) {
 				chartInstance.current.destroy();
 			}
-		};
+
+			if (ctx) {
+				chartInstance.current = new Chart(ctx, {
+					type: 'pie',
+					data: data,
+					options: {
+						locale: 'en-us',
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: {
+							legend: {
+								onClick: () => { },
+								position: 'bottom',
+								labels: {
+									font: {
+										size: 16
+									}
+								}
+							},
+							title: {
+								display: true,
+								text: 'Game Mode Chart',
+								padding: {
+									bottom: 20
+								},
+								font: {
+									size: 20
+								}
+							},
+							tooltip: {
+								displayColors: false
+							}
+						}
+					}
+				});
+			}
+			// Cleanup function to destroy the chart instance when the component unmounts
+			return () => {
+				if (chartInstance.current) {
+					chartInstance.current.destroy();
+				}
+			};
+		}
 	}, [displayData, displayedDate]);
 
 	return (
