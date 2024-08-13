@@ -9,7 +9,7 @@ import UserDashboardCard from "@/components/ui/dashboard/UserDashboardCard"
 import Customization from "@/components/game/Customization";
 
 export default function ProfilePage() {
-  const { data: session, status, update} = useSession({required: true});
+  const { data: session, status, update } = useSession({ required: true });
   const [isEditing, setIsEditing] = useState(false)
   const [isEditPw, setIsEditPw] = useState(false)
   const [data, setData] = useState({
@@ -22,23 +22,23 @@ export default function ProfilePage() {
   })
 
   const [gameSettings, setGameSettings] = useState({
-		background: 0, // 0 - 3 animated, 4 - 5 static
-		palette: 0, // palette: 4 choices
-		bgColor: '#ff0000',
-		opacity: 80,
-		sparks: true,
+    background: 0, // 0 - 3 animated, 4 - 5 static
+    palette: 0, // palette: 4 choices
+    bgColor: '#ff0000',
+    opacity: 80,
+    sparks: true,
 
-		gameDifficulty: 4,
-		pointsToWin: 5,
-		powerUps: true
-	});
+    gameDifficulty: 4,
+    pointsToWin: 5,
+    powerUps: true
+  });
 
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const response = await fetch('http://localhost:8000/api/update/password/', {
       method: 'PUT',
-      headers: {'Content-type': 'application/json'},
+      headers: { 'Content-type': 'application/json' },
       body: JSON.stringify({
         'user_id': session?.user.id,
         'old_password': data.oldPassword,
@@ -47,31 +47,31 @@ export default function ProfilePage() {
       })
     })
     const message = await response.json()
-    if(!response.ok)
-      setData({...data, error: message.message})
+    if (!response.ok)
+      setData({ ...data, error: message.message })
     else {
       alert("Password Changed Successfully")
     }
   }
 
-  async function updateUsername(event: FormEvent<HTMLFormElement>){
+  async function updateUsername(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const response = await fetch('http://localhost:8000/api/update/name/', {
       method: 'PUT',
-      headers: {'Content-type': 'application/json'},
+      headers: { 'Content-type': 'application/json' },
       body: JSON.stringify({
         'email': session?.user.email,
         'name': data.username
       })
     })
-    if(response.ok) {
-      update({username: data.username})
+    if (response.ok) {
+      update({ username: data.username })
       setIsEditing(false);
     }
     else {
       const res = await response.json()
-      setData({...data, usernameError: res.message})
+      setData({ ...data, usernameError: res.message })
     }
     setIsEditing(false);
   }
@@ -79,42 +79,44 @@ export default function ProfilePage() {
   async function deleteAccount() {
     const response = await fetch('http://localhost:8000/api/auth/user/delete/', {
       method: 'DELETE',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         'user_id': session?.user.id,
       })
     })
-    if(response.status === 204) {
-      signOut({"callbackUrl": '/auth/signin'})
+    if (response.status === 204) {
+      signOut({ "callbackUrl": '/auth/signin' })
     }
     else {
       const res = await response.json()
-      setData({...data, error: res.message})
+      setData({ ...data, error: res.message })
     }
   }
 
-  return(
+  return (
     <>
       <div className="d-flex flex-row align-items-center justify-content-evenly">
         <div className="d-flex flex-row justify-content-center align-items-center mt-5">
           <div className="card shadow-lg text-center bg-light bg-opacity-75">
             <div className="card-body">
-              <div className="position-relative border border-4 border-dark-subtle rounded-circle" style={{width: '280px', height: '280px', overflow: 'hidden'}}>
+              <div className="position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '280px', height: '280px', overflow: 'hidden' }}>
                 {
                   session?.user.image ? (
                     <>
-                      <Image style={{objectFit: 'cover'}}
+                      <Image style={{ objectFit: 'cover' }}
                         fill
                         src={`http://backend:8000${session.user.image}`}
                         alt="Profile Picture"
                         priority={true}
                         sizes="25vw"
-                        />
-                      </>
-                    ) : (
-                      <div className="spinner-grow"></div>
-                    )
-                  }
+                      />
+                    </>
+                  ) : (
+                    <div className="placeholder-glow w-100 h-100">
+                      <div className="placeholder bg-secondary w-100 h-100"></div>
+                    </div>
+                  )
+                }
               </div>
               <ImageUpload />
               <br />
@@ -123,10 +125,10 @@ export default function ProfilePage() {
                   isEditing ? (
                     <>
                       <form onSubmit={updateUsername}>
-                        <input type="text" className="form-control form-control-sm" value={data.username} onChange={(e) => setData({...data, username: DOMPurify.sanitize(e.target.value)})} />
-                          <button type="submit" className="btn btn-primary btn-sm rounded-pill">Submit</button>
-                          <button type="button" onClick={() => setIsEditing(false)} className="btn btn-secondary rounded-pill btn-sm">Cancel</button>
-                    </form>
+                        <input type="text" className="form-control form-control-sm" value={data.username} onChange={(e) => setData({ ...data, username: DOMPurify.sanitize(e.target.value) })} />
+                        <button type="submit" className="btn btn-primary btn-sm rounded-pill">Submit</button>
+                        <button type="button" onClick={() => setIsEditing(false)} className="btn btn-secondary rounded-pill btn-sm">Cancel</button>
+                      </form>
                     </>
                   ) : (
                     <>
@@ -141,12 +143,12 @@ export default function ProfilePage() {
               <span className="card-subtitle text-body-secondary fw-semibold">{session?.user.email}</span>
               <hr />
               {
-							session ? (
-								<Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
-							) : (
-								<p>Loading...</p>
-							)
-						  }
+                session ? (
+                  <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
+                ) : (
+                  <p>Loading...</p>
+                )
+              }
               {
                 session?.provider !== '42-school' && (
                   <>
@@ -156,21 +158,21 @@ export default function ProfilePage() {
                         isEditPw ? (
                           <>
                             <form onSubmit={changePassword}>
-                              <input placeholder="Current Password" className="form-control form-control-sm" type="password" value={data.oldPassword} onChange={(e) => setData({...data, oldPassword: DOMPurify.sanitize(e.target.value)})} />
-                              <input placeholder="New Password" className="form-control form-control-sm" type="password" value={data.newPassword} onChange={(e) => setData({...data, newPassword: DOMPurify.sanitize(e.target.value)})} />
-                              <input placeholder="Confirm Password" className="form-control form-control-sm" type="password" value={data.rePassword} onChange={(e) => setData({...data, rePassword: DOMPurify.sanitize(e.target.value)})} />
+                              <input placeholder="Current Password" className="form-control form-control-sm" type="password" value={data.oldPassword} onChange={(e) => setData({ ...data, oldPassword: DOMPurify.sanitize(e.target.value) })} />
+                              <input placeholder="New Password" className="form-control form-control-sm" type="password" value={data.newPassword} onChange={(e) => setData({ ...data, newPassword: DOMPurify.sanitize(e.target.value) })} />
+                              <input placeholder="Confirm Password" className="form-control form-control-sm" type="password" value={data.rePassword} onChange={(e) => setData({ ...data, rePassword: DOMPurify.sanitize(e.target.value) })} />
                               <button type="submit" className="btn btn-primary btn-sm rounded-pill">Submit</button>
                               <button type="button" onClick={() => setIsEditPw(false)} className="btn btn-secondary rounded-pill btn-sm">Cancel</button>
                               <div className="form-text text-danger">{data.error}</div>
-                            </form>   
+                            </form>
                           </>
                         ) : (
-                          <button className="btn btn-primary btn-sm rounded-pill" onClick={() => setIsEditPw(true) }>Change Password</button>
+                          <button className="btn btn-primary btn-sm rounded-pill" onClick={() => setIsEditPw(true)}>Change Password</button>
                         )
                       }
-                    </div> 
-              </>)
-            }
+                    </div>
+                  </>)
+              }
               <hr />
               <button type="button" className="btn btn-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                 Delete Account
@@ -187,18 +189,16 @@ export default function ProfilePage() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">I Changed My Mind</button>
-                <button type="submit" onClick={deleteAccount}className="btn btn-danger">See You</button>
+                <button type="submit" onClick={deleteAccount} className="btn btn-danger">See You</button>
               </div>
             </div>
           </div>
         </div>
-        {
-			    session ? <UserDashboardCard user_id={session.user.id} /> : <div>Loading...</div>
-				}
+        <UserDashboardCard user_id={session.user.id} />
       </div>
     </>
   )
 };
 
 
-      
+
