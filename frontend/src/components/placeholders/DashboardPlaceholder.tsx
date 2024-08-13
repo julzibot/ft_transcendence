@@ -28,6 +28,13 @@ export function DashboardPlaceholder() {
         <span>Number Of Matches Played: </span>
         <span className="placeholder col-1"></span>
       </p>
+      <div className="container">
+        <div className="row align-items-center justify-content-center">
+          <div className="col">
+            <a className="btn btn-info disabled placeholder col-2 m-2" aria-disabled="true">Show Match History</a>
+          </div>
+        </div>
+      </div>
       <a className="btn btn-primary disabled placeholder col-1 m-2" aria-disabled="true"></a>
       <a className="btn btn-primary disabled placeholder col-1 m-2" aria-disabled="true"></a>
       <a className="btn btn-secondary disabled placeholder col-1 m-2" aria-disabled="true"></a>
