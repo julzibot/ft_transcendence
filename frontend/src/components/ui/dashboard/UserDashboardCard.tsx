@@ -10,6 +10,7 @@ import GameModesChart from "./GameModesChart";
 
 import createScoreData from "./ChartDataUtils";
 import { GameMatch, MatchEntry } from "./DashboardInterfaces";
+import { DashboardPlaceholder } from "@/components/placeholders/DashboardPlaceholder";
 
 interface DashboardProps {
 	user_id: number
@@ -265,11 +266,7 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 										}
 									</>
 								) : (
-									<div className="d-flex justify-content-center">
-										<div className="spinner-border" role="status">
-											<span className="visually-hidden">Loading...</span>
-										</div>
-									</div>
+									<DashboardPlaceholder />
 								)
 								}
 							</div>

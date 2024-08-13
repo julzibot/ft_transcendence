@@ -203,18 +203,21 @@ class SearchUserView(APIView):
 
         if friendship:
           friendship_status = friendship.status
+          requestor_id = friendship.requestor.id
         else:
           friendship_status = 'NONE'
+          requestor_id = None
         user_data = {
           'id': user.id,
           'username': user.username,
           'image': user.image.url if user.image else None,
           'friendship_status': friendship_status,
-          'is_online' : user.is_online
+          'is_online' : user.is_online,
+          'requestor_id': requestor_id
         }
         users_data.append(user_data)
       return Response({"users": users_data})
-    return Response(status=status.HTTP_404_NOT_FOUND)
+    return Response(status=status.HTTP_204_NO_CONTENT)
   
 class UpdatePasswordView(APIView):
   def put(self, request):
