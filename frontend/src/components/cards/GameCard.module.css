@@ -3,24 +3,25 @@
   height: 500px;
   /* padding: 0; */
   border: none;
-  background-color: #212529;
+  background: linear-gradient(90deg, #20232c, #404a54) !important;
+  color: #fff;
   overflow: hidden;
-  border: solid;
-  border-width: 1px;
-  border-color: gray;
-  border-radius: 3px;
-  opacity: 0.9;
+  border-radius: 45px;
+  opacity: 0.98;
   position: relative;
   align-items: center;
-  transition: transform 0.8s ease, box-shadow 1.5s, border 1.5s, opacity 2s;
+  transition: transform 0.45s ease, box-shadow 0.45s, opacity 0.45s;
 }
 
 .gameCard:hover {
   transform: scale(1.07);
-  box-shadow: 0 0 60px white;
-  border-width: 1px;
+  box-shadow:
+    15px 0px 15px rgb(39, 45, 51, 1),
+    0px 15px 15px rgb(39, 45, 51, 1),
+    0 0px 50px rgb(141, 145, 157),
+    0 0px 80px rgba(152, 155, 163, 255);
+  border-width: 0px;
   opacity: 1;
-  border-color: white
 }
 
 .videoContainer {
@@ -37,12 +38,12 @@
 }
 
 .whiteLine {
-    display: block;
-    height: 1px;
-    border: 0;
-    border-top: 2px solid gray;
-    opacity: 1;
-    padding: 0;
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 2px solid gray;
+  opacity: 1;
+  padding: 0;
 }
 
 .left {
@@ -67,4 +68,9 @@
   opacity: 0;
   transition: transform 0.8s ease, opacity 0.5s ease;
   transform: translateX(200%) scale(1.1);
+}
+
+.l-bg-blue-dark {
+  background: linear-gradient(to right, #373b44, #4286f4) !important;
+  color: #fff;
 }

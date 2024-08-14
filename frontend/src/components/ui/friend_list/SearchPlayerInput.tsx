@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react"
-import { PersonFillAdd, CircleFill, PersonDashFill, XCircleFill, Joystick } from "react-bootstrap-icons";
+import { PersonFillAdd, CircleFill, PersonDashFill, XCircleFill, Joystick, CheckCircleFill } from "react-bootstrap-icons";
 import { CustomTooltip } from "@/components/Utils/Tooltip";
 import { useSession } from "next-auth/react";
 import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
@@ -10,7 +10,7 @@ import Image from "next/image";
 
 import { Friend } from "@/types/Friend";
 import { User } from "@/types/User";
-import { SearchPlayerInputProps } from "@/types/Props"; 
+import { SearchPlayerInputProps } from "@/types/Props";
 
 const BASE_URL = "http://localhost:8000/api/"
 
@@ -37,7 +37,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
     const response = await fetch(`http://localhost:8000/api/search-user/?query=${inputValue}&id=${session?.user.id}`, {
       method: "GET",
     })
-    if (!response.ok) {
+    if (response.status != 200) {
       setSearchQuery([])
       return false
     }
@@ -97,6 +97,21 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
     });
   }
 
+  async function approveFriendRequest(user: User) {
+    const response = await fetch(`http://localhost:8000/api/friends/approve-friend-request/`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        'approving_user_id': session?.user.id,
+        'pending_user_id': user.id,
+        'requestor_id': user.id
+      })
+    })
+    if (response.status === 202) {
+      fetchData()
+    }
+  }
+
   function renderStatus(user: User) {
     switch (user.friendship_status) {
       case 'FRIENDS':
@@ -113,11 +128,22 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
       case 'REQUEST':
         return (
           <>
-            <CustomTooltip text="Cancel Request" position="top">
-              <XCircleFill size={35} role="button" onClick={() => deleteFriendship(user)} color="red" />
-            </CustomTooltip>
+            {user.requestor_id !== session.user.id ? (
+              <>
+                <CustomTooltip text="Accept Request" position="top">
+                  <CheckCircleFill size={35} role="button" className="me-2" onClick={() => approveFriendRequest(user)} color="green" />
+                </CustomTooltip>
+                <CustomTooltip text="Deny Request" position="top">
+                  <XCircleFill size={35} role="button" onClick={() => deleteFriendship(user)} color="red" />
+                </CustomTooltip>
+              </>
+            ) : (
+              <CustomTooltip text="Cancel Request" position="top">
+                <XCircleFill size={35} role="button" onClick={() => deleteFriendship(user)} color="red" />
+              </CustomTooltip>
+            )}
           </>
-        )
+        );
       default:
         return (
           <CustomTooltip text="Send Friend Request" position="bottom">
@@ -141,7 +167,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
         {
           searchQuery.length > 0 && searchQuery.map((user) => (
             <div key={user.id} className="container">
-              <div className="row p-2 align-items-center border-bottom">
+              <div className="row p-2 align-items-center border border-bottom">
                 <div className="col-auto">
                   {
                     user.is_online ? (
@@ -154,7 +180,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
                 <div className="col-auto">
                   <div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
                     <Image
-                      style={{objectFit: 'cover'}}
+                      style={{ objectFit: 'cover' }}
                       alt="profile picture"
                       src={`http://backend:8000${user.image}`}
                       fill
@@ -175,6 +201,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
           ))
         }
       </div >
+
       <ToastContainer
         className="p-3"
         position='bottom-center'
