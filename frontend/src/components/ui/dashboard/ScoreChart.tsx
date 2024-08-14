@@ -8,14 +8,21 @@ import './styles.css';
 import { MatchEntry } from "./DashboardInterfaces";
 
 interface ScoreChartProps {
+	setChartInstance: Function,
+	displayedDate: Date,
 	winData: Array<MatchEntry>,
 	lossData: Array<MatchEntry>,
-	displayedDate: Date
+	maxY: number
 }
 
-export default function ScoreChart({ winData, lossData, displayedDate }: ScoreChartProps) {
+export default function ScoreChart({ setChartInstance, displayedDate, winData, lossData, maxY }: ScoreChartProps) {
 	const chartRef = useRef<HTMLCanvasElement>(null);
 	const chartInstance = useRef<Chart | null>(null);
+	setChartInstance(chartInstance);
+
+	let currentDate = new Date();
+	currentDate.setDate(currentDate.getDate() - 6);
+	let sevenDays = new Date(currentDate.toISOString().split('T')[0]);
 
 	useEffect(() => {
 		if (chartRef.current) {
@@ -36,12 +43,18 @@ export default function ScoreChart({ winData, lossData, displayedDate }: ScoreCh
 				]
 			};
 
+			if (chartInstance.current) {
+				chartInstance.current.destroy();
+			}
+
 			if (ctx) {
 				chartInstance.current = new Chart(ctx, {
 					type: 'bar',
 					data: data,
 					options: {
 						locale: 'en-us',
+						responsive: true,
+						maintainAspectRatio: false,
 						plugins: {
 							title: {
 								display: true,
@@ -66,8 +79,6 @@ export default function ScoreChart({ winData, lossData, displayedDate }: ScoreCh
 								displayColors: false
 							}
 						},
-						responsive: true,
-						maintainAspectRatio: false,
 						scales: {
 							x: {
 								grid: {
@@ -91,7 +102,7 @@ export default function ScoreChart({ winData, lossData, displayedDate }: ScoreCh
 								stacked: true,
 								beginAtZero: true,
 								min: 0,
-								suggestedMax: 5,
+								suggestedMax: maxY + 2,
 								ticks: {
 									font: {
 										size: 18,
@@ -110,7 +121,7 @@ export default function ScoreChart({ winData, lossData, displayedDate }: ScoreCh
 				}
 			};
 		}
-	}, [winData, lossData, displayedDate]);
+	}, [winData, lossData]);
 
 	return (
 		<>

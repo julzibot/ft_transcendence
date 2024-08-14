@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from "react";
-// import ColorSliderPicker from './ColorPalette';
 import { HexColorPicker } from "react-colorful";
-import styles from './CustomizationStyles.module.css'
+import styles from './CustomizationStyles.module.css';
+import './colorPickerStyles.css';
 
 export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 	if (user_id) {
@@ -12,7 +12,7 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 		});
 		if (response.ok) {
 			if (response.status === 204) {
-				console.log('No Settings saved for this user');
+				console.log('[Fetch Game Settings] [204] No Settings saved for this user');
 				updateSettings({
 					...gameSettings,
 					user_id: user_id,
@@ -36,7 +36,7 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 				});
 			}
 		} else if (response.status === 404) {
-			console.error('404 - User Does Not Exist');
+			console.error('[Fetch Game Settings] [404] - User Does Not Exist');
 			updateSettings({
 				...gameSettings,
 				user_id: user_id,
@@ -47,7 +47,7 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 				sparks: true,
 			})
 		} else {
-			console.error('Error: ' + response.status);
+			console.error('[Fetch Game Settings] Error: ' + response.status);
 			updateSettings({
 				...gameSettings,
 				user_id: user_id,
@@ -192,10 +192,12 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 										<div className="mb-3 text-center">
 											<label htmlFor="favcolor" className="form-label">Select color</label>
 											<div className="align-items-center justify-content-center">
-												<HexColorPicker
-													color="#00f"
-													onChange={handleColorChange}
-												/>
+												<div className="colorpicker">
+													<HexColorPicker
+														color="#00f"
+														onChange={handleColorChange}
+													/>
+												</div>
 											</div>
 										</div>}
 

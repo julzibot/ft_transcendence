@@ -1,6 +1,7 @@
 'use client';
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, RefObject } from "react";
 import { Chart } from 'chart.js/auto';
+import * as Utils from './Utils';
 import 'chartjs-adapter-luxon';
 import './styles.css';
 
@@ -9,37 +10,54 @@ import { MatchEntry } from "./DashboardInterfaces";
 interface ActivityChartProps {
 	setChartInstance: Function,
 	activityData: Array<MatchEntry>,
+	winData: Array<MatchEntry>,
+	lossData: Array<MatchEntry>,
 	displayedDate: Date,
 	maxY: number
 }
 
-export default function ActivityChart({ setChartInstance, displayedDate, activityData, maxY }: ActivityChartProps) {
+export default function NewChart({ setChartInstance, activityData, winData, lossData, displayedDate, maxY }: ActivityChartProps) {
 	const chartRef = useRef<HTMLCanvasElement>(null);
 	const chartInstance = useRef<Chart | null>(null);
 	setChartInstance(chartInstance);
 
-	let currentDate = new Date();
-	currentDate.setDate(currentDate.getDate() - 6);
-	let sevenDays = new Date(currentDate.toISOString().split('T')[0]);
+	const lineData = {
+		labels: [],
+		datasets: [
+			{
+				label: 'Activity',
+				data: activityData,
+				fill: false,
+				borderWidth: 4,
+				borderColor: 'rgb(75, 192, 192)',
+				backgroundColor: 'rgb(75, 192, 192)'
+			},
+		]
+	};
+
+	const data = {
+		labels: [],
+		datasets: [
+			{
+				label: 'Wins',
+				data: winData,
+				backgroundColor: Utils.CHART_COLORS.green,
+			},
+			{
+				label: 'Losses',
+				data: lossData,
+				backgroundColor: Utils.CHART_COLORS.red,
+			},
+		]
+	};
+
 
 	useEffect(() => {
 		if (chartRef.current) {
 			const ctx = chartRef.current.getContext('2d');
 
-			const lineData = {
-				labels: [],
-				datasets: [
-					{
-						label: 'Activity',
-						data: activityData,
-						fill: false,
-						borderWidth: 4,
-						borderColor: 'rgb(75, 192, 192)',
-						backgroundColor: 'rgb(75, 192, 192)'
-					},
-				]
-			};
 
+			// If a chart instance already exists, destroy it before creating a new one
 			if (chartInstance.current) {
 				chartInstance.current.destroy();
 			}
@@ -89,6 +107,9 @@ export default function ActivityChart({ setChartInstance, displayedDate, activit
 								},
 								min: displayedDate.getTime(),
 								ticks: {
+									autoSkip: true, // Automatically skip ticks to avoid overlap
+									maxRotation: 0, // Prevent rotation of labels
+									minRotation: 0,
 									font: {
 										size: 18
 									}
@@ -125,7 +146,7 @@ export default function ActivityChart({ setChartInstance, displayedDate, activit
 				}
 			};
 		}
-	}, [activityData]);
+	}, [activityData, displayedDate]);
 
 	return (
 		<>
@@ -133,3 +154,18 @@ export default function ActivityChart({ setChartInstance, displayedDate, activit
 		</>
 	);
 };
+
+// const handle1 = () => {
+// 	setDisplayDate(sevenDays);
+// 	if (chartInstance.current?.options.scales && chartInstance.current.options.scales.x) {
+// 		chartInstance.current.options.scales.x.min = sevenDays.getTime();
+// 	}
+// 	chartInstance.current?.update();
+// }
+
+// const handle2 = () => {
+// 	if (chartInstance.current?.options.scales && chartInstance.current.options.scales.x) {
+// 		chartInstance.current.options.scales.x.min = displayedDate.getTime();
+// 	}
+// 	chartInstance.current?.update();
+// }
