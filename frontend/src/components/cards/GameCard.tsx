@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import styles from './GameCard.module.css'
 import { useState } from 'react'
 
-export default function GameCard({src}: {src: string}) {
+export default function GameCard({ src }: { src: string }) {
   const router = useRouter()
   const [move, setMove] = useState(false)
   const [direction, setDirection] = useState('')
@@ -28,10 +28,10 @@ export default function GameCard({src}: {src: string}) {
   return (
     <>
       <div className={`${styles.gameCard} ${move ? direction : ''}`}>
-        <h1 className="text-center fw-bold text-light  mt-4">Welcome</h1>
-        <hr className={styles.whiteLine}/>
+        <h1 className="text-center fw-bold text-light mt-4 ">Welcome</h1>
+        <hr className={styles.whiteLine} />
         <div className={styles.videoContainer}>
-          <video  className={styles.video} autoPlay loop muted>
+          <video className={styles.video} autoPlay loop muted>
             <source src={src} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
@@ -41,6 +41,6 @@ export default function GameCard({src}: {src: string}) {
           <button className="btn btn-outline-light btn-lg" onClick={handleTournamentsButton}>Tournaments</button>
         </div>
       </div>
-    </> 
+    </>
   )
 }

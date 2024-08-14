@@ -1,27 +1,29 @@
 'use client'
 
 import { useEffect, useState } from "react";
+import Image from 'next/image'
 import 'chartjs-adapter-luxon';
 import './styles.css';
 
 import ScoreChart from './ScoreChart';
 import ActivityChart from "./ActivityChart";
 import GameModesChart from "./GameModesChart";
+import { useSession } from 'next-auth/react'
 
 import createScoreData from "./ChartDataUtils";
 import { GameMatch, MatchEntry } from "./DashboardInterfaces";
-
-interface DashboardProps {
-	user_id: number
-}
+import { DashboardPlaceholder } from "@/components/placeholders/DashboardPlaceholder";
 
 type UserHistory = {
 	data: Array<GameMatch>;
 }
 
-export default function UserDashboardCard({ user_id }: DashboardProps) {
+export default function UserDashboardCard() {
+
+	const { data: session } = useSession()
 	const [DashboardData, setDashboardData] = useState([]);
 	const [fetchedDashboard, setFetchedDashboard] = useState(false);
+	const user_id = session.user.id
 
 	useEffect(() => {
 		const fetchDashboardDetail = async () => {
@@ -56,7 +58,7 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 			});
 			if (response.ok) {
 				const data = await response.json();
-				console.log('User Game History successfully fetched:', response.status);
+				console.log('User Game History successfully fetched:', response.status, data);
 				setUserHistory(data);
 			}
 			else {
@@ -178,14 +180,49 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 																					<table className="table match-table">
 																						<thead>
 																							<tr className='match-table'>
-																								<th className='match-table-row' scope='col'>{obj.player1}</th>
+																								<th className='match-table-row' scope='col'>
+																									<div className="container">
+																										<div className="row align-items-center justify-content-evenly">
+																											<div className="col-auto">
+																												<div className="position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+																													<Image style={{ objectFit: 'cover' }}
+																														fill
+																														src={`http://backend:8000${session.user.image}`}
+																														alt="Profile Picture"
+																														priority={true}
+																														sizes="25vw"
+																													/>
+																												</div>
+																											</div>
+																											<div className="col overflow-hidden">
+																												<span className="d-block fs-4 fw-semibold text-truncate">
+																													{session.user.username}
+																												</span>
+																											</div>
+																										</div>
+																									</div>
+																								</th>
 																								<th className='match-table-row' scope='col'>vs</th>
 																								{
-																									obj.player2 ? (
+																									obj.player2 ?
 																										<th className='match-table-row' scope='col'>{obj.player2}</th>
-																									) : (
-																										<th className='match-table-row' scope='col'>Guest</th>
-																									)
+																										:
+																										(
+																											<th className='match-table-row' scope='col'>
+																												<div className="d-flex align-items-center">
+																													<span>Guest</span>
+																													<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+																														<Image style={{ objectFit: 'cover' }}
+																															fill
+																															src={'/static/images/default.jpg'}
+																															alt="Guest"
+																															priority={true}
+																															sizes="25vw"
+																														/>
+																													</div>
+																												</div>
+																											</th>
+																										)
 																								}
 																							</tr>
 																						</thead>
@@ -222,7 +259,7 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 											</div>
 										</div>
 										{
-											dataCreated ? (
+											dataCreated && (
 												<>
 													<button type='button' className='btn btn-primary m-1' onClick={handle7DaysBtn}>Past 7 days</button>
 													<button type='button' className='btn btn-primary m-1' onClick={handleAllTimeBtn}>All time</button>
@@ -246,31 +283,17 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 													}
 													<div className='canvas-container m-3'>
 														{
-															statsToggle ? (
-																<>
-																	<ActivityChart activityData={activityData} displayedDate={displayedDate} />
-																</>
-															) : (
-																<>
-																	<ScoreChart winData={winData} lossData={lossData} displayedDate={displayedDate} />
-																</>
-															)
+															statsToggle ?
+																<ActivityChart activityData={activityData} displayedDate={displayedDate} /> :
+																<ScoreChart winData={winData} lossData={lossData} displayedDate={displayedDate} />
 														}
 														<GameModesChart displayedDate={displayedDate} data={gameModesData} />
 													</div>
 												</>
-											) : (
-												<div>Loading...</div>
 											)
 										}
 									</>
-								) : (
-									<div className="d-flex justify-content-center">
-										<div className="spinner-border" role="status">
-											<span className="visually-hidden">Loading...</span>
-										</div>
-									</div>
-								)
+								) : <DashboardPlaceholder />
 								}
 							</div>
 						</div>
