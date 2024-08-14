@@ -13,10 +13,13 @@ const parseActivity = (newActivityData: Array<MatchEntry>) => {
 			if (i + 1 < newActivityData.length
 				&& cmpDate.getTime() !== newActivityData[i + 1].x) {
 				newActivityData.splice(i + 1, 0, { x: cmpDate.getTime(), y: 0 })
-				i++;
+				i = 0;
 			}
 			i++;
 		}
+		newActivityData.forEach((item) => {
+			console.log('date: ' + new Date(item.x));
+		})
 	}
 }
 
@@ -31,6 +34,8 @@ export default function createScoreData(
 	setActivityData: Function,
 	gameModesData: Array<MatchEntry>,
 	setGameModesData: Function,
+	maxY: number,
+	setMaxY: Function,
 	minDate: Date,
 	setMinDate: Function
 ) {
@@ -65,14 +70,32 @@ export default function createScoreData(
 				else
 					existingDate.y += 1;
 			}
+
 			// Activity & Game Mode data
 			const activityDate = newActivityData.find(obj => obj.x === dateISO);
 			if (activityDate === undefined)
 				newActivityData.push({ x: dateISO, y: 1 });
-			else
+			else {
 				activityDate.y += 1;
+				if (activityDate.y > maxY)
+					setMaxY(activityDate.y);
+			}
 			newGameModesData.push({ x: dateISO, y: item.game_mode })
-		})
+		});
+		const today = new Date();
+
+		let lastDay = new Date(newActivityData[newActivityData.length - 1].x);
+		let lastDayRounded = lastDay.toISOString().split('T')[0];
+		let lastDayDate = new Date(lastDayRounded);
+
+		lastDayDate.setDate(lastDayDate.getDate() + 1);
+
+		while (lastDayDate.getTime() < today.getTime()) {
+			newActivityData.push({ x: lastDayDate.getTime(), y: 0 });
+			newWinData.push({ x: lastDayDate.getTime(), y: 0 });
+			newLossData.push({ x: lastDayDate.getTime(), y: 0 });
+			lastDayDate.setDate(lastDayDate.getDate() + 1);
+		}
 		parseActivity(newActivityData);
 		setMinDate(newMinDate);
 		setWinData(newWinData);

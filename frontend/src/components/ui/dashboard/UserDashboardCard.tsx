@@ -1,27 +1,35 @@
 'use client'
 
-import { useEffect, useState } from "react";
+import { act, RefObject, useEffect, useState } from "react";
+import { Chart, TimeScale } from 'chart.js/auto';
 import 'chartjs-adapter-luxon';
 import './styles.css';
 
 import ScoreChart from './ScoreChart';
 import ActivityChart from "./ActivityChart";
+import NewChart from "./NewChart";
 import GameModesChart from "./GameModesChart";
 
 import createScoreData from "./ChartDataUtils";
-import { GameMatch, MatchEntry } from "./DashboardInterfaces";
+import { GameMatch } from "./DashboardInterfaces";
 
 interface DashboardProps {
 	user_id: number
 }
 
 type UserHistory = {
-	data: Array<GameMatch>;
+	data: Array<GameMatch>
 }
 
+interface DashboardItems {
+	wins: number,
+	games_played: number,
+	record_streak: number
+}
+
+
 export default function UserDashboardCard({ user_id }: DashboardProps) {
-	const [DashboardData, setDashboardData] = useState([]);
-	const [fetchedDashboard, setFetchedDashboard] = useState(false);
+	const [DashboardData, setDashboardData] = useState<DashboardItems | null>(null);
 
 	useEffect(() => {
 		const fetchDashboardDetail = async () => {
@@ -33,20 +41,14 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 				if (response.ok) {
 					const data = await response.json();
 					setDashboardData(data);
-					setFetchedDashboard(true);
 				}
 				else {
-					console.log('fetchDashboardDetail: ' + response.status);
+					console.log('[fetchDashboardDetail] Response Status: ' + response.status);
 				}
 			}
 		};
-
 		fetchDashboardDetail();
 	}, [user_id]);
-
-	const dataObj = JSON.parse(JSON.stringify(DashboardData));
-	let winPerc: number = (dataObj.wins / (dataObj.games_played)) * 100;
-	let lossPerc: number = ((dataObj.games_played - dataObj.wins) / (dataObj.games_played)) * 100;
 
 	const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
 	useEffect(() => {
@@ -56,7 +58,6 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 			});
 			if (response.ok) {
 				const data = await response.json();
-				console.log('User Game History successfully fetched:', response.status);
 				setUserHistory(data);
 			}
 			else {
@@ -73,27 +74,18 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 	const [lossData, setLossData] = useState([]);
 	const [activityData, setActivityData] = useState([]);
 	const [gameModesData, setGameModesData] = useState([]);
+	const [maxY, setMaxY] = useState(5);
 	const [minDate, setMinDate] = useState(new Date());
 
 	let currentDate = new Date();
 	currentDate.setDate(currentDate.getDate() - 6);
-	let ISOdate = currentDate.toISOString();
-	let sevenDays = ISOdate.split('T')[0];
+	let sevenDays = new Date(currentDate.toISOString().split('T')[0]);
 
-	const [displayedDate, setDisplayedDate] = useState(new Date(sevenDays));
+	const [activityInstance, setActivityInstance] = useState<RefObject<Chart> | null>(null);
+	const [scoreInstance, setScoreInstance] = useState<RefObject<Chart> | null>(null);
+	const [pieInstance, setPieInstance] = useState<RefObject<Chart> | null>(null);
+	const [displayedDate, setDisplayedDate] = useState(sevenDays);
 	const [statsToggle, setStatsToggle] = useState(true);
-
-	const handleStatsToggle = () => {
-		setStatsToggle(!statsToggle)
-	}
-
-	const handleAllTimeBtn = () => {
-		setDisplayedDate(minDate);
-	}
-
-	const handle7DaysBtn = () => {
-		setDisplayedDate(new Date(sevenDays));
-	}
 
 	useEffect(() => {
 		if (userHistory?.data && userHistory.data.length > 0 && !dataCreated) {
@@ -107,10 +99,40 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 				lossData, setLossData,
 				activityData, setActivityData,
 				gameModesData, setGameModesData,
+				maxY, setMaxY,
 				minDate, setMinDate);
 			setDataCreated(true);
 		}
 	}, [userHistory, dataCreated]);
+
+	// Buttons
+	const handleStatsToggle = () => {
+		setStatsToggle(!statsToggle)
+	}
+
+	const updateDate = (instance: RefObject<Chart>, date: Date) => {
+		const xScale = instance.current?.options.scales?.['x'] as TimeScale | undefined;
+		if (xScale) {
+			xScale.min = date.getTime();
+			instance.current?.update();
+		}
+	}
+
+	const handleAllTimeBtn = () => {
+		if (statsToggle && activityInstance?.current)
+			updateDate(activityInstance, minDate)
+		else if (!statsToggle && scoreInstance?.current)
+			updateDate(scoreInstance, minDate);
+		setDisplayedDate(minDate);
+	}
+
+	const handle7DaysBtn = () => {
+		if (statsToggle && activityInstance?.current)
+			updateDate(activityInstance, sevenDays);
+		else if (!statsToggle && scoreInstance?.current)
+			updateDate(scoreInstance, sevenDays);
+		setDisplayedDate(sevenDays);
+	}
 
 	return (
 		<>
@@ -121,14 +143,14 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 							<div className="card-body">
 								<h3 className="mb-4">Stats</h3>
 
-								{fetchedDashboard && dataCreated ? (
+								{DashboardData && dataCreated ? (
 									<>
 										<ul className="list-unstyled">
-											<li>Wins: {dataObj.wins} ({winPerc.toFixed(1)}%)</li>
-											<li>Losses: {dataObj.games_played - dataObj.wins} ({lossPerc.toFixed(1)}%)</li>
+											<li>Wins: {DashboardData.wins} ({((DashboardData.wins / (DashboardData.games_played)) * 100).toFixed(1)}%)</li>
+											<li>Losses: {DashboardData.games_played - DashboardData.wins} ({(((DashboardData.games_played - DashboardData.wins) / DashboardData.games_played) * 100).toFixed(1)}%)</li>
 										</ul>
-										<p>Current streak record: {dataObj.record_streak}</p>
-										<p>Number of matches played: {dataObj.games_played}</p>
+										<p>Current streak record: {DashboardData.record_streak}</p>
+										<p>Number of matches played: {DashboardData.games_played}</p>
 										<div>
 											{/* <!-- Button trigger modal --> */}
 											<button type="button" className="btn btn-info mb-2" data-bs-toggle="modal" data-bs-target="#history-modal">
@@ -150,16 +172,16 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 
 																	switch (obj.game_mode) {
 																		case 0:
-																			cardColor = 'local';
+																			cardColor = 'Local';
 																			break;
 																		case 1:
-																			cardColor = 'ai';
+																			cardColor = 'AI';
 																			break;
 																		case 2:
-																			cardColor = 'online';
+																			cardColor = 'Online';
 																			break;
 																		case 3:
-																			cardColor = 'tournament';
+																			cardColor = 'Tournament';
 																			break;
 																		default:
 																			cardColor = '';
@@ -168,36 +190,31 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 																	return (
 																		<div key={index} className={`match_item match_item_link ${cardColor}`}>
 																			<div className="match_item_bg"></div>
-
+																			<div className="match_item_game_mode">{cardColor}</div>
 																			<div className="match_item_title">
 																				{new Date(obj.date).toLocaleDateString()}
 																			</div>
-
 																			<div className="match_item_date-box">
-																				{
-																					<table className="table match-table">
-																						<thead>
-																							<tr className='match-table'>
-																								<th className='match-table-row' scope='col'>{obj.player1}</th>
-																								<th className='match-table-row' scope='col'>vs</th>
-																								{
-																									obj.player2 ? (
-																										<th className='match-table-row' scope='col'>{obj.player2}</th>
-																									) : (
-																										<th className='match-table-row' scope='col'>Guest</th>
-																									)
-																								}
-																							</tr>
-																						</thead>
-																						<tbody>
-																							<tr>
-																								<td>{obj.score1}</td>
-																								<td>-</td>
-																								<td>{obj.score2}</td>
-																							</tr>
-																						</tbody>
-																					</table>
-																				}
+																				<table className="table match-table">
+																					<thead>
+																						<tr className='match-table'>
+																							<th className='match-table-row' scope='col'>{obj.player1}</th>
+																							<th className='match-table-row' scope='col'>vs</th>
+																							{obj.player2 ? (
+																								<th className='match-table-row' scope='col'>{obj.player2}</th>
+																							) : (
+																								<th className='match-table-row' scope='col'>Guest</th>
+																							)}
+																						</tr>
+																					</thead>
+																					<tbody>
+																						<tr>
+																							<td>{obj.score1}</td>
+																							<td>-</td>
+																							<td>{obj.score2}</td>
+																						</tr>
+																					</tbody>
+																				</table>
 																			</div>
 																		</div>
 																	);
@@ -246,17 +263,11 @@ export default function UserDashboardCard({ user_id }: DashboardProps) {
 													}
 													<div className='canvas-container m-3'>
 														{
-															statsToggle ? (
-																<>
-																	<ActivityChart activityData={activityData} displayedDate={displayedDate} />
-																</>
-															) : (
-																<>
-																	<ScoreChart winData={winData} lossData={lossData} displayedDate={displayedDate} />
-																</>
-															)
+															statsToggle ?
+																(<ActivityChart setChartInstance={setActivityInstance} displayedDate={displayedDate} activityData={activityData} maxY={maxY} />)
+																: (<ScoreChart setChartInstance={setScoreInstance} displayedDate={displayedDate} winData={winData} lossData={lossData} maxY={maxY} />)
 														}
-														<GameModesChart displayedDate={displayedDate} data={gameModesData} />
+														<GameModesChart setChartInstance={setPieInstance} displayedDate={displayedDate} data={gameModesData} />
 													</div>
 												</>
 											) : (
