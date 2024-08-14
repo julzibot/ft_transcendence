@@ -9,17 +9,21 @@ import UserDashboardCard from "@/components/ui/dashboard/UserDashboardCard"
 import Customization from "@/components/game/Customization";
 
 export default function ProfilePage() {
-  const { data: session, status, update } = useSession({ required: true });
   const [isEditing, setIsEditing] = useState(false)
+  const { data: session, status, update } = useSession();
+
+  const [showModal, setShowModal] = useState<boolean>(false)
   const [isEditPw, setIsEditPw] = useState(false)
-  const [data, setData] = useState({
+  const initialState = {
     username: '',
     oldPassword: '',
     newPassword: '',
     rePassword: '',
     usernameError: '',
     error: '',
-  })
+  }
+  const [data, setData] = useState({ initialState })
+
 
   const [gameSettings, setGameSettings] = useState({
     background: 0, // 0 - 3 animated, 4 - 5 static
@@ -32,6 +36,14 @@ export default function ProfilePage() {
     pointsToWin: 5,
     powerUps: true
   });
+
+  const handleShow = () => {
+    setShowModal(true);
+
+    setTimeout(() => {
+      setShowModal(false);
+    }, 2000);
+  };
 
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -50,7 +62,9 @@ export default function ProfilePage() {
     if (!response.ok)
       setData({ ...data, error: message.message })
     else {
-      alert("Password Changed Successfully")
+      setIsEditPw(false)
+      handleShow()
+      setData(initialState)
     }
   }
 
@@ -96,8 +110,8 @@ export default function ProfilePage() {
   return (
     <>
       <div className="d-flex flex-row align-items-center justify-content-evenly">
-        <div className="d-flex flex-row justify-content-center align-items-center mt-5">
-          <div className="card shadow-lg text-center bg-light bg-opacity-75">
+        <div className="d-flex flex-row justify-content-center align-items-center ms-5">
+          <div className="card shadow-lg text-center bg-light">
             <div className="card-body">
               <div className="position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '280px', height: '280px', overflow: 'hidden' }}>
                 {
@@ -132,21 +146,52 @@ export default function ProfilePage() {
                     </>
                   ) : (
                     <>
-                      <h5 className="card-title me-2">{session?.user.username}</h5>
-                      <button className="btn btn-sm btn-primary rounded-pill" onClick={() => setIsEditing(true)}>Edit</button>
+                      <div className="container align-items-center">
+                        <div className="row">
+                          {
+                            session.user.username ? (
+                              <>
+                                <span className="col-9 card-text fw-semibold fs-4">{session?.user.username}</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="col-9">
+                                  <p className="card-text fs-4 placeholder-glow">
+                                    <span className="placeholder col-7"></span>
+                                  </p>
+                                </div>
+                              </>
+                            )
+                          }
+                          {
+                            session.user.id ? (
+                              <button className="col-2 btn btn-sm btn-primary rounded-pill" onClick={() => setIsEditing(true)}>Edit</button>
+
+                            ) : (
+                              <a className="col-2 btn btn-sm btn-primary rounded-pill disabled placeholder" aria-disabled="true">Edit</a>
+                            )
+                          }
+                        </div>
+                      </div>
                     </>
                   )
                 }
               </div>
               <div className="text-danger">{data.usernameError}</div>
               <hr />
-              <span className="card-subtitle text-body-secondary fw-semibold">{session?.user.email}</span>
+              {
+                session.user.email ? (
+                  <span className="card-subtitle text-body-secondary fw-semibold">{session?.user.email}</span>
+                ) : (
+                  <p className="card-subtitle placeholder-glow">
+                    <span className="placeholder col-7"></span>
+                  </p>
+                )
+              }
               <hr />
               {
-                session ? (
-                  <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
-                ) : (
-                  <p>Loading...</p>
+                session.user.id ? <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} /> : (
+                  <a className="col btn btn-primary rounded-pill disabled placeholder" aria-disabled="true">Game Customization</a>
                 )
               }
               {
@@ -167,19 +212,32 @@ export default function ProfilePage() {
                             </form>
                           </>
                         ) : (
-                          <button className="btn btn-primary btn-sm rounded-pill" onClick={() => setIsEditPw(true)}>Change Password</button>
+                          <>
+                            {
+                              session.user.id ? (
+                                <button className='btn btn-primary btn-sm rounded-pill' onClick={() => setIsEditPw(true)}>Change Password</button>
+                              ) : (
+                                <a className='btn btn-primary btn-sm rounded-pill disabled placeholder' aria-disabled="true">Change Password</a>
+                              )
+                            }
+                          </>
                         )
                       }
                     </div>
                   </>)
               }
               <hr />
-              <button type="button" className="btn btn-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                Delete Account
-              </button>
+              {
+                session.user.id ? (
+                  <button type="button" className="btn btn-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Delete Account</button>
+                ) : (
+                  <a className='btn btn-danger rounded-pill disabled placeholder' aria-disabled="true">Delete Account</a>
+                )
+              }
             </div>
           </div>
         </div>
+
         <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1} aria-labelledby="staticBackdropLabel" aria-hidden="true">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
@@ -194,8 +252,26 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        <div className={`modal fade ${showModal ? 'show' : ''}`}
+          id="pwConfirmation"
+          data-bs-backdrop="static"
+          data-bs-keyboard="false"
+          tabIndex={-1}
+          aria-labelledby="pwConfirmation"
+          style={{ display: showModal ? 'block' : 'none' }}
+          aria-hidden="true">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h1 className="modal-title fs-5" id="staticBackdropLabel">Your password has been changed successfully !</h1>
+                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={() => setShowModal(false)}></button>
+              </div>
+            </div>
+          </div>
+        </div>
         <UserDashboardCard user_id={session.user.id} />
-      </div>
+      </div >
     </>
   )
 };

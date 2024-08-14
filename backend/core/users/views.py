@@ -58,16 +58,17 @@ class RegisterView(APIView):
   def post(self, request):
     data = request.data['data']
     if len(data['email']) < 1 or len(data['username']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
-      return Response({'message': 'email, username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'message': 'Email, Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
     if  UserAccount.objects.filter(email=data['email']).exists():
-      return Response({'message': 'user already exists try another email'}, status=status.HTTP_409_CONFLICT)
+      return Response({'message': 'This adress is already taken.'}, status=status.HTTP_409_CONFLICT)
     if  UserAccount.objects.filter(username=data['username']).exists():
-      return Response({'message': 'username is already taken'}, status=status.HTTP_409_CONFLICT)
+      return Response({'message': 'Username is already taken.'}, status=status.HTTP_409_CONFLICT)
     if data['password'] != data['rePass']:
-      return Response({'message': 'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'message': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
     user = UserAccount.objects.create(username=data['username'], email=data['email'], password=make_password(data['password']))
     user.save_image_from_url()
     serializer = UserAccountSerializer(user)
+    DashboardData.objects.create(user=user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 class OauthView(APIView):
@@ -107,7 +108,6 @@ class AccessTokenView(APIView):
       user = UserAccount.objects.get(email=data['email'])
     except ObjectDoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    DashboardData.objects.create(user=user)
     backendTokens = get_tokens_for_user(user)
     response = Response({
       'user': {
@@ -186,7 +186,8 @@ class UpdateImageView(APIView):
     user.delete_image()
     user.image = request.data['image']
     user.save()
-    return Response(status=status.HTTP_200_OK)
+
+    return Response({'image': user.image.url})
     
 class SearchUserView(APIView):
   def get(self, request):
@@ -222,6 +223,7 @@ class SearchUserView(APIView):
 class UpdatePasswordView(APIView):
   def put(self, request):
     data = request.data
+    print(data)
     try:
       user = UserAccount.objects.get(id=data['user_id'])
     except ObjectDoesNotExist:
