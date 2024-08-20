@@ -173,12 +173,12 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
     vars.ai_aim = 0;
     setBallColor();
-    if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score)
-        vars.stopGame = true;
+    if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score && vars.stopGame == 0)
+        vars.stopGame = 1;
     if (gamemode === 2)
       socket.emit('sendScore', {room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, game_ended: vars.stopGame});
   }
-  if (vars.stopGame === true)
+  if (vars.stopGame === 1)
   {
     if (vars.p1Score > vars.p2Score)
       vars.endString = "GAME ENDED\nPLAYER 1 WINS";
@@ -189,6 +189,7 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
     put_response = PutScores(gamemode);
     if (put_response == false)
       console.log("Ouch ! Scores not updated !")
+    vars.stopGame = 2;
   }
 }
 
@@ -913,7 +914,7 @@ const animate = (socket, room_id, isHost, gamemode) =>
     collisionLogic(room_id, socket, gamemode);
   scoringLogic(room_id, socket, isHost, gamemode);
   
-  if (vars.stopGame === true)
+  if (vars.stopGame > 0)
     vars.ballVect.set(0, 0);
   
   if (isHost === true)
