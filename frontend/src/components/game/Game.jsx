@@ -129,7 +129,7 @@ const setBallColor = () =>
 }
 
 // CUT
-const scoringLogic = (room_id, socket, isHost, gamemode) =>
+const scoringLogic = (room_id, socket, isHost, gamemode) => 
 {
   // RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
   if (isHost === true && (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4)))
@@ -521,7 +521,7 @@ let aiPuHandle = () =>
       || (pu === 2 && vars.ballVect.x > 0 && vars.adjustedBallSpeed > 0.9 * CONST.BALLSPEED_MAX && Math.abs(vars.ai_aim - objs.ball.position.y) > CONST.GAMEHEIGHT / 4)
       || pu === 3 || pu === 4)
       {
-        activate_power(1);
+        activate_power(1, 0);
       }
   }
 }
@@ -540,9 +540,9 @@ const local_update = (gamemode) =>
     objs.player2.position.y = aiMoveHandle(invert_controls[1]);
 
   if (keys['Space'] && custom.power_ups === true)
-    activate_power(0);
+    activate_power(0, 0);
   if (keys['ArrowRight'] && gamemode === 0 && custom.power_ups === true)
-    activate_power(1);
+    activate_power(1, 0);
   else if (gamemode === 1 && custom.power_ups === true)
     aiPuHandle();
 }
