@@ -28,7 +28,6 @@ const extractGameModesData = (data: Array<MatchEntry>, setDisplayedData: Functio
 			setDisplayedData([0, 0, 0, 0, 1]);
 		else
 			setDisplayedData(newData);
-		console.log('pie data: ' + newData);
 	}
 };
 

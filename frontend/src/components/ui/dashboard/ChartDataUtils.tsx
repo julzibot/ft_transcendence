@@ -17,9 +17,6 @@ const parseActivity = (newActivityData: Array<MatchEntry>) => {
 			}
 			i++;
 		}
-		newActivityData.forEach((item) => {
-			console.log('date: ' + new Date(item.x));
-		})
 	}
 }
 
