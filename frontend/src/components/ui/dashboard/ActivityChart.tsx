@@ -16,7 +16,6 @@ interface ActivityChartProps {
 export default function ActivityChart({ setChartInstance, displayedDate, activityData, maxY }: ActivityChartProps) {
 	const chartRef = useRef<HTMLCanvasElement>(null);
 	const chartInstance = useRef<Chart | null>(null);
-	setChartInstance(chartInstance);
 
 	let currentDate = new Date();
 	currentDate.setDate(currentDate.getDate() - 6);
@@ -116,6 +115,7 @@ export default function ActivityChart({ setChartInstance, displayedDate, activit
 					}
 				}
 				);
+				setChartInstance(chartInstance);
 			}
 
 			// Cleanup function to destroy the chart instance when the component unmounts

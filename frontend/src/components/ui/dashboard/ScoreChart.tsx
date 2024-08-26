@@ -18,11 +18,6 @@ interface ScoreChartProps {
 export default function ScoreChart({ setChartInstance, displayedDate, winData, lossData, maxY }: ScoreChartProps) {
 	const chartRef = useRef<HTMLCanvasElement>(null);
 	const chartInstance = useRef<Chart | null>(null);
-	setChartInstance(chartInstance);
-
-	let currentDate = new Date();
-	currentDate.setDate(currentDate.getDate() - 6);
-	let sevenDays = new Date(currentDate.toISOString().split('T')[0]);
 
 	useEffect(() => {
 		if (chartRef.current) {
@@ -113,6 +108,7 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 						}
 					}
 				});
+				setChartInstance(chartInstance);
 			}
 			// Cleanup function to destroy the chart instance when the component unmounts
 			return () => {
