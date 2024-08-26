@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
-import styles from './CustomizationStyles.module.css'
+import styles from './CustomizationStyles.module.css';
+import './colorPickerStyles.css';
 
 export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 
@@ -35,7 +36,7 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 				});
 			}
 		} else if (response.status === 404) {
-			console.error('404 - User Does Not Exist');
+			console.error('[Fetch Game Settings] [404] - User Does Not Exist');
 			updateSettings({
 				...gameSettings,
 				user_id: user_id,
@@ -46,7 +47,7 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 				sparks: true,
 			})
 		} else {
-			console.error('Error: ' + response.status);
+			console.error('[Fetch Game Settings] Error: ' + response.status);
 			updateSettings({
 				...gameSettings,
 				user_id: user_id,
