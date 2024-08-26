@@ -86,10 +86,8 @@ class UpdateLocalGame(APIView):
 				return Response({'message': f'[PUT] [{game.id}] Player 1: No Dashboard Data'}, status=status.HTTP_404_NOT_FOUND)
 
 			if score1 > score2:
-				dashboard.games_played += 1
 				dashboard.prev_result = True
 			else:
-				dashboard.games_played += 1
 				dashboard.prev_result = False
 			dashboard.save()
 

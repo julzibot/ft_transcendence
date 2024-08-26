@@ -7,13 +7,19 @@ import './styles.css';
 import { MatchEntry } from "./DashboardInterfaces";
 
 interface ActivityChartProps {
+	setChartInstance: Function,
 	activityData: Array<MatchEntry>,
-	displayedDate: Date
+	displayedDate: Date,
+	maxY: number
 }
 
-export default function ActivityChart({ activityData, displayedDate }: ActivityChartProps) {
+export default function ActivityChart({ setChartInstance, displayedDate, activityData, maxY }: ActivityChartProps) {
 	const chartRef = useRef<HTMLCanvasElement>(null);
 	const chartInstance = useRef<Chart | null>(null);
+
+	let currentDate = new Date();
+	currentDate.setDate(currentDate.getDate() - 6);
+	let sevenDays = new Date(currentDate.toISOString().split('T')[0]);
 
 	useEffect(() => {
 		if (chartRef.current) {
@@ -33,7 +39,6 @@ export default function ActivityChart({ activityData, displayedDate }: ActivityC
 				]
 			};
 
-			// If a chart instance already exists, destroy it before creating a new one
 			if (chartInstance.current) {
 				chartInstance.current.destroy();
 			}
@@ -43,13 +48,33 @@ export default function ActivityChart({ activityData, displayedDate }: ActivityC
 					type: 'line',
 					data: lineData,
 					options: {
-						elements: {
-							point: {
-								radius: 4,
-								hoverRadius: 8,
+						locale: 'en-us',
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: {
+							title: {
+								display: true,
+								text: 'Activity Chart',
+								padding: {
+									bottom: 20
+								},
+								font: {
+									size: 20
+								}
+							},
+							legend: {
+								onClick: () => { },
+								position: 'bottom',
+								labels: {
+									font: {
+										size: 16
+									}
+								}
+							},
+							tooltip: {
+								displayColors: false
 							}
 						},
-						locale: 'en-us',
 						scales: {
 							x: {
 								grid: {
@@ -69,9 +94,10 @@ export default function ActivityChart({ activityData, displayedDate }: ActivityC
 								}
 							},
 							y: {
+								stacked: true,
 								beginAtZero: true,
 								min: 0,
-								suggestedMax: 5,
+								suggestedMax: maxY + 2,
 								ticks: {
 									font: {
 										size: 18
@@ -80,35 +106,16 @@ export default function ActivityChart({ activityData, displayedDate }: ActivityC
 								}
 							}
 						},
-						responsive: true,
-						maintainAspectRatio: false,
-						plugins: {
-							legend: {
-								onClick: () => { },
-								position: 'bottom',
-								labels: {
-									font: {
-										size: 16
-									}
-								}
-							},
-							title: {
-								display: true,
-								text: 'Activity Chart',
-								padding: {
-									bottom: 20
-								},
-								font: {
-									size: 20
-								}
-							},
-							tooltip: {
-								displayColors: false
+						elements: {
+							point: {
+								radius: 4,
+								hoverRadius: 8,
 							}
 						},
 					}
 				}
 				);
+				setChartInstance(chartInstance);
 			}
 
 			// Cleanup function to destroy the chart instance when the component unmounts
@@ -118,7 +125,7 @@ export default function ActivityChart({ activityData, displayedDate }: ActivityC
 				}
 			};
 		}
-	}, [activityData, displayedDate]);
+	}, [activityData]);
 
 	return (
 		<>

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, RefObject } from "react";
 import { Chart } from 'chart.js/auto';
 import * as Utils from './Utils';
 import 'chartjs-adapter-luxon';
@@ -7,45 +7,65 @@ import './styles.css';
 
 import { MatchEntry } from "./DashboardInterfaces";
 
-interface ScoreChartProps {
+interface ActivityChartProps {
 	setChartInstance: Function,
-	displayedDate: Date,
+	activityData: Array<MatchEntry>,
 	winData: Array<MatchEntry>,
 	lossData: Array<MatchEntry>,
+	displayedDate: Date,
 	maxY: number
 }
 
-export default function ScoreChart({ setChartInstance, displayedDate, winData, lossData, maxY }: ScoreChartProps) {
+export default function NewChart({ setChartInstance, activityData, winData, lossData, displayedDate, maxY }: ActivityChartProps) {
 	const chartRef = useRef<HTMLCanvasElement>(null);
 	const chartInstance = useRef<Chart | null>(null);
+	setChartInstance(chartInstance);
+
+	const lineData = {
+		labels: [],
+		datasets: [
+			{
+				label: 'Activity',
+				data: activityData,
+				fill: false,
+				borderWidth: 4,
+				borderColor: 'rgb(75, 192, 192)',
+				backgroundColor: 'rgb(75, 192, 192)'
+			},
+		]
+	};
+
+	const data = {
+		labels: [],
+		datasets: [
+			{
+				label: 'Wins',
+				data: winData,
+				backgroundColor: Utils.CHART_COLORS.green,
+			},
+			{
+				label: 'Losses',
+				data: lossData,
+				backgroundColor: Utils.CHART_COLORS.red,
+			},
+		]
+	};
+
 
 	useEffect(() => {
 		if (chartRef.current) {
 			const ctx = chartRef.current.getContext('2d');
-			const data = {
-				labels: [],
-				datasets: [
-					{
-						label: 'Wins',
-						data: winData,
-						backgroundColor: Utils.CHART_COLORS.green,
-					},
-					{
-						label: 'Losses',
-						data: lossData,
-						backgroundColor: Utils.CHART_COLORS.red,
-					},
-				]
-			};
 
+
+			// If a chart instance already exists, destroy it before creating a new one
 			if (chartInstance.current) {
 				chartInstance.current.destroy();
 			}
 
 			if (ctx) {
 				chartInstance.current = new Chart(ctx, {
-					type: 'bar',
-					data: data,
+					type: 'line',
+					data: lineData,
 					options: {
 						locale: 'en-us',
 						responsive: true,
@@ -53,13 +73,13 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 						plugins: {
 							title: {
 								display: true,
-								text: 'Activity/Score Chart',
+								text: 'Activity Chart',
 								padding: {
 									bottom: 20
 								},
 								font: {
 									size: 20
-								},
+								}
 							},
 							legend: {
 								onClick: () => { },
@@ -79,7 +99,6 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 								grid: {
 									display: false
 								},
-								stacked: true,
 								type: 'time',
 								time: {
 									unit: 'day',
@@ -88,8 +107,11 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 								},
 								min: displayedDate.getTime(),
 								ticks: {
+									autoSkip: true, // Automatically skip ticks to avoid overlap
+									maxRotation: 0, // Prevent rotation of labels
+									minRotation: 0,
 									font: {
-										size: 18,
+										size: 18
 									}
 								}
 							},
@@ -100,16 +122,23 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 								suggestedMax: maxY + 2,
 								ticks: {
 									font: {
-										size: 18,
+										size: 18
 									},
 									stepSize: 1
 								}
 							}
-						}
+						},
+						elements: {
+							point: {
+								radius: 4,
+								hoverRadius: 8,
+							}
+						},
 					}
-				});
-				setChartInstance(chartInstance);
+				}
+				);
 			}
+
 			// Cleanup function to destroy the chart instance when the component unmounts
 			return () => {
 				if (chartInstance.current) {
@@ -117,7 +146,7 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 				}
 			};
 		}
-	}, [winData, lossData]);
+	}, [activityData, displayedDate]);
 
 	return (
 		<>
@@ -125,3 +154,18 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 		</>
 	);
 };
+
+// const handle1 = () => {
+// 	setDisplayDate(sevenDays);
+// 	if (chartInstance.current?.options.scales && chartInstance.current.options.scales.x) {
+// 		chartInstance.current.options.scales.x.min = sevenDays.getTime();
+// 	}
+// 	chartInstance.current?.update();
+// }
+
+// const handle2 = () => {
+// 	if (chartInstance.current?.options.scales && chartInstance.current.options.scales.x) {
+// 		chartInstance.current.options.scales.x.min = displayedDate.getTime();
+// 	}
+// 	chartInstance.current?.update();
+// }
