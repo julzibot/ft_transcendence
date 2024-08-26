@@ -69,52 +69,56 @@ const sparkFs = `
     }
 `;
 
-function printGameInfo( font, textMesh, string, mode, id, fontsize )
+function printGameInfo( textMesh, string, mode, id, fontsize )
 {
-  let updatedStringGeo = new TextGeometry(string, {font: font, size: fontsize, height: 0.5 });
-  if (mode > 0 && mode < 3)
+  csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
   {
-    const textMaterial = new THREE.MeshStandardMaterial({ color: 0x0000cc, emissive: 0xdd00dd, emissiveIntensity: 0.2 });
-    textMesh.material = textMaterial;
-    if (mode == 1)
-      textMesh.position.set(-CONST.GAMEWIDTH / 16 - 2, CONST.GAMEHEIGHT / 2 + 0.75, 1);
-    else if (mode == 2)
-      textMesh.position.set(CONST.GAMEWIDTH / 16, CONST.GAMEHEIGHT / 2 + 0.75, 1);
-  }
-  else if (mode == 3)
-  {
-    const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
-    textMesh.material = textMaterial;
-    if (id === 0)
-      textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 2.75, 1)
-    else
-      textMesh.position.set( CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 2.75, 1)
-  }
-  else if (mode == 4)
-  {
-    const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
-    textMesh.material = textMaterial;
-    if (id === 0)
-      textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 0.75, 1)
-    else
-      textMesh.position.set( CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 0.75, 1)
-  }
-  else if (mode == 5)
-  {
-    const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-    textMesh.material = textMaterial;
-    textMesh.position.set(-11.5, -7 , -1.5);
-  }
-  else if (mode > 5)
-  {
-    const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[mode - 6], emissive: custom.modes_colormap[mode - 6], emissiveIntensity: 0.3 });
-    // textMesh.material.dispose();
-    textMesh.material = textMaterial;
-  }
-  if (mode > 0 && mode < 5)
-    tools.scene.add(textMesh);
-  textMesh.geometry.dispose();
-  textMesh.geometry = updatedStringGeo;
+    console.log("FONT: " + font);
+    let updatedStringGeo = new TextGeometry(string, {font: font, size: fontsize, height: 0.5 });
+    if (mode > 0 && mode < 3)
+    {
+      const textMaterial = new THREE.MeshStandardMaterial({ color: 0x0000cc, emissive: 0xdd00dd, emissiveIntensity: 0.2 });
+      textMesh.material = textMaterial;
+      if (mode == 1)
+        textMesh.position.set(-CONST.GAMEWIDTH / 16 - 2, CONST.GAMEHEIGHT / 2 + 0.75, 1);
+      else if (mode == 2)
+        textMesh.position.set(CONST.GAMEWIDTH / 16, CONST.GAMEHEIGHT / 2 + 0.75, 1);
+    }
+    else if (mode == 3)
+    {
+      const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
+      textMesh.material = textMaterial;
+      if (id === 0)
+        textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 2.75, 1)
+      else
+        textMesh.position.set( CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 2.75, 1)
+    }
+    else if (mode == 4)
+    {
+      const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
+      textMesh.material = textMaterial;
+      if (id === 0)
+        textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 0.75, 1)
+      else
+        textMesh.position.set( CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 0.75, 1)
+    }
+    else if (mode == 5)
+    {
+      const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+      textMesh.material = textMaterial;
+      textMesh.position.set(-11.5, -7 , -1.5);
+    }
+    else if (mode > 5)
+    {
+      const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[mode - 6], emissive: custom.modes_colormap[mode - 6], emissiveIntensity: 0.3 });
+      // textMesh.material.dispose();
+      textMesh.material = textMaterial;
+    }
+    if (mode > 0 && mode < 5)
+      tools.scene.add(textMesh);
+    textMesh.geometry.dispose();
+    textMesh.geometry = updatedStringGeo;
+  })
 }
 
 const setBallColor = () =>
@@ -129,7 +133,7 @@ const setBallColor = () =>
 }
 
 // CUT
-const scoringLogic = (room_id, socket, isHost, gamemode) =>
+const scoringLogic = (room_id, socket, isHost, gamemode) => 
 {
   // RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
   if (isHost === true && (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4)))
@@ -138,15 +142,13 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
     {
       vars.ballVect.set(-1, 0);
       vars.p1Score += 1;
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-      {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, -1, 3.5);});
+      printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, -1, 3.5);
     }
     else
     {
       vars.ballVect.set(1, 0);
       vars.p2Score += 1;
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-      {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, -1, 3.5);});
+      printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, -1, 3.5);
     }
     if (custom.power_ups === true)
     {
@@ -173,22 +175,22 @@ const scoringLogic = (room_id, socket, isHost, gamemode) =>
     vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
     vars.ai_aim = 0;
     setBallColor();
-    if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score)
-        vars.stopGame = true;
+    if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score && vars.stopGame == 0)
+        vars.stopGame = 1;
     if (gamemode === 2)
       socket.emit('sendScore', {room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, game_ended: vars.stopGame});
   }
-  if (vars.stopGame === true)
+  if (vars.stopGame === 1)
   {
     if (vars.p1Score > vars.p2Score)
       vars.endString = "GAME ENDED\nPLAYER 1 WINS";
     else
       vars.endString = "GAME ENDED\nPLAYER 2 WINS";
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.endMsgMesh, vars.endString, 5, -1, 3)} );
+    printGameInfo(vars.endMsgMesh, vars.endString, 5, -1, 3);
     put_response = PutScores(gamemode);
     if (put_response == false)
       console.log("Ouch ! Scores not updated !")
+    vars.stopGame = 2;
   }
 }
 
@@ -379,8 +381,7 @@ const collisionLogic = (room_id, socket, gamemode) =>
       if (powerUps[i][4].intersectsBox(sph))
       {
         player_powerUps[pu_dir] = powerUps[i][5];
-        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-        {printGameInfo(font, vars.latentMesh[pu_dir], powerUp_names[player_powerUps[pu_dir]], player_powerUps[pu_dir] + 6, pu_dir, 0.85)} );
+        printGameInfo(vars.latentMesh[pu_dir], powerUp_names[player_powerUps[pu_dir]], player_powerUps[pu_dir] + 6, pu_dir, 0.85);
         if (gamemode === 2)
         {
           socket.emit('sendCollectPU', { player_id: pu_dir, power_id: powerUps[i][5], room_id: room_id });
@@ -399,8 +400,7 @@ const activate_power = (i, mode) =>
   {
     activated_powers[i][player_powerUps[i]] = 1;
     objs.puGaugeLights[i][player_powerUps[i]].intensity = 5;
-    csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-			{printGameInfo(font, vars.latentMesh[i], "none", 11, i, 0.85)} );
+    printGameInfo(vars.latentMesh[i], "none", 11, i, 0.85);
     player_powerUps[i] = -1;
   }
   if (activated_powers[i][0] === 1)
@@ -517,10 +517,11 @@ let aiPuHandle = () =>
   {
     if ((pu === 0 && vars.ballVect.x > 0)
       || (pu === 1 && vars.adjustedBallSpeed > 0.8 * CONST.BALLSPEED_MAX)
-      || (pu === 2 && vars.ballVect.x > 0 && vars.adjustedBallSpeed > 0.9 * CONST.BALLSPEED_MAX && Math.abs(vars.ai_aim - objs.ball.position.y) > CONST.GAMEHEIGHT / 4)
+      || (pu === 2 && vars.ballVect.x > 0 && vars.adjustedBallSpeed > 0.9 * CONST.BALLSPEED_MAX
+          && Math.abs(vars.ai_aim - objs.ball.position.y) > CONST.GAMEHEIGHT / 4 && objs.ball.position.x > 0)
       || pu === 3 || pu === 4)
       {
-        activate_power(1);
+        activate_power(1, 0);
       }
   }
 }
@@ -539,9 +540,9 @@ const local_update = (gamemode) =>
     objs.player2.position.y = aiMoveHandle(invert_controls[1]);
 
   if (keys['Space'] && custom.power_ups === true)
-    activate_power(0);
+    activate_power(0, 0);
   if (keys['ArrowRight'] && gamemode === 0 && custom.power_ups === true)
-    activate_power(1);
+    activate_power(1, 0);
   else if (gamemode === 1 && custom.power_ups === true)
     aiPuHandle();
 }
@@ -913,7 +914,7 @@ const animate = (socket, room_id, isHost, gamemode) =>
     collisionLogic(room_id, socket, gamemode);
   scoringLogic(room_id, socket, isHost, gamemode);
   
-  if (vars.stopGame === true)
+  if (vars.stopGame > 0)
     vars.ballVect.set(0, 0);
   
   if (isHost === true)
@@ -1004,14 +1005,12 @@ const init_socket = (socket, isHost) =>
       if (data.score1 > vars.p1Score)
       {
         vars.p1Score = data.score1;
-        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-        {printGameInfo(font, vars.p1textMesh, vars.p1Score.toString(), 0, -1, 4);});
+        printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, -1, 4);
       }
       else
       {
         vars.p2Score = data.score2;
-        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function(font)
-        {printGameInfo(font, vars.p2textMesh, vars.p2Score.toString(), 0, -1, 4);});
+        printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, -1, 4);
       }
       setBallColor();
       vars.stopGame = data.stopGame;
@@ -1024,8 +1023,7 @@ const init_socket = (socket, isHost) =>
     socket.on('updateCollectPU', data => {
       const p = data.player_id;
       player_powerUps[p] = data.powerType;
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.latentMesh[p], powerUp_names[data.powerType], player_powerUps[p] + 6, p, 0.85)} );
+      printGameInfo(vars.latentMesh[p], powerUp_names[data.powerType], player_powerUps[p] + 6, p, 0.85);
     })
     socket.on('updateActivatePU1', data => {
       // if (data.powerType === player_powerUps[0])
@@ -1178,16 +1176,12 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
       }
       
       // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p1textMesh, "0", 1, -1, 3.5)} );
-      csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-      {printGameInfo(font, vars.p2textMesh, "0", 2, -1, 3.5)} );
+      printGameInfo(vars.p1textMesh, "0", 1, -1, 3.5);
+      printGameInfo(vars.p2textMesh, "0", 2, -1, 3.5);
       if (custom.power_ups === true)
       {
-        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-        {printGameInfo(font, vars.latentMesh[0], "none", 3, 0, 0.85)} );
-        csts.loader.load( CONST.FONTPATH + CONST.FONTNAME, function (font)
-        {printGameInfo(font, vars.latentMesh[1], "none", 3, 1, 0.85)} );
+        printGameInfo(vars.latentMesh[0], "none", 3, 0, 0.85);
+        printGameInfo(vars.latentMesh[1], "none", 3, 1, 0.85);
       }
       
       document.addEventListener('keydown', function(event) { keys[event.code] = true; });
