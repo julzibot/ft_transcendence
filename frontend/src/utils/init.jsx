@@ -128,7 +128,7 @@ vars.ai_offset = 0;
 vars.ai_invert = 1;
 
 vars.dotProduct = 0;
-vars.stopGame = false;
+vars.stopGame = 0;
 vars.directions = [1,1];
 vars.downkeys = [false, false];
 vars.reboundDiff = 0;
