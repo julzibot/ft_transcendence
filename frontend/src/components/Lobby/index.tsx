@@ -12,16 +12,14 @@ const gameLevel = [
 	{ value: 2, level: 'Expert' }
 ]
 
-const Lobby = () => {
+export default function Lobby() {
 	const {data: session} = useSession()
 	const router = useRouter()
 	const [lobbyData, setLobbyData] = useState([])
 	const [modalShow, setModalShow] = useState(false);
 	const [errorfield, setErrorfield] = useState({
 		name: '',
-		isPrivate: '',
 		difficultyLevel: '',
-		pointsPerGame: '',
 	})
 	const [errshow, setErrShow] = useState(false)
 	const [lobbyForm, setLobbyForm] = useState({
@@ -41,30 +39,24 @@ const Lobby = () => {
 			isPrivate: false,
 			difficultyLevel: '',
 			isActiveLobby: false,
-			pointsPerGame: '0',
+			pointsPerGame: '1',
 			timer: '0',
 			powerUps: false
 		})
 		setErrorfield(
 			{
 				name: '',
-				isPrivate: '',
 				difficultyLevel: '',
-				pointsPerGame: '',
 			}
 		)
 		setModalShow(true)
-	}
-
-	const handleClose = () => {
-		setModalShow(false)
 	}
 
 	const handleFormData = (e, key) => {
 		setLobbyForm(
 			{
 				...lobbyForm,
-				[key]: (key === "isActiveLobby" || key === "isPrivate" || key === "powerUps") ? (e.target.checked) : (e.target.value)
+				[key]: (key === "isActiveLobby" || key === "powerUps") ? (e.target.checked) : (e.target.value)
 			}
 		)
 	}
@@ -77,7 +69,6 @@ const Lobby = () => {
 			return true
 		}
 	}
-
 
 
 	const handleSubmitData = async () => {
@@ -114,7 +105,7 @@ const Lobby = () => {
 
 			try {
 				const data = await AddLobbyData(payload);
-				handleClose();
+				setModalShow(false)
 				fetchLobbyData();
 				router.push(`/game/online/lobby/${data?.lobby.linkToJoin}`)
 			} catch (error) {
@@ -160,10 +151,10 @@ const Lobby = () => {
 	}, [])
 
 	return (
-		<div className=' d-flex justify-content-center mt-3'>
+		<div className='d-flex justify-content-center'>
 			<div className='w-100 border rounded p-4' style={{ maxWidth: '800px' }}>
 				<div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
-					<h3 className='mb-0'>Lobby</h3>
+					<h3 className='mb-0 me-4'>Lobby</h3>
 					<Button className="btn btn-outline-light me-md-2" type='button' onClick={handleShow}>Create</Button>
 				</div>
 				<div className='w-100 pt-2' >
@@ -187,31 +178,30 @@ const Lobby = () => {
 
 			<Modal
 				show={modalShow}
-				onHide={handleClose}
+				onHide={() => setModalShow(false)}
 				size="lg"
 				aria-labelledby="contained-modal-title-vcenter"
 				centered
 			>
 				<Modal.Header closeButton>
 					<Modal.Title id="contained-modal-title-vcenter">
-						Add Lobby details
+						Select Game Customizations
 					</Modal.Title>
 				</Modal.Header>
 				<Modal.Body>
 					<form>
 						<div className="mb-3">
-							<label className="form-label">Name*</label>
+							<label className="form-label">Name</label>
+							<span className='text-danger'>*</span>
 							<input type="text" className="form-control" value={lobbyForm.name} onChange={(e) => handleFormData(e, 'name')} />
 							{errorfield && lobbyForm.name === '' ? <div className="form-text text-danger">{errorfield.name}</div> : null}
 						</div>
-						{/* <div className="mb-3">
-		<label className="form-label">Number Of Players</label>
-		<input type="text" className="form-control" value={lobbyForm.numberOfPlayer} onChange={(e) => handleFormData(e, 'numberOfPlayer')}/>
-	  </div> */}
-						<div className="mb-3 flex align-items-center">
-							<label className="form-label">Points Per Game* - {lobbyForm.pointsPerGame}</label>
-							<input type="range" className="form-range" min="0" max="100" value={lobbyForm.pointsPerGame} onChange={(e) => handleFormData(e, 'pointsPerGame')} />
-							{errorfield && lobbyForm.pointsPerGame === '0' || lobbyForm.pointsPerGame === '' ? <div className="form-text text-danger">{errorfield.pointsPerGame}</div> : null}
+						<div className="mb-3 align-items-center">
+							<label className="form-label">Points Per Game 
+								<span className='text-danger'>*</span>
+							</label>
+							<div className='text-primary ms-2 col' style={{width: "25px"}}>{lobbyForm.pointsPerGame}</div>
+							<input type="range" className="form-range" min="1" max="30" step="1" value={lobbyForm.pointsPerGame} onChange={(e) => handleFormData(e, 'pointsPerGame')} />
 						</div>
 						<div className="mb-3">
 							<label className="form-label">Difficulty Level*</label>
@@ -231,11 +221,6 @@ const Lobby = () => {
 							<input type="text" className="form-control" value={lobbyForm.timer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'timer')} />
 						</div>
 						<div className='d-flex items-center flex-wrap'>
-							<div className="mb-3 form-check me-5">
-								<input type="checkbox" className="form-check-input" value={lobbyForm.isPrivate} onChange={(e) => handleFormData(e, 'isPrivate')} />
-								<label className="form-check-label">Is This Private Lobby ?*</label>
-								{errorfield && lobbyForm.isPrivate === false ? <div className="form-text text-danger">{errorfield.isPrivate}</div> : null}
-							</div>
 							<div className="mb-3 form-check form-switch">
 								<input type="checkbox" className="form-check-input" value={lobbyForm.powerUps} onChange={(e) => handleFormData(e, 'powerUps')} />
 								<label className="form-check-label">Power ups</label>
@@ -244,7 +229,7 @@ const Lobby = () => {
 					</form>
 				</Modal.Body>
 				<Modal.Footer>
-					<Button variant="secondary" onClick={handleClose}>Close</Button>
+					<Button variant="secondary" onClick={() => setModalShow(false)}>Close</Button>
 					<Button variant="primary" onClick={handleSubmitData}>Add</Button>
 				</Modal.Footer>
 			</Modal>
@@ -253,5 +238,3 @@ const Lobby = () => {
 		</div>
 	)
 }
-
-export default Lobby

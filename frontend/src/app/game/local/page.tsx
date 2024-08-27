@@ -105,7 +105,6 @@ export default function GameSettings() {
 						session && (
 							<>
 								<LocalGame userId={session.user.id} gameSettings={gameSettings} />
-								<OnlineGame userId={session.user.id} gameSettings={gameSettings} />
 							</>
 						)
 					}
