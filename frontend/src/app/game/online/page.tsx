@@ -30,7 +30,7 @@ export default function OnlineGamePage() {
 
 	return (
 		<>
-				<div className="container d-flex flex-column align-items-center justify-content-center">
+				<div className="d-flex flex-column align-items-center justify-content-center">
 					<div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4 ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
 						<div className="card-title">
 							<h2 className="mt-3">Pong Game Settings</h2>
@@ -80,7 +80,7 @@ export default function OnlineGamePage() {
 										value={gameSettings.pointsToWin}
 										onChange={(e) => setGameSettings({ ...gameSettings, pointsToWin: parseInt(e.target.value) })}
 									/>
-									<div className="container d-flex align-items-center justify-content-center">
+									<div className="d-flex align-items-center justify-content-center">
 										<p><strong>{gameSettings.pointsToWin}</strong></p>
 									</div>
 								</div>

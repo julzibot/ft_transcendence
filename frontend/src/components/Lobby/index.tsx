@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
 import { Button, Modal } from 'react-bootstrap'
 import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournaments';
-import { getSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+
 
 const gameLevel = [
 	{ value: 0, level: 'Beginner' },
@@ -11,7 +13,8 @@ const gameLevel = [
 ]
 
 const Lobby = () => {
-	const [session, setSession] = useState()
+	const {data: session} = useSession()
+	const router = useRouter()
 	const [lobbyData, setLobbyData] = useState([])
 	const [modalShow, setModalShow] = useState(false);
 	const [errorfield, setErrorfield] = useState({
@@ -76,33 +79,6 @@ const Lobby = () => {
 	}
 
 
-	//   const handleSubmitData = async () => {
-	// if (lobbyForm?.name === '' && lobbyForm?.pointsPerGame === '0' && lobbyForm?.difficultyLevel === '' && (lobbyForm?.timer === '0' || lobbyForm?.timer === '') && lobbyForm?.isPrivate === false && lobbyForm?.powerUps === false) {
-	//     const payload = {
-	//         "name" : lobbyForm?.name,
-	//         "numberOfPlayers" : lobbyForm?.numberOfPlayer,
-	//         "isPrivate" : lobbyForm?.isPrivate,
-	//         "difficultyLevel": lobbyForm?.difficultyLevel,
-	//         "isActiveLobby" : lobbyForm?.isActiveLobby,
-	//         "pointsPerGame" : lobbyForm?.pointsPerGame,
-	//         "timer" : lobbyForm?.timer,
-	//         "gameName" : gameName,
-	// 		"powerUps" : lobbyForm?.powerUps,
-	// 		"user_id" : session?.user?.id 
-	//     }
-	//     try {
-	//         await AddLobbyData(payload).then((response) => {
-	//             handleClose()
-	//             fetchLobbyData()
-	//         })
-	//     } catch (error) {
-	//         console.error("Error :", error)
-	//     }
-	// } else{
-	// }
-	// handleError()
-	//   }
-
 
 	const handleSubmitData = async () => {
 		let errors = {};
@@ -124,9 +100,6 @@ const Lobby = () => {
 			setErrorfield(errors);
 			setErrShow(true);
 		} else {
-			// const userID = await getSession()
-			// console.log(userID, 'userID');
-			// No errors, proceed with form submission
 			setErrShow(false);
 
 			const payload = {
@@ -140,9 +113,10 @@ const Lobby = () => {
 			}
 
 			try {
-				await AddLobbyData(payload);
+				const data = await AddLobbyData(payload);
 				handleClose();
 				fetchLobbyData();
+				router.push(`/game/online/lobby/${data?.lobby.linkToJoin}`)
 			} catch (error) {
 				console.error('Error:', error);
 				// Handle error from API call
@@ -150,10 +124,10 @@ const Lobby = () => {
 		}
 	};
    
-	const handlePutLobbyApi = async (element , userID) => {
+	const handlePutLobbyApi = async (element ) => {
 		const payload = {
 			"lobby_id": element?.id.toString(),
-			"user_id": userID?.user?.id.toString()
+			"user_id": session?.user?.id.toString()
 		}
 		const response = await HandlePutLobby(payload)
 		if (response) {
@@ -161,9 +135,9 @@ const Lobby = () => {
 		}
 	}
 	const handleUser = async (item) => {
-        const userID = await getSession()
-		if ((item?.player1 && item?.player1 !== userID?.user?.id) && item?.player2 === null) {
-			handlePutLobbyApi(item, userID)
+		if ((item?.player1 && item?.player1 !== session?.user?.id) && item?.player2 === null) {
+			handlePutLobbyApi(item, session?.user?.id)
+			router.push(`/game/online/lobby/${item?.linkToJoin}`)
 		} else {
 			alert('Waiting For Other Player to join ')
 		}
@@ -181,20 +155,12 @@ const Lobby = () => {
 		}
 	}
 
-	const handleSelectedData = () => { }
-
-	const handleSession = async () => {
-		const s = await getSession()
-		setSession(s)
-	}
-
 	useEffect(() => {
-		handleSession()
 		fetchLobbyData()
 	}, [])
 
 	return (
-		<div className='text-light d-flex justify-content-center mt-3'>
+		<div className=' d-flex justify-content-center mt-3'>
 			<div className='w-100 border rounded p-4' style={{ maxWidth: '800px' }}>
 				<div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
 					<h3 className='mb-0'>Lobby</h3>
@@ -205,10 +171,11 @@ const Lobby = () => {
 						{
 							lobbyData.length > 0 && lobbyData?.map((item: any, i: number) => {
 								return (
-									<h6 style={{ cursor: 'pointer', borderBottom: '1px solid #f0f0f0' }} className='d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary' key={item.id} onClick={() => handleSelectedData(item)}>
+									<h6 style={{ cursor: 'pointer', borderBottom: '1px solid #f0f0f0' }} className='d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary' key={item.id}>
 										<span>{i + 1}. {item.name}</span>
-										<span className='p' onClick={() => handleUser(item)}>{item.linkToJoin}</span>
-										{/* <ArrowUpRightSquare className='h5'/> */}
+										{
+											item?.player1 && item?.player1 !== session?.user?.id && <button className='btn btn-warning' onClick={() => handleUser(item)}>Join</button>
+										}
 									</h6>
 								)
 							})

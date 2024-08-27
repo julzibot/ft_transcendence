@@ -58,7 +58,8 @@ class LobbyView(APIView):
 					powerUps=data['powerUps'],
 					player1=user
 				)
-				return Response({'message':'You have created lobby successfully'}, status=status.HTTP_201_CREATED)	
+				serializer = LobbySerializer(new_lobby)
+				return Response({'lobby': serializer.data}, status=status.HTTP_201_CREATED)	
 			except ObjectDoesNotExist:
 				return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
 
