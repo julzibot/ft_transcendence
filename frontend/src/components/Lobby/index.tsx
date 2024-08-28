@@ -4,11 +4,11 @@ import { Button, Modal } from 'react-bootstrap'
 import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournaments';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { GameSetings } from '@/types/GameSettings';
+import { GameSettings } from '@/types/GameSettings';
 
 interface GameSettingsProps {
 	setGameSettings: Function,
-	gameSettings: GameSetings
+	gameSettings: GameSettings
 }
 
 export default function Lobby({ setGameSettings, gameSettings }: GameSettingsProps) {
@@ -119,8 +119,11 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 	}
 	const handleUser = async (item) => {
 		if ((item?.player1 && item?.player1 !== session?.user?.id) && item?.player2 === null) {
-			handlePutLobbyApi(item)
-			router.push(`/game/online/lobby/${item?.linkToJoin}`)
+			handlePutLobbyApi(item);
+			const settings = JSON.stringify(gameSettings);
+			const searchParams = new URLSearchParams({ settings });
+
+			router.push(`/game/online/lobby/${item?.linkToJoin}?${searchParams.toString()}`)
 		} else {
 			alert('Waiting For Other Player to join')
 		}
