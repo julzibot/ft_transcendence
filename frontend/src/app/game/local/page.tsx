@@ -4,27 +4,33 @@ import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import Customization from "@/components/game/Customization";
 import LocalGame from "@/components/game/LocalGame";
-import OnlineGame from "@/components/game/OnlineGame"
 import './styles.css'
 import styles from './GameSettingsStyles.module.css'
+import { GameSetings } from "@/types/GameSettings";
 
 export default function GameSettings() {
 
-	const { data: session, status } = useSession();
+	const { data: session } = useSession();
 
 	const [isTranslated, setIsTranslated] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+	const [isMounted, setIsMounted] = useState(false);
 
-	const [gameSettings, setGameSettings] = useState({
+	const [gameSettings, setGameSettings] = useState<GameSetings>({
+		user_id: session?.user.id ?? -1,
+		background: 0,
+		palette: 0,
+		bgColor: '#ff0000',
+		opacity: 80,
+		sparks: true,
 		gameDifficulty: 4,
 		pointsToWin: 5,
 		powerUps: true
 	});
 
 	useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsMounted(true);
-    }, 500);
+		const timer = setTimeout(() => {
+			setIsMounted(true);
+		}, 500);
 		return () => clearTimeout(timer)
 	}, []);
 

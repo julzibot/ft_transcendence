@@ -25,12 +25,12 @@ class LobbyView(APIView):
         name="InlineFormSerializer",
         fields={
 					"name": serializers.CharField(),
-					"isPrivate": serializers.BooleanField(),
-					"difficultyLevel": serializers.CharField(),
+					# "isPrivate": serializers.BooleanField(),
+					# "difficultyLevel": serializers.CharField(),
 					"isActiveLobby": serializers.BooleanField(),
-					"pointsPerGame": serializers.CharField(),
-					"timer": serializers.CharField(),
-					"powerUps": serializers.BooleanField(),
+					# "pointsPerGame": serializers.CharField(),
+					# "timer": serializers.CharField(),
+					# "powerUps": serializers.BooleanField(),
 					"user_id": serializers.CharField(),
         },
     ),
@@ -51,11 +51,11 @@ class LobbyView(APIView):
 				user = UserAccount.objects.get(id=data['user_id'])
 				new_lobby = LobbyData.objects.create(
 					name=data['name'],
-					isPrivate=data['isPrivate'],
-					difficultyLevel=data['difficultyLevel'],
-					pointsPerGame=data['pointsPerGame'],
-					timer=data['timer'],
-					powerUps=data['powerUps'],
+					# isPrivate=data['isPrivate'],
+					# difficultyLevel=data['difficultyLevel'],
+					# pointsPerGame=data['pointsPerGame'],
+					# timer=data['timer'],
+					# powerUps=data['powerUps'],
 					player1=user
 				)
 				serializer = LobbySerializer(new_lobby)
