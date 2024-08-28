@@ -4,9 +4,27 @@ import { useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import styles from './CustomizationStyles.module.css';
 import './colorPickerStyles.css';
-import { GameSetings } from "@/types/GameSettings";
+import { GameSettings } from "@/types/GameSettings";
 
-export async function fetchGameSettings(user_id: number, updateSettings: Function, gameSettings: GameSetings) {
+interface GameSettingsProps {
+	updateSettings: Function,
+	gameSettings: GameSettings,
+	userId: number
+}
+
+export function defaultGameSettings(updateSettings: Function, gameSettings: GameSettings, user_id: number) {
+	updateSettings({
+		...gameSettings,
+		user_id: user_id,
+		background: 0,
+		palette: 0,
+		bgColor: '#ff0000',
+		opacity: 80,
+		sparks: true,
+	})
+}
+
+export async function fetchGameSettings(user_id: number, updateSettings: Function, gameSettings: GameSettings) {
 
 	if (user_id) {
 		const response = await fetch(`http://localhost:8000/api/gameCustomization/${user_id}`, {
@@ -14,15 +32,7 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 		});
 		if (response.ok) {
 			if (response.status === 204) {
-				updateSettings({
-					...gameSettings,
-					user_id: user_id,
-					background: 0,
-					palette: 0,
-					bgColor: '#ff0000',
-					opacity: 80,
-					sparks: true,
-				})
+				defaultGameSettings(updateSettings, gameSettings, user_id);
 			} else {
 				const fetched = await response.json();
 				const data = fetched.data;
@@ -38,35 +48,13 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 			}
 		} else if (response.status === 404) {
 			console.error('[Fetch Game Settings] [404] - User Does Not Exist');
-			updateSettings({
-				...gameSettings,
-				user_id: user_id,
-				background: 0,
-				palette: 0,
-				bgColor: '#ff0000',
-				opacity: 80,
-				sparks: true,
-			})
+			defaultGameSettings(updateSettings, gameSettings, user_id);
 		} else {
 			console.error('[Fetch Game Settings] Error: ' + response.status);
-			updateSettings({
-				...gameSettings,
-				user_id: user_id,
-				background: 0,
-				palette: 0,
-				bgColor: '#ff0000',
-				opacity: 80,
-				sparks: true,
-			})
+			defaultGameSettings(updateSettings, gameSettings, user_id);
 		}
 	}
 };
-
-interface GameSettingsProps {
-	updateSettings: Function,
-	gameSettings: GameSetings,
-	userId: number
-}
 
 export default function Customization({ updateSettings, gameSettings, userId }: GameSettingsProps) {
 
@@ -98,19 +86,11 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 	}
 
 	const gameCustomDefault = () => {
-		updateSettings({
-			...gameSettings,
-			background: 0,
-			palette: 0,
-			bgColor: '#ff0000',
-			opacity: 80,
-			sparks: true
-		});
+		defaultGameSettings(updateSettings, gameSettings, userId);
 		gameCustomSave();
 	}
 
 	const gameCustomSave = async () => {
-		// console.log(gameSettings);
 		const requestData = {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },

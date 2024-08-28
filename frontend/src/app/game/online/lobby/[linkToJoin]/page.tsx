@@ -6,16 +6,30 @@ import { useSession } from "next-auth/react";
 import { SocketProvider } from "@/context/socket";
 import Join from "@/components/game/Join";
 import { fetchGameSettings } from "@/components/game/Customization";
-import { GameSetings } from "@/types/GameSettings";
+import { GameSettings } from "@/types/GameSettings";
 
 export default function Lobby() {
-	const { data: session } = useSession();
+	const { data: session, status } = useSession();
 	const { linkToJoin } = useParams();
 	const searchParams = useSearchParams();
 	const settings = searchParams.get('settings');
 
-	const [gameSettings, setGameSettings] = useState<GameSetings>({
-		user_id: session?.user.id ?? -1,
+	if (status === 'loading') {
+		return (
+			<>
+				<p>[session] Loading...</p>
+			</>
+		);
+	}
+
+	if (!session || !session.user.id) {
+		return (
+			<p>[session] No user session found.</p>
+		)
+	}
+
+	const [gameSettings, setGameSettings] = useState<GameSettings>({
+		user_id: session?.user.id,
 		background: 0,
 		palette: 0,
 		bgColor: '#ff0000',
@@ -28,20 +42,19 @@ export default function Lobby() {
 
 	useEffect(() => {
 
-		setGameSettings(settings ? JSON.parse(settings) : null);
-		if (!settings && session?.user.id) {
-			fetchGameSettings(session?.user?.id, setGameSettings, gameSettings);
-			console.log(gameSettings);
-		}
+		setGameSettings(settings ? JSON.parse(settings) : {});
+		// if (!settings) {
+		// 	fetchGameSettings(session?.user?.id, setGameSettings, gameSettings);
+		// 	console.log(gameSettings);
+		// }
 	}, [settings]);
-
 
 	return (
 		<>
 			{
-				gameSettings ? (
+				session && gameSettings ? (
 					<SocketProvider>
-						<Join userId={session?.user.id} room={linkToJoin} gameSettings={gameSettings} gameMode={2} />
+						<Join userId={session?.user.id} room={linkToJoin.toString()} gameSettings={gameSettings} gameMode={2} />
 					</SocketProvider>
 				) : (
 					<p>Waiting for Game Settings...</p>
