@@ -4,55 +4,54 @@ import { Button, Modal } from 'react-bootstrap'
 import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournaments';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { GameSetings } from '@/types/GameSettings';
 
+interface GameSettingsProps {
+	setGameSettings: Function,
+	gameSettings: GameSetings
+}
 
-const gameLevel = [
-	{ value: 0, level: 'Beginner' },
-	{ value: 1, level: 'Intermediate' },
-	{ value: 2, level: 'Expert' }
-]
-
-export default function Lobby() {
-	const {data: session} = useSession()
+export default function Lobby({ setGameSettings, gameSettings }: GameSettingsProps) {
+	const { data: session } = useSession()
 	const router = useRouter()
 	const [lobbyData, setLobbyData] = useState([])
 	const [modalShow, setModalShow] = useState(false);
 	const [errorfield, setErrorfield] = useState({
 		name: '',
-		difficultyLevel: '',
+		// difficultyLevel: '',
 	})
 	const [errshow, setErrShow] = useState(false)
 	const [lobbyForm, setLobbyForm] = useState({
 		name: '',
 		numberOfPlayer: '2',
-		isPrivate: false,
-		difficultyLevel: '',
+		// isPrivate: false,
+		// difficultyLevel: '',
 		isActiveLobby: false,
-		pointsPerGame: '0',
-		timer: '0',
-		powerUps: false
+		// pointsPerGame: '0',
+		// timer: '0',
+		// powerUps: false
 	})
 	const handleShow = () => {
 		setLobbyForm({
 			name: '',
 			numberOfPlayer: '',
-			isPrivate: false,
-			difficultyLevel: '',
+			// isPrivate: false,
+			// difficultyLevel: '',
 			isActiveLobby: false,
-			pointsPerGame: '1',
-			timer: '0',
-			powerUps: false
+			// pointsPerGame: '1',
+			// timer: '0',
+			// powerUps: false
 		})
 		setErrorfield(
 			{
 				name: '',
-				difficultyLevel: '',
+				// difficultyLevel: '',
 			}
 		)
 		setModalShow(true)
 	}
 
-	const handleFormData = (e, key) => {
+	const handleFormData = (e: React.ChangeEvent<HTMLInputElement>, key) => {
 		setLobbyForm(
 			{
 				...lobbyForm,
@@ -61,31 +60,21 @@ export default function Lobby() {
 		)
 	}
 
-	const isNumber = (event) => {
-		const charCode = (event.which) ? event.which : event.keyCode
-		if ((charCode > 31 && (charCode < 48 || charCode > 57)) && charCode !== 46) {
-			event.preventDefault()
-		} else {
-			return true
-		}
-	}
-
-
 	const handleSubmitData = async () => {
 		let errors = {};
 
 		if (lobbyForm?.name === '') {
 			errors.name = 'Name field Required';
 		}
-		if (lobbyForm?.pointsPerGame === '') {
-			errors.pointsPerGame = 'Add Game point';
-		} else if (lobbyForm?.pointsPerGame === '0') {
-			errors.pointsPerGame = 'Game point should be greater than 0';
-		}
-		if (lobbyForm?.difficultyLevel === '') {
-			errors.difficultyLevel = 'Add Game level';
-		}
-		
+		// if (lobbyForm?.pointsPerGame === '') {
+		// 	errors.pointsPerGame = 'Add Game point';
+		// } else if (lobbyForm?.pointsPerGame === '0') {
+		// 	errors.pointsPerGame = 'Game point should be greater than 0';
+		// }
+		// if (lobbyForm?.difficultyLevel === '') {
+		// 	errors.difficultyLevel = 'Add Game level';
+		// }
+
 		if (Object.keys(errors).length > 0) {
 			// There are errors, set them and show error message
 			setErrorfield(errors);
@@ -95,27 +84,30 @@ export default function Lobby() {
 
 			const payload = {
 				"name": lobbyForm?.name,
-				"isPrivate": lobbyForm?.isPrivate,
-				"difficultyLevel": lobbyForm?.difficultyLevel,
-				"pointsPerGame": lobbyForm?.pointsPerGame,
-				"timer": lobbyForm?.timer,
-				"powerUps": lobbyForm?.powerUps,
+				// "isPrivate": lobbyForm?.isPrivate,
+				// "difficultyLevel": lobbyForm?.difficultyLevel,
+				// "pointsPerGame": lobbyForm?.pointsPerGame,
+				// "timer": lobbyForm?.timer,
+				// "powerUps": lobbyForm?.powerUps,
 				"user_id": session?.user?.id
 			}
-
 			try {
 				const data = await AddLobbyData(payload);
-				setModalShow(false)
+				setModalShow(false);
 				fetchLobbyData();
-				router.push(`/game/online/lobby/${data?.lobby.linkToJoin}`)
+
+				const settings = JSON.stringify(gameSettings);
+				const searchParams = new URLSearchParams({ settings });
+
+				router.push(`/game/online/lobby/${data?.lobby?.linkToJoin}?${searchParams.toString()}`);
 			} catch (error) {
 				console.error('Error:', error);
 				// Handle error from API call
 			}
 		}
 	};
-   
-	const handlePutLobbyApi = async (element ) => {
+
+	const handlePutLobbyApi = async (element) => {
 		const payload = {
 			"lobby_id": element?.id.toString(),
 			"user_id": session?.user?.id.toString()
@@ -127,10 +119,10 @@ export default function Lobby() {
 	}
 	const handleUser = async (item) => {
 		if ((item?.player1 && item?.player1 !== session?.user?.id) && item?.player2 === null) {
-			handlePutLobbyApi(item, session?.user?.id)
+			handlePutLobbyApi(item)
 			router.push(`/game/online/lobby/${item?.linkToJoin}`)
 		} else {
-			alert('Waiting For Other Player to join ')
+			alert('Waiting For Other Player to join')
 		}
 	}
 
@@ -139,7 +131,6 @@ export default function Lobby() {
 			const lobbydata = await GetLobbyData()
 			if (lobbydata) {
 				setLobbyData(lobbydata)
-				console.log(lobbyData)
 			}
 		} catch (error) {
 			console.error('Error :', error)
@@ -196,33 +187,56 @@ export default function Lobby() {
 							<input type="text" className="form-control" value={lobbyForm.name} onChange={(e) => handleFormData(e, 'name')} />
 							{errorfield && lobbyForm.name === '' ? <div className="form-text text-danger">{errorfield.name}</div> : null}
 						</div>
-						<div className="mb-3 align-items-center">
-							<label className="form-label">Points Per Game 
+						<div className="mb-3 align-items-center text-center">
+							<label className="form-label">Points Per Game
 								<span className='text-danger'>*</span>
 							</label>
-							<div className='text-primary ms-2 col' style={{width: "25px"}}>{lobbyForm.pointsPerGame}</div>
-							<input type="range" className="form-range" min="1" max="30" step="1" value={lobbyForm.pointsPerGame} onChange={(e) => handleFormData(e, 'pointsPerGame')} />
+							<div className='text-primary m-2 d-flex text-center align-items-center justify-content-center'>
+								{gameSettings.pointsToWin}
+							</div>
+							<input
+								type="range"
+								className="form-range"
+								min="1"
+								max="21"
+								step="1"
+								id="pointsRange"
+								value={gameSettings.pointsToWin}
+								onChange={(e) => setGameSettings({ ...gameSettings, pointsToWin: parseInt(e.target.value) })}
+							/>
 						</div>
 						<div className="mb-3">
 							<label className="form-label">Difficulty Level*</label>
-							<select className="form-select" aria-label="Default select example" value={lobbyForm.difficultyLevel} onChange={(e) => handleFormData(e, 'difficultyLevel')}>
-								<option value={''}>Select Game Level</option>
-								{
-									gameLevel?.length > 0 && gameLevel.map((item, i) => {
-										return <option value={item.value} key={item?.level}>{item.level}</option>
-									})
+							<select
+								className="form-select"
+								aria-label="Game Difficulty"
+								value={gameSettings.gameDifficulty}
+								onChange={(e) =>
+									setGameSettings({ ...gameSettings, gameDifficulty: parseInt(e.target.value) })
 								}
+							>
+								<option value="">Select Game Difficulty</option>
+								<option value={1}>Granny</option>
+								<option value={2}>Boring</option>
+								<option value={3}>Still Slow</option>
+								<option value={4}>Kinda OK</option>
+								<option value={5}>Now We're Talking</option>
+								<option value={6}>Madman</option>
+								<option value={7}>Legend</option>
 							</select>
-							{/* {err && lobbyForm.difficultyLevel === '' ? <div className="form-text text-danger">{err}</div> : null} */}
-							{errorfield && lobbyForm.difficultyLevel === '' ? <div className="form-text text-danger">{errorfield.difficultyLevel}</div> : null}
-						</div>
-						<div className="mb-3">
-							<label className="form-label">Timer</label>
-							<input type="text" className="form-control" value={lobbyForm.timer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'timer')} />
 						</div>
 						<div className='d-flex items-center flex-wrap'>
 							<div className="mb-3 form-check form-switch">
-								<input type="checkbox" className="form-check-input" value={lobbyForm.powerUps} onChange={(e) => handleFormData(e, 'powerUps')} />
+								<input
+									className="form-check-input"
+									type="checkbox"
+									role="switch"
+									id="flexSwitchCheckChecked"
+									checked={gameSettings.powerUps}
+									onChange={() =>
+										setGameSettings({ ...gameSettings, powerUps: !gameSettings.powerUps })
+									}
+								/>
 								<label className="form-check-label">Power ups</label>
 							</div>
 						</div>
@@ -233,8 +247,6 @@ export default function Lobby() {
 					<Button variant="primary" onClick={handleSubmitData}>Add</Button>
 				</Modal.Footer>
 			</Modal>
-
-
 		</div>
 	)
 }
