@@ -257,13 +257,16 @@ class SignOutView(APIView):
     user.save()
     return Response(status=status.HTTP_200_OK)
 
-# class GetUserView(APIView):
-#   get(self, request, id):
-#     id = request.query_params.get('id')
-#     user = UserAccount.objects.get(id=id)
-#     user_data = {
-#       'id': user.id,
-#       'username': user.username,
-#       'image': user.image.url if user.image else None
-#     }
-#     return Response({'user': user_data})
+class GetUserView(APIView):
+  def get(self, request):
+    id = request.query_params.get('id')
+    try:
+      user = UserAccount.objects.get(id=id)
+      user_data = {
+        'id': user.id,
+        'username': user.username,
+        'image': user.image.url if user.image else None
+      }
+    except ObjectDoesNotExist:
+      return Response(status=status.HTTP_404_NOT_FOUND)
+    return Response({'user': user_data})
