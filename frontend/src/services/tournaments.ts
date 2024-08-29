@@ -54,7 +54,6 @@ export const AddTournamentData = async (payload: any) => {
 
 export const AddLobbyData = async (payload: any) => {
 	try {
-		console.log('[AddLobbyData] = ' + JSON.stringify(payload));
 		const response = await fetch(BASE_URL + `lobby/`, {
 			method: "POST",
 			headers: {

@@ -18,34 +18,22 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 	const [modalShow, setModalShow] = useState(false);
 	const [errorfield, setErrorfield] = useState({
 		name: '',
-		// difficultyLevel: '',
 	})
 	const [errshow, setErrShow] = useState(false)
 	const [lobbyForm, setLobbyForm] = useState({
 		name: '',
 		numberOfPlayer: '2',
-		// isPrivate: false,
-		// difficultyLevel: '',
 		isActiveLobby: false,
-		// pointsPerGame: '0',
-		// timer: '0',
-		// powerUps: false
 	})
 	const handleShow = () => {
 		setLobbyForm({
 			name: '',
 			numberOfPlayer: '',
-			// isPrivate: false,
-			// difficultyLevel: '',
 			isActiveLobby: false,
-			// pointsPerGame: '1',
-			// timer: '0',
-			// powerUps: false
 		})
 		setErrorfield(
 			{
 				name: '',
-				// difficultyLevel: '',
 			}
 		)
 		setModalShow(true)
@@ -66,14 +54,6 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		if (lobbyForm?.name === '') {
 			errors.name = 'Name field Required';
 		}
-		// if (lobbyForm?.pointsPerGame === '') {
-		// 	errors.pointsPerGame = 'Add Game point';
-		// } else if (lobbyForm?.pointsPerGame === '0') {
-		// 	errors.pointsPerGame = 'Game point should be greater than 0';
-		// }
-		// if (lobbyForm?.difficultyLevel === '') {
-		// 	errors.difficultyLevel = 'Add Game level';
-		// }
 
 		if (Object.keys(errors).length > 0) {
 			// There are errors, set them and show error message
@@ -84,11 +64,6 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 
 			const payload = {
 				"name": lobbyForm?.name,
-				// "isPrivate": lobbyForm?.isPrivate,
-				// "difficultyLevel": lobbyForm?.difficultyLevel,
-				// "pointsPerGame": lobbyForm?.pointsPerGame,
-				// "timer": lobbyForm?.timer,
-				// "powerUps": lobbyForm?.powerUps,
 				"user_id": session?.user?.id
 			}
 			try {
@@ -96,10 +71,9 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 				setModalShow(false);
 				fetchLobbyData();
 
-				const settings = JSON.stringify(gameSettings);
-				const searchParams = new URLSearchParams({ settings });
+				localStorage.setItem('gameSettings', JSON.stringify(gameSettings));
 
-				router.push(`/game/online/lobby/${data?.lobby?.linkToJoin}?${searchParams.toString()}`);
+				router.push(`/game/online/lobby/${data?.lobby?.linkToJoin}`);
 			} catch (error) {
 				console.error('Error:', error);
 				// Handle error from API call
@@ -120,10 +94,9 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 	const handleUser = async (item) => {
 		if ((item?.player1 && item?.player1 !== session?.user?.id) && item?.player2 === null) {
 			handlePutLobbyApi(item);
-			const settings = JSON.stringify(gameSettings);
-			const searchParams = new URLSearchParams({ settings });
+			localStorage.setItem('gameSettings', JSON.stringify(gameSettings));
 
-			router.push(`/game/online/lobby/${item?.linkToJoin}?${searchParams.toString()}`)
+			router.push(`/game/online/lobby/${item?.linkToJoin}?`)
 		} else {
 			alert('Waiting For Other Player to join')
 		}
