@@ -106,6 +106,10 @@ export default function ProfilePage() {
 
 	async function updateUsername(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		if(data.username.length > 20) {
+			setData({ ...data, usernameError: 'Username is too long' })
+			return;
+		}
 
 		const response = await fetch('http://localhost:8000/api/update/name/', {
 			method: 'PUT',
@@ -146,7 +150,8 @@ export default function ProfilePage() {
 
 	useEffect(() => {
 		getUserInfo()
-	}, [])
+		setData( initialState)
+	}, [update])
 
 	return (
 		<>

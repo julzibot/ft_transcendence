@@ -73,20 +73,15 @@ export default function FriendList() {
 				{
 					friendships.map((friendship) => (
 						friendship.friendship_status === 'FRIENDS' && (
-							<div key={friendship.user.id} className="container">
-								<div className="row justify-content-around align-items-center p-2 border-bottom">
-									<div className="col-1">
+							<div key={friendship.user.id} className="d-flex flex-row align-items-center border-bottom">
+								<div className="ms-2 me-2">
+
 										{
-											friendship.user.is_online ? (
-												<CircleFill color="green" size={12} />
-											) : (
-												<CircleFill color="red" size={12} />
-											)
+											friendship.user.is_online ? <CircleFill color="green" size={12} /> : <CircleFill color="red" size={12} />
 										}
-									</div>
-									<div className="col-auto">
+										</div>
 										<Link href={`/account/${friendship.user.id}`}>
-										<div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
+										<div className="position-relative border border-1 border-dark-subtle rounded-circle me-3" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
 											<Image
 												style={{ objectFit: 'cover' }}
 												alt="profile picture"
@@ -96,18 +91,13 @@ export default function FriendList() {
 												/>
 										</div>
 												</Link>
-									</div>
-									<div className="col overflow-hidden">
-										<span className="d-block fs-4 fw-semibold text-truncate">
+										<span className="flex-grow-1 overflow-hidden  fs-4 fw-semibold text-truncate">
 											{friendship.user.username}
 										</span>
-									</div>
-									<div className="col-auto">
 										<CustomTooltip text="Unfriend" position="top">
-											<PersonDashFill size={35} role="button" onClick={() => deleteFriendship(friendship.user)} color="red" />
+											<PersonDashFill className='me-2' size={35} role="button" onClick={() => deleteFriendship(friendship.user)} color="red" />
 										</CustomTooltip>
-									</div>
-								</div>
+									
 							</div>
 						)))
 				}
@@ -127,16 +117,14 @@ export default function FriendList() {
 				{
 					friendships.map((friendship) => (
 						friendship.friendship_status === 'REQUEST' && (
-							<div key={friendship.user.id} className="container">
-								<div className="row p-2 align-items-center border-bottom">
-									<div className="col-1">
+							<div key={friendship.user.id} className="d-flex flex-row align-items-center border-bottom">
+									<div className="ms-2 me-2">
 										{
 											friendship.user.is_online ? <CircleFill color="green" size={10} /> : <CircleFill color="red" size={10} />
 										}
 									</div>
-									<div className="col-auto">
 										<Link href={`/account/${friendship.user.id}`}>
-										<div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
+										<div className="me-3 position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
 											<Image
 												style={{ objectFit: 'cover' }}
 												alt="profile picture"
@@ -144,20 +132,20 @@ export default function FriendList() {
 												fill
 												sizes={"20vw"}
 												/>
-										</div>
-												</Link>
 									</div>
-									<div className="col overflow-hidden">
-										<span className="d-block fs-4 fw-semibold text-truncate">
+												</Link>
+												<div className='flex-grow-1 overflow-hidden'>
+
+										<span className=" fs-4 fw-semibold text-truncate">
 											{friendship.user.username}
 										</span>
-									</div>
-									<div className="col-auto">
+											 </div>
+									<div className="me-2">
 										{
 											(friendship.user.id === friendship.requestor) ? (
 												<>
 													<CustomTooltip text="Approuve Request" position="top">
-														<CheckCircleFill size={35} role="button" onClick={() => approveFriendRequest(friendship.user)} className="me-2" color="green" />
+														<CheckCircleFill size={35} role="button" onClick={() => approveFriendRequest(friendship.user)} className="me-1" color="green" />
 													</CustomTooltip>
 													<CustomTooltip text="Deny Request" position="top">
 														<XCircleFill size={35} role="button" onClick={() => deleteFriendship(friendship.user)} color="red" />
@@ -170,7 +158,6 @@ export default function FriendList() {
 											)
 										}
 									</div>
-								</div>
 							</div>
 						)))
 				}

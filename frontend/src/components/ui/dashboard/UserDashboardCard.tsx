@@ -66,7 +66,6 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({user}) => {
 				});
 				if (response.ok) {
 					const data = await response.json();
-					console.log('User Game History successfully fetched:', response.status);
 					setUserHistory(data);
 				}
 				else {
