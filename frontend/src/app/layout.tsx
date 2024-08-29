@@ -35,9 +35,7 @@ export default async function RootLayout({
               <Navbar />
               {children}
               {
-                session && (
-                  <Sidenav />
-                )
+                session && <Sidenav />
               }
             </main>
         </SessionProvider>

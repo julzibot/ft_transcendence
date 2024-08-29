@@ -1,6 +1,6 @@
 'use client'
 
-import { RefObject, useEffect, useState } from "react";
+import React, { RefObject, useEffect, useState } from "react";
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import './styles.css';
@@ -25,15 +25,24 @@ interface DashboardItems {
 	record_streak: number
 }
 
-export default function UserDashboardCard() {
+interface User {
+	id:number;
+	username: string;
+	image: string;
+}
 
-	const { data: session } = useSession()
+interface UserDashboardCardProps {
+	user: User;
+}
+
+const UserDashboardCard: React.FC<UserDashboardCardProps> = ({user}) => {
+
 	const [DashboardData, setDashboardData] = useState<DashboardItems | null>(null);
 
 	useEffect(() => {
-		if (session?.user.id) {
+		if (user.id) {
 			const fetchDashboardDetail = async () => {
-				const response = await fetch(`http://localhost:8000/api/dashboard/${session?.user.id}`, {
+				const response = await fetch(`http://localhost:8000/api/dashboard/${user.id}`, {
 					method: "GET"
 				});
 				if (response.ok) {
@@ -46,13 +55,13 @@ export default function UserDashboardCard() {
 			};
 			fetchDashboardDetail();
 		}
-	}, [session?.user.id]);
+	}, [user.id]);
 
 	const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
 	useEffect(() => {
-		if (session?.user.id) {
+		if (user.id) {
 			const fetchUserHistory = async () => {
-				const response = await fetch(`http://localhost:8000/api/game/history/user/${session?.user.id}`, {
+				const response = await fetch(`http://localhost:8000/api/game/history/user/${user.id}`, {
 					method: "GET"
 				});
 				if (response.ok) {
@@ -66,7 +75,7 @@ export default function UserDashboardCard() {
 			};
 			fetchUserHistory();
 		}
-	}, [session?.user.id]);
+	}, [user.id]);
 
 	// Data
 	const [dataCreated, setDataCreated] = useState(false);
@@ -88,13 +97,13 @@ export default function UserDashboardCard() {
 	const [statsToggle, setStatsToggle] = useState(true);
 
 	useEffect(() => {
-		if (session?.user.id && userHistory?.data && userHistory.data.length > 0 && !dataCreated) {
+		if (user.id && userHistory?.data && userHistory.data.length > 0 && !dataCreated) {
 			setWinData([]);
 			setLossData([]);
 			setActivityData([]);
 
 			createScoreData(
-				session?.user.id, userHistory.data,
+				user.id, userHistory.data,
 				winData, setWinData,
 				lossData, setLossData,
 				activityData, setActivityData,
@@ -206,7 +215,7 @@ export default function UserDashboardCard() {
 																												<div className="position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
 																													<Image style={{ objectFit: 'cover' }}
 																														fill
-																														src={`http://backend:8000${session?.user.image}`}
+																														src={`http://backend:8000${user.image}`}
 																														alt="Profile Picture"
 																														priority={true}
 																														sizes="25vw"
@@ -215,7 +224,7 @@ export default function UserDashboardCard() {
 																											</div>
 																											<div className="col overflow-hidden">
 																												<span className="d-block fs-4 fw-semibold text-truncate">
-																													{session?.user.username}
+																													{user.username}
 																												</span>
 																											</div>
 																										</div>
@@ -322,3 +331,6 @@ export default function UserDashboardCard() {
 		</>
 	)
 }
+
+
+export default UserDashboardCard
