@@ -27,7 +27,7 @@ export default function AuthButton() {
     return (
       <>
         <div className="dropdown me-3">
-          <button className="btn btn-light btn-lg dropdown-toggle d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <button className="btn btn-light btn-lg dropdown-toggle d-flex align-items-center me-1" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             {
               session.user.image ? (
                 <>
@@ -54,21 +54,23 @@ export default function AuthButton() {
             <li><button className="dropdown-item btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Sign Out</button></li>
           </ul>
         </div>
-        <div className="modal fade" id="exampleModal" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div className="modal-dialog text-center">
+
+
+        <div className="modal fade" id="exampleModal" tabIndex={2} aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h1 className="modal-title fs-5" id="exampleModalLabel">Signout</h1>
+                <h1 className="modal-title fs-5" id="exampleModalLabel">Signing out</h1>
                 <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div className="modal-body">
                 <span className="card-subtitle">Are you sure you want to sign out?</span>
               </div>
               <div className="modal-footer">
-                <div className="container justify-content-center">
-                  <div className="row">
-                    <button className="col btn btn-outline-secondary me-md-2" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
-                    <button className=" col btn btn-outline-danger" type="button" onClick={handleSignOut}>Sign out</button>
+                <div className="d-flex justify-content-between">
+                  <div className="flex-row">
+                    <button className="flex-column btn btn-outline-secondary me-md-2" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+                    <button className=" flex-column btn btn-outline-danger" type="button" onClick={handleSignOut}>Sign out</button>
                   </div>
                 </div>
               </div>

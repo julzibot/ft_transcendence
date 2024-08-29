@@ -223,7 +223,6 @@ class SearchUserView(APIView):
 class UpdatePasswordView(APIView):
   def put(self, request):
     data = request.data
-    print(data)
     try:
       user = UserAccount.objects.get(id=data['user_id'])
     except ObjectDoesNotExist:

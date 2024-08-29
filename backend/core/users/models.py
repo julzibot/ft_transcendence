@@ -43,7 +43,7 @@ def upload_image_to(instance, filename):
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=60, unique=True)
+    username = models.CharField(max_length=20, unique=True)
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
