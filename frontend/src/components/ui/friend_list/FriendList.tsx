@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Image from "next/image";
 import { Friendship, Friend } from '@/types/Friend';
+import Link from 'next/link';
 
 export default function FriendList() {
 	const { data: session } = useSession()
@@ -84,6 +85,7 @@ export default function FriendList() {
 										}
 									</div>
 									<div className="col-auto">
+										<Link href={`/account/${friendship.user.id}`}>
 										<div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
 											<Image
 												style={{ objectFit: 'cover' }}
@@ -91,8 +93,9 @@ export default function FriendList() {
 												src={`http://backend:8000${friendship.user.image}`}
 												fill
 												sizes="20vw"
-											/>
+												/>
 										</div>
+												</Link>
 									</div>
 									<div className="col overflow-hidden">
 										<span className="d-block fs-4 fw-semibold text-truncate">
@@ -100,9 +103,6 @@ export default function FriendList() {
 										</span>
 									</div>
 									<div className="col-auto">
-										<CustomTooltip text="Invite to Play" position="top">
-											<Joystick size={35} color="#46C253" role="button" className="me-3" />
-										</CustomTooltip>
 										<CustomTooltip text="Unfriend" position="top">
 											<PersonDashFill size={35} role="button" onClick={() => deleteFriendship(friendship.user)} color="red" />
 										</CustomTooltip>
@@ -135,6 +135,7 @@ export default function FriendList() {
 										}
 									</div>
 									<div className="col-auto">
+										<Link href={`/account/${friendship.user.id}`}>
 										<div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
 											<Image
 												style={{ objectFit: 'cover' }}
@@ -142,8 +143,9 @@ export default function FriendList() {
 												src={`http://backend:8000${friendship.user.image}`}
 												fill
 												sizes={"20vw"}
-											/>
+												/>
 										</div>
+												</Link>
 									</div>
 									<div className="col overflow-hidden">
 										<span className="d-block fs-4 fw-semibold text-truncate">

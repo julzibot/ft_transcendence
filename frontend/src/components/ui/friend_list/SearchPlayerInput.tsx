@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
 import { Toast, ToastContainer } from 'react-bootstrap'
 import Image from "next/image";
+import Link from "next/link";
 
 import { Friend } from "@/types/Friend";
 import { User } from "@/types/User";
@@ -117,9 +118,6 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
       case 'FRIENDS':
         return (
           <>
-            <CustomTooltip text="Invite to Play" position="top">
-              <Joystick size={35} role="button" color="#46C253" className="me-3" />
-            </CustomTooltip>
             <CustomTooltip text="Unfriend" position="top">
               <PersonDashFill size={35} role="button" onClick={() => deleteFriendship(user)} color="red" />
             </CustomTooltip>
@@ -178,6 +176,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
                   }
                 </div>
                 <div className="col-auto">
+                  <Link href={`/account/${user.id}`}>
                   <div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
                     <Image
                       style={{ objectFit: 'cover' }}
@@ -185,8 +184,9 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
                       src={`http://backend:8000${user.image}`}
                       fill
                       sizes="20vw"
-                    />
+                      />
                   </div>
+                      </Link>
                 </div>
                 <div className="col overflow-hidden">
                   <span className="d-block fs-4 fw-semibold text-truncate">

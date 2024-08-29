@@ -4,8 +4,27 @@ import { useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import styles from './CustomizationStyles.module.css';
 import './colorPickerStyles.css';
+import { GameSettings } from "@/types/GameSettings";
 
-export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
+interface GameSettingsProps {
+	updateSettings: Function,
+	gameSettings: GameSettings,
+	userId: number
+}
+
+export function defaultGameSettings(updateSettings: Function, gameSettings: GameSettings, user_id: number) {
+	updateSettings({
+		...gameSettings,
+		user_id: user_id,
+		background: 0,
+		palette: 0,
+		bgColor: '#ff0000',
+		opacity: 80,
+		sparks: true,
+	})
+}
+
+export async function fetchGameSettings(user_id: number, updateSettings: Function, gameSettings: GameSettings) {
 
 	if (user_id) {
 		const response = await fetch(`http://localhost:8000/api/gameCustomization/${user_id}`, {
@@ -13,15 +32,7 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 		});
 		if (response.ok) {
 			if (response.status === 204) {
-				updateSettings({
-					...gameSettings,
-					user_id: user_id,
-					background: 0,
-					palette: 0,
-					bgColor: '#ff0000',
-					opacity: 80,
-					sparks: true,
-				})
+				defaultGameSettings(updateSettings, gameSettings, user_id);
 			} else {
 				const fetched = await response.json();
 				const data = fetched.data;
@@ -37,31 +48,15 @@ export async function fetchGameSettings(user_id, updateSettings, gameSettings) {
 			}
 		} else if (response.status === 404) {
 			console.error('[Fetch Game Settings] [404] - User Does Not Exist');
-			updateSettings({
-				...gameSettings,
-				user_id: user_id,
-				background: 0,
-				palette: 0,
-				bgColor: '#ff0000',
-				opacity: 80,
-				sparks: true,
-			})
+			defaultGameSettings(updateSettings, gameSettings, user_id);
 		} else {
 			console.error('[Fetch Game Settings] Error: ' + response.status);
-			updateSettings({
-				...gameSettings,
-				user_id: user_id,
-				background: 0,
-				palette: 0,
-				bgColor: '#ff0000',
-				opacity: 80,
-				sparks: true,
-			})
+			defaultGameSettings(updateSettings, gameSettings, user_id);
 		}
 	}
 };
 
-export default function Customization({ updateSettings, gameSettings, userId }) {
+export default function Customization({ updateSettings, gameSettings, userId }: GameSettingsProps) {
 
 	const [palette, setPalette] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
@@ -74,7 +69,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 		return () => clearTimeout(timer)
 	}, [userId]);
 
-	const handleColorChange = (color) => {
+	const handleColorChange = (color: string) => {
 		updateSettings({ ...gameSettings, bgColor: color });
 	};
 
@@ -86,24 +81,16 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 		setPalette((prevPalette) => !prevPalette);
 	}
 
-	const handlePaletteRadio = (e) => {
+	const handlePaletteRadio = (e: React.ChangeEvent<HTMLInputElement>) => {
 		updateSettings({ ...gameSettings, palette: parseInt(e.target.value) });
 	}
 
 	const gameCustomDefault = () => {
-		updateSettings({
-			...gameSettings,
-			background: 0,
-			palette: 0,
-			bgColor: '#ff0000',
-			opacity: 80,
-			sparks: true
-		});
+		defaultGameSettings(updateSettings, gameSettings, userId);
 		gameCustomSave();
 	}
 
 	const gameCustomSave = async () => {
-		console.log(gameSettings);
 		const requestData = {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -211,7 +198,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 												onChange={handlePaletteRadio}
 											/>
 											<label className="btn" htmlFor="palette1">
-												<img src='/palette/palette_1.png' width="220" heigth="60" alt="palette 1" />
+												<img src='/palette/palette_1.png' width="220" height="60" alt="palette 1" />
 											</label>
 										</div>
 										<div className="paletteButton">
@@ -225,7 +212,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 												onChange={handlePaletteRadio}
 											/>
 											<label className="btn" htmlFor="palette2">
-												<img src='/palette/palette_2.png' width="220" heigth="60" alt="palette 2" />
+												<img src='/palette/palette_2.png' width="220" height="60" alt="palette 2" />
 											</label>
 										</div>
 										<div className="paletteButton">
@@ -239,7 +226,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 												onChange={handlePaletteRadio}
 											/>
 											<label className="btn" htmlFor="palette3">
-												<img src='/palette/palette_3.png' width="220" heigth="60" alt="palette 3" />
+												<img src='/palette/palette_3.png' width="220" height="60" alt="palette 3" />
 											</label>
 										</div>
 										<div className="paletteButton">
@@ -253,7 +240,7 @@ export default function Customization({ updateSettings, gameSettings, userId }) 
 												onChange={handlePaletteRadio}
 											/>
 											<label className="btn" htmlFor="palette4">
-												<img src='/palette/palette_4.png' width="220" heigth="60" alt="palette 4" />
+												<img src='/palette/palette_4.png' width="220" height="60" alt="palette 4" />
 											</label>
 										</div>
 									</div>
