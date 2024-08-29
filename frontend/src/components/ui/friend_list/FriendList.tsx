@@ -103,9 +103,6 @@ export default function FriendList() {
 										</span>
 									</div>
 									<div className="col-auto">
-										<CustomTooltip text="Invite to Play" position="top">
-											<Joystick size={35} color="#46C253" role="button" className="me-3" />
-										</CustomTooltip>
 										<CustomTooltip text="Unfriend" position="top">
 											<PersonDashFill size={35} role="button" onClick={() => deleteFriendship(friendship.user)} color="red" />
 										</CustomTooltip>
