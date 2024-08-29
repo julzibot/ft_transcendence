@@ -118,9 +118,6 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
       case 'FRIENDS':
         return (
           <>
-            <CustomTooltip text="Invite to Play" position="top">
-              <Joystick size={35} role="button" color="#46C253" className="me-3" />
-            </CustomTooltip>
             <CustomTooltip text="Unfriend" position="top">
               <PersonDashFill size={35} role="button" onClick={() => deleteFriendship(user)} color="red" />
             </CustomTooltip>
