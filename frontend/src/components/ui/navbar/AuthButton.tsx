@@ -49,7 +49,7 @@ export default function AuthButton() {
           </button>
 
           <ul className="dropdown-menu">
-            <li><Link className="dropdown-item" href='/account'>Account</Link></li>
+            <li><Link className="dropdown-item" href={`/account/${session.user.id}`}>Account</Link></li>
             <li><hr className="dropdown-divider" /></li>
             <li><button className="dropdown-item btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Sign Out</button></li>
           </ul>
