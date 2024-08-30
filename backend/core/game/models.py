@@ -9,7 +9,6 @@ class GameChoices(models.IntegerChoices):
 
 class GameMatch(models.Model):
   id = models.BigAutoField(primary_key=True)
-  	# player1_id = models.PositiveIntegerField(blank=True)
   game_mode = models.PositiveSmallIntegerField(
 		choices=GameChoices.choices,
 		default=GameChoices.LOCAL)

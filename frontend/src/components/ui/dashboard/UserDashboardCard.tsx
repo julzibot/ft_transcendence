@@ -12,7 +12,7 @@ import ActivityChart from "./ActivityChart";
 import GameModesChart from "./GameModesChart";
 
 import createScoreData from "./ChartDataUtils";
-import { GameMatch } from "./DashboardInterfaces";
+import { GameMatch, Player } from "./DashboardInterfaces";
 import { DashboardPlaceholder } from "@/components/placeholders/DashboardPlaceholder";
 
 type UserHistory = {
@@ -25,17 +25,11 @@ interface DashboardItems {
 	record_streak: number
 }
 
-interface User {
-	id:number;
-	username: string;
-	image: string;
-}
-
 interface UserDashboardCardProps {
-	user: User;
+	user: Player;
 }
 
-const UserDashboardCard: React.FC<UserDashboardCardProps> = ({user}) => {
+const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 
 	const [DashboardData, setDashboardData] = useState<DashboardItems | null>(null);
 
@@ -196,6 +190,12 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({user}) => {
 																			cardColor = '';
 																	}
 
+
+																	let player2: Player | null = null;
+																	if (obj.game_mode === 2 || obj.game_mode === 3) {
+																		player2 = obj.player1.id === user.id ? obj.player2 : obj.player1;
+																	}
+
 																	return (
 																		<div key={index} className={`match_item match_item_link ${cardColor}`}>
 																			<div className="match_item_bg"></div>
@@ -232,12 +232,27 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({user}) => {
 																								</th>
 																								<th className='match-table-row' scope='col'>vs</th>
 																								{
-																									obj.player2 ?
-																										<th className='match-table-row' scope='col'>{obj.player2}</th>
+																									player2 ?
+																										<th className='match-table-row' scope='col'>
+																											<div className="d-flex align-items-center">
+
+																												<span>{player2.username}</span>
+																												<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+																													<Image style={{ objectFit: 'cover' }}
+																														fill
+																														src={`http://backend:8000${player2.image}`}
+																														alt="Guest"
+																														priority={true}
+																														sizes="25vw"
+																													/>
+																												</div>
+																											</div>
+																										</th>
 																										:
 																										(
 																											<th className='match-table-row' scope='col'>
 																												<div className="d-flex align-items-center">
+
 																													<span>Guest</span>
 																													<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
 																														<Image style={{ objectFit: 'cover' }}
