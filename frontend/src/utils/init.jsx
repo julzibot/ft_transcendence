@@ -37,19 +37,21 @@ custom.modes_colormap = [0x00ff33, 0xff0022, 0x4c4cff, 0xcc00cc, 0xffffff, 0x888
 objs.sphereGeo = new THREE.SphereGeometry(CONST.BALLRADIUS, 40, 40);
 objs.ballGeo = new THREE.SphereGeometry(CONST.BALLRADIUS * 3/2, 40, 40);
 objs.pu_gaugeGeo = new THREE.SphereGeometry(0.5, 40, 40);
-objs.playerGeo = new THREE.BoxGeometry(0.5, CONST.PLAYERLEN, 0.6);
+objs.playerGeo = new THREE.BoxGeometry(0.5, CONST.PLAYERLEN, 1.2);
 objs.upDownBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, 0.5, 3.0);
 // objs.BackgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
-objs.backBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, CONST.GAMEHEIGHT, 0.5)
-objs.displayBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, 4.5, 0.5)
+objs.backBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, CONST.GAMEHEIGHT, 0.5);
+objs.displayBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, 4.5, 0.5);
+objs.gaugePanel = new THREE.BoxGeometry(7, 2.5, 0.2);
 // objs.trailGeo = new THREE.CylinderGeometry(0.8 * CONST.BALLRADIUS, 0.8 * CONST.BALLRADIUS, 0.5, 30);
 
 objs.sphereMaterial = new THREE.MeshPhongMaterial( { color: CONST.BALL_COLOR, emissive: CONST.BALL_COLOR, emissiveIntensity: 0.25, transparent: true, opacity: 1. } );
 objs.ballMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, opacity: 0.2, transparent: true } );
 // objs.trailMaterial = new THREE.ShaderMaterial( {color: 0xffffff, opacity: 1., transparent: true} );
 objs.boundaryMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff, opacity: custom.backboard_opacity, transparent: true } );
-objs.displayMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff } );
 objs.playerMaterial = new THREE.MeshStandardMaterial( { color: 0xff00ff } );
+objs.displayMaterial = new THREE.MeshBasicMaterial( { color: 0x000000 } );
+objs.gaugePanelMaterial = new THREE.MeshBasicMaterial( { color: 0xbbbbbb } );
 
 
 objs.ball = new THREE.Mesh( objs.sphereGeo, objs.sphereMaterial );
@@ -80,7 +82,7 @@ for (let i = 0; i < 5; i++)
 
 objs.player1.position.set(-CONST.GAMEWIDTH / 2, 0, 0);
 objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
-objs.topB.position.set(0, CONST.GAMEHEIGHT / 2, -0.25);
+objs.topB.position.set(0, CONST.GAMEHEIGHT / 2, -0.27);
 objs.botB.position.set(0, -CONST.GAMEHEIGHT / 2, -0.25);
 objs.backB.position.set(0, 0, -1.5);
 objs.display.position.set(0, CONST.GAMEHEIGHT / 2 + 2., 1);
@@ -93,9 +95,11 @@ csts.botHB = new THREE.Box3().setFromObject(objs.botB);
 csts.gameVect = new THREE.Vector2(objs.player2.position.x - objs.player1.position.x, objs.player2.position.y - objs.player1.position.y).normalize();
 csts.loader = new FontLoader();
 csts.ambLight = new THREE.AmbientLight(0x444444);
-csts.dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
+csts.dirLight = new THREE.DirectionalLight( 0xffffff, 0.75 );
+csts.dirLight2 = new THREE.DirectionalLight( 0xffffff, 0.75 );
 csts.ballLight = new THREE.PointLight( CONST.BALL_COLOR, 5, 42);
-csts.dirLight.position.set(5, 7, 15);
+csts.dirLight.position.set(0, -4., 15);
+csts.dirLight2.position.set(0, 4., 15);
 csts.game_id = 0;
 csts.player_id = 0;
 csts.pu_vs = shaders.pu_vs;

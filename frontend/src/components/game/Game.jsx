@@ -1003,6 +1003,7 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
 
     tools.scene.add(csts.ambLight);
     tools.scene.add(csts.dirLight);
+    tools.scene.add(csts.dirLight2);
     tools.scene.add(csts.ballLight);
 
     let quaternion = new THREE.Quaternion();
