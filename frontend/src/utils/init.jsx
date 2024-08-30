@@ -12,7 +12,7 @@ export const custom = {};
 
 // custom.pov = "classic";
 custom.immersiveCamPos = new THREE.Vector3(-CONST.GAMEWIDTH / 2 - 10, 0, 18);
-custom.classicCamPos = new THREE.Vector3(0, 2.5, 25);
+custom.classicCamPos = new THREE.Vector3(0, 2.2, 23.25);
 
 custom.shader_utils = shaders.utils;
 custom.b_lightsquares = shaders.background_lightsquares;
@@ -41,7 +41,7 @@ objs.playerGeo = new THREE.BoxGeometry(0.5, CONST.PLAYERLEN, 0.6);
 objs.upDownBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, 0.5, 3.0);
 // objs.BackgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
 objs.backBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, CONST.GAMEHEIGHT, 0.5)
-objs.displayBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, 5.5, 0.5)
+objs.displayBoundary = new THREE.BoxGeometry(CONST.GAMEWIDTH, 4.5, 0.5)
 // objs.trailGeo = new THREE.CylinderGeometry(0.8 * CONST.BALLRADIUS, 0.8 * CONST.BALLRADIUS, 0.5, 30);
 
 objs.sphereMaterial = new THREE.MeshPhongMaterial( { color: CONST.BALL_COLOR, emissive: CONST.BALL_COLOR, emissiveIntensity: 0.25, transparent: true, opacity: 1. } );
@@ -83,7 +83,7 @@ objs.player2.position.set(CONST.GAMEWIDTH / 2, 0, 0);
 objs.topB.position.set(0, CONST.GAMEHEIGHT / 2, -0.25);
 objs.botB.position.set(0, -CONST.GAMEHEIGHT / 2, -0.25);
 objs.backB.position.set(0, 0, -1.5);
-objs.display.position.set(0, CONST.GAMEHEIGHT / 2 + 2.5, 1);
+objs.display.position.set(0, CONST.GAMEHEIGHT / 2 + 2., 1);
 // objs.ballTrail.position.set(0.9, 0, 0);
 // objs.ballTrail.rotation.set(0, 0, Math.PI / 2);
 
