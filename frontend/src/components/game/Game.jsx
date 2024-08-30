@@ -77,17 +77,17 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
       const textMaterial = new THREE.MeshStandardMaterial({ color: 0x0000cc, emissive: 0xdd00dd, emissiveIntensity: 0.2 });
       textMesh.material = textMaterial;
       if (mode == 1)
-        textMesh.position.set(-CONST.GAMEWIDTH / 16 - 2, CONST.GAMEHEIGHT / 2 + 0.75, 1);
+        textMesh.position.set(-CONST.GAMEWIDTH / 16 - 2, CONST.GAMEHEIGHT / 2 + 0.5, 1);
       else if (mode == 2)
-        textMesh.position.set(CONST.GAMEWIDTH / 16, CONST.GAMEHEIGHT / 2 + 0.75, 1);
+        textMesh.position.set(CONST.GAMEWIDTH / 16, CONST.GAMEHEIGHT / 2 + 0.5, 1);
     }
     else if (mode == 3) {
       const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
       textMesh.material = textMaterial;
       if (id === 0)
-        textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 2.75, 1)
+        textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 2.4, 1)
       else
-        textMesh.position.set(CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 2.75, 1)
+        textMesh.position.set(CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 2.4, 1)
     }
     else if (mode == 4) {
       const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
@@ -107,7 +107,7 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
       // textMesh.material.dispose();
       textMesh.material = textMaterial;
     }
-    if (mode > 0 && mode < 5)
+    if (mode > 0 && mode < 6)
       tools.scene.add(textMesh);
     textMesh.geometry.dispose();
     textMesh.geometry = updatedStringGeo;
@@ -131,12 +131,12 @@ const scoringLogic = (room_id, socket, isHost, gamemode) => {
     if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4) {
       vars.ballVect.set(-1, 0);
       vars.p1Score += 1;
-      printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, -1, 3.5);
+      printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, -1, 2.75);
     }
     else {
       vars.ballVect.set(1, 0);
       vars.p2Score += 1;
-      printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, -1, 3.5);
+      printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, -1, 2.75);
     }
     if (custom.power_ups === true) {
       for (let i = 0; i < 2; i++) {
@@ -165,6 +165,7 @@ const scoringLogic = (room_id, socket, isHost, gamemode) => {
       socket.emit('sendScore', { room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, game_ended: vars.stopGame });
   }
   if (vars.stopGame === 1) {
+    console.log("KEK");
     if (vars.p1Score > vars.p2Score)
       vars.endString = "GAME ENDED\nPLAYER 1 WINS";
     else
@@ -1008,7 +1009,7 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
     tools.camera.position.set(custom.classicCamPos.x, custom.classicCamPos.y, custom.classicCamPos.z);
     // quaternion.setFromAxisAngle(custom.classicCamPos.clone().normalize(), -Math.PI / 2);
     // tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-    tools.camera.lookAt(0, 2.5, 0);
+    tools.camera.lookAt(0, 2.2, 0);
 
     let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
     // console.log(tools.camera.projectionMatrix);
@@ -1067,8 +1068,8 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
     }
 
     // ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
-    printGameInfo(vars.p1textMesh, "0", 1, -1, 3.5);
-    printGameInfo(vars.p2textMesh, "0", 2, -1, 3.5);
+    printGameInfo(vars.p1textMesh, "0", 1, -1, 2.75);
+    printGameInfo(vars.p2textMesh, "0", 2, -1, 2.75);
     if (custom.power_ups === true) {
       printGameInfo(vars.latentMesh[0], "none", 3, 0, 0.85);
       printGameInfo(vars.latentMesh[1], "none", 3, 1, 0.85);
