@@ -5,6 +5,7 @@ import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournamen
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { GameSettings } from '@/types/GameSettings';
+import DOMPurify from 'dompurify';
 
 interface GameSettingsProps {
 	setGameSettings: Function,
@@ -43,7 +44,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		setLobbyForm(
 			{
 				...lobbyForm,
-				[key]: (key === "isActiveLobby" || key === "powerUps") ? (e.target.checked) : (e.target.value)
+				[key]: (key === "isActiveLobby" || key === "powerUps") ? (e.target.checked) : (DOMPurify.sanitize(e.target.value))
 			}
 		)
 	}

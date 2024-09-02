@@ -6,7 +6,7 @@ import { Button, Modal } from 'react-bootstrap'
 import { useParams, useRouter } from "next/navigation";
 import { ArrowUpRightSquare } from 'react-bootstrap-icons';
 import { AddTournamentData, GetTournamentData } from '@/services/tournaments';
-import { MdOutlineOpenInNew } from "react-icons/md";
+import DOMPurify from 'dompurify';
 
 const gameLevel = [
 	{ value: 0, level: 'Beginner' },
@@ -97,7 +97,7 @@ export default function Tournament({ gameName }: props) {
 	const handleFormData = (e, key) => {
 		setTounamentForm({
 			...tounamentForm,
-			[key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'powerUps') ? e.target.checked : e.target.value
+			[key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'powerUps') ? e.target.checked : DOMPurify.sanitize(e.target.value)
 		})
 	}
 
