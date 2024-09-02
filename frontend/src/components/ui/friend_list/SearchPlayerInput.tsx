@@ -8,6 +8,7 @@ import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
 import { Toast, ToastContainer } from 'react-bootstrap'
 import Image from "next/image";
 import Link from "next/link";
+import DOMPurify from "dompurify";
 
 import { Friend } from "@/types/Friend";
 import { User } from "@/types/User";
@@ -126,10 +127,10 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
       case 'REQUEST':
         return (
           <>
-            {user.requestor_id !== session.user.id ? (
+            {user.requestor_id !== session?.user.id ? (
               <>
                 <CustomTooltip text="Accept Request" position="top">
-                  <CheckCircleFill size={35} role="button" className="me-2" onClick={() => approveFriendRequest(user)} color="green" />
+                  <CheckCircleFill size={35} role="button" className="me-1" onClick={() => approveFriendRequest(user)} color="green" />
                 </CustomTooltip>
                 <CustomTooltip text="Deny Request" position="top">
                   <XCircleFill size={35} role="button" onClick={() => deleteFriendship(user)} color="red" />
@@ -155,7 +156,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
     <>
       <input
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        onChange={(e) => setInputValue(DOMPurify.sanitize(e.target.value))}
         type="search"
         className="form-control"
         placeholder="Search Player"
@@ -164,9 +165,8 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
       <div className="border border-bottom-0">
         {
           searchQuery.length > 0 && searchQuery.map((user) => (
-            <div key={user.id} className="container">
-              <div className="row p-2 align-items-center border border-bottom">
-                <div className="col-auto">
+            <div key={user.id} className="d-flex flex-row align-items-center border-bottom">
+                <div className="ms-2 me-2">
                   {
                     user.is_online ? (
                       <CircleFill color="green" size={12} />
@@ -175,9 +175,8 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
                     )
                   }
                 </div>
-                <div className="col-auto">
                   <Link href={`/account/${user.id}`}>
-                  <div className="position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
+                  <div className="me-3 position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
                     <Image
                       style={{ objectFit: 'cover' }}
                       alt="profile picture"
@@ -187,16 +186,12 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
                       />
                   </div>
                       </Link>
-                </div>
-                <div className="col overflow-hidden">
-                  <span className="d-block fs-4 fw-semibold text-truncate">
+                  <span className="flex-grow-1 overflow-hidden fs-4 fw-semibold text-truncate">
                     {user.username}
                   </span>
-                </div>
-                <div className="col-auto">
+                <div className="me-2">
                   {renderStatus(user)}
                 </div>
-              </div>
             </div>
           ))
         }
