@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'lobby',
     'tournamentParticipants',
     'tournamentPairings',
-	'gameCustomization'
+	'gameCustomization',
+	'matchParameters'
 ]
 
 MIDDLEWARE = [

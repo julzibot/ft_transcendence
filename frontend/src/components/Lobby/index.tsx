@@ -6,12 +6,19 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { GameSettings } from '@/types/GameSettings';
 
+interface MatchParameters {
+	user: number,
+	points_to_win: number,
+	game_difficulty: number,
+	power_ups: boolean
+}
 interface GameSettingsProps {
-	setGameSettings: Function,
+	setMatchParameters: Function,
+	matchParameters: MatchParameters,
 	gameSettings: GameSettings
 }
 
-export default function Lobby({ setGameSettings, gameSettings }: GameSettingsProps) {
+export default function Lobby({ setMatchParameters, matchParameters, gameSettings }: GameSettingsProps) {
 	const { data: session } = useSession()
 	const router = useRouter()
 	const [lobbyData, setLobbyData] = useState([])

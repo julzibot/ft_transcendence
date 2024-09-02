@@ -21,10 +21,27 @@ export default function OnlineGamePage() {
 		bgColor: '#ff0000',
 		opacity: 80,
 		sparks: true,
-		gameDifficulty: 4,
-		pointsToWin: 5,
-		powerUps: true
 	});
+
+
+	const [matchParameters, setMatchParameters] = useState({
+		user: session?.user.id ?? -1,
+		points_to_win: 5,
+		game_difficulty: 2,
+		power_ups: true
+	})
+
+	const fetchMatchParameters = async () => {
+		const response = await fetch(`http://localhost:8000/api/gameCustomization/${session?.user.id}`, {
+			method: 'GET'
+		});
+		if (response.ok) {
+			const fetched = await response.json();
+			setMatchParameters(fetched);
+		} else {
+			console.log(`[${session?.user?.id}] No Match Parameters`);
+		}
+	}
 
 	useEffect(() => {
 		const timer = setTimeout(() => {
@@ -42,12 +59,12 @@ export default function OnlineGamePage() {
 					</div>
 				</div>
 				{
-					session && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
+					session && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session?.user.id} />
 				}
 				<div className={`card mt-3 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-body">
 						{
-							session && <Lobby setGameSettings={setGameSettings} gameSettings={gameSettings} />
+							session && <Lobby setMatchParameters={setMatchParameters} matchParameters={matchParameters} gameSettings={gameSettings} />
 						}
 					</div>
 				</div>
