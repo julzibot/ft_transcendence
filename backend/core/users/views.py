@@ -18,6 +18,7 @@ from friends.models import Friendship
 from .serializers import UserAccountSerializer
 from dashboard.models import DashboardData
 from matchParameters.models import MatchParametersData
+from gameCustomization.models import GameCustomizationData
 
 def get_tokens_for_user(user):
   refresh = RefreshToken.for_user(user)
@@ -71,6 +72,7 @@ class RegisterView(APIView):
     serializer = UserAccountSerializer(user)
     MatchParametersData.objects.create(user=user)
     DashboardData.objects.create(user=user)
+    GameCustomizationData.objects.create(user_id=user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 class OauthView(APIView):
@@ -85,6 +87,7 @@ class OauthView(APIView):
       user.save_image_from_url()
       MatchParametersData.objects.create(user=user)
       DashboardData.objects.create(user=user)
+      GameCustomizationData.objects.create(user_id=user)
 
     backendTokens = get_tokens_for_user(user)
     user.is_online = True
@@ -226,7 +229,6 @@ class SearchUserView(APIView):
 class UpdatePasswordView(APIView):
   def put(self, request):
     data = request.data
-    print(data)
     try:
       user = UserAccount.objects.get(id=data['user_id'])
     except ObjectDoesNotExist:
