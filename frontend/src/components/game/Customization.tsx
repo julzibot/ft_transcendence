@@ -25,16 +25,28 @@ export function defaultGameSettings(updateSettings: Function, gameSettings: Game
 	})
 }
 
+export function defaultMatchParameters(updateSettings: Function, gameSettings: GameSettings, user_id: number) {
+	updateSettings({
+		...gameSettings,
+		user_id: user_id,
+		points_to_win: 5,
+		game_difficulty: 2,
+		power_ups: true
+	})
+}
+
 export async function fetchGameSettings(user_id: number, updateSettings: Function, gameSettings: GameSettings) {
 
 	if (user_id) {
-		const response = await fetch(`http://localhost:8000/api/gameCustomization/${user_id}`, {
+		const response = await fetch(`http://c2r4p9.42nice.fr:8000/api/gameCustomization/${user_id}`, {
 			method: 'GET'
 		});
 		if (response.ok) {
 			if (response.status === 204) {
 				defaultGameSettings(updateSettings, gameSettings, user_id);
-			} else {
+				gameCustomSave('gameCustomization/', JSON.stringify(gameSettings));
+			}
+			else {
 				const fetched = await response.json();
 				const data = fetched.data;
 				updateSettings({
@@ -47,9 +59,6 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 					sparks: data.sparks
 				});
 			}
-		} else if (response.status === 404) {
-			console.error('[Fetch Game Settings] [404] - User Does Not Exist');
-			defaultGameSettings(updateSettings, gameSettings, user_id);
 		} else {
 			console.error('[Fetch Game Settings] Error: ' + response.status);
 			defaultGameSettings(updateSettings, gameSettings, user_id);
@@ -58,12 +67,18 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 };
 
 export async function fetchMatchParameters(user_id: number, updateSettings: Function, gameSettings: GameSettings) {
-	const response = await fetch(`http://localhost:8000/api/gameCustomization/${user_id}`, {
+	const response = await fetch(`http://c2r4p9.42nice.fr:8000/api/parameters/${user_id}`, {
 		method: 'GET'
 	});
 	if (response.ok) {
-		const fetched = await response.json();
-		updateSettings({...gameSettings, fetched});
+		if (response.status === 204) {
+			defaultMatchParameters(updateSettings, gameSettings, user_id);
+			gameCustomSave('parameters/', JSON.stringify(gameSettings));
+		}
+		else {
+			const fetched = await response.json();
+			updateSettings({...gameSettings, ...fetched.data});
+		}
 	}
 	else
 		console.log(`[${user_id}] No Match Parameters`);
@@ -102,7 +117,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 			updateSettings({ ...gameSettings, palette: 0 });
 		else if (!palette)
 			updateSettings({ ...gameSettings, palette: 1 });
-		setPalette((prevPalette) => !prevPalette);
+		setPalette((prevPalette : boolean) => !prevPalette);
 	}
 
 	const handlePaletteRadio = (e: React.ChangeEvent<HTMLInputElement>) => {

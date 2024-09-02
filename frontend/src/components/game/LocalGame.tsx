@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ThreeScene from './Game';
 import { GameSettings } from '@/types/GameSettings';
+import { gameCustomSave } from './Customization';
 
 interface LocalGameProps {
 	userId: number,
@@ -15,14 +16,18 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 	const [gameMode, setGameMode] = useState(0);
 
 	const startLocal = () => {
+		gameCustomSave('parameters/', JSON.stringify(gameSettings));
 		setGameMode(0);
 		setGameStarted(true);
 	}
 
 	const startAI = () => {
+		gameCustomSave('parameters/', JSON.stringify(gameSettings));
 		setGameMode(1);
 		setGameStarted(true);
 	}
+
+
 
 	return (
 		<>

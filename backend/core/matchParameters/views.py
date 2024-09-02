@@ -17,7 +17,7 @@ class MatchParametersView(APIView):
 		except UserAccount.DoesNotExist:
 			return Response({'message': f'[{id}] User Not Found'}, status=status.HTTP_404_NOT_FOUND)
 		except MatchParametersData.DoesNotExist:
-			return Response({'message': f'[{user.username}] No Match Parameters Found'}, status=status.HTTP_404_NOT_FOUND)
+			return Response({'message': '204 No Parameters'}, status=status.HTTP_204_NO_CONTENT)
 
 class UpdateMatchParametersView(APIView):
 	def post(self, request):

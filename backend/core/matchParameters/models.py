@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.exceptions import ValidationError
 from users.models import UserAccount
 
 # Create your models here.

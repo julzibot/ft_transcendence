@@ -27,7 +27,7 @@ function TournamentPage() {
     gameLevel: '',
     timer: '',
     isPrivate: false,
-    powerUps: false
+    power_ups: false
   })
   const [err, setErr] = useState('')
   
@@ -75,7 +75,7 @@ function TournamentPage() {
 const handleFormData = (e, key) => {
   setTounamentForm({
     ...tounamentForm,
-    [key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'powerUps') ? e.target.checked : e.target.value
+    [key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'power_ups') ? e.target.checked : e.target.value
   })
 }
 
@@ -91,7 +91,7 @@ const handleSubmitData = async () => {
       "isActiveTournament": tounamentForm?.isActiveTournament,
       "pointsPerGame": tounamentForm?.gamePoint,
       "timer": Number(tounamentForm?.timer),
-      "powerUps": tounamentForm?.powerUps
+      "power_ups": tounamentForm?.power_ups
     }
     try {
       await AddTournamentData(payload).then((response) => {
@@ -182,7 +182,7 @@ useEffect(() => {
           <label className="form-check-label">Is This Private Tournament ?</label>
         </div>
         <div className="mb-3 form-check form-switch">
-          <input type="checkbox" className="form-check-input" value={tounamentForm.powerUps} onChange={(e) => handleFormData(e, 'powerUps')} />
+          <input type="checkbox" className="form-check-input" value={tounamentForm.power_ups} onChange={(e) => handleFormData(e, 'power_ups')} />
           <label className="form-check-label">Power ups</label>
         </div>
       </form>

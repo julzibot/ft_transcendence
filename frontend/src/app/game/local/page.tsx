@@ -22,9 +22,9 @@ export default function GameSettings() {
 		bgColor: '#ff0000',
 		opacity: 80,
 		sparks: true,
-		gameDifficulty: 4,
-		pointsToWin: 5,
-		powerUps: true
+		game_difficulty: 4,
+		points_to_win: 5,
+		power_ups: true
 	});
 
 	useEffect(() => {
@@ -52,13 +52,13 @@ export default function GameSettings() {
 					<div className="d-flex flex-column align-items-center">
 
 						<div className="mb-3 text-center">
-							<label htmlFor="gameDifficulty" className="form-label">Game Difficulty</label>
+							<label htmlFor="game_difficulty" className="form-label">Game Difficulty</label>
 							<select
 								className="form-select"
 								aria-label="Game Difficulty"
-								value={gameSettings.gameDifficulty}
+								value={gameSettings.game_difficulty}
 								onChange={(e) =>
-									setGameSettings({ ...gameSettings, gameDifficulty: parseInt(e.target.value) })
+									setGameSettings({ ...gameSettings, game_difficulty: parseInt(e.target.value) })
 								}
 							>
 								<option value="">Select Game Difficulty</option>
@@ -83,11 +83,11 @@ export default function GameSettings() {
 								max="21"
 								step="1"
 								id="pointsRange"
-								value={gameSettings.pointsToWin}
-								onChange={(e) => setGameSettings({ ...gameSettings, pointsToWin: parseInt(e.target.value) })}
+								value={gameSettings.points_to_win}
+								onChange={(e) => setGameSettings({ ...gameSettings, points_to_win: parseInt(e.target.value) })}
 							/>
 							<div className="d-flex align-items-center justify-content-center">
-								<p><strong>{gameSettings.pointsToWin}</strong></p>
+								<p><strong>{gameSettings.points_to_win}</strong></p>
 							</div>
 						</div>
 
@@ -97,15 +97,13 @@ export default function GameSettings() {
 								type="checkbox"
 								role="switch"
 								id="flexSwitchCheckChecked"
-								checked={gameSettings.powerUps}
+								checked={gameSettings.power_ups}
 								onChange={() =>
-									setGameSettings({ ...gameSettings, powerUps: !gameSettings.powerUps })
+									setGameSettings({ ...gameSettings, power_ups: !gameSettings.power_ups })
 								}
 							/>
 							<label className="form-check-label" htmlFor="flexSwitchCheckChecked">Power-ups</label>
 						</div>
-
-
 					</div>
 					{
 						session && (
