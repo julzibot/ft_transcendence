@@ -104,7 +104,7 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
         textMesh.position.set(CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 0.75, 1)
     }
     else if (mode == 5) {
-      const textMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff77 });
+      const textMaterial = new THREE.MeshStandardMaterial({ color: 0x227700 , emissive: 0x00cc00, emissiveIntensity: 0.25});
       textMesh.material = textMaterial;
       textMesh.position.set(-11.5, -7, -1.5);
     }
@@ -168,10 +168,9 @@ const scoringLogic = (room_id, socket, isHost, gamemode) => {
     if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score && vars.stopGame == 0)
       vars.stopGame = 1;
     if (gamemode === 2)
-      socket.emit('sendScore', { room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, game_ended: vars.stopGame });
+      socket.emit('sendScore', { room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, stopGame: vars.stopGame });
   }
   if (vars.stopGame === 1) {
-    console.log("KEK");
     if (vars.p1Score > vars.p2Score)
       vars.endString = "GAME ENDED\nPLAYER 1 WINS";
     else
@@ -369,7 +368,7 @@ const collisionLogic = (room_id, socket, gamemode) => {
 const activate_power = (i, mode) => {
   if (player_powerUps[i] > -1) {
     activated_powers[i][player_powerUps[i]] = 1;
-    objs.puGaugeLights[i][player_powerUps[i]].intensity = 500;
+    objs.puGaugeLights[i][player_powerUps[i]].intensity = 400;
     printGameInfo(vars.latentMesh[i], "none", 11, i, 0.85);
     player_powerUps[i] = -1;
   }
@@ -945,11 +944,11 @@ const init_socket = (socket, isHost) => {
     socket.on('updateScore', data => {
       if (data.score1 > vars.p1Score) {
         vars.p1Score = data.score1;
-        printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, -1, 4);
+        printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, -1, 2.75);
       }
       else {
         vars.p2Score = data.score2;
-        printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, -1, 4);
+        printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, -1, 2.75);
       }
       setBallColor();
       vars.stopGame = data.stopGame;

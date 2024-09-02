@@ -63,7 +63,7 @@ io.on("connection", async (socket) => {
   })
 
   socket.on('sendScore', data => {
-    socket.to(data.room_id).emit('updateScore', {score1: data.score1, score2: data.score2, game_ended: data.stopGame});
+    socket.to(data.room_id).emit('updateScore', {score1: data.score1, score2: data.score2, stopGame: data.stopGame});
   })
 
   socket.on('sendCreatePU', data => {
