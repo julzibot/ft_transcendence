@@ -268,4 +268,4 @@ class GetUserView(APIView):
       }
     except ObjectDoesNotExist:
       return Response(status=status.HTTP_404_NOT_FOUND)
-    return Response({'user': user_data})
+    return Response({'user': user_data}, status=status.HTTP_200_OK)
