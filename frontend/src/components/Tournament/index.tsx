@@ -31,7 +31,7 @@ export default function Tournament({ gameName }: props) {
 		gameLevel: '',
 		timer: '0',
 		isPrivate: false,
-		powerUps: false
+		power_ups: false
 	})
 	const [err, setErr] = useState('')
 	const [errField, setErrFields] = useState({
@@ -51,7 +51,7 @@ export default function Tournament({ gameName }: props) {
 			gameLevel: '',
 			timer: '0',
 			isPrivate: false,
-			powerUps: false
+			power_ups: false
 		})
 		setErrFields({
 			name: '',
@@ -97,7 +97,7 @@ export default function Tournament({ gameName }: props) {
 	const handleFormData = (e, key) => {
 		setTounamentForm({
 			...tounamentForm,
-			[key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'powerUps') ? e.target.checked : DOMPurify.sanitize(e.target.value)
+			[key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'power_ups') ? e.target.checked : DOMPurify.sanitize(e.target.value)
 		})
 	}
 
@@ -136,7 +136,7 @@ export default function Tournament({ gameName }: props) {
 				"pointsPerGame": tounamentForm?.gamePoint,
 				"timer": Number(tounamentForm?.timer),
 				"gameName": gameName,
-				"powerUps": tounamentForm?.powerUps,
+				"power_ups": tounamentForm?.power_ups,
 			};
 
 			try {
@@ -231,7 +231,7 @@ export default function Tournament({ gameName }: props) {
 								{errField && tounamentForm?.isPrivate === false ? <div className="form-text text-danger">{errField.isPrivate}</div> : ''}
 							</div>
 							<div className="mb-3 form-check form-switch">
-								<input type="checkbox" className="form-check-input" value={tounamentForm.powerUps} onChange={(e) => handleFormData(e, 'powerUps')} />
+								<input type="checkbox" className="form-check-input" value={tounamentForm.power_ups} onChange={(e) => handleFormData(e, 'power_ups')} />
 								<label className="form-check-label">Power ups</label>
 							</div>
 						</div>

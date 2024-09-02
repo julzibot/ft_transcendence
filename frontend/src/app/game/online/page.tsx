@@ -42,12 +42,12 @@ export default function OnlineGamePage() {
 					</div>
 				</div>
 				{
-					session && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session?.user.id} />
+					session?.user.id && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session?.user.id} />
 				}
 				<div className={`card mt-3 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-body">
 						{
-							session && <Lobby setGameSettings={setGameSettings} gameSettings={gameSettings} />
+							gameSettings && session?.user.id && <Lobby setGameSettings={setGameSettings} gameSettings={gameSettings} />
 						}
 					</div>
 				</div>
