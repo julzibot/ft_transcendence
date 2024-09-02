@@ -5,6 +5,7 @@ import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournamen
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { GameSettings } from '@/types/GameSettings';
+import { gameCustomSave } from '../game/Customization';
 
 interface MatchParameters {
 	user: number,
@@ -12,13 +13,13 @@ interface MatchParameters {
 	game_difficulty: number,
 	power_ups: boolean
 }
+
 interface GameSettingsProps {
-	setMatchParameters: Function,
-	matchParameters: MatchParameters,
+	setGameSettings: Function,
 	gameSettings: GameSettings
 }
 
-export default function Lobby({ setMatchParameters, matchParameters, gameSettings }: GameSettingsProps) {
+export default function Lobby({ setGameSettings, gameSettings }: GameSettingsProps) {
 	const { data: session } = useSession()
 	const router = useRouter()
 	const [lobbyData, setLobbyData] = useState([])
@@ -77,9 +78,9 @@ export default function Lobby({ setMatchParameters, matchParameters, gameSetting
 				const data = await AddLobbyData(payload);
 				setModalShow(false);
 				fetchLobbyData();
+				gameCustomSave('api/parameters/', JSON.stringify(gameSettings));
 
 				localStorage.setItem('gameSettings', JSON.stringify(gameSettings));
-
 				router.push(`/game/online/lobby/${data?.lobby?.linkToJoin}`);
 			} catch (error) {
 				console.error('Error:', error);

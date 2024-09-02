@@ -5,6 +5,7 @@ import { HexColorPicker } from "react-colorful";
 import styles from './CustomizationStyles.module.css';
 import './colorPickerStyles.css';
 import { GameSettings } from "@/types/GameSettings";
+import { BASE_URL } from "@/utils/constants";
 
 interface GameSettingsProps {
 	updateSettings: Function,
@@ -56,6 +57,28 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 	}
 };
 
+export async function fetchMatchParameters(user_id: number, updateSettings: Function, gameSettings: GameSettings) {
+	const response = await fetch(`http://localhost:8000/api/gameCustomization/${user_id}`, {
+		method: 'GET'
+	});
+	if (response.ok) {
+		const fetched = await response.json();
+		updateSettings({...gameSettings, fetched});
+	}
+	else
+		console.log(`[${user_id}] No Match Parameters`);
+}
+
+export async function gameCustomSave(backend_url: string, stringified_settings: string) {
+	const requestData = {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: stringified_settings
+	};
+	const response = await fetch(`${BASE_URL}${backend_url}`, requestData);
+	const data = await response.json();
+}
+
 export default function Customization({ updateSettings, gameSettings, userId }: GameSettingsProps) {
 
 	const [palette, setPalette] = useState(false);
@@ -63,6 +86,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 
 	useEffect(() => {
 		fetchGameSettings(userId, updateSettings, gameSettings);
+		fetchMatchParameters(userId, updateSettings, gameSettings);
 		const timer = setTimeout(() => {
 			setIsMounted(true);
 		}, 50);
@@ -87,17 +111,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 
 	const gameCustomDefault = () => {
 		defaultGameSettings(updateSettings, gameSettings, userId);
-		gameCustomSave();
-	}
-
-	const gameCustomSave = async () => {
-		const requestData = {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(gameSettings)
-		};
-		const response = await fetch('http://localhost:8000/api/gameCustomization/', requestData);
-		const data = await response.json();
+		gameCustomSave('gameCustomization/', JSON.stringify(gameSettings));
 	}
 
 	return (
