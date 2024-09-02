@@ -4,6 +4,7 @@ import { Button, Modal } from 'react-bootstrap'
 import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournaments';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import DOMPurify from 'dompurify';
 import { GameSettings } from '@/types/GameSettings';
 import { gameCustomSave } from '../game/Customization';
 
@@ -51,7 +52,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		setLobbyForm(
 			{
 				...lobbyForm,
-				[key]: (key === "isActiveLobby" || key === "powerUps") ? (e.target.checked) : (e.target.value)
+				[key]: (key === "isActiveLobby" || key === "powerUps") ? (e.target.checked) : (DOMPurify.sanitize(e.target.value))
 			}
 		)
 	}
