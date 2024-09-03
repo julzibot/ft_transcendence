@@ -16,5 +16,4 @@ then
         --username $DJANGO_SUPERUSER_USERNAME
 fi
 
-python manage.py runserver 0.0.0.0:8000
-
+python manage.py runserver_plus 0.0.0.0:8000 --cert-file cert.cert --key-file key.key

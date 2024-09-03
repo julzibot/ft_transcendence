@@ -10,3 +10,5 @@ channels[daphne]
 channels_redis
 Pillow
 drf-spectacular
+django-extensions
+Werkzeug

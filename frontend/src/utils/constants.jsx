@@ -1,13 +1,13 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 export const GAMEWIDTH = 50;
 export const GAMEHEIGHT = 30;
 export const DECORSIZE = 100;
 
 export const PLAYERLEN = 5;
-export const BASE_PLAYERSPEED = 0.17
-export const PLAYERSPEED_INCREMENT = 1.023
-export const PLAYERSPEED_MAX = 0.45
+export const BASE_PLAYERSPEED = 0.17;
+export const PLAYERSPEED_INCREMENT = 1.023;
+export const PLAYERSPEED_MAX = 0.45;
 
 export const BALLRADIUS = 0.55;
 export const BASE_BALLSPEED = 0.15;
@@ -22,4 +22,4 @@ export const PU_LIFESPAN = 20000;
 export const FONTPATH = "fonts/";
 export const FONTNAME = "Norwester_Regular.json";
 
-export const BASE_URL = 'http://localhost:8000/api/'
+export const BASE_URL = "https://localhost:8000/api/";

@@ -65,7 +65,7 @@ export default function ProfilePage() {
 	};
 
 	async function getUserInfo() {
-		const response = await fetch(`http://localhost:8000/api/user/get-user-info/?id=${id}`, {
+		const response = await fetch(`https://localhost:8000/api/user/get-user-info/?id=${id}`, {
 			method: 'GET',
 			headers: { 'Content-Type': 'application/json' }
 		})
@@ -84,7 +84,7 @@ export default function ProfilePage() {
 	async function changePassword(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault()
 
-		const response = await fetch('http://localhost:8000/api/update/password/', {
+		const response = await fetch('https://localhost:8000/api/update/password/', {
 			method: 'PUT',
 			headers: { 'Content-type': 'application/json' },
 			body: JSON.stringify({
@@ -111,7 +111,7 @@ export default function ProfilePage() {
 			return;
 		}
 
-		const response = await fetch('http://localhost:8000/api/update/name/', {
+		const response = await fetch('https://localhost:8000/api/update/name/', {
 			method: 'PUT',
 			headers: { 'Content-type': 'application/json' },
 			body: JSON.stringify({
@@ -132,7 +132,7 @@ export default function ProfilePage() {
 
 
 	async function deleteAccount() {
-		const response = await fetch('http://localhost:8000/api/auth/user/delete/', {
+		const response = await fetch('https://localhost:8000/api/auth/user/delete/', {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({

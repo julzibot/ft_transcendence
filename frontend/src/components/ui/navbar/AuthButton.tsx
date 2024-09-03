@@ -13,7 +13,7 @@ export default function AuthButton() {
   }, []);
 
   async function handleSignOut() {
-    const response = await fetch("http://localhost:8000/api/auth/signout/", {
+    const response = await fetch("https://localhost:8000/api/auth/signout/", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

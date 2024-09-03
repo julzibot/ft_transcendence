@@ -29,7 +29,16 @@ SECRET_KEY = os.getenv('DJANGO_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["0.0.0.0:8000", "localhost:8000", "backend:8000", "backend", "localhost"]
+ALLOWED_HOSTS = [
+	"0.0.0.0",
+	"localhost",
+	"backend",
+	"127.0.0.1",
+	"0.0.0.0:8000",
+	"localhost:8000",
+	"backend:8000",
+	"127.0.0.1:8000",
+]
 
 # Application definition
 
@@ -43,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'requests',
+	'django_extensions',
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_spectacular',
