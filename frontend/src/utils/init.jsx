@@ -108,6 +108,8 @@ csts.ballLight = new THREE.PointLight( CONST.BALL_COLOR, 5, 42);
 csts.dirLight.position.set(0, -4., 15);
 csts.dirLight2.position.set(0, 4., 15);
 csts.game_id = 0;
+csts.p1nameMesh = new THREE.Mesh();
+csts.p2nameMesh = new THREE.Mesh();
 csts.player_id = 0;
 csts.pu_vs = shaders.pu_vs;
 csts.pu_fs = shaders.pu_fs;

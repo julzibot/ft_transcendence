@@ -23,3 +23,4 @@ export const FONTPATH = "fonts/";
 export const FONTNAME = "Norwester_Regular.json";
 
 export const BASE_URL = 'http://localhost:8000/api/'
+export const BASE_URL_2 = 'http://localhost:8000'
