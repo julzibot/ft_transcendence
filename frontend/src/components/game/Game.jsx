@@ -73,11 +73,21 @@ const sparkFs = `
 function printGameInfo(textMesh, string, mode, id, fontsize) {
   csts.loader.load(CONST.FONTPATH + CONST.FONTNAME, function (font) {
     let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, height: 0.5 });
-    if (mode > 0 && mode < 3) {
+    if (mode === 0 && ((vars.scorePlaceAdjust[id] === 0 && parseInt(string, 10) > 9) || (id === 0 && vars.scorePlaceAdjust[id] === 1 && parseInt(string, 10) > 19)))
+    {
+      if (id === 0 && vars.scorePlaceAdjust[0] === 0)
+        textMesh.position.set(-4.91, CONST.GAMEHEIGHT / 2 + 0.5, 1);
+      else if (id === 0 && vars.scorePlaceAdjust[0] === 1)
+        textMesh.position.set(-5.31, CONST.GAMEHEIGHT / 2 + 0.5, 1);
+      else
+        textMesh.position.set(1.5, CONST.GAMEHEIGHT / 2 + 0.5, 1);
+      vars.scorePlaceAdjust[id] += 1;
+    }
+    else if (mode > 0 && mode < 3) {
       const textMaterial = new THREE.MeshStandardMaterial({ color: 0x0000cc, emissive: 0xee00ee, emissiveIntensity: 0.3 });
       textMesh.material = textMaterial;
       if (mode == 1)
-        textMesh.position.set(-3.9, CONST.GAMEHEIGHT / 2 + 0.5, 1);
+        textMesh.position.set(-4.11, CONST.GAMEHEIGHT / 2 + 0.5, 1);
       else if (mode == 2)
       {
         let hyphenGeo = new TextGeometry("-", { font: font, size: fontsize, height: 0.5 });
@@ -93,9 +103,9 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
       const textMaterial = new THREE.MeshStandardMaterial({ color: 0xeeeeee, emissive: 0xdddddd, emissiveIntensity: 0.35, transparent: true, opacity: 0.7});
       textMesh.material = textMaterial;
       if (mode === -1)
-        textMesh.position.set(-5 - 2.7 * string.length, CONST.GAMEHEIGHT / 2 - 7, -1.7);
+        textMesh.position.set(-7.5 - 1.49 * string.length, CONST.GAMEHEIGHT / 2 - 7, -1.7);
       if (mode === -2)
-        textMesh.position.set(8, CONST.GAMEHEIGHT / 2 - 7, -1.7);
+        textMesh.position.set(7.5, CONST.GAMEHEIGHT / 2 - 7, -1.7);
     }
     else if (mode == 3) {
       const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
@@ -123,7 +133,7 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
       textMesh.material.dispose();
       textMesh.material = textMaterial;
     }
-    if (mode > -3 && mode < 6)
+    if (mode > -3 && mode < 6 && mode != 0)
       tools.scene.add(textMesh);
     textMesh.geometry.dispose();
     textMesh.geometry = updatedStringGeo;
@@ -147,12 +157,12 @@ const scoringLogic = (room_id, socket, isHost, gamemode) => {
     if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4) {
       vars.ballVect.set(-1, 0);
       vars.p1Score += 1;
-      printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, -1, 2.75);
+      printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, 0, 2.75);
     }
     else {
       vars.ballVect.set(1, 0);
       vars.p2Score += 1;
-      printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, -1, 2.75);
+      printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, 1, 2.75);
     }
     if (custom.power_ups === true) {
       for (let i = 0; i < 2; i++) {
@@ -624,7 +634,9 @@ async function getPlayerInfos(gamemode) {
 
     // PLAYER 1
     p1Name = data.player1.username;
-    printGameInfo(csts.p1nameMesh, p1Name, -1, -1, 3.5);
+    if (p1Name.length > 8)
+      p1Name = p1Name.slice(0,8) + ".";
+    printGameInfo(csts.p1nameMesh, p1Name, -1, -1, 2.5);
     const p1p = data.player1.image;
     const t1 = new THREE.TextureLoader().load(CONST.BASE_URL_2 + `${p1p}`);
     t1.repeat.set(0.6, 0.9);
@@ -638,7 +650,9 @@ async function getPlayerInfos(gamemode) {
     if (data.player2)
     {
       p2Name = data.player2.username;
-      printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 3.5);
+      if (p2Name.length > 8)
+        p2Name = p2Name.slice(0,8) + ".";
+      printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
       const p2p = data.player2.image;
       const t2 = new THREE.TextureLoader().load(CONST.BASE_URL_2 + `${p2p}`);
       t2.repeat.set(0.6, 0.9);
@@ -996,11 +1010,11 @@ const init_socket = (socket, isHost) => {
     socket.on('updateScore', data => {
       if (data.score1 > vars.p1Score) {
         vars.p1Score = data.score1;
-        printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, -1, 2.75);
+        printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, 0, 2.75);
       }
       else {
         vars.p2Score = data.score2;
-        printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, -1, 2.75);
+        printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, 1, 2.75);
       }
       setBallColor();
       vars.stopGame = data.stopGame;
@@ -1119,7 +1133,7 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
       if (gamemode === 0)
       {
         p2Name = "guest";
-        printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 3.5);
+        printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
         const t2 = new THREE.TextureLoader().load('../../guest.png');
         const img2Mat = new THREE.MeshBasicMaterial({ map: t2, transparent: true, opacity: 0.8 });
         const img2Display = new THREE.Mesh(imgGeo, img2Mat);
@@ -1129,7 +1143,7 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
       else if (gamemode === 1)
       {
         p2Name = "ai";
-        printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 3.5);
+        printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
         const t2 = new THREE.TextureLoader().load('../../airobot.png');
         const img2Mat = new THREE.MeshBasicMaterial({ map: t2, transparent: true, opacity: 0.75 });
         const img2Display = new THREE.Mesh(imgGeo, img2Mat);

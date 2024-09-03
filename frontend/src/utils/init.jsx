@@ -125,6 +125,7 @@ vars.p1Score = 0;
 vars.p2Score = 0;
 vars.scoreString = "";
 vars.endString = "";
+vars.scorePlaceAdjust = [0, 0];
 vars.glowStartTime = 0;
 vars.glowElapsed = 0;
 vars.ai_timer = 0;
