@@ -9,6 +9,7 @@ import { useSession } from 'next-auth/react'
 import Image from "next/image";
 import { Friendship, Friend } from '@/types/Friend';
 import Link from 'next/link';
+import { BACKEND_URL, BASE_URL } from '@/utils/constants';
 
 export default function FriendList() {
 	const { data: session } = useSession()
@@ -20,7 +21,7 @@ export default function FriendList() {
 	}, [])
 
 	async function fetchFriends() {
-		const response = await fetch(`http://localhost:8000/api/friends/get/?id=${session?.user.id}`, {
+		const response = await fetch(`${BASE_URL}friends/get/?id=${session?.user.id}`, {
 			method: 'GET'
 		})
 		const data = await response.json()
@@ -28,7 +29,7 @@ export default function FriendList() {
 	}
 
 	async function approveFriendRequest(friend: Friend) {
-		const response = await fetch(`http://localhost:8000/api/friends/approve-friend-request/`, {
+		const response = await fetch(`${BASE_URL}friends/approve-friend-request/`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -43,7 +44,7 @@ export default function FriendList() {
 	}
 
 	async function deleteFriendship(friend: Friend) {
-		const response = await fetch('http://localhost:8000/api/friends/delete-friendship/', {
+		const response = await fetch(`${BASE_URL}friends/delete-friendship/`, {
 			method: 'DELETE',
 			headers: { 'Content-type': 'application/json' },
 			body: JSON.stringify({
@@ -85,7 +86,7 @@ export default function FriendList() {
 										<Image
 											style={{ objectFit: 'cover' }}
 											alt="profile picture"
-											src={`http://backend:8000${friendship.user.image}`}
+											src={`${BACKEND_URL}${friendship.user.image}`}
 											fill
 											sizes="20vw"
 										/>
@@ -128,7 +129,7 @@ export default function FriendList() {
 										<Image
 											style={{ objectFit: 'cover' }}
 											alt="profile picture"
-											src={`http://backend:8000${friendship.user.image}`}
+											src={`${BACKEND_URL}${friendship.user.image}`}
 											fill
 											sizes={"20vw"}
 										/>

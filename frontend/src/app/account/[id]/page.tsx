@@ -8,6 +8,7 @@ import DOMPurify from 'dompurify'
 import UserDashboardCard from "@/components/ui/dashboard/UserDashboardCard"
 import Customization from "@/components/game/Customization";
 import { useParams, useRouter } from "next/navigation";
+import { BACKEND_URL, BASE_URL } from "@/utils/constants";
 
 interface User {
 	id: number;
@@ -65,7 +66,7 @@ export default function ProfilePage() {
 	};
 
 	async function getUserInfo() {
-		const response = await fetch(`http://c2r4p9.42nice.fr:8000/api/user/get-user-info/?id=${id}`, {
+		const response = await fetch(`${BASE_URL}user/get-user-info/?id=${id}`, {
 			method: 'GET',
 			headers: { 'Content-Type': 'application/json' }
 		})
@@ -84,7 +85,7 @@ export default function ProfilePage() {
 	async function changePassword(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault()
 
-		const response = await fetch('http://c2r4p9.42nice.fr:8000/api/update/password/', {
+		const response = await fetch(`${BASE_URL}update/password/`, {
 			method: 'PUT',
 			headers: { 'Content-type': 'application/json' },
 			body: JSON.stringify({
@@ -111,7 +112,7 @@ export default function ProfilePage() {
 			return;
 		}
 
-		const response = await fetch('http://c2r4p9.42nice.fr:8000/api/update/name/', {
+		const response = await fetch(`${BASE_URL}update/name/`, {
 			method: 'PUT',
 			headers: { 'Content-type': 'application/json' },
 			body: JSON.stringify({
@@ -132,7 +133,7 @@ export default function ProfilePage() {
 
 
 	async function deleteAccount() {
-		const response = await fetch('http://c2r4p9.42nice.fr:8000/api/auth/user/delete/', {
+		const response = await fetch(`${BASE_URL}auth/user/delete/`, {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -164,7 +165,7 @@ export default function ProfilePage() {
 									<>
 										<Image style={{ objectFit: 'cover' }}
 											fill
-											src={`http://backend:8000${user.image}`}
+											src={`${BACKEND_URL}${user.image}`}
 											alt="Profile Picture"
 											priority={true}
 											sizes="25vw"

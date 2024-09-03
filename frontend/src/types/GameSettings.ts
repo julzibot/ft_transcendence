@@ -1,5 +1,5 @@
 export interface GameSettings {
-	user_id: number,
+	user: number,
 	background: number,
 	palette: number,
 	bgColor: string,

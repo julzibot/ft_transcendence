@@ -72,7 +72,7 @@ class RegisterView(APIView):
     serializer = UserAccountSerializer(user)
     MatchParametersData.objects.create(user=user)
     DashboardData.objects.create(user=user)
-    GameCustomizationData.objects.create(user_id=user)
+    GameCustomizationData.objects.create(user=user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 class OauthView(APIView):
@@ -87,7 +87,7 @@ class OauthView(APIView):
       user.save_image_from_url()
       MatchParametersData.objects.create(user=user)
       DashboardData.objects.create(user=user)
-      GameCustomizationData.objects.create(user_id=user)
+      GameCustomizationData.objects.create(user=user)
 
     backendTokens = get_tokens_for_user(user)
     user.is_online = True
