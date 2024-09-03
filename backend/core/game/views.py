@@ -20,7 +20,7 @@ class GameHistory(APIView):
 		else:
 			history = GameMatch.objects.all()
 			if not history.exists():
-				return Response({'message': 'No match history'}, status=status.HTTP_404_NOT_FOUND)
+				return Response({'message': f'[{user.username}] [204] No match history'}, status=status.HTTP_204_NO_CONTENT)
 			serializer = GameMatchSerializer(history, many=True)
 			return Response({'data': serializer.data}, status=status.HTTP_200_OK)
 				
@@ -33,7 +33,7 @@ class UserGameHistory(APIView):
 				
 		history = GameMatch.objects.filter(Q(player1=user) | Q(player2=user))
 		if not history.exists():
-			return Response({'message': f'[{user.username}] No match history'}, status=status.HTTP_404_NOT_FOUND)
+			return Response({'message': f'[{user.username}] [204] No match history'}, status=status.HTTP_204_NO_CONTENT)
 		history = history.order_by('date')
 		serializer = GameMatchSerializer(history, many=True)
 		return Response({'data': serializer.data}, status=status.HTTP_200_OK)

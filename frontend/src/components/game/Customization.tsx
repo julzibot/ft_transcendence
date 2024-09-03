@@ -16,7 +16,7 @@ interface GameSettingsProps {
 export function defaultGameSettings(updateSettings: Function, gameSettings: GameSettings, user_id: number) {
 	updateSettings({
 		...gameSettings,
-		user_id: user_id,
+		user: user_id,
 		background: 0,
 		palette: 0,
 		bgColor: '#ff0000',
@@ -28,7 +28,7 @@ export function defaultGameSettings(updateSettings: Function, gameSettings: Game
 export function defaultMatchParameters(updateSettings: Function, gameSettings: GameSettings, user_id: number) {
 	updateSettings({
 		...gameSettings,
-		user_id: user_id,
+		user: user_id,
 		points_to_win: 5,
 		game_difficulty: 2,
 		power_ups: true
@@ -38,7 +38,7 @@ export function defaultMatchParameters(updateSettings: Function, gameSettings: G
 export async function fetchGameSettings(user_id: number, updateSettings: Function, gameSettings: GameSettings) {
 
 	if (user_id) {
-		const response = await fetch(`http://c2r4p9.42nice.fr:8000/api/gameCustomization/${user_id}`, {
+		const response = await fetch(`${BASE_URL}gameCustomization/${user_id}`, {
 			method: 'GET'
 		});
 		if (response.ok) {
@@ -51,7 +51,7 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 				const data = fetched.data;
 				updateSettings({
 					...gameSettings,
-					user_id: user_id,
+					user: user_id,
 					background: data.background,
 					palette: data.palette,
 					bgColor: data.bgColor,
@@ -67,7 +67,7 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 };
 
 export async function fetchMatchParameters(user_id: number, updateSettings: Function, gameSettings: GameSettings) {
-	const response = await fetch(`http://c2r4p9.42nice.fr:8000/api/parameters/${user_id}`, {
+	const response = await fetch(`${BASE_URL}parameters/${user_id}`, {
 		method: 'GET'
 	});
 	if (response.ok) {
@@ -91,7 +91,9 @@ export async function gameCustomSave(backend_url: string, stringified_settings: 
 		body: stringified_settings
 	};
 	const response = await fetch(`${BASE_URL}${backend_url}`, requestData);
-	const data = await response.json();
+	if (!response.ok) {
+		// ???
+	}
 }
 
 export default function Customization({ updateSettings, gameSettings, userId }: GameSettingsProps) {
@@ -332,8 +334,8 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 							</div>
 
 							<div>
-								<button className="m-1 btn btn-warning" data-bs-dismiss="offcanvas" onClick={gameCustomSave}>Save</button>
-								<button className="m-1 btn btn-primary" onClick={gameCustomDefault}>Reset to Default</button>
+								<button className="m-1 btn btn-warning" data-bs-dismiss="offcanvas" onClick={() => gameCustomSave('gameCustomization/', JSON.stringify(gameSettings))}>Save</button>
+								<button className="m-1 btn btn-primary" onClick={() => gameCustomDefault}>Reset to Default</button>
 							</div>
 
 						</div>

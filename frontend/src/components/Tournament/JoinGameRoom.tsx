@@ -11,7 +11,7 @@ export default function JoinGameRoom({ room_id, user_id }) {
 	const [userJoined, setUserJoined] = useState(false);
 	const [receivedSettings, setReceivedSettings] = useState(false);
 	const [gameSettings, setGameSettings] = useState({
-		user_id: user_id,
+		user: user_id,
 
 		background: 0, // 0 - 3 animated, 4 - 5 static
 		palette: 0, // palette: 4 choices

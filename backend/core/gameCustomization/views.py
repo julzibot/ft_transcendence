@@ -11,7 +11,7 @@ class GameCustomizationView(APIView):
 	def get(self, request, id):
 		try:
 			user = UserAccount.objects.get(id=id)
-			settings = GameCustomizationData.objects.get(user_id=id)
+			settings = GameCustomizationData.objects.get(user=id)
 			serializer = GameCustomizationSerializer(settings)
 			return Response({'data': serializer.data}, status=status.HTTP_200_OK)
 		except UserAccount.DoesNotExist:
@@ -22,7 +22,7 @@ class GameCustomizationView(APIView):
 class UpdateGameCustomizationView(APIView):
 	def post(self, request):
 		data = request.data
-		user_id = data.get('user_id')
+		user_id = data.get('user')
 		
 		try:
 			user = UserAccount.objects.get(id=user_id)
@@ -30,7 +30,7 @@ class UpdateGameCustomizationView(APIView):
 			return Response({'message': f'[{id}] User Not Found'}, status=status.HTTP_404_NOT_FOUND)
 
 		try:
-			obj = GameCustomizationData.objects.get(user_id=user_id)
+			obj = GameCustomizationData.objects.get(user=user_id)
 			obj.background = data['background']
 			obj.palette = data['palette']
 			obj.bgColor = data['bgColor']
@@ -39,6 +39,6 @@ class UpdateGameCustomizationView(APIView):
 			obj.save()
 			return Response({'message': 'Game Customization Settings Updated Successfully'}, status=status.HTTP_202_ACCEPTED)
 		except GameCustomizationData.DoesNotExist:
-			newObj = GameCustomizationData.objects.create(user_id=user, background=data['background'], palette=data['palette'], bgColor=data['bgColor'], opacity=data['opacity'], sparks=data['sparks'])
+			newObj = GameCustomizationData.objects.create(user=user, background=data['background'], palette=data['palette'], bgColor=data['bgColor'], opacity=data['opacity'], sparks=data['sparks'])
 			newObj.save()
 			return Response({'message': 'Game Customization Settings Created Successfully'}, status=status.HTTP_202_ACCEPTED)

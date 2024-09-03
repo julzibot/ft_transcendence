@@ -16,7 +16,7 @@ export default function GameSettings() {
 	const [isMounted, setIsMounted] = useState(false);
 
 	const [gameSettings, setGameSettings] = useState<GameSetings>({
-		user_id: session?.user.id ?? -1,
+		user: session?.user.id ?? -1,
 		background: 0,
 		palette: 0,
 		bgColor: '#ff0000',

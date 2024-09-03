@@ -4,6 +4,7 @@ import React, { RefObject, useEffect, useState } from "react";
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import './styles.css';
+import { BASE_URL, BACKEND_URL } from "@/utils/constants";
 
 import { Chart, TimeScale } from 'chart.js/auto';
 import 'chartjs-adapter-luxon';
@@ -42,7 +43,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 	useEffect(() => {
 		if (user.id) {
 			const fetchDashboardDetail = async () => {
-				const response = await fetch(`http://localhost:8000/api/dashboard/${user.id}`, {
+				const response = await fetch(`${BASE_URL}dashboard/${user.id}`, {
 					method: "GET"
 				});
 				if (response.ok) {
@@ -61,7 +62,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 	useEffect(() => {
 		if (user.id) {
 			const fetchUserHistory = async () => {
-				const response = await fetch(`http://localhost:8000/api/game/history/user/${user.id}`, {
+				const response = await fetch(`${BASE_URL}game/history/user/${user.id}`, {
 					method: "GET"
 				});
 				if (response.ok) {
@@ -244,7 +245,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 																						<div className="flex-column position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
 																							<Image style={{ objectFit: 'cover' }}
 																								fill
-																								src={`http://backend:8000${user.image}`}
+																								src={`${BACKEND_URL}${user.image}`}
 																								alt="Profile Picture"
 																								priority={true}
 																								sizes="25vw"
@@ -265,7 +266,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 																								<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
 																									<Image style={{ objectFit: 'cover' }}
 																										fill
-																										src={`http://backend:8000${player2.image}`}
+																										src={`${BACKEND_URL}${player2.image}`}
 																										alt="Guest"
 																										priority={true}
 																										sizes="25vw"
