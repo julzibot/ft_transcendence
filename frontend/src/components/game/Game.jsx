@@ -806,7 +806,7 @@ const createPUObject = (powerType, radius, spawnx, spawny) => {
 const createPowerUp = (gamemode, socket, room_id) => {
   const powerTypeRoll = Math.random() * 10;
   let powerType = -1;
-  if (powerTypeRoll < 10 / 3) { powerType = 3; } // longer pad
+  if (powerTypeRoll < 10 / 3) { powerType = 0; } // longer pad
   else if (powerTypeRoll < 6) { powerType = 1; } // speed boost
   else if (powerTypeRoll < 8) { powerType = 2; } // bullet time
   else if (powerTypeRoll < 8.5) { powerType = 3; } // invert controls
