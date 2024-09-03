@@ -19,6 +19,8 @@ let activated_powers = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
 let power_timers = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
 let opponentPos = 0.;
 let game_id = 0;
+let p1Name = "";
+let p2Name = "";
 let put_response = false;
 const startTime = performance.now();
 tools.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -180,9 +182,9 @@ const scoringLogic = (room_id, socket, isHost, gamemode) => {
   }
   if (vars.stopGame === 1) {
     if (vars.p1Score > vars.p2Score)
-      vars.endString = "GAME ENDED\nPLAYER 1 WINS";
+      vars.endString = `GAME ENDED\n${p1Name} WINS`;
     else
-      vars.endString = "GAME ENDED\nPLAYER 2 WINS";
+      vars.endString = `GAME ENDED\n${p2Name} WINS`;
     printGameInfo(vars.endMsgMesh, vars.endString, 5, -1, 3);
     put_response = PutScores(gamemode);
     if (put_response == false)
@@ -621,7 +623,7 @@ async function getPlayerInfos(gamemode) {
     const imgGeo = new THREE.CircleGeometry(1.7, 30);
 
     // PLAYER 1
-    const p1Name = data.player1.username;
+    p1Name = data.player1.username;
     printGameInfo(csts.p1nameMesh, p1Name, -1, -1, 3.5);
     const p1p = data.player1.image;
     const t1 = new THREE.TextureLoader().load(CONST.BASE_URL_2 + `${p1p}`);
@@ -635,7 +637,7 @@ async function getPlayerInfos(gamemode) {
     //PLAYER 2
     if (data.player2)
     {
-      const p2Name = data.player2.username;
+      p2Name = data.player2.username;
       printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 3.5);
       const p2p = data.player2.image;
       const t2 = new THREE.TextureLoader().load(CONST.BASE_URL_2 + `${p2p}`);
@@ -1114,7 +1116,6 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
     if (gamemode < 2)
     {
       const imgGeo = new THREE.CircleGeometry(1.7, 30);
-      let p2Name = "";
       if (gamemode === 0)
       {
         p2Name = "guest";
