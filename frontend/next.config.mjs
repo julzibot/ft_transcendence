@@ -10,7 +10,7 @@
         },
         {
           protocol: 'http',
-          hostname: 'c2r10p1.42nice.fr',
+          hostname: 'localhost',
         },
       ],
     },

@@ -21,7 +21,7 @@ export default function AuthButton() {
         'id': session?.user.id
       })
     })
-    signOut({ callbackUrl: 'http://c2r10p1.42nice.fr:3000/auth/signin' })
+    signOut({ callbackUrl: 'http://localhost:3000/auth/signin' })
   }
 
   if (session && session.user) {
