@@ -20,7 +20,6 @@ export default function AuthButton() {
         id: session?.user.id,
       }),
     });
-    // signOut({ callbackUrl: 'http://localhost:3000/auth/signin' })
     signOut({ callbackUrl: "https://localhost:3000/auth/signin" });
   }
 
@@ -49,7 +48,7 @@ export default function AuthButton() {
                     style={{ objectFit: "cover" }}
                     fetchPriority="high"
                     alt="profile picture"
-                    src={`http://backend:8000${session.user.image}`}
+                    src={`https://backend:8000${session.user.image}`}
                     fill
                     sizes="10vw"
                   />

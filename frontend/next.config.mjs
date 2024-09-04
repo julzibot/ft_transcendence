@@ -4,12 +4,12 @@
     images: {
       remotePatterns: [
         {
-          protocol: 'http',
+          protocol: 'https',
           hostname: 'backend',
           port: '8000',
         },
         {
-          protocol: 'http',
+          protocol: 'https',
           hostname: 'localhost',
         },
       ],

@@ -7,7 +7,7 @@ import { JWT } from "next-auth/jwt";
 const backend_url = process.env.BACKEND_URL
 
 async function refreshToken(token: JWT): Promise<JWT> {
-  const response = await fetch(`${backend_url}/api/refresh/`, {
+  const response = await fetch(`https://localhost:8000/api/refresh/`, {
     method: "POST",
     headers: { authorization: `Refresh ${token.backendTokens.refresh}` },
   });
@@ -41,7 +41,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        const res = await fetch(`${backend_url}/api/auth/signin/`, {
+        const res = await fetch(`https://localhost:8000/api/auth/signin/`, {
           method: "POST",
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user: credentials })
@@ -66,9 +66,9 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         let backendUrl
         if (account?.provider === '42-school')
-          backendUrl = `${backend_url}/api/auth/oauth/`
+          backendUrl = `https://localhost:8000/api/auth/oauth/`
         else
-          backendUrl = `${backend_url}/api/auth/access_token/`
+          backendUrl = `https://localhost:8000/api/auth/access_token/`;
         const res = await fetch(backendUrl, {
           method: "POST",
           headers: { "Content-type": "application/json" },
@@ -95,16 +95,16 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       //call user api to get user informations
-      // const response = await fetch(`${backend_url}/api/auth/user/`, {
+      // const response = await fetch(`https://localhost:8000/api/auth/user/`, {
       //   method: "GET",
       //   headers: { 'Authorization': `Bearer ${token.backendTokens.access}` },
       // })
       // if (response.ok) {
       // const data = await response.json()
-      session.user = token.user
-      session.provider = token.provider
+      session.user = token.user;
+      session.provider = token.provider;
       // }
-      return session
+      return session;
     }
   }
 }

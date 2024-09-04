@@ -115,7 +115,7 @@ export default function FriendList() {
                     <Image
                       style={{ objectFit: "cover" }}
                       alt="profile picture"
-                      src={`http://backend:8000${friendship.user.image}`}
+                      src={`https://backend:8000${friendship.user.image}`}
                       fill
                       sizes="20vw"
                     />
@@ -185,7 +185,7 @@ export default function FriendList() {
                     <Image
                       style={{ objectFit: "cover" }}
                       alt="profile picture"
-                      src={`http://backend:8000${friendship.user.image}`}
+                      src={`https://backend:8000${friendship.user.image}`}
                       fill
                       sizes={"20vw"}
                     />

@@ -229,7 +229,7 @@ export default function SearchPlayerInput({
                   <Image
                     style={{ objectFit: "cover" }}
                     alt="profile picture"
-                    src={`http://backend:8000${user.image}`}
+                    src={`https://backend:8000${user.image}`}
                     fill
                     sizes="20vw"
                   />

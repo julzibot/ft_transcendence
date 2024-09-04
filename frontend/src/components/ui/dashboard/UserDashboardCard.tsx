@@ -355,7 +355,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
                                                 <Image
                                                   style={{ objectFit: "cover" }}
                                                   fill
-                                                  src={`http://backend:8000${user.image}`}
+                                                  src={`https://backend:8000${user.image}`}
                                                   alt="Profile Picture"
                                                   priority={true}
                                                   sizes="25vw"
@@ -400,7 +400,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
                                                       objectFit: "cover",
                                                     }}
                                                     fill
-                                                    src={`http://backend:8000${player2.image}`}
+                                                    src={`https://backend:8000${player2.image}`}
                                                     alt="Guest"
                                                     priority={true}
                                                     sizes="25vw"

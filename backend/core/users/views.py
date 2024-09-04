@@ -54,7 +54,6 @@ class CustomTokenRefreshView(TokenRefreshView):
       'expiresIn': access_token.payload['exp']
     })
 
-
 class RegisterView(APIView):
   def post(self, request):
     data = request.data['data']
@@ -125,13 +124,23 @@ class AccessTokenView(APIView):
   
 class SigninView(APIView):
     def post(self, request):
+      print('Request data is :')
+      print(request.data)
       data = request.data['user']
       if len(data['email']) < 1:
         return Response(status=status.HTTP_400_BAD_REQUEST)
       try:
         user = UserAccount.objects.get(Q(email=data['email']) | Q(username=data['email']))
+        print('User is :')
+        print(user)
       except ObjectDoesNotExist:
         return Response({'message': 'User does not exists, try different credentials'}, status=status.HTTP_404_NOT_FOUND)
+      print('Input password is :')
+      print(data['password'])
+      print('User password is :')
+      print(user.password)
+      print('Comparision of password returns ', check_password(data['password'], user.password))
+      print('Printed comparison above')
       if not check_password(data['password'], user.password):
         return Response({
           "error": "Unauthorized",

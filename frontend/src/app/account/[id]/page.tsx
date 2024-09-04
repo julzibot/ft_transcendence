@@ -164,7 +164,7 @@ export default function ProfilePage() {
 									<>
 										<Image style={{ objectFit: 'cover' }}
 											fill
-											src={`http://backend:8000${user.image}`}
+											src={`https://backend:8000${user.image}`}
 											alt="Profile Picture"
 											priority={true}
 											sizes="25vw"
