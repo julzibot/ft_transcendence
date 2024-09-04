@@ -9,7 +9,7 @@ const server = createServer();
 
 const io = new Server(server, {
   cors: {
-    origin: "http://c2r4p5.42nice.fr:3000",
+    origin: "http://c2r10p1.42nice.fr:3000",
     methods: ["GET", "POST"],
     credentials: true
   }

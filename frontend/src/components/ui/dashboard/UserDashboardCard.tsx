@@ -59,15 +59,21 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 	}, [user.id]);
 
 	const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
+	const [userHistoryFetched, setUserHistoryFetched] = useState<Boolean>(false);
 	useEffect(() => {
 		if (user.id) {
 			const fetchUserHistory = async () => {
 				const response = await fetch(`${BASE_URL}game/history/user/${user.id}`, {
 					method: "GET"
 				});
-				if (response.ok) {
-					const data = await response.json();
+				if (response.status === 204) {
+					setUserHistory(null);
+					setUserHistoryFetched(true);
+				}
+				else if (response.ok) {
+					const data = await response.json();	
 					setUserHistory(data);
+					setUserHistoryFetched(true);
 				}
 				else {
 					console.log('No User Game History:', response.status);
@@ -97,7 +103,12 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 	const [statsToggle, setStatsToggle] = useState(true);
 
 	useEffect(() => {
-		if (user.id && userHistory?.data && userHistory.data.length > 0 && !dataCreated) {
+		if (user.id && userHistoryFetched && !dataCreated) {
+			if (!userHistory) {
+				setDataCreated(true);
+				return;
+			}
+	
 			setWinData([]);
 			setLossData([]);
 			setActivityData([]);
@@ -112,7 +123,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 				minDate, setMinDate);
 			setDataCreated(true);
 		}
-	}, [userHistory, dataCreated]);
+	}, [userHistoryFetched, dataCreated]);
 	// Buttons
 	const handleStatsToggle = () => {
 		setStatsToggle(!statsToggle)
@@ -149,8 +160,9 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 
 					{DashboardData && dataCreated ? (
 						<>
-							<h5>Wins: {DashboardData.wins} ({((DashboardData.wins / (DashboardData.games_played)) * 100).toFixed(0)}%)</h5>
-							<h5>Losses: {DashboardData.games_played - DashboardData.wins} ({(((DashboardData.games_played - DashboardData.wins) / DashboardData.games_played) * 100).toFixed(0)}%)</h5>
+							<h5>Wins: {DashboardData.wins} ({DashboardData.wins === 0 ? ('0') : (((DashboardData.wins / (DashboardData.games_played)) * 100).toFixed(0))}%)
+							</h5>
+							<h5>Losses: {DashboardData.games_played - DashboardData.wins} ({DashboardData.games_played === 0 ? ('0') : (((DashboardData.games_played - DashboardData.wins) / DashboardData.games_played) * 100).toFixed(0)}%)</h5>
 							<span>Current streak record: {DashboardData.record_streak}</span>
 							<p className="">Number of matches played: {DashboardData.games_played}</p>
 							<div>
@@ -161,8 +173,8 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 							{
 								dataCreated && (
 									<>
-										<button type='button' className='btn btn-primary m-1' onClick={handle7DaysBtn}>Past 7 days</button>
-										<button type='button' className='btn btn-primary m-1' onClick={handleAllTimeBtn}>All time</button>
+										<button type='button' className='btn btn-primary m-1' onClick={() => handle7DaysBtn}>Past 7 days</button>
+										<button type='button' className='btn btn-primary m-1' onClick={() => handleAllTimeBtn}>All time</button>
 										<input
 											type="checkbox"
 											className="btn-check"
@@ -202,6 +214,8 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 										</div>
 										<div className="modal-body">
 											{
+												!userHistory ? (
+												<><p>No match history</p></>) : (
 												Array.isArray(userHistory?.data) && userHistory?.data.toReversed().map((obj: GameMatch, index: number) => {
 													let cardColor = '';
 
@@ -308,6 +322,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 														</div>
 													);
 												})
+					)
 											}
 										</div>
 

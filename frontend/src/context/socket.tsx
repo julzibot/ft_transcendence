@@ -3,7 +3,7 @@
 import io from "socket.io-client"
 import { createContext, useContext, useEffect } from "react"
 
-const socket = io("http://c2r4p5.42nice.fr:6500");
+const socket = io("http://c2r10p1.42nice.fr:6500");
 const SocketContext = createContext(socket);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {

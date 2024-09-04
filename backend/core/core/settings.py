@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["0.0.0.0:8000", 'localhost', 'localhost:8000' "backend:8000", "backend", "c2r4p5.42nice.fr", "c2r4p5.42nice.fr:8000"]
+ALLOWED_HOSTS = ["0.0.0.0:8000", 'localhost', 'localhost:8000' "backend:8000", "backend", "c2r10p1.42nice.fr", "c2r10p1.42nice.fr:8000"]
 
 # Application definition
 
@@ -182,7 +182,7 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://c2r4p5.42nice.fr:3000",
+    "http://c2r10p1.42nice.fr:3000",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
