@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ThreeScene from './Game';
 import { GameSettings } from '@/types/GameSettings';
 
@@ -13,6 +13,13 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 
 	const [gameStarted, setGameStarted] = useState(false);
 	const [gameMode, setGameMode] = useState(0);
+	// const [fetchedInfos, setFetchedInfos] = useState(false);
+
+	// useEffect(() => {
+	// 	// GET infos
+	// 	if (response.ok)
+	// 		setFetchedInfos(true);
+	// }, []);
 
 	const startLocal = () => {
 		setGameMode(0);

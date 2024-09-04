@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 const PORT = 6500;
 
 let player2assigned = false;
+let fetchFinished = new Map;
 
 const server = createServer();
 
@@ -20,6 +21,12 @@ io.on("connection", async (socket) => {
 
   socket.on('join_room', data => {
 		const room = io.sockets.adapter.rooms.get(data.room_id);
+
+    const roomSize = io._nsps.get('/').adapter.rooms.get(data.room_id).size;
+    if (roomSize >= 2) {
+      console.log(`${data.room_id} Two players are already connected`);
+      return;
+    }
 	
     if (!room || room.size === 0) {
 			console.log("[HOST] Client [" + data.user_id + "] joining room: " + data.room_id);
@@ -31,16 +38,26 @@ io.on("connection", async (socket) => {
 			console.log('player2: ' + data.user_id);
 			player2assigned = true;
 		}
-
+    
 		socket.join(data.room_id);
+    if (!fetchFinished.has(data.room_id))
+      fetchFinished.set(data.room_id, 0);
 
-		const roomSize = io._nsps.get('/').adapter.rooms.get(data.room_id).size;
-
-		if (room && roomSize === 2 && player2assigned) {
-			console.log('Starting game...');
-			io.in(data.room_id).emit('startGame');
-		}
+		// if (room && roomSize === 2 && player2assigned) {
+		// 	console.log('start');
+		// 	io.in(data.room_id).emit('startGame');
+		// }
   });
+
+  socket.on('fetchFinished', (data) => {
+    fetchFinished.set(fetchFinished.get(data.room_id) + 1);
+    if (fetchFinished.get(data.room_id) === 2)
+      io.in(data.room_id).emit('startGame');
+  })
+
+  socket.on('sendPlayerInfos', (data) => {
+    socket.to(data.room_id).emit('setPlayerInfos', {p1Name: data.p1Name, p2Name: data.p2Name, p1p: data.p1p, p2p: data.p2p, game_id: data.game_id});
+  })
 
   socket.on('sendBallPos', (data) => {
     socket.to(data.room_id).emit('updateBallPos', {x: data.x, y: data.y, vectx: data.vectx, vecty: data.vecty, speed: data.speed});

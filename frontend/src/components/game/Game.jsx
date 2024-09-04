@@ -600,6 +600,31 @@ const remote_update = (socket, room_id, isHost) => {
   }
 }
 
+let display_img = (image, mode) =>
+{
+  const imgGeo = new THREE.CircleGeometry(1.7, 30);
+  const pp = new THREE.TextureLoader().load(CONST.BASE_URL_2 + `${image}`);
+  let xcoord = 8;
+
+  if (mode > 1)
+  {
+    pp.repeat.set(0.6, 0.9);
+    pp.offset.set(0.17, 0.05);
+    const imgMat = new THREE.MeshBasicMaterial({ map: pp, transparent: true, opacity: 0.5 });
+    const imgDisplay = new THREE.Mesh(imgGeo, imgMat);
+    tools.scene.add(imgDisplay);
+  }
+  else if (mode <= 1)
+  {
+    const imgMat = new THREE.MeshBasicMaterial({ map: pp, transparent: true, opacity: 0.8 });
+    const imgDisplay = new THREE.Mesh(imgGeo, imgMat);
+    tools.scene.add(imgDisplay);
+  }
+  if (mode > 2)
+    xcoord = -8;
+  imgDisplay.position.set(xcoord, CONST.GAMEHEIGHT / 2 + 1.6, 1.8);
+}
+
 async function CreateGame(user_id, player2_id, game_mode) {
   console.log("CreateGame called");
   if (game_mode === 1)
@@ -621,7 +646,7 @@ async function CreateGame(user_id, player2_id, game_mode) {
     return (-1)
 }
 
-async function getPlayerInfos(gamemode) {
+async function getPlayerInfos(socket, room_id) {
   const response = await fetch(CONST.BASE_URL + `game/history/${game_id}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
@@ -629,22 +654,15 @@ async function getPlayerInfos(gamemode) {
   if (response.ok) {
     const res = await response.json();
     const data = res.data;
-    console.log(JSON.stringify(data));
-    const imgGeo = new THREE.CircleGeometry(1.7, 30);
+    // console.log(JSON.stringify(data));
+    // const imgGeo = new THREE.CircleGeometry(1.7, 30);
 
     // PLAYER 1
     p1Name = data.player1.username;
     if (p1Name.length > 8)
       p1Name = p1Name.slice(0,8) + ".";
     printGameInfo(csts.p1nameMesh, p1Name, -1, -1, 2.5);
-    const p1p = data.player1.image;
-    const t1 = new THREE.TextureLoader().load(CONST.BASE_URL_2 + `${p1p}`);
-    t1.repeat.set(0.6, 0.9);
-    t1.offset.set(0.17, 0.05);
-    const img1Mat = new THREE.MeshBasicMaterial({ map: t1, transparent: true, opacity: 0.5 });
-    const img1Display = new THREE.Mesh(imgGeo, img1Mat);
-    img1Display.position.set(-8, CONST.GAMEHEIGHT / 2 + 1.6, 1.8);
-    tools.scene.add(img1Display);
+    display_img(data.player1.image, 2);
 
     //PLAYER 2
     if (data.player2)
@@ -653,15 +671,9 @@ async function getPlayerInfos(gamemode) {
       if (p2Name.length > 8)
         p2Name = p2Name.slice(0,8) + ".";
       printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
-      const p2p = data.player2.image;
-      const t2 = new THREE.TextureLoader().load(CONST.BASE_URL_2 + `${p2p}`);
-      t2.repeat.set(0.6, 0.9);
-      t2.offset.set(0.17, 0.05);
-      const img2Mat = new THREE.MeshBasicMaterial({ map: t2, transparent: true, opacity: 0.5 });
-      const img2Display = new THREE.Mesh(imgGeo, img2Mat);
-      img2Display.position.set(8, CONST.GAMEHEIGHT / 2 + 1.6, 1.8);
-      tools.scene.add(img2Display);
+      display_img(data.player2.image, 3);
     }
+    socket.emit('sendPlayerInfos', { room_id: room_id, p1Name: p1Name, p2Name: p2Name, p1p: p1p, p2p: p2p, game_id: game_id});
   }
   else
     return (-1)
@@ -824,7 +836,7 @@ const createPowerUp = (gamemode, socket, room_id) => {
   let powerType = -1;
   if (powerTypeRoll < 10 / 3) { powerType = 0; } // longer pad
   else if (powerTypeRoll < 6) { powerType = 1; } // speed boost
-  else if (powerTypeRoll < 8) { powerType = 2; } // bullet time
+  else if (powerTypeRoll < 7.8) { powerType = 2; } // bullet time
   else if (powerTypeRoll < 8.5) { powerType = 3; } // invert controls
   else { powerType = 4; } // invisiball
   const radius = Math.max(0.7, Math.random() * 1.4);
@@ -988,6 +1000,13 @@ const init_socket = (socket, isHost) => {
     })
   }
   else {
+    socket.on('setPlayerInfos', data => {
+      p1Name = data.p1Name;
+      p2Name = data.p2Name;
+      display_img(data.p1p, 2);
+      display_img(data.p2p, 3);
+      game_id = data.game_id;
+    })
     socket.on('updatePlayer1Pos', position => {
       opponentPos = position.player1pos;
     });
@@ -1126,30 +1145,22 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
     tools.camera.lookAt(0, 2.2, 0);
 
     if (isHost)
-      CreateGame(user_id, player2_id, gamemode).then(assignId).then(getPlayerInfos);
+      CreateGame(user_id, player2_id, gamemode).then(assignId).then(getPlayerInfos(socket, room_id));
     if (gamemode < 2)
     {
-      const imgGeo = new THREE.CircleGeometry(1.7, 30);
+      let pp = "";
       if (gamemode === 0)
       {
         p2Name = "guest";
-        printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
-        const t2 = new THREE.TextureLoader().load('../../guest.png');
-        const img2Mat = new THREE.MeshBasicMaterial({ map: t2, transparent: true, opacity: 0.8 });
-        const img2Display = new THREE.Mesh(imgGeo, img2Mat);
-        img2Display.position.set(8, CONST.GAMEHEIGHT / 2 + 1.6, 1.8);
-        tools.scene.add(img2Display);
+        pp = "../../guest.png";
       }
       else if (gamemode === 1)
       {
         p2Name = "ai";
-        printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
-        const t2 = new THREE.TextureLoader().load('../../airobot.png');
-        const img2Mat = new THREE.MeshBasicMaterial({ map: t2, transparent: true, opacity: 0.75 });
-        const img2Display = new THREE.Mesh(imgGeo, img2Mat);
-        img2Display.position.set(8, CONST.GAMEHEIGHT / 2 + 1.6, 1.8);
-        tools.scene.add(img2Display);
+        pp = "../../airobot.png"
       }
+      printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
+      display_img(pp, gamemode);
     }
 
     let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
