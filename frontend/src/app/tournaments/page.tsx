@@ -18,7 +18,7 @@ function TournamentPage() {
   const params = useParams()
   const [modalShow, setModalShow] = useState(false);
   const [tournamentData, setTournamentData] = useState([])
-  const [selectedTournament, setSelectedTournament] = useState()
+  const [selectedTournament, setSelectedTournament] = useState<number>()
   const [tounamentForm, setTounamentForm] = useState({
     name: '',
     numberOfPlayer: '',
@@ -29,6 +29,7 @@ function TournamentPage() {
     isPrivate: false,
     powerUps: false
   })
+
   const [err, setErr] = useState('')
   
   const handleShow = () => {
@@ -39,7 +40,8 @@ function TournamentPage() {
       gamePoint: 0,
       gameLevel: '',
       timer: '',
-      isPrivate: false
+      isPrivate: false,
+      powerUps: false,
     })
     setModalShow(true)
   }
@@ -48,14 +50,14 @@ function TournamentPage() {
     setModalShow(false)
   }
 
-  const isNumber = (event) => {
-    const charCode = (event.which) ? event.which : event.keyCode
-    if ((charCode > 31 && (charCode < 48 || charCode > 57)) && charCode !== 46) {
-      event.preventDefault()
+  const isNumber = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode !== 46) {
+      event.preventDefault();
     } else {
-      return true
+      return true;
     }
-  } 
+  }; 
   
   const fetchTournamentData = async () => {
     try {
@@ -66,16 +68,16 @@ function TournamentPage() {
     }
   }
 
-  const handleSelectedData = (item:object) => {
+  const handleSelectedData = (item: { id: number}) => {
     setSelectedTournament(item?.id)
     router.push(`/tournaments/${item?.id}`)
   }
   
 
-const handleFormData = (e, key) => {
+const handleFormData = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>, key: string) => {
   setTounamentForm({
     ...tounamentForm,
-    [key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'powerUps') ? e.target.checked : e.target.value
+    [key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'powerUps') ? (e.target as HTMLInputElement).checked : e.target.value
   })
 }
 
@@ -178,11 +180,11 @@ useEffect(() => {
           <input type="number" className="form-control" value={tounamentForm.timer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'timer')}/>
         </div>
         <div className="mb-3 form-check">
-          <input type="checkbox" className="form-check-input" value={tounamentForm.isPrivate} onChange={(e) => handleFormData(e, 'isPrivate')}/>
+          <input type="checkbox" className="form-check-input" value={tounamentForm.isPrivate.toString()} onChange={(e) => handleFormData(e, 'isPrivate')}/>
           <label className="form-check-label">Is This Private Tournament ?</label>
         </div>
         <div className="mb-3 form-check form-switch">
-          <input type="checkbox" className="form-check-input" value={tounamentForm.powerUps} onChange={(e) => handleFormData(e, 'powerUps')} />
+          <input type="checkbox" className="form-check-input" value={tounamentForm.powerUps.toString()} onChange={(e) => handleFormData(e, 'powerUps')} />
           <label className="form-check-label">Power ups</label>
         </div>
       </form>

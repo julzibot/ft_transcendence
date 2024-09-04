@@ -6,24 +6,23 @@ import { useSession } from "next-auth/react";
 import { SocketProvider } from "@/context/socket";
 import Join from "@/components/game/Join";
 import { fetchGameSettings } from "@/components/game/Customization";
-import { GameSettings } from "@/types/GameSettings";
 
 export default function Lobby() {
 	const { data: session } = useSession();
-	const { linkToJoin } = useParams();
+	const { linkToJoin } = useParams() as { linkToJoin: string };
+	const [gameSettings, setGameSettings] = useState(() => {
+      const settings = localStorage.getItem("gameSettings");
+      const obj = JSON.parse(settings ?? "{}");
+      localStorage.removeItem("gameSettings");
+      return obj || {};
+    });
+
 
 	if (!session || !session.user.id) {
 		return (
 			<p>[session] No user session found.</p>
 		)
 	}
-
-	const [gameSettings, setGameSettings] = useState(() => {
-		const settings = localStorage.getItem("gameSettings");
-		const obj = JSON.parse(settings ?? "{}");
-		localStorage.removeItem('gameSettings');
-		return obj || {};
-	});
 
 	return (
 		<>

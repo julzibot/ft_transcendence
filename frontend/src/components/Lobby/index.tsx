@@ -4,12 +4,12 @@ import { Button, Modal } from 'react-bootstrap'
 import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournaments';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { GameSettings } from '@/types/GameSettings';
+import { GameSettingsInterface } from "@/types/GameSettings";
 import DOMPurify from 'dompurify';
 
 interface GameSettingsProps {
-	setGameSettings: Function,
-	gameSettings: GameSettings
+  setGameSettings: Function;
+  gameSettings: GameSettingsInterface;
 }
 
 export default function Lobby({ setGameSettings, gameSettings }: GameSettingsProps) {
@@ -40,7 +40,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		setModalShow(true)
 	}
 
-	const handleFormData = (e: React.ChangeEvent<HTMLInputElement>, key) => {
+	const handleFormData = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
 		setLobbyForm(
 			{
 				...lobbyForm,
@@ -50,7 +50,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 	}
 
 	const handleSubmitData = async () => {
-		let errors = {};
+		let errors: { name?: string } = { name: ''};
 
 		if (lobbyForm?.name === '') {
 			errors.name = 'Name field Required';
@@ -58,7 +58,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 
 		if (Object.keys(errors).length > 0) {
 			// There are errors, set them and show error message
-			setErrorfield(errors);
+			setErrorfield({ name: errors.name ?? '' });
 			setErrShow(true);
 		} else {
 			setErrShow(false);
@@ -82,17 +82,21 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		}
 	};
 
-	const handlePutLobbyApi = async (element) => {
-		const payload = {
-			"lobby_id": element?.id.toString(),
-			"user_id": session?.user?.id.toString()
-		}
-		const response = await HandlePutLobby(payload)
-		if (response) {
-			fetchLobbyData()
-		}
-	}
-	const handleUser = async (item) => {
+	const handlePutLobbyApi = async (element: {
+    player1: number;
+    player2: number;
+    linkToJoin: string;
+  }) => {
+    const payload = {
+      lobby_id: element.linkToJoin,
+      user_id: session?.user?.id.toString(),
+    };
+    const response = await HandlePutLobby(payload);
+    if (response) {
+      fetchLobbyData();
+    }
+  };
+	const handleUser = async (item: { player1: number, player2: number, linkToJoin: string }) => {
 		if ((item?.player1 && item?.player1 !== session?.user?.id) && item?.player2 === null) {
 			handlePutLobbyApi(item);
 			localStorage.setItem('gameSettings', JSON.stringify(gameSettings));
@@ -119,111 +123,151 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 	}, [])
 
 	return (
-		<div className='d-flex justify-content-center'>
-			<div className='w-100 border rounded p-4' style={{ maxWidth: '800px' }}>
-				<div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
-					<h3 className='mb-0 me-4'>Lobby</h3>
-					<Button className="btn btn-outline-light me-md-2" type='button' onClick={handleShow}>Create</Button>
-				</div>
-				<div className='w-100 pt-2' >
-					<div className='d-flex flex-column'>
-						{
-							lobbyData.length > 0 && lobbyData?.map((item: any, i: number) => {
-								return (
-									<h6 style={{ cursor: 'pointer', borderBottom: '1px solid #f0f0f0' }} className='d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary' key={item.id}>
-										<span>{i + 1}. {item.name}</span>
-										{
-											item?.player1 && item?.player1 !== session?.user?.id && <button className='btn btn-warning' onClick={() => handleUser(item)}>Join</button>
-										}
-									</h6>
-								)
-							})
-						}
-					</div>
-				</div>
-			</div>
-
-
-			<Modal
-				show={modalShow}
-				onHide={() => setModalShow(false)}
-				size="lg"
-				aria-labelledby="contained-modal-title-vcenter"
-				centered
-			>
-				<Modal.Header closeButton>
-					<Modal.Title id="contained-modal-title-vcenter">
-						Select Game Customizations
-					</Modal.Title>
-				</Modal.Header>
-				<Modal.Body>
-					<form>
-						<div className="mb-3">
-							<label className="form-label">Name</label>
-							<span className='text-danger'>*</span>
-							<input type="text" className="form-control" value={lobbyForm.name} onChange={(e) => handleFormData(e, 'name')} />
-							{errorfield && lobbyForm.name === '' ? <div className="form-text text-danger">{errorfield.name}</div> : null}
-						</div>
-						<div className="mb-3 align-items-center text-center">
-							<label className="form-label">Points Per Game
-								<span className='text-danger'>*</span>
-							</label>
-							<div className='text-primary m-2 d-flex text-center align-items-center justify-content-center'>
-								{gameSettings.pointsToWin}
-							</div>
-							<input
-								type="range"
-								className="form-range"
-								min="1"
-								max="21"
-								step="1"
-								id="pointsRange"
-								value={gameSettings.pointsToWin}
-								onChange={(e) => setGameSettings({ ...gameSettings, pointsToWin: parseInt(e.target.value) })}
-							/>
-						</div>
-						<div className="mb-3">
-							<label className="form-label">Difficulty Level*</label>
-							<select
-								className="form-select"
-								aria-label="Game Difficulty"
-								value={gameSettings.gameDifficulty}
-								onChange={(e) =>
-									setGameSettings({ ...gameSettings, gameDifficulty: parseInt(e.target.value) })
-								}
-							>
-								<option value="">Select Game Difficulty</option>
-								<option value={1}>Granny</option>
-								<option value={2}>Boring</option>
-								<option value={3}>Still Slow</option>
-								<option value={4}>Kinda OK</option>
-								<option value={5}>Now We're Talking</option>
-								<option value={6}>Madman</option>
-								<option value={7}>Legend</option>
-							</select>
-						</div>
-						<div className='d-flex items-center flex-wrap'>
-							<div className="mb-3 form-check form-switch">
-								<input
-									className="form-check-input"
-									type="checkbox"
-									role="switch"
-									id="flexSwitchCheckChecked"
-									checked={gameSettings.powerUps}
-									onChange={() =>
-										setGameSettings({ ...gameSettings, powerUps: !gameSettings.powerUps })
-									}
-								/>
-								<label className="form-check-label">Power ups</label>
-							</div>
-						</div>
-					</form>
-				</Modal.Body>
-				<Modal.Footer>
-					<Button variant="secondary" onClick={() => setModalShow(false)}>Close</Button>
-					<Button variant="primary" onClick={handleSubmitData}>Add</Button>
-				</Modal.Footer>
-			</Modal>
-		</div>
-	)
+    <div className="d-flex justify-content-center">
+      <div className="w-100 border rounded p-4" style={{ maxWidth: "800px" }}>
+        <div className="d-flex align-items-center justify-content-between border-bottom pb-3">
+          <h3 className="mb-0 me-4">Lobby</h3>
+          <Button
+            className="btn btn-outline-light me-md-2"
+            type="button"
+            onClick={handleShow}
+          >
+            Create
+          </Button>
+        </div>
+        <div className="w-100 pt-2">
+          <div className="d-flex flex-column">
+            {lobbyData.length > 0 &&
+              lobbyData?.map((item: any, i: number) => {
+                return (
+                  <h6
+                    style={{
+                      cursor: "pointer",
+                      borderBottom: "1px solid #f0f0f0",
+                    }}
+                    className="d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary"
+                    key={item.id}
+                  >
+                    <span>
+                      {i + 1}. {item.name}
+                    </span>
+                    {item?.player1 && item?.player1 !== session?.user?.id && (
+                      <button
+                        className="btn btn-warning"
+                        onClick={() => handleUser(item)}
+                      >
+                        Join
+                      </button>
+                    )}
+                  </h6>
+                );
+              })}
+          </div>
+        </div>
+      </div>
+      <Modal
+        show={modalShow}
+        onHide={() => setModalShow(false)}
+        size="lg"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-vcenter">
+            Select Game Customizations
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <form>
+            <div className="mb-3">
+              <label className="form-label">Name</label>
+              <span className="text-danger">*</span>
+              <input
+                type="text"
+                className="form-control"
+                value={lobbyForm.name}
+                onChange={(e) => handleFormData(e, "name")}
+              />
+              {errorfield && lobbyForm.name === "" ? (
+                <div className="form-text text-danger">{errorfield.name}</div>
+              ) : null}
+            </div>
+            <div className="mb-3 align-items-center text-center">
+              <label className="form-label">
+                Points Per Game
+                <span className="text-danger">*</span>
+              </label>
+              <div className="text-primary m-2 d-flex text-center align-items-center justify-content-center">
+                {gameSettings.pointsToWin}
+              </div>
+              <input
+                type="range"
+                className="form-range"
+                min="1"
+                max="21"
+                step="1"
+                id="pointsRange"
+                value={gameSettings.pointsToWin}
+                onChange={(e) =>
+                  setGameSettings({
+                    ...gameSettings,
+                    pointsToWin: parseInt(e.target.value),
+                  })
+                }
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Difficulty Level*</label>
+              <select
+                className="form-select"
+                aria-label="Game Difficulty"
+                value={gameSettings.gameDifficulty}
+                onChange={(e) =>
+                  setGameSettings({
+                    ...gameSettings,
+                    gameDifficulty: parseInt(e.target.value),
+                  })
+                }
+              >
+                <option value="">Select Game Difficulty</option>
+                <option value={1}>Granny</option>
+                <option value={2}>Boring</option>
+                <option value={3}>Still Slow</option>
+                <option value={4}>Kinda OK</option>
+                <option value={5}>Now We are talking</option>
+                <option value={6}>Madman</option>
+                <option value={7}>Legend</option>
+              </select>
+            </div>
+            <div className="d-flex items-center flex-wrap">
+              <div className="mb-3 form-check form-switch">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="flexSwitchCheckChecked"
+                  checked={gameSettings.powerUps}
+                  onChange={() =>
+                    setGameSettings({
+                      ...gameSettings,
+                      powerUps: !gameSettings.powerUps,
+                    })
+                  }
+                />
+                <label className="form-check-label">Power ups</label>
+              </div>
+            </div>
+          </form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setModalShow(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleSubmitData}>
+            Add
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </div>
+  );
 }

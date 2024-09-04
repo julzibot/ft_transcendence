@@ -21,7 +21,7 @@ async function refreshToken(token: JWT): Promise<JWT> {
 export const authOptions: NextAuthOptions = {
   providers: [
     FortyTwoProvider({
-      id: '42-school',
+      id: "42-school",
       clientId: process.env.FORTY_TWO_CLIENT_ID as string,
       clientSecret: process.env.FORTY_TWO_CLIENT_SECRET as string,
       profile(profile) {
@@ -29,68 +29,70 @@ export const authOptions: NextAuthOptions = {
           id: profile.id,
           username: profile.login,
           email: profile.email,
-          image_url: profile.image.versions.medium
-        }
-      }
+          image_url: profile.image.versions.medium,
+        };
+      },
     }),
     CredentialsProvider({
-      id: 'credentials',
+      id: "credentials",
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "jdoe@example.com" },
-        password: { label: "Password", type: "password" }
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "jdoe@example.com",
+        },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         const res = await fetch(`https://localhost:8000/api/auth/signin/`, {
           method: "POST",
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user: credentials })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user: credentials }),
         });
-        const user = await res.json()
+        const user = await res.json();
         if (res.ok && user) {
-          return user
+          return user;
         }
-        return null
-      }
+        return null;
+      },
     }),
   ],
 
   pages: {
     signIn: "/auth/signin",
-    signOut: "/auth/signout"
+    signOut: "/auth/signout",
   },
 
   callbacks: {
     async jwt({ token, trigger, session, user, account }) {
       // if user is loging in, call backend api that returns user info and backend token)
       if (user) {
-        let backendUrl
-        if (account?.provider === '42-school')
-          backendUrl = `https://localhost:8000/api/auth/oauth/`
-        else
-          backendUrl = `https://localhost:8000/api/auth/access_token/`;
+        let backendUrl;
+        if (account?.provider === "42-school")
+          backendUrl = `https://localhost:8000/api/auth/oauth/`;
+        else backendUrl = `https://localhost:8000/api/auth/access_token/`;
         const res = await fetch(backendUrl, {
           method: "POST",
           headers: { "Content-type": "application/json" },
-          body: JSON.stringify({ user })
-        })
+          body: JSON.stringify({ user }),
+        });
         if (res.ok) {
-          token = await res.json()
-          token.provider = account?.provider
-          return token
+          token = await res.json();
+          token.provider = account?.provider;
+          return token;
         }
       }
-      if (trigger === 'update') {
-        if (session.username)
-          token.user.username = session.username
+      if (trigger === "update") {
+        if (session.username) token.user.username = session.username;
         if (session.image) {
-          token.user.image = session.image
+          token.user.image = session.image;
         }
       }
       if (new Date().getTime() / 1000 < token.backendTokens.expiresIn) {
-        return token
+        return token;
       }
-      return await refreshToken(token)
+      return await refreshToken(token);
     },
 
     async session({ session, token }) {
@@ -105,6 +107,6 @@ export const authOptions: NextAuthOptions = {
       session.provider = token.provider;
       // }
       return session;
-    }
-  }
-}
+    },
+  },
+};

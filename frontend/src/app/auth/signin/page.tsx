@@ -28,7 +28,7 @@ export default function SignIn() {
       ...data,
       redirect: false
     })
-    if (result.status) {
+    if (result?.status) {
       setError("Authentication failed, please check your credentials.")
       console.log({ error })
     }

@@ -6,7 +6,7 @@ import Customization from "@/components/game/Customization";
 import LocalGame from "@/components/game/LocalGame";
 import './styles.css'
 import styles from './GameSettingsStyles.module.css'
-import { GameSetings } from "@/types/GameSettings";
+import { GameSettingsInterface } from "@/types/GameSettings";
 
 export default function GameSettings() {
 
@@ -15,17 +15,17 @@ export default function GameSettings() {
 	const [isTranslated, setIsTranslated] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
 
-	const [gameSettings, setGameSettings] = useState<GameSetings>({
+	const [gameSettings, setGameSettings] = useState<GameSettingsInterface>({
 		user_id: session?.user.id ?? -1,
 		background: 0,
 		palette: 0,
-		bgColor: '#ff0000',
+		bgColor: "#ff0000",
 		opacity: 80,
 		sparks: true,
 		gameDifficulty: 4,
 		pointsToWin: 5,
-		powerUps: true
-	});
+		powerUps: true,
+  });
 
 	useEffect(() => {
 		const timer = setTimeout(() => {
@@ -66,7 +66,7 @@ export default function GameSettings() {
 								<option value={2}>Boring</option>
 								<option value={3}>Still Slow</option>
 								<option value={4}>Kinda OK</option>
-								<option value={5}>Now We're Talking</option>
+								<option value={5}>Now We are talking</option>
 								<option value={6}>Madman</option>
 								<option value={7}>Legend</option>
 							</select>

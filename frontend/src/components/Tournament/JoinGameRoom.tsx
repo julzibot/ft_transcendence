@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useContext } from 'react';
-import ThreeScene from '../game/Game';
+import { useEffect, useState } from 'react';
 import { useSocketContext } from "../../context/socket";
 import { fetchGameSettings } from '../game/Customization';
+import ThreeScene from '../game/Game';
 
-export default function JoinGameRoom({ room_id, user_id }) {
+export default function JoinGameRoom({ room_id, user_id }: { room_id: string, user_id: number }) {
 
 	const socket = useSocketContext();
 	const [userJoined, setUserJoined] = useState(false);
@@ -51,7 +51,10 @@ export default function JoinGameRoom({ room_id, user_id }) {
 	return (
 		receivedSettings ? (
 			userJoined ? (
-				<ThreeScene gameSettings={gameSettings} room_id={room_id} user_id={user_id} isHost={isHost} gamemode={2} />
+				<ThreeScene gameSettings={gameSettings} room_id={room_id} user_id={user_id} isHost={isHost} gamemode={2}
+				// TODO: THIS IS INCORRECT. We need to pass the Id of player2
+				player2_id={null}/>
+				// />
 			) : (
 				<div className="d-flex justify-content-center m-2">
 					<button type="button" className="btn btn-primary mx-3" onClick={handleEnter}>Enter</button>

@@ -4,17 +4,17 @@ import { useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import styles from "./CustomizationStyles.module.css";
 import "./colorPickerStyles.css";
-import { GameSettings } from "@/types/GameSettings";
+import { GameSettingsInterface } from "@/types/GameSettings";
 
 interface GameSettingsProps {
   updateSettings: Function;
-  gameSettings: GameSettings;
+  gameSettings: GameSettingsInterface;
   userId: number;
 }
 
 export function defaultGameSettings(
   updateSettings: Function,
-  gameSettings: GameSettings,
+  gameSettings: GameSettingsInterface,
   user_id: number
 ) {
   updateSettings({
@@ -31,7 +31,7 @@ export function defaultGameSettings(
 export async function fetchGameSettings(
   user_id: number,
   updateSettings: Function,
-  gameSettings: GameSettings
+  gameSettings: GameSettingsInterface
 ) {
   if (user_id) {
     const response = await fetch(

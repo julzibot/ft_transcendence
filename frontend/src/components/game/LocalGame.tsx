@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import ThreeScene from './Game';
-import { GameSettings } from '@/types/GameSettings';
+import { GameSettingsInterface } from '@/types/GameSettings';
 
 interface LocalGameProps {
-	userId: number,
-	gameSettings: GameSettings
+  userId: number;
+  gameSettings: GameSettingsInterface;
 }
 
 export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
@@ -29,7 +29,7 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 			{
 
 				gameStarted ? (
-					userId && <ThreeScene gameSettings={gameSettings} room_id={-1} user_id={userId} isHost={true} gamemode={gameMode} />
+					userId && <ThreeScene gameSettings={gameSettings} room_id={-1} user_id={userId} isHost={true} gamemode={gameMode} player2_id={null}/>
 				) : (
 					<>
 						<div className="d-flex justify-content-center mb-3">

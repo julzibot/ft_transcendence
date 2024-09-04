@@ -5,13 +5,13 @@ import { useSocketContext } from "../../context/socket";
 import ThreeScene from './Game';
 import { Spinner } from 'react-bootstrap';
 import "./styles.css"
-import { GameSettings } from "@/types/GameSettings";
+import { GameSettingsInterface } from "@/types/GameSettings";
 
 interface JoinProps {
-	userId: number,
-	room: string,
-	gameSettings: GameSettings,
-	gameMode: number
+	userId: number;
+	room: string;
+	gameSettings: GameSettingsInterface;
+	gameMode: number;
 }
 
 // Join is a component for Online Game

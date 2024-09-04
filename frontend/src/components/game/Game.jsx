@@ -1013,8 +1013,7 @@ export default function ThreeScene({ gameSettings, room_id, user_id, player2_id,
   console.log('player2 id: ' + player2_id);
   const containerRef = useRef(null);
   let socket = -1;
-  if (gamemode === 2)
-    socket = useSocketContext();
+  socket = useSocketContext();
   if (isHost)
     CreateGame(user_id, player2_id, gamemode).then(assignId);
 
