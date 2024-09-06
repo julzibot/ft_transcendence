@@ -62,7 +62,7 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 					setGameInfos({
 						...gameInfos,
 						p1Name: data.player1.username,
-						p2Name: gameMode === 0 ? 'Guest' : 'AI',
+						p2Name: gameMode === 0 ? 'guest' : 'ai',
 						p1p: data.player1.image,
 						p2p: gameMode === 0 ? '../../guest.png' : '../../airobot.png'
 					});
