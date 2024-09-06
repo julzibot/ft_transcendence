@@ -47,3 +47,4 @@ dbdata
 
 backend/core/media/
 migrations/
+backend/core/static/
