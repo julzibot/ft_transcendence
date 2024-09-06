@@ -595,77 +595,25 @@ const remote_update = (socket, room_id, isHost) => {
 
 let display_img = (image, mode) => {
 	const imgGeo = new THREE.CircleGeometry(1.7, 30);
-	const pp = new THREE.TextureLoader().load(CONST.BASE_URL_2 + `${image}`);
-	let xcoord = 8;
-
-	if (mode > 1) {
+	let path = image;
+	if (mode >= 2)
+		path = CONST.BASE_URL_2 + image;
+	const pp = new THREE.TextureLoader().load(path);
+	let op = 0.8;
+	if (mode > 1)
+	{
 		pp.repeat.set(0.6, 0.9);
 		pp.offset.set(0.17, 0.05);
-		const imgMat = new THREE.MeshBasicMaterial({ map: pp, transparent: true, opacity: 0.5 });
-		const imgDisplay = new THREE.Mesh(imgGeo, imgMat);
-		tools.scene.add(imgDisplay);
+		op = 0.65;
 	}
-	else if (mode <= 1) {
-		const imgMat = new THREE.MeshBasicMaterial({ map: pp, transparent: true, opacity: 0.8 });
-		const imgDisplay = new THREE.Mesh(imgGeo, imgMat);
-		tools.scene.add(imgDisplay);
-	}
+	let xcoord = 8;
 	if (mode > 2)
 		xcoord = -8;
+
+	const imgMat = new THREE.MeshBasicMaterial({ map: pp, transparent: true, opacity: op });
+	const imgDisplay = new THREE.Mesh(imgGeo, imgMat);
 	imgDisplay.position.set(xcoord, CONST.GAMEHEIGHT / 2 + 1.6, 1.8);
-}
-
-async function CreateGame(user_id, player2_id, game_mode) {
-	console.log("CreateGame called");
-	if (game_mode === 1)
-		player2_id = -1
-	const response = await fetch(CONST.BASE_URL + 'game/create', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({
-			'player1': user_id,
-			'player2': player2_id,
-			'game_mode': game_mode
-		})
-	})
-	if (response.status === 201) {
-		const res = await response.json()
-		return parseInt(res.id)
-	}
-	else
-		return (-1)
-}
-
-async function getPlayerInfos(socket, room_id) {
-	const response = await fetch(CONST.BASE_URL + `game/history/${game_id}`, {
-		method: 'GET',
-		headers: { 'Content-Type': 'application/json' }
-	})
-	if (response.ok) {
-		const res = await response.json();
-		const data = res.data;
-		// console.log(JSON.stringify(data));
-		// const imgGeo = new THREE.CircleGeometry(1.7, 30);
-
-		// PLAYER 1
-		p1Name = data.player1.username;
-		if (p1Name.length > 8)
-			p1Name = p1Name.slice(0, 8) + ".";
-		printGameInfo(csts.p1nameMesh, p1Name, -1, -1, 2.5);
-		display_img(data.player1.image, 2);
-
-		//PLAYER 2
-		if (data.player2) {
-			p2Name = data.player2.username;
-			if (p2Name.length > 8)
-				p2Name = p2Name.slice(0, 8) + ".";
-			printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
-			display_img(data.player2.image, 3);
-		}
-		socket.emit('sendPlayerInfos', { room_id: room_id, p1Name: p1Name, p2Name: p2Name, p1p: p1p, p2p: p2p, game_id: game_id });
-	}
-	else
-		return (-1)
+	tools.scene.add(imgDisplay);
 }
 
 async function PutScores(gameMode) {
@@ -684,11 +632,6 @@ async function PutScores(gameMode) {
 	if (response.ok)
 		return true
 	return false
-}
-
-async function assignId(id) {
-	game_id = id;
-	console.log(game_id + ": game_id assigned")
 }
 
 const render_effects = () => {
@@ -1013,7 +956,8 @@ const init_socket = (socket, isHost) => {
 			vars.glowStartTime = performance.now();
 		});
 		socket.on('newWallCollision', () => {
-			createSparks();
+			if (custom.sparks === true && particleEffects.length < 4)
+				createSparks();
 		});
 		socket.on('updateScore', data => {
 			if (data.score1 > vars.p1Score) {
@@ -1086,6 +1030,7 @@ const getColorVector3 = (bgColor) => {
 export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode }) {
 	console.log(JSON.stringify(gameInfos));
 	const containerRef = useRef(null);
+  	game_id = gameInfos.game_id;
 	let socket = -1;
 	if (gamemode === 2)
 		socket = useSocketContext();
@@ -1135,19 +1080,16 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 
 		// if (isHost)
 		// 	CreateGame(user_id, player2_id, gamemode).then(assignId).then(getPlayerInfos(socket, room_id));
-		if (gamemode < 2) {
-			let pp = "";
-			if (gamemode === 0) {
-				p2Name = "guest";
-				pp = "../../guest.png";
-			}
-			else if (gamemode === 1) {
-				p2Name = "ai";
-				pp = "../../airobot.png"
-			}
-			printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
-			display_img(pp, gamemode);
-		}
+		p1Name = gameInfos.p1Name;
+		if (p1Name.length > 8)
+			p1Name = p1Name.slice(0, 8) + ".";
+		p2Name = gameInfos.p2Name;
+		if (p2Name.length > 8)
+			p2Name = p2Name.slice(0, 8) + ".";
+		printGameInfo(csts.p1nameMesh, p1Name, -1, -1, 2.5);
+		printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
+		display_img(gameInfos.p1p, 3);
+		display_img(gameInfos.p2p, gamemode);
 
 		let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
 		// console.log(tools.camera.projectionMatrix);
