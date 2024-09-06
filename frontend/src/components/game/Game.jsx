@@ -1084,6 +1084,7 @@ const getColorVector3 = (bgColor) => {
 // 2 -> remote
 // 3 -> Tournament (?)
 export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode }) {
+	console.log(JSON.stringify(gameInfos));
 	const containerRef = useRef(null);
 	let socket = -1;
 	if (gamemode === 2)
@@ -1132,8 +1133,8 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		// tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
 		tools.camera.lookAt(0, 2.2, 0);
 
-		if (isHost)
-			CreateGame(user_id, player2_id, gamemode).then(assignId).then(getPlayerInfos(socket, room_id));
+		// if (isHost)
+		// 	CreateGame(user_id, player2_id, gamemode).then(assignId).then(getPlayerInfos(socket, room_id));
 		if (gamemode < 2) {
 			let pp = "";
 			if (gamemode === 0) {
