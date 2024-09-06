@@ -37,7 +37,6 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 
 	useEffect(() => {
 		socket.emit('join_room', { room_id: room, user_id: userId });
-		console.log(`[${room}] ${userId} has joined`)
 
 		socket.on('isHost', () => {
 			setIsHost(true);
@@ -65,13 +64,14 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 
 		return () => {
 			socket.off('isHost');
+			socket.off('isNotHost');
+			socket.off('receiveGameId');
 			socket.off('player2_id');
 			socket.off('startGame');
 		};
 	}, [socket]);
 
 	useEffect(() => {
-		console.log('[useEffect] before if - isHost [' + isHost + '] gameCreated [' + gameCreated + '] player2ID [' + player2_id + ']');
 		if (isHost && player2_id && !gameCreated) {
 			const createGame = async () => {
 				console.log('[Join] CreateGame called');
@@ -86,7 +86,6 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 				});
 				if (response.status === 201) {
 					const res = await response.json();
-					console.log(`Game ID: ${res.id}`);
 					setGameInfos({ ...gameInfos, game_id: parseInt(res.id) });
 					socket.emit('sendGameId', { room_id: room, game_id: res.id });
 					setGameCreated(true); // now GET match info
@@ -99,9 +98,7 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 	}, [isHost, player2_id]);
 
 	useEffect(() => {
-		console.log('[useEffect] before if - gameCreated [' + gameCreated + '] matchFetched [' + matchFetched + ']');
 		if (isNotHost || (gameCreated && !matchFetched)) {
-			console.log('[useEffect] after if');
 			const fetchGameInfos = async (game_id: number) => {
 				const response = await fetch(BASE_URL + `game/history/${game_id}`, {
 					method: 'GET',
@@ -131,8 +128,7 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 	return (
 		<>
 			{userId && gameJoined ? (
-				<p>{JSON.stringify(gameInfos)}</p>
-				// <ThreeScene gameInfos={gameInfos} gameSettings={gameSettings} room_id={room} user_id={userId} isHost={isHost} gamemode={gameMode} />
+				<ThreeScene gameInfos={gameInfos} gameSettings={gameSettings} room_id={room} user_id={userId} isHost={isHost} gamemode={gameMode} />
 			) : (
 				<div className="d-flex justify-content-center align-items-center text-light pt-5 mt-5">
 					<p>{JSON.stringify(gameInfos)}</p>

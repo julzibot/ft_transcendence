@@ -35,7 +35,6 @@ io.on("connection", async (socket) => {
 		else {
 			console.log("[NOT HOST] Client [" + data.user_id + "] joining room: " + data.room_id);
 			socket.to(data.room_id).emit('player2_id', { player2_id: data.user_id });
-			console.log('player2: ' + data.user_id);
 			socket.emit('isNotHost');
 			player2assigned = true;
 		}
@@ -43,19 +42,14 @@ io.on("connection", async (socket) => {
 		socket.join(data.room_id);
 		if (!fetchFinished.has(data.room_id))
 			fetchFinished.set(data.room_id, 0);
-
-		// if (room && roomSize === 2 && player2assigned) {
-		// 	console.log('start');
-		// 	io.in(data.room_id).emit('startGame');
-		// }
 	});
 
 	socket.on('fetchFinished', (data) => {
-		fetchFinished.set(fetchFinished.get(data.room_id) + 1);
-		if (fetchFinished.get(data.room_id) === 2) {
-			console.log('[fetchFinished] ' + fetchFinished.get(data.room_id));
+		let currentCount = fetchFinished.get(data.room_id) || 0;
+		if (currentCount > -1)
+			fetchFinished.set(data.room_id, currentCount + 1);
+		if (fetchFinished.get(data.room_id) === 2)
 			io.in(data.room_id).emit('startGame');
-		}
 	})
 
 	socket.on('sendGameId', (data) => {
