@@ -13,8 +13,9 @@ import DOMPurify from "dompurify";
 import { Friend } from "@/types/Friend";
 import { User } from "@/types/User";
 import { SearchPlayerInputProps } from "@/types/Props";
+import { BACKEND_URL, BASE_URL } from "@/utils/constants";
 
-const BASE_URL = "http://localhost:8000/api/"
+
 
 
 export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputProps) {
@@ -36,7 +37,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
   }, [debounce, click])
 
   const fetchData = async () => {
-    const response = await fetch(`http://localhost:8000/api/search-user/?query=${inputValue}&id=${session?.user.id}`, {
+    const response = await fetch(`${BASE_URL}search-user/?query=${inputValue}&id=${session?.user.id}`, {
       method: "GET",
     })
     if (response.status != 200) {
@@ -48,7 +49,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
   }
 
   async function deleteFriendship(friend: Friend) {
-    const response = await fetch('http://localhost:8000/api/friends/delete-friendship/', {
+    const response = await fetch(`${BASE_URL}friends/delete-friendship/`, {
       method: 'DELETE',
       headers: { 'Content-type': 'application/json' },
       body: JSON.stringify({
@@ -100,7 +101,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
   }
 
   async function approveFriendRequest(user: User) {
-    const response = await fetch(`http://localhost:8000/api/friends/approve-friend-request/`, {
+    const response = await fetch(`${BASE_URL}friends/approve-friend-request/`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -180,7 +181,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
                     <Image
                       style={{ objectFit: 'cover' }}
                       alt="profile picture"
-                      src={`http://backend:8000${user.image}`}
+                      src={`${BACKEND_URL}${user.image}`}
                       fill
                       sizes="20vw"
                       />

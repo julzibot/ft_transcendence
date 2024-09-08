@@ -31,7 +31,7 @@ class TournamentView(APIView):
 			"isActiveTournament": serializers.BooleanField(),
 			"pointsPerGame": serializers.CharField(),
 			"timer": serializers.CharField(),
-			"powerUps": serializers.BooleanField(),
+			"power_ups": serializers.BooleanField(),
         },
     ),
     description="create tournament",
@@ -48,10 +48,10 @@ class TournamentView(APIView):
 	
 	def post(self, request):
 		data = request.data
-		if 'powerUps' in data:
-			powerUpsData = data["powerUps"]
+		if 'power_ups' in data:
+			power_upsData = data["power_ups"]
 		else:
-			powerUpsData=False
+			power_upsData=False
 		
 		print(data)
 		new_tournament = TournamentData.objects.create(
@@ -62,7 +62,7 @@ class TournamentView(APIView):
 			isActiveTournament=data['isActiveTournament'],
 			pointsPerGame=data['pointsPerGame'],
 			timer=data['timer'], 
-			powerUps=powerUpsData
+			power_ups=power_upsData
 		)
 
 		return Response({'message':'You have created tournament successfully'}, status=status.HTTP_201_CREATED)	

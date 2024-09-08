@@ -4,6 +4,7 @@ import { signIn, signOut, useSession } from "next-auth/react"
 import Link from "next/link";
 import { useEffect } from "react";
 import Image from "next/image";
+import { BACKEND_URL, BASE_URL } from "@/utils/constants";
 
 export default function AuthButton() {
   const { data: session } = useSession();
@@ -13,7 +14,7 @@ export default function AuthButton() {
   }, []);
 
   async function handleSignOut() {
-    const response = await fetch('http://localhost:8000/api/auth/signout/', {
+    const response = await fetch(`${BASE_URL}auth/signout/`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -36,7 +37,7 @@ export default function AuthButton() {
                       style={{ objectFit: 'cover' }}
                       fetchPriority="high"
                       alt="profile picture"
-                      src={`http://backend:8000${session.user.image}`}
+                      src={`${BACKEND_URL}${session.user.image}`}
                       fill
                       sizes="10vw"
                     />

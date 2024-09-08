@@ -32,6 +32,15 @@ class UserAccountManager(BaseUserManager):
         user.save_image_from_url()
         user.is_staff = True
         user.is_superuser = True
+
+        from dashboard.models import DashboardData
+        from gameCustomization.models import GameCustomizationData
+        from matchParameters.models import MatchParametersData
+        
+        DashboardData.objects.create(user=user)
+        GameCustomizationData.objects.create(user=user)
+        MatchParametersData.objects.create(user=user)
+
         user.save(using=self._db)
         return user
 
