@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["0.0.0.0:8000", "localhost:8000", "backend:8000", "backend", "localhost"]
+ALLOWED_HOSTS = ["0.0.0.0:8000", 'localhost', 'localhost:8000' "backend:8000", "backend"]
 
 # Application definition
 
@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'lobby',
     'tournamentParticipants',
     'tournamentPairings',
-	'gameCustomization'
+	'gameCustomization',
+	'matchParameters'
 ]
 
 MIDDLEWARE = [

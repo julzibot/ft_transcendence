@@ -4,8 +4,16 @@ import { Button, Modal } from 'react-bootstrap'
 import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournaments';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { GameSettings } from '@/types/GameSettings';
 import DOMPurify from 'dompurify';
+import { GameSettings } from '@/types/GameSettings';
+import { gameCustomSave } from '../game/Customization';
+
+interface MatchParameters {
+	user: number,
+	points_to_win: number,
+	game_difficulty: number,
+	power_ups: boolean
+}
 
 interface GameSettingsProps {
 	setGameSettings: Function,
@@ -44,7 +52,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		setLobbyForm(
 			{
 				...lobbyForm,
-				[key]: (key === "isActiveLobby" || key === "powerUps") ? (e.target.checked) : (DOMPurify.sanitize(e.target.value))
+				[key]: (key === "isActiveLobby" || key === "power_ups") ? (e.target.checked) : (DOMPurify.sanitize(e.target.value))
 			}
 		)
 	}
@@ -71,9 +79,9 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 				const data = await AddLobbyData(payload);
 				setModalShow(false);
 				fetchLobbyData();
+				gameCustomSave('parameters/', JSON.stringify(gameSettings));
 
 				localStorage.setItem('gameSettings', JSON.stringify(gameSettings));
-
 				router.push(`/game/online/lobby/${data?.lobby?.linkToJoin}`);
 			} catch (error) {
 				console.error('Error:', error);
@@ -169,7 +177,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 								<span className='text-danger'>*</span>
 							</label>
 							<div className='text-primary m-2 d-flex text-center align-items-center justify-content-center'>
-								{gameSettings.pointsToWin}
+								{gameSettings.points_to_win}
 							</div>
 							<input
 								type="range"
@@ -178,8 +186,8 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 								max="21"
 								step="1"
 								id="pointsRange"
-								value={gameSettings.pointsToWin}
-								onChange={(e) => setGameSettings({ ...gameSettings, pointsToWin: parseInt(e.target.value) })}
+								value={gameSettings.points_to_win}
+								onChange={(e) => setGameSettings({ ...gameSettings, points_to_win: parseInt(e.target.value) })}
 							/>
 						</div>
 						<div className="mb-3">
@@ -187,9 +195,9 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 							<select
 								className="form-select"
 								aria-label="Game Difficulty"
-								value={gameSettings.gameDifficulty}
+								value={gameSettings.game_difficulty}
 								onChange={(e) =>
-									setGameSettings({ ...gameSettings, gameDifficulty: parseInt(e.target.value) })
+									setGameSettings({ ...gameSettings, game_difficulty: parseInt(e.target.value) })
 								}
 							>
 								<option value="">Select Game Difficulty</option>
@@ -209,9 +217,9 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 									type="checkbox"
 									role="switch"
 									id="flexSwitchCheckChecked"
-									checked={gameSettings.powerUps}
+									checked={gameSettings.power_ups}
 									onChange={() =>
-										setGameSettings({ ...gameSettings, powerUps: !gameSettings.powerUps })
+										setGameSettings({ ...gameSettings, power_ups: !gameSettings.power_ups })
 									}
 								/>
 								<label className="form-check-label">Power ups</label>
