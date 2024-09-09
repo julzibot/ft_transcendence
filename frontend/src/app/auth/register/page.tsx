@@ -7,7 +7,6 @@ import { useSession } from 'next-auth/react'
 import Link from "next/link"
 import "bootstrap/dist/css/bootstrap.min.css"
 import DOMPurify from 'dompurify'
-import { BASE_URL } from "@/utils/constants";
 
 export default function Register() {
   const { data: session } = useSession()
@@ -25,10 +24,10 @@ export default function Register() {
     setError(null)
 
     try {
-      const response = await fetch(BASE_URL + 'auth/register/', {
+      const response = await fetch(('https://localhost:8000/api/auth/register/'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data })
+        body: JSON.stringify(data)
       })
       const res = await response.json()
       if (!response.ok) {
