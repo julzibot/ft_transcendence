@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --experimental-https",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -32,7 +32,8 @@
     "sass": "^1.77.5",
     "socket.io-client": "^4.7.5",
     "three": "^0.161.0",
-    "vim": "^0.1.0"
+    "vim": "^0.1.0",
+    "express": "^4.17.2"
   },
   "devDependencies": {
     "@types/dompurify": "^3.0.5",
