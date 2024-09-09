@@ -182,17 +182,18 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+
     "https://127.0.0.1:4443",
     "https://localhost:4443",
+    "https://localhost:3000",
+    "https://127.0.0.1:3000",
 ]
 CORS_ALLOW_CREDENTIALS: True
 CSRF_TRUSTED_ORIGINS = [
     "https://127.0.0.1:4443",
     "https://localhost:4443",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "https://localhost:3000",
+    "https://127.0.0.1:3000",
 ]
 
 # Default primary key field type
