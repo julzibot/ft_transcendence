@@ -57,7 +57,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 class RegisterView(APIView):
   def post(self, request):
-    data = request.data['data']
+    data = request.data
     if len(data['email']) < 1 or len(data['username']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
       return Response({'message': 'Email, Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
     if  UserAccount.objects.filter(email=data['email']).exists():
@@ -125,27 +125,35 @@ class AccessTokenView(APIView):
   
 class SigninView(APIView):
     def post(self, request):
-      data = request.data['user']
-      if len(data['email']) < 1:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-      try:
-        user = UserAccount.objects.get(Q(email=data['email']) | Q(username=data['email']))
-      except ObjectDoesNotExist:
-        return Response({'message': 'User does not exists, try different credentials'}, status=status.HTTP_404_NOT_FOUND)
-      if not check_password(data['password'], user.password):
-        return Response({
-          "error": "Unauthorized",
-          "message": "The password provided does not match our records. Please double-check your password and try again."
-        }, status=status.HTTP_401_UNAUTHORIZED)
-      user.is_online = True
-      user.save()
-      response = Response({
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'image': user.image.url,
-      })
-      return response
+        try:
+            data = request.data
+
+            if 'email' not in data or len(data['email']) < 1:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                user = UserAccount.objects.get(Q(email=data['email']) | Q(username=data['email']))
+            except ObjectDoesNotExist:
+                return Response({'message': 'User does not exists, try different credentials'}, status=status.HTTP_404_NOT_FOUND)
+
+            if not check_password(data['password'], user.password):
+                return Response({
+                    "error": "Unauthorized",
+                    "message": "The password provided does not match our records. Please double-check your password and try again."
+                }, status=status.HTTP_401_UNAUTHORIZED)
+
+            user.is_online = True
+            user.save()
+
+            response = Response({
+                'id': user.id,
+                'username': user.username,
+                'image': user.image.url,
+            })
+            return response
+
+        except Exception as e:
+            return Response({'error': 'An internal error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserView(APIView):
   def get(self, request):
