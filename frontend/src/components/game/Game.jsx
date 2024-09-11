@@ -12,9 +12,9 @@ const tools = {};
 const trail = {};
 const particleEffects = [];
 const trailSegments = [];
-const powerUps = [];
+const power_ups = [];
 // const modes_colormap = [0x00ff33, 0xff0022, 0x4c4cff, 0xcc00cc, 0xffffff, 0x888888]
-let player_powerUps = [-1, -1];
+let player_power_ups = [-1, -1];
 let activated_powers = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
 let power_timers = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
 let opponentPos = 0.;
@@ -367,27 +367,27 @@ const collisionLogic = (room_id, socket, gamemode) => {
 		let pu_dir = 0;
 		if (vars.ballVect.x < 0)
 			pu_dir = 1;
-		for (let i = 0; i < powerUps.length; i++) {
-			if (powerUps[i][4].intersectsBox(sph)) {
-				player_powerUps[pu_dir] = powerUps[i][5];
-				printGameInfo(vars.latentMesh[pu_dir], custom.powerUp_names[player_powerUps[pu_dir]], player_powerUps[pu_dir] + 6, pu_dir, 0.85);
+		for (let i = 0; i < power_ups.length; i++) {
+			if (power_ups[i][4].intersectsBox(sph)) {
+				player_power_ups[pu_dir] = power_ups[i][5];
+				printGameInfo(vars.latentMesh[pu_dir], custom.powerUp_names[player_power_ups[pu_dir]], player_power_ups[pu_dir] + 6, pu_dir, 0.85);
 				if (gamemode === 2) {
-					socket.emit('sendCollectPU', { player_id: pu_dir, power_id: powerUps[i][5], room_id: room_id });
-					socket.emit('sendDeletePU', { pu_id: powerUps[i][6], room_id: room_id })
+					socket.emit('sendCollectPU', { player_id: pu_dir, power_id: power_ups[i][5], room_id: room_id });
+					socket.emit('sendDeletePU', { pu_id: power_ups[i][6], room_id: room_id })
 				}
-				tools.scene.remove(powerUps[i][0]);
-				powerUps.splice(i, 1);
+				tools.scene.remove(power_ups[i][0]);
+				power_ups.splice(i, 1);
 			}
 		}
 	}
 }
 
 const activate_power = (i, mode) => {
-	if (player_powerUps[i] > -1) {
-		activated_powers[i][player_powerUps[i]] = 1;
-		objs.puGaugeLights[i][player_powerUps[i]].intensity = 400;
+	if (player_power_ups[i] > -1) {
+		activated_powers[i][player_power_ups[i]] = 1;
+		objs.puGaugeLights[i][player_power_ups[i]].intensity = 400;
 		printGameInfo(vars.latentMesh[i], "none", 11, i, 0.85);
-		player_powerUps[i] = -1;
+		player_power_ups[i] = -1;
 	}
 	if (activated_powers[i][0] === 1) {
 		power_timers[i][0] = performance.now();
@@ -484,7 +484,7 @@ let aiMoveHandle = (invert_controls) => {
 }
 
 let aiPuHandle = () => {
-	const pu = player_powerUps[1];
+	const pu = player_power_ups[1];
 	if (pu >= 0) {
 		if ((pu === 0 && vars.ballVect.x > 0)
 			|| (pu === 1 && vars.adjustedBallSpeed > 0.8 * CONST.BALLSPEED_MAX)
@@ -563,8 +563,8 @@ const remote_update = (socket, room_id, isHost) => {
 		objs.player1.position.y = remoteKeyPressHandle('KeyW', 'KeyS', 0, objs.player1.position.y, invert_controls[0], socket, room_id);
 		objs.player2.position.y = opponentPos;
 
-		if (keys['Space'] && custom.power_ups === true && player_powerUps[0] > -1) {
-			socket.emit('sendActivatePU1', { room_id: room_id, powerType: player_powerUps[0] });
+		if (keys['Space'] && custom.power_ups === true && player_power_ups[0] > -1) {
+			socket.emit('sendActivatePU1', { room_id: room_id, powerType: player_power_ups[0] });
 			activate_power(0, 0);
 		}
 	}
@@ -572,8 +572,8 @@ const remote_update = (socket, room_id, isHost) => {
 		objs.player2.position.y = remoteKeyPressHandle('ArrowUp', 'ArrowDown', 1, objs.player2.position.y, invert_controls[1], socket, room_id);
 		objs.player1.position.y = opponentPos;
 
-		if (keys['ArrowRight'] && custom.power_ups === true && player_powerUps[1] > -1) {
-			socket.emit('sendActivatePU2', { room_id: room_id, powerType: player_powerUps[1] });
+		if (keys['ArrowRight'] && custom.power_ups === true && player_power_ups[1] > -1) {
+			socket.emit('sendActivatePU2', { room_id: room_id, powerType: player_power_ups[1] });
 			activate_power(1, 1);
 		}
 	}
@@ -600,8 +600,7 @@ let display_img = (image, mode) => {
 		path = CONST.BASE_URL_2 + image;
 	const pp = new THREE.TextureLoader().load(path);
 	let op = 0.8;
-	if (mode > 1)
-	{
+	if (mode > 1) {
 		pp.repeat.set(0.6, 0.9);
 		pp.offset.set(0.17, 0.05);
 		op = 0.65;
@@ -759,7 +758,7 @@ const createPUObject = (powerType, radius, spawnx, spawny) => {
 
 	tools.scene.add(power_up);
 	const puHB = new THREE.Box3().setFromObject(pu_box);
-	powerUps.push([power_up, performance.now(), puUniform, timedelta, puHB, powerType, vars.puIdCount]);
+	power_ups.push([power_up, performance.now(), puUniform, timedelta, puHB, powerType, vars.puIdCount]);
 	vars.puIdCount += 1;
 }
 
@@ -845,22 +844,22 @@ const create_delete_pu = (isHost, gamemode, socket, room_id) => {
 			vars.puChanceCounter += 1;
 	}
 	let checkTime = 0;
-	for (let i = 0; i < powerUps.length; i++) {
-		powerUps[i][2].u_time.value = performance.now() - startTime + powerUps[i][3];
-		checkTime = performance.now() - powerUps[i][1];
+	for (let i = 0; i < power_ups.length; i++) {
+		power_ups[i][2].u_time.value = performance.now() - startTime + power_ups[i][3];
+		checkTime = performance.now() - power_ups[i][1];
 		if (checkTime < 1000)
-			powerUps[i][2].u_spawn.value = checkTime;
-		else if (powerUps[i][2].u_spawn.value > 0)
-			powerUps[i][2].u_spawn.value = -1;
+			power_ups[i][2].u_spawn.value = checkTime;
+		else if (power_ups[i][2].u_spawn.value > 0)
+			power_ups[i][2].u_spawn.value = -1;
 
 		if (isHost === true && checkTime > CONST.PU_LIFESPAN) {
-			tools.scene.remove(powerUps[i][0]);
+			tools.scene.remove(power_ups[i][0]);
 			if (gamemode === 2)
-				socket.emit('sendDeletePU', { pu_id: powerUps[i][6], room_id: room_id });
-			powerUps.splice(i, 1);
+				socket.emit('sendDeletePU', { pu_id: power_ups[i][6], room_id: room_id });
+			power_ups.splice(i, 1);
 		}
 		else if (checkTime > CONST.PU_LIFESPAN * 2 / 3)
-			powerUps[i][2].u_fade.value = checkTime - CONST.PU_LIFESPAN * 2 / 3
+			power_ups[i][2].u_fade.value = checkTime - CONST.PU_LIFESPAN * 2 / 3
 	}
 }
 
@@ -927,7 +926,7 @@ const init_socket = (socket, isHost) => {
 			opponentPos = position.player2pos;
 		})
 		socket.on('updateActivatePU2', data => {
-			if (data.powerType === player_powerUps[1])
+			if (data.powerType === player_power_ups[1])
 				activate_power(1, 0);
 		})
 	}
@@ -978,8 +977,8 @@ const init_socket = (socket, isHost) => {
 		})
 		socket.on('updateCollectPU', data => {
 			const p = data.player_id;
-			player_powerUps[p] = data.powerType;
-			printGameInfo(vars.latentMesh[p], custom.powerUp_names[data.powerType], player_powerUps[p] + 6, p, 0.85);
+			player_power_ups[p] = data.powerType;
+			printGameInfo(vars.latentMesh[p], custom.powerUp_names[data.powerType], player_power_ups[p] + 6, p, 0.85);
 		})
 		socket.on('updateActivatePU1', data => {
 			// if (data.powerType === player_powerUps[0])
@@ -1000,10 +999,10 @@ const init_socket = (socket, isHost) => {
 		})
 		socket.on('updateDeletePU', data => {
 			console.log("PU DESTRUCTION SIGNAL");
-			for (let j = 0; j < powerUps.length; j++) {
-				if (powerUps[j][6] === data.pu_id) {
-					tools.scene.remove(powerUps[j][0]);
-					powerUps.splice(j, 1);
+			for (let j = 0; j < power_ups.length; j++) {
+				if (power_ups[j][6] === data.pu_id) {
+					tools.scene.remove(power_ups[j][0]);
+					power_ups.splice(j, 1);
 					break;
 				}
 			}
@@ -1030,7 +1029,7 @@ const getColorVector3 = (bgColor) => {
 export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode }) {
 	console.log(JSON.stringify(gameInfos));
 	const containerRef = useRef(null);
-  	game_id = gameInfos.game_id;
+	game_id = gameInfos.game_id;
 	let socket = -1;
 	if (gamemode === 2)
 		socket = useSocketContext();
@@ -1123,9 +1122,9 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		let background = new THREE.Mesh(backgroundGeo, backgroundMaterial);
 
 		objs.backB.material.opacity = gameSettings.opacity / 100;
-		custom.difficulty = 0.3 + gameSettings.gameDifficulty / 6;
-		custom.win_score = gameSettings.pointsToWin;
-		custom.power_ups = gameSettings.powerUps;
+		custom.difficulty = 0.3 + gameSettings.game_difficulty / 6;
+		custom.win_score = gameSettings.points_to_win;
+		custom.power_ups = gameSettings.power_ups;
 		custom.sparks = gameSettings.sparks;
 
 		if (gamemode === 1)
