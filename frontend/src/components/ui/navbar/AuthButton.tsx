@@ -1,12 +1,13 @@
 'use client';
 
-import { signIn, signOut, useSession } from "next-auth/react"
+
 import Link from "next/link";
 import { useEffect } from "react";
 import Image from "next/image";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function AuthButton() {
-  const { data: session } = useSession();
+  const { session } = useAuth();
 
   useEffect(() => {
     require("bootstrap/dist/js/bootstrap.bundle.min.js")

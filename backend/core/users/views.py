@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import (TokenRefreshView)
@@ -56,90 +57,58 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 class RegisterView(APIView):
-  def post(self, request):
-    data = request.data
-    if len(data['email']) < 1 or len(data['username']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
-      return Response({'message': 'Email, Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
-    if  UserAccount.objects.filter(email=data['email']).exists():
-      return Response({'message': 'This adress is already taken.'}, status=status.HTTP_409_CONFLICT)
-    if  UserAccount.objects.filter(username=data['username']).exists():
-      return Response({'message': 'Username is already taken.'}, status=status.HTTP_409_CONFLICT)
-    if data['password'] != data['rePass']:
-      return Response({'message': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
-    user = UserAccount.objects.create(username=data['username'], email=data['email'], password=make_password(data['password']))
-    user.save_image_from_url()
-    serializer = UserAccountSerializer(user)
-    DashboardData.objects.create(user=user)
-    GameCustomizationData.objects.create(user_id=user)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+  permission_classes = [AllowAny]
 
-class OauthView(APIView):
   def post(self, request):
-    data = request.data['user']
     try:
-      user = UserAccount.objects.get(email=data['email'])
-    except ObjectDoesNotExist:
-      serializer = UserAccountSerializer(data=data)
-      serializer.is_valid(raise_exception=True)
-      user = UserAccount.objects.create(**data)
+      data = request.data
+
+      if len(data['email']) < 1 or len(data['username']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
+        return Response({'error': 'One or more missing arguments.'}, status=status.HTTP_400_BAD_REQUEST)
+
+      if  UserAccount.objects.filter(email=data['email']).exists():
+        return Response({'error': 'Email adress already exists.'}, status=status.HTTP_409_CONFLICT)
+
+      if  UserAccount.objects.filter(username=data['username']).exists():
+        return Response({'error': 'Username already exists.'}, status=status.HTTP_409_CONFLICT)
+
+      if data['password'] != data['rePass']:
+        return Response({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+      user = UserAccount.objects.create(
+        username=data['username'], 
+        email=data['email'], 
+        password=make_password(data['password'])
+      )
+
       user.save_image_from_url()
       DashboardData.objects.create(user=user)
       GameCustomizationData.objects.create(user_id=user)
+      return Response({'success': 'User account successfully created'}, status=status.HTTP_201_CREATED)
+    except:
+      return Response({'error': 'An internal error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    backendTokens = get_tokens_for_user(user)
-    user.is_online = True
-    user.save()
-    response = Response({
-      'user': {
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'image': user.image.url
-      },
-      'backendTokens': backendTokens
-    })
-    return response
-
-
-class AccessTokenView(APIView):
-  def post(self, request):
-    data = request.data['user']
-    
-    try:
-      if 'email' not in data:
-        return HttpResponseBadRequest({'Bad Request: email field is required'})
-      user = UserAccount.objects.get(email=data['email'])
-    except ObjectDoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    backendTokens = get_tokens_for_user(user)
-    response = Response({
-      'user': {
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'image': user.image.url
-      },
-      'backendTokens': backendTokens
-    })
-    return response
   
 class SigninView(APIView):
     def post(self, request):
         try:
             data = request.data
 
-            if 'email' not in data or len(data['email']) < 1:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            if 'email' not in data or len(data['email']) < 1 or 'password' not in data or len(data['password']) < 1:
+                return Response({
+                  'error': 'Bad Request',
+                  'message': 'Missing required field.'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             try:
                 user = UserAccount.objects.get(Q(email=data['email']) | Q(username=data['email']))
             except ObjectDoesNotExist:
-                return Response({'message': 'User does not exists, try different credentials'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'message': 'This user does not exists.'}, status=status.HTTP_404_NOT_FOUND)
 
             if not check_password(data['password'], user.password):
                 return Response({
                     "error": "Unauthorized",
-                    "message": "The password provided does not match our records. Please double-check your password and try again."
+                    "message": "Check your password."
                 }, status=status.HTTP_401_UNAUTHORIZED)
 
             user.is_online = True
@@ -156,26 +125,40 @@ class SigninView(APIView):
             return Response({'error': 'An internal error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserView(APIView):
-  def get(self, request):
-    access_token = request.META.get('HTTP_AUTHORIZATION')
+  def get(self, request, format=None):
 
-    if not access_token:
-      return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
-    access_token = access_token.split(' ')
-    if access_token[0] != 'Bearer':
-      return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
-    access_token = access_token[1]
-    if not access_token:
-      raise AuthenticationFailed('Unauthenticated')
-    try:
-      payload = jwt.decode(access_token, os.getenv('TOKEN_SIGNING_KEY'), algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-      raise AuthenticationFailed('Unauthenticated')
-    
-    user = UserAccount.objects.filter(id=payload['id']).first()
-    serializer = UserAccountSerializer(user)
-  
-    return Response(serializer.data)
+      access_token = request.META.get('HTTP_AUTHORIZATION')
+
+      if not access_token:
+        return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
+      access_token = access_token.split(' ')
+      if access_token[0] != 'Bearer':
+        return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
+      access_token = access_token[1]
+      if not access_token:
+        raise AuthenticationFailed('Unauthenticated')
+      try:
+        payload = jwt.decode(access_token, os.getenv('TOKEN_SIGNING_KEY'), algorithms=['HS256'])
+      except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('Unauthenticated')
+      
+      user = UserAccount.objects.filter(id=payload['user_id']).first()
+      serializer = UserAccountSerializer(user)
+      response = Response({
+        'session': {
+        'user': {
+          'id': serializer.data['id'],
+          'username': serializer.data['username'],
+          'email': serializer.data['email'],
+          'image': serializer.data['image'],
+        },
+        'token': {
+          'exp': payload['exp'],
+          'iat': payload['iat']
+        }
+      }
+      }, status=status.HTTP_200_OK)
+      return response
 
 class UpdateNameView(APIView):
   def put(self, request):
