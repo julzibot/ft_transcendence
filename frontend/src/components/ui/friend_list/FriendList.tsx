@@ -5,13 +5,13 @@ import { PersonDashFill, CircleFill, XCircleFill, Joystick, CheckCircleFill } fr
 import { CustomTooltip } from '@/components/Utils/Tooltip';
 import SearchPlayerInput from './SearchPlayerInput';
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/app/context/AuthContext';
 import Image from "next/image";
 import { Friendship, Friend } from '@/types/Friend';
 import Link from 'next/link';
 
 export default function FriendList() {
-	const { data: session } = useSession()
+	const { session } = useAuth()
 	const [friendships, setFriendships] = useState<Friendship[]>([])
 
 

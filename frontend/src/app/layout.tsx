@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import React from 'react';
 import { Roboto } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css"
-import SessionProvider from "../components/SessionProvider";
-import { getServerSession } from "next-auth";
 import Navbar from "../components/ui/navbar/Navbar";
 import Sidenav from "@/components/ui/sidenav/Sidenav";
+import { AuthProvider } from "./context/AuthContext";
+import { useAuth } from "@/app/context/AuthContext"
 import './global.css';
 
 const roboto = Roboto({
@@ -25,20 +25,20 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession();
- 
+  const { session } = useAuth();
+
   return (
     <html lang="en">
       <body className={roboto.className}>
-        <SessionProvider session={session}>
+        <AuthProvider>
             <main>
+              {
+                session ? <Sidenav /> : null
+              }
               <Navbar />
               {children}
-              {
-                session && <Sidenav />
-              }
             </main>
-        </SessionProvider>
+        </AuthProvider>
       </body>
     </html>
   );

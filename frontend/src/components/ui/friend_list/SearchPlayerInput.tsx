@@ -1,27 +1,27 @@
 "use client";
 
 import React, { useState, useEffect } from "react"
-import { PersonFillAdd, CircleFill, PersonDashFill, XCircleFill, Joystick, CheckCircleFill } from "react-bootstrap-icons";
+import { PersonFillAdd, CircleFill, PersonDashFill, XCircleFill, CheckCircleFill } from "react-bootstrap-icons";
 import { CustomTooltip } from "@/components/Utils/Tooltip";
-import { useSession } from "next-auth/react";
 import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
 import { Toast, ToastContainer } from 'react-bootstrap'
 import Image from "next/image";
 import Link from "next/link";
 import DOMPurify from "dompurify";
+import { useAuth } from "@/app/context/AuthContext";
 
 import { Friend } from "@/types/Friend";
 import { User } from "@/types/User";
 import { SearchPlayerInputProps } from "@/types/Props";
 
-const BASE_URL = "http://localhost:8000/api/"
+const BASE_URL = "https://localhost:8000/api/"
 
 
 export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputProps) {
   const [searchQuery, setSearchQuery] = useState<User[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [click, setClick] = useState<boolean>(false)
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const [toastParams, setToastParams] = useState({
     text: '',
     color: '',

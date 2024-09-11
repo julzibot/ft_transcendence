@@ -1,52 +1,37 @@
 "use client"
 
-import { signIn, useSession } from "next-auth/react"
 import Image from "next/image"
 import Link from "next/link"
 import { useState, FormEvent } from "react"
-import "bootstrap/dist/css/bootstrap.min.css"
 import DOMPurify from 'dompurify'
-import { useRouter } from 'next/navigation'
+import { useAuth } from "@/app/context/AuthContext"
 
 
 export default function SignIn() {
-  const { data: session } = useSession()
-  const router = useRouter()
-
-
+  const { signin } = useAuth();
+  const [error, setError] = useState('')
   const [data, setData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
 
-  const [error, setError] = useState<string | null>(null)
+
 
   async function loginUser(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const result = await signIn('credentials', {
-      ...data,
-      redirect: false
-    })
-    if (result.status) {
-      setError("Authentication failed, please check your credentials.")
-      console.log({ error })
+    const response = await signin('credentials', data);
+    if (response) {
+      setError('Authentication failed, check your credentials');
     }
   }
-  if (session) {
-    router.push('/')
-  }
-  else {
     return (
       <>
         <div className="d-flex justify-content-center align-items-center p-5 m-5">
           <div className="card shadow-lg text-center rounded-4 border border-light border-1 border-opacity-25 bg-light bg-gradient bg-opacity-75">
             <div className="card-header fs-4 fw-bold">Sign in to your account</div>
             <div className="card-body">
-              <button className="btn btn-dark mb-1 fs-4 " onClick={() => signIn('42-school', {
-                redirect: true,
-                callbackUrl: "/"
-              })}>
+              <button className="btn btn-dark mb-1 fs-4 " onClick={() => console.log('click')}>
                 Sign in with
                 <Image
                   className="ms-1 me-1"
@@ -63,13 +48,14 @@ export default function SignIn() {
               <form onSubmit={loginUser}>
                 <div className="mb-3">
                   <label htmlFor="email" className="form-label" >Email or Username</label>
-                  <input type="text" id="text" className="form-control" value={data.email} onChange={(e) => setData({ ...data, email: DOMPurify.sanitize(e.target.value) })} />
+                  <input type="text" id="text" className="form-control" value={data.username} onChange={(e) => setData({ ...data, username: DOMPurify.sanitize(e.target.value) })} />
                 </div>
                 <div className="mb-3">
                   <label htmlFor="password" className="form-label">Password</label>
                   <input type="password" className="form-control" value={data.password} onChange={(e) => setData({ ...data, password: DOMPurify.sanitize(e.target.value) })} />
                 </div>
-                <div className="form-text text-danger">{error}</div>
+                <p className="text-danger text-wrap">{error}
+                </p>
                 <button type="submit" className="btn btn-dark">Submit</button>
               </form>
             </div>
@@ -84,4 +70,5 @@ export default function SignIn() {
       </>
     )
   }
-}
+
+
