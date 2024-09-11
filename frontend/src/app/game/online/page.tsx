@@ -15,15 +15,15 @@ export default function OnlineGamePage() {
 	const [isMounted, setIsMounted] = useState(false);
 
 	const [gameSettings, setGameSettings] = useState({
-		user_id: session?.user.id ?? -1,
+		user: session?.user.id ?? -1,
 		background: 0,
 		palette: 0,
 		bgColor: '#ff0000',
 		opacity: 80,
 		sparks: true,
-		gameDifficulty: 4,
-		pointsToWin: 5,
-		powerUps: true
+		points_to_win: 5,
+		game_difficulty: 2,
+		power_ups: true
 	});
 
 	useEffect(() => {
@@ -42,12 +42,12 @@ export default function OnlineGamePage() {
 					</div>
 				</div>
 				{
-					session && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
+					session?.user.id && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session?.user.id} />
 				}
 				<div className={`card mt-3 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-body">
 						{
-							session && <Lobby setGameSettings={setGameSettings} gameSettings={gameSettings} />
+							gameSettings && session?.user.id && <Lobby setGameSettings={setGameSettings} gameSettings={gameSettings} />
 						}
 					</div>
 				</div>

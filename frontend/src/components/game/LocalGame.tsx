@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import ThreeScene from './Game';
 import { GameSettings } from '@/types/GameSettings';
 import { BASE_URL } from '../../utils/constants';
+import { gameCustomSave } from './Customization';
 
 interface LocalGameProps {
 	userId: number,
@@ -77,14 +78,18 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 	}, [gameCreated]);
 
 	const startLocal = () => {
+		gameCustomSave('parameters/', JSON.stringify(gameSettings));
 		setGameMode(0);
 		setClick(true);
 	}
 
 	const startAI = () => {
+		gameCustomSave('parameters/', JSON.stringify(gameSettings));
 		setGameMode(1);
 		setClick(true);
 	}
+
+
 
 	return (
 		<>

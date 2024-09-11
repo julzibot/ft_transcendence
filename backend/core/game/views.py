@@ -20,7 +20,7 @@ class GameHistory(APIView):
 		else:
 			history = GameMatch.objects.all()
 			if not history.exists():
-				return Response({'message': 'No match history'}, status=status.HTTP_404_NOT_FOUND)
+				return Response({'message': f'[{user.username}] [204] No match history'}, status=status.HTTP_204_NO_CONTENT)
 			serializer = GameMatchSerializer(history, many=True)
 			return Response({'data': serializer.data}, status=status.HTTP_200_OK)
 				
@@ -33,7 +33,7 @@ class UserGameHistory(APIView):
 				
 		history = GameMatch.objects.filter(Q(player1=user) | Q(player2=user))
 		if not history.exists():
-			return Response({'message': f'[{user.username}] No match history'}, status=status.HTTP_404_NOT_FOUND)
+			return Response({'message': f'[{user.username}] [204] No match history'}, status=status.HTTP_204_NO_CONTENT)
 		history = history.order_by('date')
 		serializer = GameMatchSerializer(history, many=True)
 		return Response({'data': serializer.data}, status=status.HTTP_200_OK)
@@ -139,7 +139,7 @@ class UpdateOnlineGame(APIView):
 			loser.prev_result = False
 			loser.save()
 
-			return Response({'message': f'[{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
+			return Response({'message': f'[PUT] [{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
 		return Response({'message': '[PUT] Invalid Game Match Request'}, status=status.HTTP_400_BAD_REQUEST)
 	
 class UserGameModeHistory(APIView):
@@ -151,7 +151,7 @@ class UserGameModeHistory(APIView):
 		
 		history = GameMatch.objects.filter(Q(player1=user) | Q(player2=user))
 		if not history.exists():
-			return Response({'message': f'[GET] [{user.username}] No match history'}, status=status.HTTP_404_NOT_FOUND)
+			return Response({'message': f'[GET] [{user.username}] [204] No match history'}, status=status.HTTP_204_NO_CONTENT)
 		
 		local = history.filter(game_mode=0).count()
 		AI = history.filter(game_mode=1).count()
@@ -178,6 +178,6 @@ class MutualGameHistory(APIView):
 		history = GameMatch.objects.filter(Q(player1=player1) | Q(player2=player1) and Q(player1=player2) | Q(player2=player2))
 
 		if not history:
-			return Response({'message': f'[GET] [{player1.username} and {player2.username}] No mutual match history'}, status=status.HTTP_404_NOT_FOUND)
+			return Response({'message': f'[GET] [204] [{player1.username} and {player2.username}] No mutual match history'}, status=status.HTTP_204_NO_CONTENT)
 		serializer = GameMatchSerializer(history, many=True)
 		return Response({'data': serializer.data}, status=status.HTTP_200_OK)
