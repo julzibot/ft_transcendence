@@ -5,7 +5,6 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import Navbar from "../components/ui/navbar/Navbar";
 import Sidenav from "@/components/ui/sidenav/Sidenav";
 import { AuthProvider } from "./context/AuthContext";
-import { useAuth } from "@/app/context/AuthContext"
 import './global.css';
 
 const roboto = Roboto({
@@ -25,19 +24,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { session } = useAuth();
 
   return (
     <html lang="en">
       <body className={roboto.className}>
         <AuthProvider>
-            <main>
-              {
-                session ? <Sidenav /> : null
-              }
-              <Navbar />
-              {children}
-            </main>
+          <main>
+            {/* {
+              session ? <Sidenav /> : null
+            } */}
+            {/* <Navbar /> */}
+            {children}
+          </main>
         </AuthProvider>
       </body>
     </html>
