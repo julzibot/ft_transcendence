@@ -49,7 +49,6 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 			else {
 				const fetched = await response.json();
 				const data = fetched.data;
-				console.log('fetched: ' + JSON.stringify(data));
 				updateSettings((prevSettings: GameSettings) => ({
 					...prevSettings,
 					user: user_id,
