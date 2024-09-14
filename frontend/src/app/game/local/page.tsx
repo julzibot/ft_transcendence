@@ -40,7 +40,6 @@ export default function GameSettings() {
 			<div className={`card mt-1 m-2 p-1 ps-4 pe-4 ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
 				<div className="card-title">
 					<h2 className="mt-3">Pong Game Settings</h2>
-					<pre>{JSON.stringify(gameSettings)}</pre>
 				</div>
 			</div>
 			{
