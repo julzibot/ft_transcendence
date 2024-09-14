@@ -6,7 +6,8 @@ import Customization from "@/components/game/Customization";
 import LocalGame from "@/components/game/LocalGame";
 import './styles.css'
 import styles from './GameSettingsStyles.module.css'
-import { GameSetings } from "@/types/GameSettings";
+import type { GameSettings } from "@/types/GameSettings";
+import { fetchGameSettings, fetchMatchParameters } from "@/components/game/Customization";
 
 export default function GameSettings() {
 
@@ -15,8 +16,8 @@ export default function GameSettings() {
 	const [isTranslated, setIsTranslated] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
 
-	const [gameSettings, setGameSettings] = useState<GameSetings>({
-		user: session?.user.id ?? -1,
+	const [gameSettings, setGameSettings] = useState<GameSettings>({
+		user: session?.user?.id ?? -1,
 		background: 0,
 		palette: 0,
 		bgColor: '#ff0000',
@@ -34,16 +35,19 @@ export default function GameSettings() {
 		return () => clearTimeout(timer)
 	}, []);
 
-
 	return (
 		<div className="d-flex flex-column align-items-center justify-content-center">
 			<div className={`card mt-1 m-2 p-1 ps-4 pe-4 ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
 				<div className="card-title">
 					<h2 className="mt-3">Pong Game Settings</h2>
+					<pre>{JSON.stringify(gameSettings)}</pre>
 				</div>
 			</div>
 			{
-				session && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
+				session?.user.id && <Customization
+					updateSettings={setGameSettings}
+					gameSettings={gameSettings}
+					userId={session?.user.id} />
 			}
 
 			<div className={`card ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
@@ -106,9 +110,9 @@ export default function GameSettings() {
 						</div>
 					</div>
 					{
-						session && (
+						session?.user.id && (
 							<>
-								<LocalGame userId={session.user.id} gameSettings={gameSettings} />
+								<LocalGame userId={session?.user.id} gameSettings={gameSettings} />
 							</>
 						)
 					}
