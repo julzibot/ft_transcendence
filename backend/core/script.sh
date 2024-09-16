@@ -25,7 +25,6 @@ if [ "$DJANGO_SUPERUSER_USERNAME" ]
 then
     python manage.py createsuperuser \
         --noinput \
-        --email $DJANGO_SUPERUSER_EMAIL \
         --username $DJANGO_SUPERUSER_USERNAME
 fi
 

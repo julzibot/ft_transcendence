@@ -115,7 +115,7 @@ export default function ProfilePage() {
 			method: 'PUT',
 			headers: { 'Content-type': 'application/json' },
 			body: JSON.stringify({
-				'email': session?.user.email,
+				'username': session?.user.username,
 				'name': data.username
 			})
 		})
@@ -235,14 +235,6 @@ export default function ProfilePage() {
 						{
 							session?.user.id == Number(id) ? (
 								<>
-									{
-										session?.user.email ? (<span className="card-subtitle text-body-secondary fw-semibold">{session?.user.email}</span>) : (
-											<p className="card-subtitle placeholder-glow">
-												<span className="placeholder col-7"></span>
-											</p>
-										)
-									}
-									<hr />
 									{
 										session?.user.id ? <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} /> : (
 											<a className="btn btn-primary rounded-pill disabled placeholder" aria-disabled="true">Game Customization</a>

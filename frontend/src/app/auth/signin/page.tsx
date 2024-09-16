@@ -4,11 +4,9 @@ import Image from "next/image"
 import Link from "next/link"
 import { useState, FormEvent } from "react"
 import DOMPurify from 'dompurify'
-import { useAuth } from "@/app/context/AuthContext"
 
 
 export default function SignIn() {
-  const { signin } = useAuth();
   const [error, setError] = useState('')
   const [data, setData] = useState({
     username: '',
@@ -17,14 +15,6 @@ export default function SignIn() {
 
 
 
-  async function loginUser(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    const response = await signin('credentials', data);
-    if (response) {
-      setError('Authentication failed, check your credentials');
-    }
-  }
     return (
       <>
         <div className="d-flex justify-content-center align-items-center p-5 m-5">
@@ -45,10 +35,10 @@ export default function SignIn() {
               </button>
               <hr />
               <p className="fw-3 fw-bold ">Or</p>
-              <form onSubmit={loginUser}>
+              <form>
                 <div className="mb-3">
-                  <label htmlFor="email" className="form-label" >Email or Username</label>
-                  <input type="text" id="text" className="form-control" value={data.username} onChange={(e) => setData({ ...data, username: DOMPurify.sanitize(e.target.value) })} />
+                  <label htmlFor="username" className="form-label" >Username</label>
+                  <input type="text" id="username" className="form-control" value={data.username} onChange={(e) => setData({ ...data, username: DOMPurify.sanitize(e.target.value) })} />
                 </div>
                 <div className="mb-3">
                   <label htmlFor="password" className="form-label">Password</label>

@@ -63,21 +63,11 @@ class RegisterView(APIView):
     try:
       data = request.data
 
-      if len(data['email']) < 1 or len(data['username']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
-        return Response({'error': 'One or more missing arguments.'}, status=status.HTTP_400_BAD_REQUEST)
-
-      if  UserAccount.objects.filter(email=data['email']).exists():
-        return Response({'error': 'Email adress already exists.'}, status=status.HTTP_409_CONFLICT)
-
       if  UserAccount.objects.filter(username=data['username']).exists():
         return Response({'error': 'Username already exists.'}, status=status.HTTP_409_CONFLICT)
 
-      if data['password'] != data['rePass']:
-        return Response({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
-
       user = UserAccount.objects.create(
-        username=data['username'], 
-        email=data['email'], 
+        username=data['username'],
         password=make_password(data['password'])
       )
 
@@ -94,14 +84,14 @@ class SigninView(APIView):
         try:
             data = request.data
 
-            if 'email' not in data or len(data['email']) < 1 or 'password' not in data or len(data['password']) < 1:
+            if 'username' not in data or len(data['username']) < 1 or 'password' not in data or len(data['password']) < 1:
                 return Response({
                   'error': 'Bad Request',
                   'message': 'Missing required field.'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             try:
-                user = UserAccount.objects.get(Q(email=data['email']) | Q(username=data['email']))
+                user = UserAccount.objects.get(username=data['username'])
             except ObjectDoesNotExist:
                 return Response({'message': 'This user does not exists.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -149,7 +139,6 @@ class UserView(APIView):
         'user': {
           'id': serializer.data['id'],
           'username': serializer.data['username'],
-          'email': serializer.data['email'],
           'image': serializer.data['image'],
         },
         'token': {
@@ -162,7 +151,7 @@ class UserView(APIView):
 
 class UpdateNameView(APIView):
   def put(self, request):
-    instance = UserAccount.objects.get(email=request.data['email'])
+    instance = UserAccount.objects.get(username=request.data['username'])
     newName = request.data.get('name', None)
     if newName is not None:
       try:
