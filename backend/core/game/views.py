@@ -142,6 +142,20 @@ class UpdateOnlineGame(APIView):
 			return Response({'message': f'[PUT] [{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
 		return Response({'message': '[PUT] Invalid Game Match Request'}, status=status.HTTP_400_BAD_REQUEST)
 	
+	def delete(self, request, id):
+		try:
+			game = GameMatch.objects.get(id=id)
+		except GameMatch.DoesNotExist:
+			return Response({'message': f'[DELETE] [{id}] Unknown Game Match'}, status=status.HTTP_404_NOT_FOUND)
+		
+		try:
+			game.delete()
+		except:
+			return Response({'message': f'[DELETE] [{id}] Problem Encountered'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+		return Response({'message': f'[DELETE] [{id}] Game Match Successfully Deleted'}, status=status.HTTP_200_OK)
+
+
+	
 class UserGameModeHistory(APIView):
 	def get(self, request, id):
 		try:
@@ -170,7 +184,7 @@ class MutualGameHistory(APIView):
 		try:
 			player1 = UserAccount.objects.get(id=id1)
 		except UserAccount.DoesNotExist:
-			return Response({'message': f'[GET] [{id1}] Unknown Player 1'}, status=status.HTTP_404_NOT_FOUND) 
+			return Response({'message': f'[GET] [{id1}] Unknown Player 1'}, status=status.HTTP_404_NOT_FOUND)
 		try:
 			player2 = UserAccount.objects.get(id=id2)
 		except UserAccount.DoesNotExist:
