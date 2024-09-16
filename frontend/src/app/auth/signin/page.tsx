@@ -2,18 +2,50 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useState, FormEvent } from "react"
-import DOMPurify from 'dompurify'
+import { useState } from "react"
+import { useRouter } from 'next/navigation'
+import { SignInFormState, SignInFormSchema } from "@/app/lib/definitions"
+import { API_URL } from "@/config"
 
 
 export default function SignIn() {
-  const [error, setError] = useState('')
-  const [data, setData] = useState({
-    username: '',
-    password: ''
-  });
+  const [pending, setPending] = useState(false);
+  const [formState, setFormState] = useState<SignInFormState | undefined>(undefined);
+  const router = useRouter()
 
-
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setPending(true)
+    const formData = new FormData(event.currentTarget)
+    const validatedFields = SignInFormSchema.safeParse({
+      username: formData.get('username'),
+      password: formData.get('password'),
+    })
+    if(!validatedFields.success)
+      setFormState({errors: validatedFields.error.flatten().fieldErrors})
+    else {
+      const { username, password } = validatedFields.data;
+      const response = await fetch(`${API_URL}/auth/signin/`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
+      if(response.ok) {
+        router.push('/')
+      }
+      else {
+        const data = await response.json()
+        setFormState({message: data.error})
+      }
+    }
+    setPending(false)
+  }
 
     return (
       <>
@@ -35,18 +67,29 @@ export default function SignIn() {
               </button>
               <hr />
               <p className="fw-3 fw-bold ">Or</p>
-              <form>
+              <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                   <label htmlFor="username" className="form-label" >Username</label>
-                  <input type="text" id="username" className="form-control" value={data.username} onChange={(e) => setData({ ...data, username: DOMPurify.sanitize(e.target.value) })} />
+                  <input 
+                    type="text" 
+                    name="username" 
+                    id="username" 
+                    className="form-control"
+                  />
+                  {formState?.errors?.username && <p>{formState.errors.username}</p>}
                 </div>
                 <div className="mb-3">
                   <label htmlFor="password" className="form-label">Password</label>
-                  <input type="password" className="form-control" value={data.password} onChange={(e) => setData({ ...data, password: DOMPurify.sanitize(e.target.value) })} />
+                  <input 
+                    type="password" 
+                    className="form-control"
+                    id="password"
+                    name="password"
+                  />
+                  {formState?.errors?.password && <p>{formState.errors.password}</p>}
                 </div>
-                <p className="text-danger text-wrap">{error}
-                </p>
-                <button type="submit" className="btn btn-dark">Submit</button>
+                <SubmitButton pending={pending}/>
+                {formState?.message && <p>{formState.message}</p>}
               </form>
             </div>
             <div className="card-footer">
@@ -58,6 +101,20 @@ export default function SignIn() {
           </div>
         </div>
       </>
+    )
+  }
+
+  function SubmitButton({pending}: {pending: boolean}) {
+    return (
+      <button disabled={pending} type="submit" className="btn btn-dark fw-bold mt-2">
+        {
+          pending ? (
+            <div className="spinner-border spinner-border-sm" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          ) : (<span>Sign In</span>)
+        }
+      </button>
     )
   }
 

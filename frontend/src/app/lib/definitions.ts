@@ -24,7 +24,29 @@ export const RegisterFormSchema = z.object({
   path: ["rePass"],
 });
 
-export type FormState =
+export const SignInFormSchema = z.object({
+  username: z
+    .string()
+    .min(1, { message: "Username is required." })
+    .trim(),
+  password: z
+    .string()
+    .min(1, { message: 'Password is required.' })
+    .trim(),
+});
+
+export type SignInFormState =
+  | {
+    errors?: {
+      username?: string[];
+      password?: string[];
+    }
+    message?: string[]
+  }
+  | undefined
+
+
+export type RegisterFormState =
   | {
     errors?: {
       username?: string[];
