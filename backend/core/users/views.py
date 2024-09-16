@@ -2,9 +2,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-from rest_framework_simplejwt.views import (TokenRefreshView)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib.auth.hashers import make_password, check_password
 
 from django.conf import settings
@@ -14,20 +14,14 @@ from django.db.models import Q
 
 import jwt, os, datetime
 
+from django.conf import settings
+
 from .models import UserAccount
 from friends.models import Friendship
 from .serializers import UserAccountSerializer
 from dashboard.models import DashboardData
 from gameCustomization.models import GameCustomizationData
 
-def get_tokens_for_user(user):
-  refresh = RefreshToken.for_user(user)
-  access = refresh.access_token
-  return{
-    'refresh': str(refresh),
-    'access': str(access),
-    'expiresIn': access.payload['exp']
-  }
 
 class CustomTokenRefreshView(TokenRefreshView):
   def post(self, request, *args, **kwargs):
@@ -80,39 +74,43 @@ class RegisterView(APIView):
 
   
 class SigninView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
-        try:
-            data = request.data
+      data = request.data
 
-            if 'username' not in data or len(data['username']) < 1 or 'password' not in data or len(data['password']) < 1:
-                return Response({
-                  'error': 'Bad Request',
-                  'message': 'Missing required field.'
-                }, status=status.HTTP_400_BAD_REQUEST)
+      try:
+          user = UserAccount.objects.get(username=data['username'])
+      except ObjectDoesNotExist:
+          return Response({'message': 'This user does not exists.'}, status=status.HTTP_404_NOT_FOUND)
 
-            try:
-                user = UserAccount.objects.get(username=data['username'])
-            except ObjectDoesNotExist:
-                return Response({'message': 'This user does not exists.'}, status=status.HTTP_404_NOT_FOUND)
+      if not check_password(data['password'], user.password):
+          return Response({ "message": "Given password does not match our records." }, status=status.HTTP_401_UNAUTHORIZED)
+      user.is_online = True
+      user.save()
 
-            if not check_password(data['password'], user.password):
-                return Response({
-                    "error": "Unauthorized",
-                    "message": "Check your password."
-                }, status=status.HTTP_401_UNAUTHORIZED)
+      payload = {
+        'id': user.id,
+        'username': user.username,
+        'image': user.image.url if user.image else None,
+      }
 
-            user.is_online = True
-            user.save()
+      session = jwt.encode(
+        payload,
+        os.getenv('TOKEN_SIGNING_KEY'),
+        algorithm='HS256'
+        )
 
-            response = Response({
-                'id': user.id,
-                'username': user.username,
-                'image': user.image.url,
-            })
-            return response
-
-        except Exception as e:
-            return Response({'error': 'An internal error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+      response = Response()
+      response.set_cookie(
+        key='session', 
+        value=session, 
+        httponly=True,
+        secure=True, 
+        samesite='Strict',
+        expires=datetime.datetime.now() + datetime.timedelta(days=1),
+        domain='localhost:3000',
+        )
+      return response
 
 class UserView(APIView):
   def get(self, request, format=None):

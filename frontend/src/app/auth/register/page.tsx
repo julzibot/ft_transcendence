@@ -1,15 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { RegisterFormSchema } from "@/app/lib/definitions"
+import { RegisterFormSchema, RegisterFormState } from "@/app/lib/definitions"
 import { useState } from "react"
-import { FormState } from "@/app/lib/definitions"
 import { API_URL } from '@/config';
 import { useRouter } from 'next/navigation'
 
 export default function RegisterForm() {
   const [pending, setPending] = useState(false);
-  const [formState, setFormState] = useState<FormState | undefined>(undefined);
+  const [formState, setFormState] = useState<RegisterFormState | undefined>(undefined);
   const router = useRouter()
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -64,7 +63,7 @@ export default function RegisterForm() {
                   className="form-control"
                 />
                 {formState?.errors?.username && <p>{formState.errors.username}</p>}
-                <p className="form-text">A unique username that will be displayed to other players</p>
+                <p className="form-text fst-italic ">A unique username that will be displayed to other players</p>
               </div>
               <div className="mb-3 form-group">
                 <label htmlFor="password" className="form-label">
