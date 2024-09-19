@@ -8,14 +8,16 @@ from django.dispatch import receiver
 import uuid
 
 class UserAccountManager(BaseUserManager):
-    def create_user(self, password=None, **kwargs):
+    def create_user(self, username, password=None, **kwargs):
 
+        user = self.model(username=username, **kwargs)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, password=None, **kwargs):
+    def create_superuser(self, username, password=None, **kwargs):
         user = self.create_user(
+            username=username,
             password=password,
             **kwargs,
         )

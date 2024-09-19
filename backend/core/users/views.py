@@ -5,12 +5,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from django.contrib.auth.hashers import make_password, check_password
 
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
+from django.contrib.auth.hashers import make_password, check_password
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseBadRequest
-from django.db.models import Q 
+from django.db.models import Q
+from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.contrib import auth
 
 import jwt, os, datetime
 
@@ -23,6 +27,15 @@ from dashboard.models import DashboardData
 from gameCustomization.models import GameCustomizationData
 
 
+class CheckAuthenticatedView(APIView):
+  def get(self, request, format=None):
+    user = self.request.user
+    isAuthenticated = user.is_authenticated
+    if isAuthenticated:
+      return Response({'isAuthenticated': True})
+    return Response({'isAuthenticated': False})
+
+    
 class CustomTokenRefreshView(TokenRefreshView):
   def post(self, request, *args, **kwargs):
     refresh_token = request.META.get('HTTP_AUTHORIZATION')
@@ -49,7 +62,7 @@ class CustomTokenRefreshView(TokenRefreshView):
       'expiresIn': access_token.payload['exp']
     })
 
-
+@method_decorator(csrf_protect, name='dispatch')
 class RegisterView(APIView):
   permission_classes = [AllowAny]
 
@@ -72,26 +85,32 @@ class RegisterView(APIView):
     except:
       return Response({'error': 'An internal error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-  
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class GetSCRFTokenView(APIView):
+  permission_classes = [AllowAny]
+  def get(self, request, format=None):
+    return Response({'success': 'CSRF cookie set'})
+
+@method_decorator(csrf_protect, name='dispatch')
 class SigninView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
       data = request.data
 
-      try:
-          user = UserAccount.objects.get(username=data['username'])
-      except ObjectDoesNotExist:
-          return Response({'message': 'This user does not exists.'}, status=status.HTTP_404_NOT_FOUND)
-
-      if not check_password(data['password'], user.password):
-          return Response({ "message": "Given password does not match our records." }, status=status.HTTP_401_UNAUTHORIZED)
+      user = auth.authenticate(username=data['username'], password=data['password'])
+      if user is not None:
+         auth.login(request, user)
+      else:
+        return Response({ "message": "Given credentials do not match our records." }, status=status.HTTP_401_UNAUTHORIZED)
+      # if not check_password(data['password'], user.password):
+      #     return Response({ "message": "Given password does not match our records." }, status=status.HTTP_401_UNAUTHORIZED)
       user.is_online = True
       user.save()
 
       payload = {
         'id': user.id,
-        'username': user.username,
-        'image': user.image.url if user.image else None,
+        'iat': datetime.datetime.now(),
+        'exp': datetime.datetime.now() + datetime.timedelta(days=1)
       }
 
       session = jwt.encode(
@@ -100,17 +119,28 @@ class SigninView(APIView):
         algorithm='HS256'
         )
 
-      response = Response()
+      response = Response({'message': 'Successfully signed in'})
       response.set_cookie(
         key='session', 
         value=session, 
         httponly=True,
         secure=True, 
-        samesite='Strict',
-        expires=datetime.datetime.now() + datetime.timedelta(days=1),
-        domain='localhost:3000',
+        samesite='None',
+        expires=payload['exp'],
+        domain='localhost',
+        path='/'
         )
+
       return response
+
+class SessionView(APIView):
+  def get(self, request):
+    token = request.COOKIES.get('session')
+    if not token:
+      return Response({'error': 'Unauthenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    payload = jwt.decode(token, os.getenv('TOKEN_SIGNING_KEY'), algorithms=['HS256'])
+    return Reponse({payload}, status=status.HTTP_200_OK)
 
 class UserView(APIView):
   def get(self, request, format=None):
@@ -236,6 +266,14 @@ class SignOutView(APIView):
     user.is_online = False
     user.save()
     return Response(status=status.HTTP_200_OK)
+
+class LogoutView(APIView):
+  def post(self, request, format=None):
+    try:
+      auth.logout(request)
+      return Response({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
+    except:
+      return Response({'message': 'An internal error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class GetUserView(APIView):
   def get(self, request):
