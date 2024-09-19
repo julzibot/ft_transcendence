@@ -6,6 +6,8 @@ import { useState } from "react"
 import { useRouter } from 'next/navigation'
 import { SignInFormState, SignInFormSchema } from "@/app/lib/definitions"
 import { API_URL } from "@/config"
+import CSRFToken from "@/components/Utils/CSRFToken"
+import Cookies from 'js-cookie'
 
 
 export default function SignIn() {
@@ -27,9 +29,11 @@ export default function SignIn() {
       const { username, password } = validatedFields.data;
       const response = await fetch(`${API_URL}/auth/signin/`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'X-CSRFToken': Cookies.get('csrftoken') as string,
         },
         body: JSON.stringify({
           username,
@@ -41,7 +45,7 @@ export default function SignIn() {
       }
       else {
         const data = await response.json()
-        setFormState({message: data.error})
+        setFormState({message: data.message})
       }
     }
     setPending(false)
@@ -68,6 +72,7 @@ export default function SignIn() {
               <hr />
               <p className="fw-3 fw-bold ">Or</p>
               <form onSubmit={handleSubmit}>
+                <CSRFToken />
                 <div className="mb-3">
                   <label htmlFor="username" className="form-label" >Username</label>
                   <input 

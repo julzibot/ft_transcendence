@@ -5,6 +5,8 @@ import { RegisterFormSchema, RegisterFormState } from "@/app/lib/definitions"
 import { useState } from "react"
 import { API_URL } from '@/config';
 import { useRouter } from 'next/navigation'
+import CSRFToken from "@/components/Utils/CSRFToken";
+import Cookies from 'js-cookie'
 
 export default function RegisterForm() {
   const [pending, setPending] = useState(false);
@@ -15,6 +17,7 @@ export default function RegisterForm() {
     event.preventDefault()
     setPending(true)
     const formData = new FormData(event.currentTarget)
+
     const validatedFields = RegisterFormSchema.safeParse({
       username: formData.get('username'),
       password: formData.get('password'),
@@ -27,9 +30,11 @@ export default function RegisterForm() {
       const { username, password, rePass } = validatedFields.data;
       const response = await fetch(`${API_URL}/auth/register/`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'X-CSRFToken': Cookies.get('csrftoken') as string,
         },
         body: JSON.stringify({
           username,
@@ -52,6 +57,7 @@ export default function RegisterForm() {
           <div className="card-header fs-2 fw-bold">Register a new account</div>
           <div className="card-body">
             <form onSubmit={handleSubmit}>
+              <CSRFToken />
               <div className="mb-1 form-group">
                 <label htmlFor="username" className="form-label" >
                   <strong>Username*</strong>
