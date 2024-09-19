@@ -1,32 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-// import { cookies } from 'next/headers'
-// import { SERVER_URL, API_URL } from './config'
 
-
-const protectedRoutes = [
-  '/',
-  '/account',
-  '/test',
-]
-
-const publicRoutes = [
-  '/auth/signin',
-  '/auth/register',
-]
+const publicPaths = ['/auth/signin', '/auth/register']
 
 export default async function middleware(req: NextRequest) {
-  const path = req.nextUrl.pathname;
-  const isProtected = protectedRoutes.includes(path);
-  const isPublic = publicRoutes.includes(path);
+  const { pathname } = req.nextUrl
+  const isPublic = publicPaths.includes(pathname)
 
-  const sessionToken = req.cookies.get('sessionid')?.value;
+  const sessionToken = req.cookies.has('sessionid');
 
+  if (isPublic && !sessionToken) {
+    return NextResponse.next()
+  }
 
-  if (isProtected && !sessionToken) {
+  if (!sessionToken) {
     return NextResponse.redirect(new URL('/auth/signin', req.nextUrl).toString())
   }
 
-  if (isPublic && sessionToken && !req.nextUrl.pathname.startsWith('/')) {
+  if (isPublic && sessionToken) {
     return NextResponse.redirect(new URL('/', req.nextUrl).toString())
   }
 
@@ -34,5 +24,8 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)']
+  matcher: [
+    '/((?!api|_next/static|_next/image|.*\\.png$).*)',
+    '/',
+  ]
 }
