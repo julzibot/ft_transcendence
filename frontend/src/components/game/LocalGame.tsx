@@ -5,6 +5,7 @@ import ThreeScene from './Game';
 import { GameSettings } from '@/types/GameSettings';
 import { BASE_URL } from '../../utils/constants';
 import { gameCustomSave } from './Customization';
+import { useRouter } from 'next/navigation';
 
 interface LocalGameProps {
 	userId: number,
@@ -13,6 +14,7 @@ interface LocalGameProps {
 
 export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 
+	const router = useRouter();
 	const [gameStarted, setGameStarted] = useState(false);
 	const [gameMode, setGameMode] = useState(-1);
 	const [gameCreated, setGameCreated] = useState(false);
@@ -69,6 +71,14 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 					});
 					setMatchFetched(true);
 					setGameStarted(true);
+					const localProps = {
+						gameInfos: gameInfos,
+						gameSettings: gameSettings,
+						userId: userId,
+						gameMode: gameMode
+					}
+					localStorage.setItem("localProps", JSON.stringify(localProps));
+					router.push("/game/local/play");
 				}
 				else
 					console.log('[Join] [fetchGameInfos] Error fetching: ' + response.status);
