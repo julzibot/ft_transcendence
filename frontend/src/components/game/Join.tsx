@@ -26,6 +26,7 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 	const [player2_id, setPlayer2_id] = useState(null);
 	const [gameCreated, setGameCreated] = useState(false); // POST game to backend
 	const [matchFetched, setMatchFetched] = useState(false); // If gameCreated, GET match infos
+	const [playerDisconnected, setPlayerDisconnected] = useState(false);
 
 	const [gameInfos, setGameInfos] = useState({
 		game_id: -1,
@@ -61,6 +62,11 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 			console.log('Start the game!');
 			setGameJoined(true);
 		});
+
+		socket.on('playerDisconnected', () => {
+			console.log('The other player has disconnected');
+			setPlayerDisconnected(true);
+		})
 
 		return () => {
 			socket.off('isHost');
