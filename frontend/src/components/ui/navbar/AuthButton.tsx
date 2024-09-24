@@ -4,29 +4,36 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import Image from "next/image";
-import CSRFToken from "@/components/Utils/CSRFToken";
 import Cookies from 'js-cookie'
+import { useAuth } from "@/app/lib/AuthContext";
+import { API_URL } from "@/config";
+import { useRouter } from 'next/navigation'
 
 export default function AuthButton() {
+  const { session } = useAuth();
+  const router = useRouter()
 
   useEffect(() => {
     require("bootstrap/dist/js/bootstrap.bundle.min.js")
   }, []);
 
-  async function handleSignOut(event: React.FormEvent<HTMLFormElement>) {
-    const formData = new FormData(event.currentTarget);
-    const response = await fetch('http://localhost:8000/api/auth/logout/', {
+  async function handleSignOut() {
+    const response = await fetch(`${API_URL}/auth/logout/`, {
+      method: 'POST',
       credentials: 'include',
       headers: { 'X-CSRFToken':  Cookies.get('csrftoken') as string },
     })
+    if (response.ok) {
+      router.push('/auth/signin')
+    }
   }
 
-  // if (session && session.user) {
+  if (session?.user) {
     return (
       <>
         <div className="dropdown me-3">
           <button className="btn btn-light btn-lg dropdown-toggle d-flex align-items-center me-1" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            {/* {
+            {
               session.user.image ? (
                 <>
                   <div className=" border border-2 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden', position: 'relative' }}>
@@ -34,7 +41,7 @@ export default function AuthButton() {
                       style={{ objectFit: 'cover' }}
                       fetchPriority="high"
                       alt="profile picture"
-                      src={`http://backend:8000${session.user.image}`}
+                      src={`http://django:8000${session.user.image}`}
                       fill
                       sizes="10vw"
                     />
@@ -43,11 +50,11 @@ export default function AuthButton() {
               ) : (
                 <div className="spinner-border text-secondary" role="status"></div>
               )}
-            <span className="ms-2">{session.user.username}</span> */}
+            <span className="ms-2">{session.user.username}</span>
           </button>
 
           <ul className="dropdown-menu">
-            {/* <li><Link className="dropdown-item" href={`/account/${session.user.id}`}>Account</Link></li> */}
+            <li><Link className="dropdown-item" href={`/account/${session?.user?.id}`}>Account</Link></li>
             <li><hr className="dropdown-divider" /></li>
             <li><button className="dropdown-item btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Sign Out</button></li>
           </ul>
@@ -68,10 +75,7 @@ export default function AuthButton() {
                 <div className="d-flex justify-content-between">
                   <div className="flex-row">
                     <button className="flex-column btn btn-outline-secondary me-md-2" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
-                    <form onSubmit={handleSignOut}>
-                      <CSRFToken />
-                      <button className=" flex-column btn btn-outline-danger" type="submit">Sign out</button>
-                    </form>
+                    <button data-bs-dismiss="modal" onClick={handleSignOut} className=" flex-column btn btn-outline-danger">Sign out</button>
                   </div>
                 </div>
               </div>
@@ -80,5 +84,5 @@ export default function AuthButton() {
         </div>
       </>
     );
-  // }
+  }
 }

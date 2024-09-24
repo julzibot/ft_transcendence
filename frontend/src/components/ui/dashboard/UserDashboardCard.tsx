@@ -1,7 +1,7 @@
 'use client'
 
 import React, { RefObject, useEffect, useState } from "react";
-import { useSession } from 'next-auth/react'
+// import { useAuth  } from "@/app/lib/AuthContext";
 import Image from 'next/image'
 import './styles.css';
 
@@ -14,6 +14,7 @@ import GameModesChart from "./GameModesChart";
 import createScoreData from "./ChartDataUtils";
 import { GameMatch, Player } from "./DashboardInterfaces";
 import { DashboardPlaceholder } from "@/components/placeholders/DashboardPlaceholder";
+import { API_URL } from "@/config";
 
 type UserHistory = {
 	data: Array<GameMatch>
@@ -42,8 +43,9 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 	useEffect(() => {
 		if (user.id) {
 			const fetchDashboardDetail = async () => {
-				const response = await fetch(`http://localhost:8000/api/dashboard/${user.id}`, {
-					method: "GET"
+				const response = await fetch(`${API_URL}/dashboard/${user.id}`, {
+					method: "GET",
+					credentials: 'include'
 				});
 				if (response.ok) {
 					const data = await response.json();
@@ -61,7 +63,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 	useEffect(() => {
 		if (user.id) {
 			const fetchUserHistory = async () => {
-				const response = await fetch(`http://localhost:8000/api/game/history/user/${user.id}`, {
+				const response = await fetch(`${API_URL}/game/history/user/${user.id}`, {
 					method: "GET"
 				});
 				if (response.ok) {

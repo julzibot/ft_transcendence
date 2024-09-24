@@ -1,5 +1,3 @@
-"use client";
-
 import GameCard from '@/components/cards/GameCard';
 
 

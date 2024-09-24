@@ -25,11 +25,12 @@ load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET')
+DOMAIN_NAME = os.getenv('DOMAIN_NAME')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "django"]
+ALLOWED_HOSTS = [DOMAIN_NAME, "0.0.0.0", "127.0.0.1", "django"]
 
 # Application definition
 
@@ -43,8 +44,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'requests',
     'rest_framework',
-    'rest_framework_simplejwt',
-    'rest_framework.authtoken',
     'drf_spectacular',
     'users',
 	'dashboard',
@@ -146,7 +145,6 @@ REST_FRAMEWORK = {
 
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -161,27 +159,11 @@ SPECTACULAR_SETTINGS = {
     # OTHER SETTINGS
 }
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': False,
-
-    'HTTP_ONLY': True,
-    'SECURE': True,
-
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': os.getenv('TOKEN_SIGNING_KEY'),
-    'VERIFYING_KEY': None,
-
-    'AUTH_HEADER_TYPES': ('Bearer', 'Refresh', ),
-
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-}
-
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
     "https://localhost:3000",
-    "http://localhost:3000",
+    "https://127.0.0.1",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -194,23 +176,29 @@ CORS_ALLOW_METHODS = [
 
 CORS_ALLOW_HEADERS = [
     'Authorization',
+    'Accept',
     'Content-Type',
     'X-CSRFToken',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://127.0.0.1:8000",
-    "https://localhost:8000",
-    "https://localhost:3000",
-    "https://127.0.0.1:3000",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000"
+    f"https://{DOMAIN_NAME}:8000",
+    f"https://{DOMAIN_NAME}:3000",
 ]
 
-CSRF_COOKIE_HTTPONLY=False
-CSRF_COOKIE_PATH='/'
 CSRF_COOKIE_SECURE=True
+CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_DOMAIN = DOMAIN_NAME
+CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_COOKIE_AGE = 60 * 60 * 24
+
+SESSION_COOKIE_AGE = CSRF_COOKIE_AGE 
+SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_DOMAIN = DOMAIN_NAME
+SESSION_COOKIE_PAHT = '/'
+SESSION_COOKIE_SAMESITE = 'None'
 
 
 # Default primary key field type

@@ -15,6 +15,7 @@ export default function SignIn() {
   const [formState, setFormState] = useState<SignInFormState | undefined>(undefined);
   const router = useRouter()
 
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setPending(true)
@@ -41,6 +42,7 @@ export default function SignIn() {
         }),
       });
       if(response.ok) {
+        setPending(false)
         router.push('/')
       }
       else {

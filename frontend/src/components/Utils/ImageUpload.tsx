@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { BASE_URL } from '@/utils/constants';
+import { useAuth } from '@/app/lib/AuthContext';
+import { API_URL } from '@/config';
 import { Upload } from 'react-bootstrap-icons'
+import Cookies from 'js-cookie';
 
 export default function ImageUpload() {
-    const { data: session, update } = useSession()
+    const { session, update } = useAuth()
     const [file, setFile] = useState<File | null>(null)
 
     useEffect(() => {
@@ -17,18 +18,19 @@ export default function ImageUpload() {
     async function uploadImage() {
         try {
             const formData = new FormData()
-            formData.append('user_id', String(session?.user.id))
+            formData.append('user_id', String(session?.user?.id))
             if (file) {
                 formData.append('image', file);
             }
-            const response = await fetch(BASE_URL + 'update/image/', {
+            await fetch(API_URL + '/update/image/', {
                 method: 'PUT',
+                credentials: 'include',
+                headers: {
+                    'X-CSRFToken': Cookies.get('csrftoken') as string
+                },
                 body: formData
             })
-            if (!response.ok)
-                throw new Error("Failed to upload data, Try Again")
-            const img = await response.json()
-            update({ image: img.image })
+            update()
         }
         catch (error) {
             console.error(error)

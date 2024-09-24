@@ -6,6 +6,7 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts, custom } from '../../utils/init';
 import { useSocketContext } from '../../context/socket';
+import { API_URL } from '@/config';
 
 let keys = {};
 const tools = {};
@@ -77,8 +78,7 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
       textMesh.material = textMaterial;
       if (mode == 1)
         textMesh.position.set(-3.9, CONST.GAMEHEIGHT / 2 + 0.5, 1);
-      else if (mode == 2)
-      {
+      else if (mode == 2) {
         let hyphenGeo = new TextGeometry("-", { font: font, size: fontsize, height: 0.5 });
         vars.hyphenMesh.material = textMaterial;
         vars.hyphenMesh.position.set(-0.5, CONST.GAMEHEIGHT / 2 + 0.5, 1);
@@ -104,7 +104,7 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
         textMesh.position.set(CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 0.75, 1)
     }
     else if (mode == 5) {
-      const textMaterial = new THREE.MeshStandardMaterial({ color: 0x227700 , emissive: 0x00cc00, emissiveIntensity: 0.25});
+      const textMaterial = new THREE.MeshStandardMaterial({ color: 0x227700, emissive: 0x00cc00, emissiveIntensity: 0.25 });
       textMesh.material = textMaterial;
       textMesh.position.set(-11.5, -7, -1.5);
     }
@@ -498,20 +498,18 @@ const local_update = (gamemode) => {
   else if (gamemode === 1 && custom.power_ups === true)
     aiPuHandle();
 
-  if (keys['KeyC'])
-  {
+  if (keys['KeyC']) {
     vars.colorswitch[0] = (vars.colorswitch[0] + 1) % 3;
     let ind = vars.colorswitch[0];
     objs.player1.material.dispose();
-    objs.player1.material = new THREE.MeshStandardMaterial( { color: custom.player_colormap[2*ind], emissive: custom.player_colormap[2*ind + 1], emissiveIntensity: 0.15 } );
+    objs.player1.material = new THREE.MeshStandardMaterial({ color: custom.player_colormap[2 * ind], emissive: custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
     keys['KeyC'] = false;
   }
-  if (keys['ArrowLeft'])
-  {
+  if (keys['ArrowLeft']) {
     vars.colorswitch[1] = (vars.colorswitch[1] + 1) % 3;
     let ind = vars.colorswitch[1];
     objs.player2.material.dispose();
-    objs.player2.material = new THREE.MeshStandardMaterial( { color: custom.player_colormap[2*ind], emissive: custom.player_colormap[2*ind + 1], emissiveIntensity: 0.15 } );
+    objs.player2.material = new THREE.MeshStandardMaterial({ color: custom.player_colormap[2 * ind], emissive: custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
     keys['ArrowLeft'] = false;
   }
 }
@@ -562,29 +560,26 @@ const remote_update = (socket, room_id, isHost) => {
       activate_power(1, 1);
     }
   }
-  if (keys['KeyC'])
-  {
+  if (keys['KeyC']) {
     vars.colorswitch[0] = (vars.colorswitch[0] + 1) % 3;
     let ind = vars.colorswitch[0];
     objs.player1.material.dispose();
-    objs.player1.material = new THREE.MeshStandardMaterial( { color: custom.player_colormap[2*ind], emissive: custom.player_colormap[2*ind + 1], emissiveIntensity: 0.15 } );
+    objs.player1.material = new THREE.MeshStandardMaterial({ color: custom.player_colormap[2 * ind], emissive: custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
     keys['KeyC'] = false;
   }
-  if (keys['ArrowLeft'])
-  {
+  if (keys['ArrowLeft']) {
     vars.colorswitch[1] = (vars.colorswitch[1] + 1) % 3;
     let ind = vars.colorswitch[1];
     objs.player2.material.dispose();
-    objs.player2.material = new THREE.MeshStandardMaterial( { color: custom.player_colormap[2*ind], emissive: custom.player_colormap[2*ind + 1], emissiveIntensity: 0.15 } );
+    objs.player2.material = new THREE.MeshStandardMaterial({ color: custom.player_colormap[2 * ind], emissive: custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
     keys['ArrowLeft'] = false;
   }
 }
 
 async function CreateGame(user_id, player2_id, game_mode) {
-  console.log("CreateGame called");
   if (game_mode === 1)
     player2_id = -1
-  const response = await fetch(CONST.BASE_URL + 'game/create', {
+  const response = await fetch(API_URL + '/game/create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -605,7 +600,7 @@ async function PutScores(gameMode) {
   let putPath = 'local';
   if (gameMode >= 2)
     putPath = 'online';
-  const response = await fetch(CONST.BASE_URL + `game/${putPath}/update/${game_id}`,
+  const response = await fetch(API_URL + `/game/${putPath}/update/${game_id}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
