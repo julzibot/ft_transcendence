@@ -57,9 +57,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -68,6 +68,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'core.urls'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Default backend for username/password
+    'core.backends.ExternalAPITokenBackend',  # Custom backend for external API token
+]
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 TEMPLATES = [
     {
@@ -186,7 +192,7 @@ CSRF_TRUSTED_ORIGINS = [
     f"https://{DOMAIN_NAME}:3000",
 ]
 
-CSRF_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=False
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_DOMAIN = DOMAIN_NAME

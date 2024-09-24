@@ -55,13 +55,30 @@ class SigninView(APIView):
 
       user = auth.authenticate(username=data['username'], password=data['password'])
       if user is not None:
-         auth.login(request, user)
+        request.session.save()
+        auth.login(request, user)
       else:
         return Response({ "message": "Given credentials do not match our records." }, status=status.HTTP_401_UNAUTHORIZED)
       user.is_online = True
       user.save()
 
       return Response({'message': 'Successfully logged in'}, status=status.HTTP_200_OK)
+
+@method_decorator(csrf_protect, name='dispatch')
+class OauthView(APIView):
+  permission_classes = [AllowAny]
+  def post(self, request):
+    access_token = request.data.get('access_token')
+    if access_token is None:
+      return Response({'error': 'Access token is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = auth.authenticate(request, access_token=access_token)
+    if user is not None:
+      auth.login(request, user)
+      return Response({'message': 'Successfully logged in'}, status=status.HTTP_200_OK)
+    else:
+      return Response({'error': 'Invalid access token'}, status=status.HTTP_401_UNAUTHORIZED)
+    
 
 class UpdateNameView(APIView):
   def put(self, request):
