@@ -54,7 +54,7 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 	useEffect(() => {
 		if (gameCreated && !matchFetched) {
 
-			const getGameInfos = async (game_id) => {
+			const getGameInfos = async (game_id: number) => {
 				const response = await fetch(BASE_URL + `game/history/${game_id}`, {
 					method: 'GET',
 					headers: { 'Content-Type': 'application/json' }
@@ -62,23 +62,15 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 				if (response.ok) {
 					const res = await response.json();
 					const data = res.data;
-					setGameInfos({
-						...gameInfos,
+					setGameInfos((prevGameInfos) => ({
+						...prevGameInfos,
 						p1Name: data.player1.username,
 						p2Name: gameMode === 0 ? 'guest' : 'ai',
 						p1p: data.player1.image,
 						p2p: gameMode === 0 ? '../../guest.png' : '../../airobot.png'
-					});
+					}));
 					setMatchFetched(true);
 					setGameStarted(true);
-					const localProps = {
-						gameInfos: gameInfos,
-						gameSettings: gameSettings,
-						userId: userId,
-						gameMode: gameMode
-					}
-					localStorage.setItem("localProps", JSON.stringify(localProps));
-					router.push("/game/local/play");
 				}
 				else
 					console.log('[Join] [fetchGameInfos] Error fetching: ' + response.status);
@@ -86,6 +78,20 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 			getGameInfos(gameInfos.game_id);
 		}
 	}, [gameCreated]);
+
+	useEffect(() => {
+		if (gameStarted) {
+			const localProps = {
+				gameInfos: gameInfos,
+				gameSettings: gameSettings,
+				userId: userId,
+				gameMode: gameMode
+			}
+			localStorage.setItem("localProps", JSON.stringify(localProps));
+			console.log('[LocalGame] localProps:' + JSON.stringify(localProps));
+			router.push("/game/local/play");
+		}
+	}, [gameStarted]);
 
 	const startLocal = () => {
 		gameCustomSave('parameters/', JSON.stringify(gameSettings));
@@ -99,24 +105,14 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 		setClick(true);
 	}
 
-
-
 	return (
 		<>
-			{
-				gameStarted ? (
-					<ThreeScene gameInfos={gameInfos} gameSettings={gameSettings} room_id={-1} user_id={userId} isHost={true} gamemode={gameMode} />
-				) : (
-					<>
-						<div className="d-flex justify-content-center mb-3">
-							<button type="button" className="btn btn-secondary mx-3" onClick={() => startAI()}>Play Against AI</button >
-						</div >
-						<div className="d-flex justify-content-center mb-3">
-							<button type="button" className="btn btn-secondary mx-3" onClick={() => startLocal()}>Local Multiplayer</button>
-						</div>
-					</>
-				)
-			}
+			<div className="d-flex justify-content-center mb-3">
+				<button type="button" className="btn btn-secondary mx-3" onClick={() => startAI()}>Play Against AI</button >
+			</div >
+			<div className="d-flex justify-content-center mb-3">
+				<button type="button" className="btn btn-secondary mx-3" onClick={() => startLocal()}>Local Multiplayer</button>
+			</div>
 		</>
 	)
 }
