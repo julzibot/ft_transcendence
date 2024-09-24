@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from 'next/navigation'
@@ -8,6 +7,7 @@ import { SignInFormState, SignInFormSchema } from "@/app/lib/definitions"
 import { API_URL } from "@/config"
 import CSRFToken from "@/components/Utils/CSRFToken"
 import Cookies from 'js-cookie'
+import FortyTwoSigninButton from "@/components/buttons/FortyTwoSigninButton"
 
 
 export default function SignIn() {
@@ -59,18 +59,7 @@ export default function SignIn() {
           <div className="card shadow-lg text-center rounded-4 border border-light border-1 border-opacity-25 bg-light bg-gradient bg-opacity-75">
             <div className="card-header fs-4 fw-bold">Sign in to your account</div>
             <div className="card-body">
-              <button className="btn btn-dark mb-1 fs-4 " onClick={() => console.log('click')}>
-                Sign in with
-                <Image
-                  className="ms-1 me-1"
-                  src="/static/images/42.png"
-                  style={{ filter: "invert(100%)" }}
-                  width={30}
-                  height={30}
-                  alt="42 Logo"
-                  fetchPriority="high"
-                />
-              </button>
+              <FortyTwoSigninButton />
               <hr />
               <p className="fw-3 fw-bold ">Or</p>
               <form onSubmit={handleSubmit}>

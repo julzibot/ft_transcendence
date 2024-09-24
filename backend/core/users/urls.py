@@ -1,10 +1,11 @@
 from django.urls import path
 from dashboard.views import DashboardView
-from .views import SigninView, UpdateNameView, RegisterView, SearchUserView, UpdateImageView, UpdatePasswordView, DeleteAccountView, SignOutView, GetUserView, GetSCRFTokenView, LogoutView, GetUserInfosView
+from .views import SigninView, UpdateNameView, RegisterView, SearchUserView, UpdateImageView, UpdatePasswordView, DeleteAccountView, SignOutView, GetUserView, GetSCRFTokenView, LogoutView, GetUserInfosView, OauthView
 
 urlpatterns = [
   path('auth/register/', RegisterView.as_view(), name='register'),
   path('auth/signin/', SigninView.as_view()),
+  path('auth/signin-with-42/', OauthView.as_view()),
   path('auth/logout/', LogoutView.as_view()),
   path('auth/user/', GetUserView.as_view()),
   path('auth/user/delete/', DeleteAccountView.as_view()),
