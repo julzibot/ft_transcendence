@@ -1,22 +1,22 @@
 'use client';
 
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/app/lib/AuthContext";
 import { useEffect, useState } from "react"
 import Customization from "@/components/game/Customization";
 import LocalGame from "@/components/game/LocalGame";
 import './styles.css'
 import styles from './GameSettingsStyles.module.css'
-import { GameSetings } from "@/types/GameSettings";
+import { GameSettingsType } from "@/types/GameSettings";
 
 export default function GameSettings() {
 
-	const { data: session } = useSession();
+	const { session } = useAuth();
 
 	const [isTranslated, setIsTranslated] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
 
-	const [gameSettings, setGameSettings] = useState<GameSetings>({
-		user_id: session?.user.id ?? -1,
+	const [gameSettings, setGameSettings] = useState<GameSettingsType>({
+		user_id: session?.user?.id ?? -1,
 		background: 0,
 		palette: 0,
 		bgColor: '#ff0000',
@@ -43,7 +43,7 @@ export default function GameSettings() {
 				</div>
 			</div>
 			{
-				session && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
+				session?.user && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
 			}
 
 			<div className={`card ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
@@ -108,7 +108,7 @@ export default function GameSettings() {
 
 					</div>
 					{
-						session && (
+						session?.user && (
 							<>
 								<LocalGame userId={session.user.id} gameSettings={gameSettings} />
 							</>

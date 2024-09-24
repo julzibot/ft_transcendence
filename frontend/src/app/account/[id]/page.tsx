@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useAuth } from "@/app/lib/AuthContext";
 import Image from "next/image";
 import { useState, FormEvent, useEffect } from "react";
 import ImageUpload from "@/components/Utils/ImageUpload";
@@ -8,6 +8,8 @@ import DOMPurify from 'dompurify'
 import UserDashboardCard from "@/components/ui/dashboard/UserDashboardCard"
 import Customization from "@/components/game/Customization";
 import { useParams, useRouter } from "next/navigation";
+import { API_URL } from "@/config";
+import Cookies from "js-cookie";
 
 interface User {
 	id: number;
@@ -17,7 +19,7 @@ interface User {
 
 export default function ProfilePage() {
 	const [isEditing, setIsEditing] = useState(false)
-	const { data: session, update } = useSession();
+	const { session, update } = useAuth();
 	const { id } = useParams()
 	const router = useRouter()
 	const [user, setUser] = useState<any>({
@@ -65,8 +67,9 @@ export default function ProfilePage() {
 	};
 
 	async function getUserInfo() {
-		const response = await fetch(`http://localhost:8000/api/user/get-user-info/?id=${id}`, {
+		const response = await fetch(`${API_URL}/user/get-user-info/?id=${id}`, {
 			method: 'GET',
+      credentials: 'include',
 			headers: { 'Content-Type': 'application/json' }
 		})
 		if (!response.ok) {
@@ -84,11 +87,15 @@ export default function ProfilePage() {
 	async function changePassword(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault()
 
-		const response = await fetch('http://localhost:8000/api/update/password/', {
+		const response = await fetch(`${API_URL}/update/password/`, {
 			method: 'PUT',
-			headers: { 'Content-type': 'application/json' },
+      credentials : 'include',
+			headers: { 
+        'Content-type': 'application/json',
+        'X-CSRFToken': Cookies.get('csrftoken') as string
+      },
 			body: JSON.stringify({
-				'user_id': session?.user.id,
+				'user_id': session?.user?.id,
 				'old_password': data.oldPassword,
 				'new_password': data.newPassword,
 				'rePass': data.rePassword
@@ -111,17 +118,21 @@ export default function ProfilePage() {
 			return;
 		}
 
-		const response = await fetch('http://localhost:8000/api/update/name/', {
+		const response = await fetch(`${API_URL}/update/name/`, {
 			method: 'PUT',
-			headers: { 'Content-type': 'application/json' },
+      credentials: 'include',
+			headers: { 
+        'X-CSRFToken': Cookies.get('csrftoken') as string,
+        'Content-type': 'application/json' 
+      },
 			body: JSON.stringify({
-				'username': session?.user.username,
+				'username': session?.user?.username,
 				'name': data.username
 			})
 		})
 		if (response.ok) {
-			update({ username: data.username })
 			setIsEditing(false);
+      update()
 		}
 		else {
 			const res = await response.json()
@@ -132,15 +143,19 @@ export default function ProfilePage() {
 
 
 	async function deleteAccount() {
-		const response = await fetch('http://localhost:8000/api/auth/user/delete/', {
+		const response = await fetch(`${API_URL}/auth/user/delete/`, {
 			method: 'DELETE',
-			headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+			headers: { 
+        'Content-Type': 'application/json', 
+        'X-CSRFToken': Cookies.get('csrftoken') as string
+      },
 			body: JSON.stringify({
-				'user_id': session?.user.id,
+				'user_id': session?.user?.id,
 			})
 		})
 		if (response.status === 204) {
-			signOut({ "callbackUrl": '/auth/signin' })
+      router.push('/auth/signin')
 		}
 		else {
 			const res = await response.json()
@@ -164,7 +179,7 @@ export default function ProfilePage() {
 									<>
 										<Image style={{ objectFit: 'cover' }}
 											fill
-											src={`http://backend:8000${user.image}`}
+											src={`http://django:8000${user.image}`}
 											alt="Profile Picture"
 											priority={true}
 											sizes="25vw"
@@ -298,7 +313,7 @@ export default function ProfilePage() {
 						</div>
 						<div className="modal-footer">
 							<button type="button" className="btn btn-secondary" data-bs-dismiss="modal">I Changed My Mind</button>
-							<button type="submit" onClick={deleteAccount} className="btn btn-danger">See You</button>
+							<button data-bs-dismiss="modal" onClick={deleteAccount} className="btn btn-danger">See You</button>
 						</div>
 					</div>
 				</div>

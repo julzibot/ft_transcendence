@@ -3,7 +3,7 @@ export default {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
+        protocol: 'http',
         hostname: 'django',
         port: '8000',
       },

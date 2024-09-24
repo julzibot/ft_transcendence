@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import React from 'react';
 import { Roboto } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css"
-import Navbar from "../components/ui/navbar/Navbar";
+import Navbar from "@/components/ui/navbar/Navbar";
 import Sidenav from "@/components/ui/sidenav/Sidenav";
+import { AuthProvider } from "./lib/AuthContext";
 import './global.css';
 
 const roboto = Roboto({
@@ -28,11 +29,11 @@ export default async function RootLayout({
     <html lang="en">
       <body className={roboto.className}>
           <main>
-            {/* {
-              session ? <Sidenav /> : null
-            } */}
+        <AuthProvider>
+            <Sidenav />
             <Navbar />
             {children}
+        </AuthProvider>
           </main>
       </body>
     </html>

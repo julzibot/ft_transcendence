@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
 import { Button, Modal } from 'react-bootstrap'
 import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournaments';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/app/lib/AuthContext';
 import { useRouter } from 'next/navigation';
-import { GameSettings } from '@/types/GameSettings';
+import { GameSettingsType } from '@/types/GameSettings';
 import DOMPurify from 'dompurify';
 
 interface GameSettingsProps {
 	setGameSettings: Function,
-	gameSettings: GameSettings
+	gameSettings: GameSettingsType
 }
 
 export default function Lobby({ setGameSettings, gameSettings }: GameSettingsProps) {
-	const { data: session } = useSession()
+	const { session } = useAuth()
 	const router = useRouter()
 	const [lobbyData, setLobbyData] = useState([])
 	const [modalShow, setModalShow] = useState(false);
@@ -40,7 +40,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		setModalShow(true)
 	}
 
-	const handleFormData = (e: React.ChangeEvent<HTMLInputElement>, key) => {
+	const handleFormData = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
 		setLobbyForm(
 			{
 				...lobbyForm,
@@ -53,7 +53,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		let errors = {};
 
 		if (lobbyForm?.name === '') {
-			errors.name = 'Name field Required';
+			setErrorfield({name: 'Name field Required'})
 		}
 
 		if (Object.keys(errors).length > 0) {

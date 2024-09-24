@@ -4,15 +4,17 @@ import { useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import styles from './CustomizationStyles.module.css';
 import './colorPickerStyles.css';
-import { GameSettings } from "@/types/GameSettings";
+import { GameSettingsType } from "@/types/GameSettings";
+import { API_URL } from "@/config";
+import Cookies from "js-cookie";
 
 interface GameSettingsProps {
 	updateSettings: Function,
-	gameSettings: GameSettings,
+	gameSettings: GameSettingsType,
 	userId: number
 }
 
-export function defaultGameSettings(updateSettings: Function, gameSettings: GameSettings, user_id: number) {
+export function defaultGameSettings(updateSettings: Function, gameSettings: GameSettingsType, user_id: number) {
 	updateSettings({
 		...gameSettings,
 		user_id: user_id,
@@ -24,11 +26,12 @@ export function defaultGameSettings(updateSettings: Function, gameSettings: Game
 	})
 }
 
-export async function fetchGameSettings(user_id: number, updateSettings: Function, gameSettings: GameSettings) {
+export async function fetchGameSettings(user_id: number, updateSettings: Function, gameSettings: GameSettingsType) {
 
 	if (user_id) {
-		const response = await fetch(`http://localhost:8000/api/gameCustomization/${user_id}`, {
-			method: 'GET'
+		const response = await fetch(`${API_URL}/gameCustomization/${user_id}`, {
+			method: 'GET',
+			credentials: 'include',
 		});
 		if (response.ok) {
 			if (response.status === 204) {
@@ -93,11 +96,14 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 	const gameCustomSave = async () => {
 		const requestData = {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
+			headers: { 
+				'Content-Type': 'application/json',
+				'X-CSRFToken': Cookies.get('csrftoken') as string
+			},
 			body: JSON.stringify(gameSettings)
 		};
-		const response = await fetch('http://localhost:8000/api/gameCustomization/', requestData);
-		const data = await response.json();
+		await fetch(`${API_URL}/gameCustomization/`, requestData);
 	}
 
 	return (

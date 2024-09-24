@@ -1,4 +1,4 @@
-export interface GameSettings {
+export interface GameSettingsType {
 	user_id: number,
 	background: number,
 	palette: number,

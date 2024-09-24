@@ -13,7 +13,6 @@ fi
 
 
 export DJANGO_SECRET=$(python -c 'from django.core.management.utils import get_random_secret_key; import re; print(re.escape(get_random_secret_key()))')
-export TOKEN_SIGNING_KEY=$(python -c 'from django.core.management.utils import get_random_secret_key; import re; print(re.escape(get_random_secret_key()))')
 
 # python manage.py flush --no-input
 python manage.py makemigrations

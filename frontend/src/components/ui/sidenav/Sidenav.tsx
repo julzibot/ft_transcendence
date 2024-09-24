@@ -3,10 +3,14 @@
 import {useState} from 'react'
 import {Offcanvas} from 'react-bootstrap'
 import FriendList from '../friend_list/FriendList';
+import { useAuth } from '@/app/lib/AuthContext';
 
 export default function Sidenav() {
   const [show, setShow] = useState<Boolean>(false)
+  const { session } = useAuth();
 
+  if (session?.user)
+  {
   return (
     <>
       <div className="position-fixed top-50 end-0">
@@ -34,4 +38,5 @@ export default function Sidenav() {
 				</Offcanvas>
     </>
   )
+}
 }

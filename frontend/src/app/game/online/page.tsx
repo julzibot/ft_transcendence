@@ -1,7 +1,7 @@
 "use client";
 
 import Lobby from "@/components/Lobby";
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/app/lib/AuthContext";
 import { useEffect, useState } from "react"
 import Customization from "@/components/game/Customization";
 import './styles.css'
@@ -9,13 +9,13 @@ import styles from './GameSettingsStyles.module.css'
 
 export default function OnlineGamePage() {
 
-	const { data: session, status } = useSession();
+	const { session } = useAuth();
 
 	const [isTranslated, setIsTranslated] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
 
 	const [gameSettings, setGameSettings] = useState({
-		user_id: session?.user.id ?? -1,
+		user_id: session?.user?.id ?? -1,
 		background: 0,
 		palette: 0,
 		bgColor: '#ff0000',
@@ -42,7 +42,7 @@ export default function OnlineGamePage() {
 					</div>
 				</div>
 				{
-					session && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
+					session?.user && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
 				}
 				<div className={`card mt-3 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-body">

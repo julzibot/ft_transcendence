@@ -8,13 +8,13 @@ import { Toast, ToastContainer } from 'react-bootstrap'
 import Image from "next/image";
 import Link from "next/link";
 import DOMPurify from "dompurify";
-import { useAuth } from "@/app/context/AuthContext";
+import Cookies from "js-cookie";
+import { useAuth } from "@/app/lib/AuthContext";
 
 import { Friend } from "@/types/Friend";
 import { User } from "@/types/User";
 import { SearchPlayerInputProps } from "@/types/Props";
-
-const BASE_URL = "https://localhost:8000/api/"
+import { API_URL } from "@/config";
 
 
 export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputProps) {
@@ -36,8 +36,9 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
   }, [debounce, click])
 
   const fetchData = async () => {
-    const response = await fetch(`http://localhost:8000/api/search-user/?query=${inputValue}&id=${session?.user.id}`, {
+    const response = await fetch(`${API_URL}/search-user/?query=${inputValue}&id=${session?.user?.id}`, {
       method: "GET",
+      credentials: 'include',
     })
     if (response.status != 200) {
       setSearchQuery([])
@@ -48,11 +49,14 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
   }
 
   async function deleteFriendship(friend: Friend) {
-    const response = await fetch('http://localhost:8000/api/friends/delete-friendship/', {
+    const response = await fetch(`${API_URL}/friends/delete-friendship/`, {
       method: 'DELETE',
-      headers: { 'Content-type': 'application/json' },
+      credentials: 'include',
+      headers: { 'Content-type': 'application/json',
+        'X-CSRFToken': Cookies.get('csrftoken') as string
+       },
       body: JSON.stringify({
-        'user_id1': session?.user.id,
+        'user_id1': session?.user?.id,
         'user_id2': friend.id
       })
     })
@@ -63,14 +67,13 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
 
 
   const handleFriendRequest = async (fromUserId: number | undefined, toUserId: number | undefined) => {
-    if (!fromUserId || !toUserId) {
-      console.error('Session is undifined')
-      return
-    }
-
-    fetch(BASE_URL + "friends/send-friend-request/", {
+    fetch(API_URL + "/friends/send-friend-request/", {
       method: "POST",
-      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-CSRFToken': Cookies.get('csrftoken') as string
+      },
       body: JSON.stringify({
         "from_user": fromUserId,
         "to_user": toUserId
@@ -100,11 +103,15 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
   }
 
   async function approveFriendRequest(user: User) {
-    const response = await fetch(`http://localhost:8000/api/friends/approve-friend-request/`, {
+    const response = await fetch(`${API_URL}/friends/approve-friend-request/`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-CSRFToken': Cookies.get('csrftoken') as string
+      },
+      credentials: 'include',
       body: JSON.stringify({
-        'approving_user_id': session?.user.id,
+        'approving_user_id': session?.user?.id,
         'pending_user_id': user.id,
         'requestor_id': user.id
       })
@@ -127,7 +134,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
       case 'REQUEST':
         return (
           <>
-            {user.requestor_id !== session?.user.id ? (
+            {user.requestor_id !== session?.user?.id ? (
               <>
                 <CustomTooltip text="Accept Request" position="top">
                   <CheckCircleFill size={35} role="button" className="me-1" onClick={() => approveFriendRequest(user)} color="green" />
@@ -146,7 +153,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
       default:
         return (
           <CustomTooltip text="Send Friend Request" position="bottom">
-            <PersonFillAdd size={35} role="button" onClick={() => handleFriendRequest(session?.user.id, user.id)} color="green" />
+            <PersonFillAdd size={35} role="button" onClick={() => handleFriendRequest(session?.user?.id, user.id)} color="green" />
           </CustomTooltip>
         )
     }
@@ -180,7 +187,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
                     <Image
                       style={{ objectFit: 'cover' }}
                       alt="profile picture"
-                      src={`http://backend:8000${user.image}`}
+                      src={`http://django:8000${user.image}`}
                       fill
                       sizes="20vw"
                       />
