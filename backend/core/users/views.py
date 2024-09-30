@@ -64,7 +64,7 @@ class SigninView(APIView):
 
       return Response({'message': 'Successfully logged in'}, status=status.HTTP_200_OK)
 
-@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class OauthView(APIView):
   permission_classes = [AllowAny]
   def post(self, request):
@@ -74,8 +74,12 @@ class OauthView(APIView):
 
     user = auth.authenticate(request, access_token=access_token)
     if user is not None:
+      request.session.save()
       auth.login(request, user)
-      return Response({'message': 'Successfully logged in'}, status=status.HTTP_200_OK)
+      return Response({
+        'message': 'Successfully logged in',
+        'session_id': request.session.session_key,
+        }, status=status.HTTP_200_OK)
     else:
       return Response({'error': 'Invalid access token'}, status=status.HTTP_401_UNAUTHORIZED)
     

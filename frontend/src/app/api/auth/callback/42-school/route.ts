@@ -1,6 +1,7 @@
 import { FORTY_TWO_CLIENT_SECRET, FORTY_TWO_CLIENT_UID } from "@/config"
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from 'next/headers'
+import { NEXT_PUBLIC_URL } from "@/config"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -29,11 +30,14 @@ export async function GET(request: NextRequest) {
       console.error('Error exchanging code for token:', tokenData);
       return NextResponse.json(tokenData, { status: response.status });
     }
+    console.log('Token data:', tokenData.access_token);
 
     await fetch('http://django:8000/api/csrf-cookie/', {
       method: 'GET',
       credentials: 'include',
     });
+
+    const csrfToken = cookies().get('csrftoken')?.value;
 
     const backendResponse = await fetch('http://django:8000/api/auth/signin-with-42/', {
       method: 'POST',
@@ -41,17 +45,22 @@ export async function GET(request: NextRequest) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRFToken': cookies().get('csrftoken')?.value as string,
+        'X-CSRFToken': csrfToken as string,
+        'Referer': NEXT_PUBLIC_URL,
       },
       body: JSON.stringify({
         'access_token': tokenData.access_token,
       })
     })
-    if (!backendResponse.ok) {
+    if (backendResponse.ok) {
+      const data = await backendResponse.json();
+      cookies().set('sessionid', data.session_id);
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+    else {
       console.error('Error signing in with 42:', backendResponse);
       return NextResponse.json({ error: 'Failed to sign in with 42' }, { status: 500 });
     }
-    return NextResponse.redirect(new URL('/', request.nextUrl))
   }
   catch (error) {
     console.error('Error exchanging code for token:', error);
