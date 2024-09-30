@@ -170,6 +170,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     "https://localhost:3000",
     "https://127.0.0.1",
+    "http://frontend:3000",
+    "https://frontend:3000",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -184,26 +186,38 @@ CORS_ALLOW_HEADERS = [
     'Authorization',
     'Accept',
     'Content-Type',
+    'Referer',
     'X-CSRFToken',
+]
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000'
+    'https://localhost:3000', 
+    "http://frontend:3000",
+    "https://frontend:3000",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     f"https://{DOMAIN_NAME}:8000",
     f"https://{DOMAIN_NAME}:3000",
+    "http://frontend:3000",
+    "https://frontend:3000",
 ]
 
-CSRF_COOKIE_SECURE=False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_COOKIE_SECURE= True
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_DOMAIN = DOMAIN_NAME
 CSRF_COOKIE_NAME = 'csrftoken'
-CSRF_COOKIE_AGE = 60 * 60 * 24
+CSRF_COOKIE_AGE = 60 * 60 * 60 * 24
 
 SESSION_COOKIE_AGE = CSRF_COOKIE_AGE 
 SESSION_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_DOMAIN = DOMAIN_NAME
-SESSION_COOKIE_PAHT = '/'
+SESSION_COOKIE_PATH = '/'
 SESSION_COOKIE_SAMESITE = 'None'
 
 
