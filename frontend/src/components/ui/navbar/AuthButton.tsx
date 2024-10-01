@@ -1,32 +1,17 @@
-'use client';
+"use client"
 
-
+import React from "react";
 import Link from "next/link";
-import { useEffect } from "react";
 import Image from "next/image";
-import Cookies from 'js-cookie'
 import { useAuth } from "@/app/lib/AuthContext";
-import { API_URL } from "@/config";
-import { useRouter } from 'next/navigation'
+import { useEffect } from "react";
 
 export default function AuthButton() {
-  const { session } = useAuth();
-  const router = useRouter()
+  const { session, logout } = useAuth();
 
   useEffect(() => {
     require("bootstrap/dist/js/bootstrap.bundle.min.js")
   }, []);
-
-  async function handleSignOut() {
-    const response = await fetch(`${API_URL}/auth/logout/`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'X-CSRFToken':  Cookies.get('csrftoken') as string },
-    })
-    if (response.ok) {
-      router.push('/auth/signin')
-    }
-  }
 
   if (session?.user) {
     return (
@@ -75,7 +60,7 @@ export default function AuthButton() {
                 <div className="d-flex justify-content-between">
                   <div className="flex-row">
                     <button className="flex-column btn btn-outline-secondary me-md-2" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
-                    <button data-bs-dismiss="modal" onClick={handleSignOut} className=" flex-column btn btn-outline-danger">Sign out</button>
+                    <button data-bs-dismiss="modal" onClick={() => logout()} className=" flex-column btn btn-outline-danger">Sign out</button>
                   </div>
                 </div>
               </div>
