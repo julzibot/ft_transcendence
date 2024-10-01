@@ -61,8 +61,12 @@ class SigninView(APIView):
         return Response({ "message": "Given credentials do not match our records." }, status=status.HTTP_401_UNAUTHORIZED)
       user.is_online = True
       user.save()
-
-      return Response({'message': 'Successfully logged in'}, status=status.HTTP_200_OK)
+      user = {
+          'id': user.id,
+          'username': user.username,
+          'image': user.image.url if user.image else None
+      }
+      return Response({'user': user}, status=status.HTTP_200_OK)
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class OauthView(APIView):

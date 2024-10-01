@@ -1,22 +1,21 @@
 "use client"
 
+import React from "react"
 import Link from "next/link"
 import { useState } from "react"
-import { useRouter } from 'next/navigation'
+import { useAuth } from "@/app/lib/AuthContext"
 import { SignInFormState, SignInFormSchema } from "@/app/lib/definitions"
-import { API_URL } from "@/config"
 import CSRFToken from "@/components/Utils/CSRFToken"
-import Cookies from 'js-cookie'
 import FortyTwoSigninButton from "@/components/buttons/FortyTwoSigninButton"
 
 
 export default function SignIn() {
   const [pending, setPending] = useState(false);
   const [formState, setFormState] = useState<SignInFormState | undefined>(undefined);
-  const router = useRouter()
+  const {signIn} = useAuth()
 
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setPending(true)
     const formData = new FormData(event.currentTarget)
@@ -28,27 +27,7 @@ export default function SignIn() {
       setFormState({errors: validatedFields.error.flatten().fieldErrors})
     else {
       const { username, password } = validatedFields.data;
-      const response = await fetch(`${API_URL}/auth/signin/`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRFToken': Cookies.get('csrftoken') as string,
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      });
-      if(response.ok) {
-        setPending(false)
-        router.push('/')
-      }
-      else {
-        const data = await response.json()
-        setFormState({message: data.message})
-      }
+      setFormState({message: signIn('credentials', username, password)})
     }
     setPending(false)
   }
@@ -65,27 +44,27 @@ export default function SignIn() {
               <form onSubmit={handleSubmit}>
                 <CSRFToken />
                 <div className="mb-3">
-                  <label htmlFor="username" className="form-label" >Username</label>
+                  <label htmlFor="username" className="form-label fw-bold" >Username*</label>
                   <input 
                     type="text" 
                     name="username" 
                     id="username" 
                     className="form-control"
                   />
-                  {formState?.errors?.username && <p>{formState.errors.username}</p>}
+                  {formState?.errors?.username && <p className="mt-2 text-danger">{formState.errors.username}</p>}
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="password" className="form-label">Password</label>
+                  <label htmlFor="password" className="form-label fw-bold">Password*</label>
                   <input 
                     type="password" 
                     className="form-control"
                     id="password"
                     name="password"
                   />
-                  {formState?.errors?.password && <p>{formState.errors.password}</p>}
+                  {formState?.errors?.password && <p className="mt-2 text-danger">{formState.errors.password}</p>}
                 </div>
                 <SubmitButton pending={pending}/>
-                {formState?.message && <p>{formState.message}</p>}
+                {formState?.message && <p className="mt-2 text-danger">{formState.message}</p>}
               </form>
             </div>
             <div className="card-footer">

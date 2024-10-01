@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: "An online pong game",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

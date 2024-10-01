@@ -194,7 +194,7 @@ export default function ProfilePage() {
 						</div>
 						<br />
 						{
-							session?.user.id === Number(id) ? (
+							session?.user?.id === Number(id) ? (
 								<>
 									<ImageUpload />
 
@@ -248,7 +248,7 @@ export default function ProfilePage() {
 						}
 						<hr />
 						{
-							session?.user.id == Number(id) ? (
+							session?.user?.id == Number(id) ? (
 								<>
 									{
 										session?.user.id ? <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} /> : (

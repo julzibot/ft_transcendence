@@ -22,10 +22,10 @@ class ExternalAPITokenBackend(BaseBackend):
         user_info = response.json()
 
         try:
-            user = UserAccount.objects.get(username=user_info['login'])
+            user = UserAccount.objects.get(id=user_info['id'])
         except ObjectDoesNotExist:
             user = UserAccount.objects.create(
-                # id=user_info['id'],
+                id=user_info['id'],
                 username=user_info['login'],
                 image_url = user_info.get('image', {}).get('versions', {}).get('medium')
             )

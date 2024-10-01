@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react";
 import Link from "next/link"
 import { RegisterFormSchema, RegisterFormState } from "@/app/lib/definitions"
 import { useState } from "react"
@@ -68,8 +69,8 @@ export default function RegisterForm() {
                   id="username"
                   className="form-control"
                 />
-                {formState?.errors?.username && <p>{formState.errors.username}</p>}
                 <p className="form-text fst-italic ">A unique username that will be displayed to other players</p>
+                {formState?.errors?.username && <p className="text-danger">{formState.errors.username}</p>}
               </div>
               <div className="mb-3 form-group">
                 <label htmlFor="password" className="form-label">
@@ -81,7 +82,7 @@ export default function RegisterForm() {
                   id="password"
                   className="form-control"
                 />
-                {formState?.errors?.password && <p>{formState.errors.password}</p>}
+                {formState?.errors?.password && <p className="text-danger">{formState.errors.password}</p>}
               </div>
               <div className="mb-3 form-group">
                 <label htmlFor="re-password" className="form-label">
@@ -93,9 +94,9 @@ export default function RegisterForm() {
                   id="rePass"
                   className="form-control"
                 />
-                {formState?.errors?.rePass && <p>{formState.errors.rePass}</p>}
+                {formState?.errors?.rePass && <p className="text-danger">{formState.errors.rePass}</p>}
               </div>
-              {formState?.message && <p>{formState.message}</p>}
+              {formState?.message && <p className="text-danger">{formState.message}</p>}
               <SubmitButton pending={pending}/>
             </form>
           </div>
