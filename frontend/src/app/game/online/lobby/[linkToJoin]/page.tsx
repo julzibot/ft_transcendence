@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams } from "next/navigation"
 import { useSession } from "next-auth/react";
 import { SocketProvider } from "@/context/socket";
 import Join from "@/components/game/Join";
-import { fetchGameSettings } from "@/components/game/Customization";
 import { GameSettings } from "@/types/GameSettings";
 
 export default function Lobby() {
 	const { data: session } = useSession();
 	const { linkToJoin } = useParams();
+	const [gameSettings, setGameSettings] = useState<GameSettings | null>(null);
+	const [start, setStart] = useState(false);
 
 	if (!session || !session.user.id) {
 		return (
@@ -18,17 +19,22 @@ export default function Lobby() {
 		)
 	}
 
-	const [gameSettings, setGameSettings] = useState(() => {
+	useEffect(() => {
 		const settings = localStorage.getItem("gameSettings");
-		const obj = JSON.parse(settings ?? "{}");
-		localStorage.removeItem('gameSettings');
-		return obj || {};
-	});
+		if (settings) {
+			const obj = JSON.parse(settings);
+			setGameSettings(obj);
+			localStorage.removeItem('gameSettings');
+			setStart(true);
+		} else {
+			console.log('[Lobby] No Game Settings');
+		}
+	}, []);
 
 	return (
 		<>
 			{
-				session && Object.keys(gameSettings).length !== 0 ? (
+				session && gameSettings && start ? (
 					<SocketProvider>
 						<Join userId={session?.user.id} room={linkToJoin.toString()} gameSettings={gameSettings} gameMode={2} />
 					</SocketProvider>
