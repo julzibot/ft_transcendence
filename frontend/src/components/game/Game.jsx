@@ -864,7 +864,8 @@ const create_delete_pu = (isHost, gamemode, socket, room_id) => {
 }
 
 // CUT
-const animate = (socket, room_id, isHost, gamemode) => {
+const animate = (socket, room_id, isHost, gamemode, animationFrameIdRef) => {
+	animationFrameIdRef.current = requestAnimationFrame(() => animate(socket, room_id, isHost, gamemode, animationFrameIdRef));
 	if (isHost)
 		collisionLogic(room_id, socket, gamemode);
 	scoringLogic(room_id, socket, isHost, gamemode);
@@ -914,9 +915,6 @@ const animate = (socket, room_id, isHost, gamemode) => {
 	uniformData.u_time.value = performance.now() - startTime;
 	tools.renderer.render(tools.scene, tools.camera);
 
-	setTimeout(function () {
-		requestAnimationFrame(() => animate(socket, room_id, isHost, gamemode));
-	}, 5);
 }
 
 // CUT
@@ -1027,8 +1025,11 @@ const getColorVector3 = (bgColor) => {
 // 2 -> remote
 // 3 -> Tournament (?)
 export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode }) {
-	console.log(JSON.stringify(gameInfos));
 	const containerRef = useRef(null);
+
+	const animationFrameIdRef = useRef();
+	const isAnimatingRef = useRef(true);
+
 	game_id = gameInfos.game_id;
 	let socket = -1;
 	if (gamemode === 2)
@@ -1046,15 +1047,15 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	// }
 
 	useEffect(() => {
-
+		if (!containerRef.current) return;
 		tools.scene = new THREE.Scene();
 
 		tools.renderer = new THREE.WebGLRenderer({ canvas: containerRef.current });
 		tools.renderer.setSize(window.innerWidth, window.innerHeight);
 		tools.controls = new OrbitControls(tools.camera, tools.renderer.domElement);
 		tools.stats = Stats()
-		document.body.appendChild(tools.renderer.domElement);
-		document.body.appendChild(tools.stats.dom);
+		// document.body.appendChild(tools.renderer.domElement);
+		// document.body.appendChild(tools.stats.dom);
 
 		tools.scene.add(objs.ball);
 		tools.scene.add(objs.ballWrap);
@@ -1158,13 +1159,64 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			printGameInfo(vars.latentMesh[1], "none", 3, 1, 0.85);
 		}
 
-		document.addEventListener('keydown', function (event) { keys[event.code] = true; });
-		document.addEventListener('keyup', function (event) { keys[event.code] = false; });
+
+		const handleKeyDown = (event) => {
+			keys[event.code] = true;
+		}
+
+		const handleKeyUp = (event) => {
+			keys[event.code] = false;
+		}
+
+		document.addEventListener('keydown', handleKeyDown);
+		document.addEventListener('keyup', handleKeyUp);
 
 		if (gamemode === 2)
 			init_socket(socket, isHost);
 		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
-			animate(socket, room_id, isHost, gamemode);
-	}, []);
+			animate(socket, room_id, isHost, gamemode, animationFrameIdRef);
+
+		// console.log('Renderer DOM Element:', tools.renderer.domElement);
+		// console.log('ContainerRef Current:', containerRef.current);
+		// console.log('Elements are equal:', tools.renderer.domElement === containerRef.current);
+
+
+		return (() => {
+
+			isAnimatingRef.current = false;
+
+			if (animationFrameIdRef.current)
+				cancelAnimationFrame(animationFrameIdRef.current);
+			document.removeEventListener('keydown', handleKeyDown);
+			document.removeEventListener('keyup', handleKeyUp);
+
+			tools.scene.traverse((object) => {
+				if (!object.isMesh) return;
+
+				if (object.geometry) {
+					object.geometry.dispose();
+				}
+
+				if (object.material) {
+					if (Array.isArray(object.material)) {
+						object.material.forEach((material) => material.dispose());
+					} else {
+						object.material.dispose();
+					}
+				}
+			});
+
+			tools.renderer.dispose();
+
+			if (tools.stats && tools.stats.dom && tools.stats.dom.parentNode) {
+				tools.stats.dom.parentNode.removeChild(tools.stats.dom);
+			}
+
+			// Disconnect socket if necessary
+			// if (socket)
+			// 	socket.disconnect();
+		})
+	}, [containerRef.current]);
+
 	return <canvas className='fixed-top' ref={containerRef} />;
 };

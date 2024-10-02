@@ -42,8 +42,6 @@ export default function Play() {
 		)
 	}
 
-	console.log('Local Props: ' + JSON.stringify(localProps));
-
 	return (
 		start && <ThreeScene gameInfos={localProps.gameInfos} gameSettings={localProps.gameSettings} room_id={-1} user_id={localProps.userId} isHost={true} gamemode={localProps.gameMode} />
 	)
