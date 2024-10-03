@@ -14,7 +14,6 @@ import Cookies from 'js-cookie';
 
 export default function FriendList() {
 	const { session } = useAuth()
-	console.log({ session })
 	const [friendships, setFriendships] = useState<Friendship[]>([])
 
 

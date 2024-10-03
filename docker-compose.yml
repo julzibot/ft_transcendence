@@ -11,22 +11,22 @@ services:
       - "3000"
     volumes:
       - ./frontend/:/app
-      - ./frontend/node_modules:/app/node_modules
-      - ./frontend/.next:/app/.next
+      - /app/node_modules
+      - /app/.next
 
-  # ws-server:
-  #   container_name: ws-server
-  #   build:
-  #     context: ./frontend/ws-server
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   depends_on:
-  #     - frontend
-  #   ports:
-  #     - 6500:6500
-  #   volumes:
-  #     - ./frontend/ws-server/:/server
-  #     - /server/node_modules
+  ws-server:
+    container_name: ws-server
+    build:
+      context: ./frontend/ws-server
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - frontend
+    ports:
+      - "6500:6500"
+    volumes:
+      - ./frontend/ws-server/:/server
+      - /server/node_modules
 
   postgres:
     container_name: postgres

@@ -5,13 +5,14 @@ import { useSocketContext } from "../../context/socket";
 import ThreeScene from './Game';
 import { Spinner } from 'react-bootstrap';
 import "./styles.css"
-import { GameSettings } from "@/types/GameSettings";
-import { BASE_URL } from "@/utils/constants";
+import { GameSettingsType } from "@/types/GameSettings";
+import { API_URL } from "@/config/index";
+import Cookies from "js-cookie";
 
 interface JoinProps {
 	userId: number,
 	room: string,
-	gameSettings: GameSettings,
+	gameSettings: GameSettingsType,
 	gameMode: number
 }
 
@@ -75,9 +76,13 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 		if (isHost && player2_id && !gameCreated) {
 			const createGame = async () => {
 				console.log('[Join] CreateGame called');
-				const response = await fetch(BASE_URL + 'game/create', {
+				const response = await fetch(API_URL + '/game/create', {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
+					credentials: 'include',
+					headers: { 
+						'Content-Type': 'application/json',
+						'X-CSRFToken': Cookies.get('csrftoken') as string
+					 },
 					body: JSON.stringify({
 						'player1': userId,
 						'player2': player2_id,
@@ -100,8 +105,9 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 	useEffect(() => {
 		if (isNotHost || (gameCreated && !matchFetched)) {
 			const fetchGameInfos = async (game_id: number) => {
-				const response = await fetch(BASE_URL + `game/history/${game_id}`, {
+				const response = await fetch(API_URL + `/game/history/${game_id}`, {
 					method: 'GET',
+					credentials: 'include',
 					headers: { 'Content-Type': 'application/json' }
 				})
 				if (response.ok) {
@@ -131,7 +137,6 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 				<ThreeScene gameInfos={gameInfos} gameSettings={gameSettings} room_id={room} user_id={userId} isHost={isHost} gamemode={gameMode} />
 			) : (
 				<div className="d-flex justify-content-center align-items-center text-light pt-5 mt-5">
-					<p>{JSON.stringify(gameInfos)}</p>
 					<div className="flex-row align-items-center mt-5">
 						<h1>Waiting for an opponent</h1>
 						<div className="p-5 text-primary" style={{ marginLeft: "41px", marginBottom: "19px", marginTop: "40px" }}>

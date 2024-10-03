@@ -30,7 +30,6 @@ export async function GET(request: NextRequest) {
       console.error('Error exchanging code for token:', tokenData);
       return NextResponse.json(tokenData, { status: response.status });
     }
-    console.log('Token data:', tokenData.access_token);
 
     await fetch('http://django:8000/api/csrf-cookie/', {
       method: 'GET',

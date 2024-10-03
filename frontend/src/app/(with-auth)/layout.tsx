@@ -4,8 +4,8 @@ import { Roboto } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css"
 import Navbar from "@/components/ui/navbar/Navbar";
 import Sidenav from "@/components/ui/sidenav/Sidenav";
-import { AuthProvider } from "./lib/AuthContext";
-import './global.css';
+import { AuthProvider } from "../lib/AuthContext";
+import '../global.css';
 
 const roboto = Roboto({
   weight: ['400', '700'],

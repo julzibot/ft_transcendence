@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation'
 import { createMatchMaking, createMatchMakingTournament, fetchTournamentInfo, joinTournament, leaveTournament } from '@/services/tournaments'
 import { getSession, useSession } from 'next-auth/react'
 import JoinGameRoom from '@/components/Tournament/JoinGameRoom'
-import { SocketProvider } from "../../../context/socket";
+import { SocketProvider } from "../../../../context/socket";
 
 function DetailsPage() {
   const param = useParams<any>()
