@@ -17,12 +17,32 @@ interface GameSettingsProps {
 export function defaultGameSettings(updateSettings: Function, gameSettings: GameSettingsType, user_id: number) {
 	updateSettings({
 		...gameSettings,
-		user_id: user_id,
+		user: user_id,
 		background: 0,
 		palette: 0,
 		bgColor: '#ff0000',
 		opacity: 80,
 		sparks: true,
+	})
+}
+
+export function defaultMatchParameters(updateSettings: Function, gameSettings: GameSettings, user_id: number) {
+	updateSettings({
+		...gameSettings,
+		user: user_id,
+		points_to_win: 5,
+		game_difficulty: 2,
+		power_ups: true
+	})
+}
+
+export function defaultMatchParameters(updateSettings: Function, gameSettings: GameSettings, user_id: number) {
+	updateSettings({
+		...gameSettings,
+		user: user_id,
+		points_to_win: 5,
+		game_difficulty: 2,
+		power_ups: true
 	})
 }
 
@@ -32,16 +52,20 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 		const response = await fetch(`${API_URL}/gameCustomization/${user_id}`, {
 			method: 'GET',
 			credentials: 'include',
+		const response = await fetch(`${BASE_URL}gameCustomization/${user_id}`, {
+			method: 'GET'
 		});
 		if (response.ok) {
 			if (response.status === 204) {
 				defaultGameSettings(updateSettings, gameSettings, user_id);
-			} else {
+				gameCustomSave('gameCustomization/', JSON.stringify(gameSettings));
+			}
+			else {
 				const fetched = await response.json();
 				const data = fetched.data;
 				updateSettings({
 					...gameSettings,
-					user_id: user_id,
+					user: user_id,
 					background: data.background,
 					palette: data.palette,
 					bgColor: data.bgColor,
@@ -49,15 +73,42 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 					sparks: data.sparks
 				});
 			}
-		} else if (response.status === 404) {
-			console.error('[Fetch Game Settings] [404] - User Does Not Exist');
-			defaultGameSettings(updateSettings, gameSettings, user_id);
 		} else {
 			console.error('[Fetch Game Settings] Error: ' + response.status);
 			defaultGameSettings(updateSettings, gameSettings, user_id);
 		}
 	}
 };
+
+export async function fetchMatchParameters(user_id: number, updateSettings: Function, gameSettings: GameSettings) {
+	const response = await fetch(`${BASE_URL}parameters/${user_id}`, {
+		method: 'GET'
+	});
+	if (response.ok) {
+		if (response.status === 204) {
+			defaultMatchParameters(updateSettings, gameSettings, user_id);
+			gameCustomSave('parameters/', JSON.stringify(gameSettings));
+		}
+		else {
+			const fetched = await response.json();
+			updateSettings({...gameSettings, ...fetched.data});
+		}
+	}
+	else
+		console.log(`[${user_id}] No Match Parameters`);
+}
+
+export async function gameCustomSave(backend_url: string, stringified_settings: string) {
+	const requestData = {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: stringified_settings
+	};
+	const response = await fetch(`${BASE_URL}${backend_url}`, requestData);
+	if (!response.ok) {
+		// ???
+	}
+}
 
 export default function Customization({ updateSettings, gameSettings, userId }: GameSettingsProps) {
 
@@ -66,6 +117,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 
 	useEffect(() => {
 		fetchGameSettings(userId, updateSettings, gameSettings);
+		fetchMatchParameters(userId, updateSettings, gameSettings);
 		const timer = setTimeout(() => {
 			setIsMounted(true);
 		}, 50);
@@ -81,7 +133,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 			updateSettings({ ...gameSettings, palette: 0 });
 		else if (!palette)
 			updateSettings({ ...gameSettings, palette: 1 });
-		setPalette((prevPalette) => !prevPalette);
+		setPalette((prevPalette : boolean) => !prevPalette);
 	}
 
 	const handlePaletteRadio = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,20 +142,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 
 	const gameCustomDefault = () => {
 		defaultGameSettings(updateSettings, gameSettings, userId);
-		gameCustomSave();
-	}
-
-	const gameCustomSave = async () => {
-		const requestData = {
-			method: 'POST',
-			credentials: 'include',
-			headers: { 
-				'Content-Type': 'application/json',
-				'X-CSRFToken': Cookies.get('csrftoken') as string
-			},
-			body: JSON.stringify(gameSettings)
-		};
-		await fetch(`${API_URL}/gameCustomization/`, requestData);
+		gameCustomSave('gameCustomization/', JSON.stringify(gameSettings));
 	}
 
 	return (
@@ -309,8 +348,8 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 							</div>
 
 							<div>
-								<button className="m-1 btn btn-warning" data-bs-dismiss="offcanvas" onClick={gameCustomSave}>Save</button>
-								<button className="m-1 btn btn-primary" onClick={gameCustomDefault}>Reset to Default</button>
+								<button className="m-1 btn btn-warning" data-bs-dismiss="offcanvas" onClick={() => gameCustomSave('gameCustomization/', JSON.stringify(gameSettings))}>Save</button>
+								<button className="m-1 btn btn-primary" onClick={() => gameCustomDefault}>Reset to Default</button>
 							</div>
 
 						</div>
