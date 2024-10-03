@@ -53,9 +53,9 @@ export default function ProfilePage() {
 		opacity: 80,
 		sparks: true,
 
-		gameDifficulty: 4,
-		pointsToWin: 5,
-		powerUps: true
+		game_difficulty: 4,
+		points_to_win: 5,
+		power_ups: true
 	});
 
 	const handleShow = () => {

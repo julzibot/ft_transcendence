@@ -30,7 +30,7 @@ class LobbyView(APIView):
 					"isActiveLobby": serializers.BooleanField(),
 					# "pointsPerGame": serializers.CharField(),
 					# "timer": serializers.CharField(),
-					# "powerUps": serializers.BooleanField(),
+					# "power_ups": serializers.BooleanField(),
 					"user_id": serializers.CharField(),
         },
     ),
@@ -55,7 +55,7 @@ class LobbyView(APIView):
 					# difficultyLevel=data['difficultyLevel'],
 					# pointsPerGame=data['pointsPerGame'],
 					# timer=data['timer'],
-					# powerUps=data['powerUps'],
+					# power_ups=data['power_ups'],
 					player1=user
 				)
 				serializer = LobbySerializer(new_lobby)
