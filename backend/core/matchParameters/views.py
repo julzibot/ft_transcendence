@@ -11,7 +11,7 @@ class MatchParametersView(APIView):
 	def get(self, request, id):
 		try:
 			user = UserAccount.objects.get(id=id)
-			parameters = MatchParametersData.objects.get(user=id)
+			parameters = MatchParametersData.objects.get(user=user)
 			serializer = MatchParametersSerializer(parameters)
 			return Response({'data': serializer.data}, status=status.HTTP_200_OK)
 		except UserAccount.DoesNotExist:

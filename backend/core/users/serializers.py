@@ -4,10 +4,11 @@ from .models import UserAccount
 class UserAccountSerializer(serializers.ModelSerializer):
   class Meta:
     model = UserAccount
-    fields = ['id', 'username', 'email', 'image_url', 'image']
+    fields = ['id', 'username', 'image_url', 'image']
     extra_kwargs = {
       'password': {'write_only': True},
-      'username': {'max_length': 20}
+      'username': {'max_length': 20},
+      'image_url': {'write_only': True},
     }
 
   def create(self, validated_data):

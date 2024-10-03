@@ -8,24 +8,16 @@ from django.dispatch import receiver
 import uuid
 
 class UserAccountManager(BaseUserManager):
-    def create_user(self, email, password=None, **kwargs):
-        if not email:
-            raise ValueError("Users must have an email address")
+    def create_user(self, username, password=None, **kwargs):
 
-        email=self.normalize_email(email)
-        email=email.lower()
-
-        user = self.model(
-            email=email,
-            **kwargs
-        )
+        user = self.model(username=username, **kwargs)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password=None, **kwargs):
+    def create_superuser(self, username, password=None, **kwargs):
         user = self.create_user(
-            email,
+            username=username,
             password=password,
             **kwargs,
         )
@@ -53,11 +45,6 @@ def upload_image_to(instance, filename):
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=20, unique=True)
-    email = models.EmailField(
-        verbose_name="email address",
-        max_length=255,
-        unique=True
-    )
     image = models.ImageField(upload_to=upload_image_to, blank=True, null=True)
     image_url = models.URLField(max_length=512, default="https://t4.ftcdn.net/jpg/02/15/84/43/240_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg")
 
@@ -74,7 +61,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     objects = UserAccountManager()
 
     USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = ["email"]
+    REQUIRED_FIELDS = []
 
     def __str__(self):
         return self.username

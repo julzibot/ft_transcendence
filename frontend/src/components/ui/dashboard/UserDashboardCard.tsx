@@ -1,10 +1,8 @@
 'use client'
 
 import React, { RefObject, useEffect, useState } from "react";
-import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import './styles.css';
-import { BASE_URL, BACKEND_URL } from "@/utils/constants";
 
 import { Chart, TimeScale } from 'chart.js/auto';
 import 'chartjs-adapter-luxon';
@@ -15,6 +13,7 @@ import GameModesChart from "./GameModesChart";
 import createScoreData from "./ChartDataUtils";
 import { GameMatch, Player } from "./DashboardInterfaces";
 import { DashboardPlaceholder } from "@/components/placeholders/DashboardPlaceholder";
+import { API_URL } from "@/config";
 
 type UserHistory = {
 	data: Array<GameMatch>
@@ -43,8 +42,9 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 	useEffect(() => {
 		if (user.id) {
 			const fetchDashboardDetail = async () => {
-				const response = await fetch(`${BASE_URL}dashboard/${user.id}`, {
-					method: "GET"
+				const response = await fetch(`${API_URL}/dashboard/${user.id}`, {
+					method: "GET",
+					credentials: 'include'
 				});
 				if (response.ok) {
 					const data = await response.json();
@@ -63,8 +63,9 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 	useEffect(() => {
 		if (user.id) {
 			const fetchUserHistory = async () => {
-				const response = await fetch(`${BASE_URL}game/history/user/${user.id}`, {
-					method: "GET"
+				const response = await fetch(`${API_URL}/game/history/user/${user.id}`, {
+					method: "GET",
+					credentials: 'include'
 				});
 				if (response.status === 204) {
 					setUserHistory(null);
@@ -259,7 +260,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 																						<div className="flex-column position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
 																							<Image style={{ objectFit: 'cover' }}
 																								fill
-																								src={`${BACKEND_URL}${user.image}`}
+																								src={`http://django:8000${user.image}`}
 																								alt="Profile Picture"
 																								priority={true}
 																								sizes="25vw"
@@ -280,7 +281,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 																								<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
 																									<Image style={{ objectFit: 'cover' }}
 																										fill
-																										src={`${BACKEND_URL}${player2.image}`}
+																										src={`http://django:8000${player2.image}`}
 																										alt="Guest"
 																										priority={true}
 																										sizes="25vw"
