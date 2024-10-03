@@ -26,7 +26,7 @@ export function defaultGameSettings(updateSettings: Function, gameSettings: Game
 	})
 }
 
-export function defaultMatchParameters(updateSettings: Function, gameSettings: GameSettings, user_id: number) {
+export function defaultMatchParameters(updateSettings: Function, gameSettings: GameSettingsType, user_id: number) {
 	updateSettings({
 		...gameSettings,
 		user: user_id,
@@ -36,15 +36,6 @@ export function defaultMatchParameters(updateSettings: Function, gameSettings: G
 	})
 }
 
-export function defaultMatchParameters(updateSettings: Function, gameSettings: GameSettings, user_id: number) {
-	updateSettings({
-		...gameSettings,
-		user: user_id,
-		points_to_win: 5,
-		game_difficulty: 2,
-		power_ups: true
-	})
-}
 
 export async function fetchGameSettings(user_id: number, updateSettings: Function, gameSettings: GameSettingsType) {
 
@@ -52,8 +43,6 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 		const response = await fetch(`${API_URL}/gameCustomization/${user_id}`, {
 			method: 'GET',
 			credentials: 'include',
-		const response = await fetch(`${BASE_URL}gameCustomization/${user_id}`, {
-			method: 'GET'
 		});
 		if (response.ok) {
 			if (response.status === 204) {
@@ -80,9 +69,10 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 	}
 };
 
-export async function fetchMatchParameters(user_id: number, updateSettings: Function, gameSettings: GameSettings) {
-	const response = await fetch(`${BASE_URL}parameters/${user_id}`, {
-		method: 'GET'
+export async function fetchMatchParameters(user_id: number, updateSettings: Function, gameSettings: GameSettingsType) {
+	const response = await fetch(`${API_URL}/parameters/${user_id}`, {
+		method: 'GET',
+		credentials: 'include',
 	});
 	if (response.ok) {
 		if (response.status === 204) {
@@ -99,12 +89,15 @@ export async function fetchMatchParameters(user_id: number, updateSettings: Func
 }
 
 export async function gameCustomSave(backend_url: string, stringified_settings: string) {
-	const requestData = {
+	const response = await fetch(`${API_URL}/${backend_url}`,  {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
+		credentials: 'include',
+		headers: { 
+			'Content-Type': 'application/json', 
+			'X-CSRFToken': Cookies.get('csrftoken') as string
+		},
 		body: stringified_settings
-	};
-	const response = await fetch(`${BASE_URL}${backend_url}`, requestData);
+	});
 	if (!response.ok) {
 		// ???
 	}

@@ -11,7 +11,7 @@ class GameCustomizationView(APIView):
 	def get(self, request, id):
 		try:
 			user = UserAccount.objects.get(id=id)
-			settings = GameCustomizationData.objects.get(user=id)
+			settings = GameCustomizationData.objects.get(user=user)
 			serializer = GameCustomizationSerializer(settings)
 			return Response({'data': serializer.data}, status=status.HTTP_200_OK)
 		except UserAccount.DoesNotExist:

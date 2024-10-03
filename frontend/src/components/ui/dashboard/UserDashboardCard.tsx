@@ -1,10 +1,8 @@
 'use client'
 
 import React, { RefObject, useEffect, useState } from "react";
-// import { useAuth  } from "@/app/lib/AuthContext";
 import Image from 'next/image'
 import './styles.css';
-import { BASE_URL, BACKEND_URL } from "@/utils/constants";
 
 import { Chart, TimeScale } from 'chart.js/auto';
 import 'chartjs-adapter-luxon';
@@ -66,7 +64,8 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 		if (user.id) {
 			const fetchUserHistory = async () => {
 				const response = await fetch(`${API_URL}/game/history/user/${user.id}`, {
-					method: "GET"
+					method: "GET",
+					credentials: 'include'
 				});
 				if (response.status === 204) {
 					setUserHistory(null);
@@ -261,7 +260,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 																						<div className="flex-column position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
 																							<Image style={{ objectFit: 'cover' }}
 																								fill
-																								src={`${BACKEND_URL}${user.image}`}
+																								src={`http://django:8000${user.image}`}
 																								alt="Profile Picture"
 																								priority={true}
 																								sizes="25vw"
@@ -282,7 +281,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 																								<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
 																									<Image style={{ objectFit: 'cover' }}
 																										fill
-																										src={`${BACKEND_URL}${player2.image}`}
+																										src={`http://django:8000${player2.image}`}
 																										alt="Guest"
 																										priority={true}
 																										sizes="25vw"

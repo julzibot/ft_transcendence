@@ -47,7 +47,7 @@ export default function OnlineGamePage() {
 				<div className={`card mt-3 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-body">
 						{
-							gameSettings && session?.user.id && <Lobby setGameSettings={setGameSettings} gameSettings={gameSettings} />
+							gameSettings && session?.user?.id && <Lobby setGameSettings={setGameSettings} gameSettings={gameSettings} />
 						}
 					</div>
 				</div>

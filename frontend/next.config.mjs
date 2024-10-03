@@ -1,6 +1,7 @@
 export default {
   reactStrictMode: true,
   images: {
+    domains: ['localhost'],
     remotePatterns: [
       {
         protocol: 'http',

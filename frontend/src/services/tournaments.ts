@@ -1,4 +1,5 @@
 import { API_URL } from "@/config";
+import Cookies from "js-cookie";
 
 export const GetTournamentData = async () => {
 	try {
@@ -19,7 +20,8 @@ export const GetLobbyData = async () => {
 	// lobby/
 	try {
 		const response = await fetch(`${API_URL}/lobby/`, {
-			method: "GET"
+			method: "GET",
+			credentials: 'include'
 		});
 		if (!response.ok) {
 			throw new Error(`[${response.status}] ` + 'Network response was not ok');
@@ -56,8 +58,10 @@ export const AddLobbyData = async (payload: any) => {
 	try {
 		const response = await fetch(API_URL + `/lobby/`, {
 			method: "POST",
+			credentials: 'include',
 			headers: {
-				"Content-Type": "application/json"
+				"Content-Type": "application/json",
+				'X-CSRFToken': Cookies.get('csrftoken') as string
 			},
 			body: JSON.stringify(payload),
 		})
@@ -76,9 +80,11 @@ export const HandlePutLobby = async (payload: any) => {
 	try {
 		const response = await fetch(API_URL + `/lobby/${payload?.lobby_id}/userId/${payload?.user_id}`, {
 			method: 'PUT',
+			credentials: 'include',
 			headers: {
 				'Accept': 'application/json',
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'X-CSRFToken': Cookies.get('csrftoken') as string
 			}
 		})
 		if (!response.ok) {

@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import ThreeScene from './Game';
 import { GameSettings } from '@/types/GameSettings';
-import { BASE_URL } from '../../utils/constants';
+import { API_URL } from '@/config';
 import { gameCustomSave } from './Customization';
+import Cookies from 'js-cookie';
 
 interface LocalGameProps {
 	userId: number,
@@ -29,9 +30,13 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 	useEffect(() => {
 		if (click && !gameCreated) {
 			const createLocalGame = async () => {
-				const response = await fetch(BASE_URL + 'game/create', {
+				const response = await fetch(API_URL + '/game/create', {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
+					credentials: 'include',
+					headers: { 
+						'Content-Type': 'application/json',
+						'X-CSRFToken': Cookies.get('csrftoken') as string
+					},
 					body: JSON.stringify({
 						'player1': userId,
 						'game_mode': gameMode
@@ -53,8 +58,9 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 		if (gameCreated && !matchFetched) {
 
 			const getGameInfos = async (game_id) => {
-				const response = await fetch(BASE_URL + `game/history/${game_id}`, {
+				const response = await fetch(API_URL + `/game/history/${game_id}`, {
 					method: 'GET',
+					credentials: 'include',
 					headers: { 'Content-Type': 'application/json' }
 				})
 				if (response.ok) {

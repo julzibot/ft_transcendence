@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation"
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/app/lib/AuthContext";
 import { SocketProvider } from "@/context/socket";
 import Join from "@/components/game/Join";
 import { fetchGameSettings } from "@/components/game/Customization";
 import { GameSettings } from "@/types/GameSettings";
 
 export default function Lobby() {
-	const { data: session } = useSession();
+	const { session } = useAuth();
 	const { linkToJoin } = useParams();
 
-	if (!session || !session.user.id) {
+	if (!session || !session.user?.id) {
 		return (
 			<p>[session] No user session found.</p>
 		)

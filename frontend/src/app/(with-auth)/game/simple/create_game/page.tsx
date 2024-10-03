@@ -17,12 +17,12 @@ export default function CreateGame() {
 								<h4 className="card-title">Create Game</h4>
 							</div>
 							<div className="m-2">
-								<Link href="game/local">
+								<Link href="/game/local">
 									<button className="btn btn-danger" type="button">Play With Friends</button>
 								</Link>
 							</div>
 							<div className="m-2">
-								<Link href="game/online">
+								<Link href="/game/online">
 									<button className="btn btn-danger" type="button">Play Online</button>
 								</Link>
 							</div>
