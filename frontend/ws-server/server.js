@@ -6,11 +6,13 @@ const PORT = 6500;
 const fetchFinished = new Map();
 const socketRooms = new Map();
 
+
+
 const server = createServer();
 
 const io = new Server(server, {
 	cors: {
-		origin: "http://localhost:3000",
+		origin: "https://localhost:3000",
 		methods: ["GET", "POST"],
 		credentials: true
 	}
@@ -131,5 +133,5 @@ io.on("connection", async (socket) => {
 });
 
 server.listen(PORT, () => {
-	console.log("Socket server is now listening on port " + PORT);
+	console.log("Socket server is now listening on https://localhost:" + PORT);
 });

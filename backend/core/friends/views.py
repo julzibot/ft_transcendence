@@ -6,9 +6,12 @@ from rest_framework import status
 from django.db.models import Q 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 class SendFriendRequestView(APIView):
+  permission_classes = [IsAuthenticated]
+
   def post(self, request):
     data = request.data
     from_user = UserAccount.objects.get(id=data['from_user'])
@@ -29,37 +32,39 @@ class SendFriendRequestView(APIView):
       return Response(status=status.HTTP_409_CONFLICT)
   
 class ApproveFriendRequest(APIView):
-    def put(self, request):
-        data = request.data
-        requestor_id = data.get('requestor_id')
-        approving_user_id = data.get('approving_user_id')
-        pending_user_id = data.get('pending_user_id')
+  permission_classes = [IsAuthenticated]
 
-        if not (requestor_id and approving_user_id and pending_user_id):
-            return Response({'error': 'Missing required parameters'}, status=status.HTTP_400_BAD_REQUEST)
+  def put(self, request):
+      data = request.data
+      requestor_id = data.get('requestor_id')
+      approving_user_id = data.get('approving_user_id')
+      pending_user_id = data.get('pending_user_id')
 
-        try:
-            requestor = UserAccount.objects.get(id=requestor_id)
-            user1 = UserAccount.objects.get(id=approving_user_id)
-            user2 = UserAccount.objects.get(id=pending_user_id)
-            
-            friendship = Friendship.objects.filter(
-              Q(user1=user1, user2=user2) | Q(user1=user2, user2=user1), 
-              requestor=requestor, 
-              status="REQUEST"
-              ).first()
-            
-            if not friendship:
-                return Response({'error': 'Friendship not found'}, status=status.HTTP_404_NOT_FOUND)
+      if not (requestor_id and approving_user_id and pending_user_id):
+          return Response({'error': 'Missing required parameters'}, status=status.HTTP_400_BAD_REQUEST)
 
-            friendship.status = "FRIENDS"
-            friendship.save()
-            return Response(status=status.HTTP_202_ACCEPTED)
-        
-        except UserAccount.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+      try:
+          requestor = UserAccount.objects.get(id=requestor_id)
+          user1 = UserAccount.objects.get(id=approving_user_id)
+          user2 = UserAccount.objects.get(id=pending_user_id)
+          
+          friendship = Friendship.objects.filter(
+            Q(user1=user1, user2=user2) | Q(user1=user2, user2=user1), 
+            requestor=requestor, 
+            status="REQUEST"
+            ).first()
+          
+          if not friendship:
+              return Response({'error': 'Friendship not found'}, status=status.HTTP_404_NOT_FOUND)
+
+          friendship.status = "FRIENDS"
+          friendship.save()
+          return Response(status=status.HTTP_202_ACCEPTED)
+      
+      except UserAccount.DoesNotExist:
+          return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+      except Exception as e:
+          return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class GetFriendsView(APIView):
   def get(self, request):
@@ -87,6 +92,8 @@ class GetFriendsView(APIView):
     return Response(serialized_data)
 
 class DeleteFriendshipView(APIView):
+  permission_classes = [IsAuthenticated]
+
   def delete(self, request):
     data = request.data
     user1 = data['user_id1']

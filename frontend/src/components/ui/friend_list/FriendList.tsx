@@ -5,14 +5,15 @@ import { PersonDashFill, CircleFill, XCircleFill, Joystick, CheckCircleFill } fr
 import { CustomTooltip } from '@/components/Utils/Tooltip';
 import SearchPlayerInput from './SearchPlayerInput';
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/app/lib/AuthContext';
 import Image from "next/image";
 import { Friendship, Friend } from '@/types/Friend';
 import Link from 'next/link';
-import { BACKEND_URL, BASE_URL } from '@/utils/constants';
+import { API_URL } from '@/config';
+import Cookies from 'js-cookie';
 
 export default function FriendList() {
-	const { data: session } = useSession()
+	const { session } = useAuth()
 	const [friendships, setFriendships] = useState<Friendship[]>([])
 
 
@@ -21,19 +22,25 @@ export default function FriendList() {
 	}, [])
 
 	async function fetchFriends() {
-		const response = await fetch(`${BASE_URL}friends/get/?id=${session?.user.id}`, {
-			method: 'GET'
+		const response = await fetch(`${API_URL}/friends/get/?id=${session?.user?.id}`, {
+			method: 'GET',
+			credentials: 'include',
 		})
 		const data = await response.json()
 		setFriendships(data)
 	}
 
 	async function approveFriendRequest(friend: Friend) {
-		const response = await fetch(`${BASE_URL}friends/approve-friend-request/`, {
+		const response = await fetch(`${API_URL}/friends/approve-friend-request/`, {
 			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
+			headers: { 
+				'Content-Type': 'application/json',
+				'Accept': 'application/json',
+				'X-CSRFToken': Cookies.get('csrftoken') as string
+			},
 			body: JSON.stringify({
-				'approving_user_id': session?.user.id,
+				'approving_user_id': session?.user?.id,
 				'pending_user_id': friend.id,
 				'requestor_id': friend.id
 			})
@@ -44,11 +51,16 @@ export default function FriendList() {
 	}
 
 	async function deleteFriendship(friend: Friend) {
-		const response = await fetch(`${BASE_URL}friends/delete-friendship/`, {
+		const response = await fetch(`${API_URL}/friends/delete-friendship/`, {
 			method: 'DELETE',
-			headers: { 'Content-type': 'application/json' },
+			credentials: 'include',
+			headers: {
+				'Accept': 'application/json', 
+				'Content-type': 'application/json',
+				'X-CSRFToken': Cookies.get('csrftoken') as string
+		},
 			body: JSON.stringify({
-				'user_id1': session?.user.id,
+				'user_id1': session?.user?.id,
 				'user_id2': friend.id
 			})
 		})
@@ -86,7 +98,7 @@ export default function FriendList() {
 										<Image
 											style={{ objectFit: 'cover' }}
 											alt="profile picture"
-											src={`${BACKEND_URL}${friendship.user.image}`}
+											src={`http://django:8000${friendship.user.image}`}
 											fill
 											sizes="20vw"
 										/>
@@ -129,7 +141,7 @@ export default function FriendList() {
 										<Image
 											style={{ objectFit: 'cover' }}
 											alt="profile picture"
-											src={`${BACKEND_URL}${friendship.user.image}`}
+											src={`http://django:8000${friendship.user.image}`}
 											fill
 											sizes={"20vw"}
 										/>

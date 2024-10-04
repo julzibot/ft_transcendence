@@ -6,6 +6,8 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts, custom } from '../../utils/init';
 import { useSocketContext } from '../../context/socket';
+import { API_URL } from '@/config';
+import Cookies from 'js-cookie';
 
 let keys = {};
 const tools = {};
@@ -597,7 +599,7 @@ let display_img = (image, mode) => {
 	const imgGeo = new THREE.CircleGeometry(1.7, 30);
 	let path = image;
 	if (mode >= 2)
-		path = CONST.BASE_URL_2 + image;
+		path = `http://django:8000` + image;
 	const pp = new THREE.TextureLoader().load(path);
 	let op = 0.8;
 	if (mode > 1) {
@@ -619,10 +621,14 @@ async function PutScores(gameMode) {
 	let putPath = 'local';
 	if (gameMode >= 2)
 		putPath = 'online';
-	const response = await fetch(CONST.BASE_URL + `game/${putPath}/update/${game_id}`,
+	const response = await fetch(API_URL + `/game/${putPath}/update/${game_id}`,
 		{
 			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': Cookies.get('csrftoken')
+			},
 			body: JSON.stringify({
 				"score1": vars.p1Score,
 				"score2": vars.p2Score
