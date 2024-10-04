@@ -11,6 +11,7 @@ export default {
       {
         protocol: 'https',
         hostname: 'localhost',
+        port: '8000',
       },
     ],
   },
