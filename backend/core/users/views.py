@@ -36,8 +36,8 @@ class RegisterView(APIView):
       )
 
       user.save_image_from_url()
-      MatchParametersData.objects.create(user=user)
       DashboardData.objects.create(user=user)
+      MatchParametersData.objects.create(user=user)
       GameCustomizationData.objects.create(user=user)
       return Response({'success': 'User account successfully created'}, status=status.HTTP_201_CREATED)
     except:
@@ -79,6 +79,7 @@ class OauthView(APIView):
       return Response({'error': 'Access token is required'}, status=status.HTTP_400_BAD_REQUEST)
 
     user = auth.authenticate(request, access_token=access_token)
+    print('[PRINT] USER:' + str(user))
     if user is not None:
       request.session.save()
       auth.login(request, user)
