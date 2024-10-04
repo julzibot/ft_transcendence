@@ -1,17 +1,20 @@
 FROM node:22-alpine3.18
 
 WORKDIR /app
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Copy package.json and package-lock.json to the working directory
+ENV NEXT_PUBLIC_SESSION_SECRET=NEXT_PUBLIC_SESSION_SECRET
+ENV NEXT_PUBLIC_FORTY_TWO_CLIENT_UID=NEXT_PUBLIC_FORTY_TWO_CLIENT_UID
+ENV NEXT_PUBLIC_FORTY_TWO_CLIENT_SECRET=NEXT_PUBLIC_FORTY_TWO_CLIENT_SECRET
+ENV NEXT_PUBLIC_API_URL=NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_DOMAIN=DOMAIN_NAME
+ENV NEXT_PUBLIC_URL=NEXT_PUBLIC_URL
+
 COPY . /app
 
-# Install dependencies
+# Install dependencies listed in package.json
 RUN npm install
-
-
-# Build the Next.js app for production
 # RUN npm run build
-
-EXPOSE 3000
-# Define the command to run your Next.js app
+ENTRYPOINT [ "/bin/sh", "/entrypoint.sh" ]
 CMD ["npm", "run", "dev"]

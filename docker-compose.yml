@@ -8,11 +8,18 @@ services:
     depends_on:
       - django
     expose:
-      - "3000"
+      - ${FRONTEND_PORT}
     volumes:
       - ./frontend/:/app
       - /app/node_modules
       - /app/.next
+    environment:
+      - NEXT_PUBLIC_SESSION_SECRET=${NEXT_PUBLIC_SESSION_SECRET}
+      - NEXT_PUBLIC_FORTY_TWO_CLIENT_UID=${NEXT_PUBLIC_FORTY_TWO_CLIENT_UID}
+      - NEXT_PUBLIC_FORTY_TWO_CLIENT_SECRET=${NEXT_PUBLIC_FORTY_TWO_CLIENT_SECRET}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_DOMAIN=${DOMAIN_NAME}
+      - NEXT_PUBLIC_URL=${NEXT_PUBLIC_URL}
 
   ws-server:
     container_name: ws-server
@@ -23,7 +30,7 @@ services:
     depends_on:
       - frontend
     ports:
-      - "6500:6500"
+      - ${SOCKET_PORT}:${SOCKET_PORT}
     volumes:
       - ./frontend/ws-server/:/server
       - /server/node_modules
@@ -32,31 +39,41 @@ services:
     container_name: postgres
     image: postgres:16.4
     restart: always
-    env_file:
-      - ./backend/.env.example
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       # - /Users/miky/42mac/ft_transcendence/.dbdata:/var/lib/postgresql/data
       # - /Users/julzibot/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
       - /home/anloisea/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
     expose:
-      - "5432"
+      - ${POSTGRES_PORT}
 
   django:
     container_name: django
     build:
       context: ./backend/core
       dockerfile: Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py runserver 0.0.0.0:${BACKEND_PORT}
     restart: always
     expose:
-      - "8000"
+      - ${BACKEND_PORT}
     depends_on:
       - postgres
     volumes:
       - ./backend/core/:/app
       - ./backend/core/static/:/app/static/
-    env_file:
-      - ./backend/.env.example
+    environment:
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DOMAIN_NAME=${DOMAIN_NAME}
 
   nginx:
     container_name: proxy
@@ -66,10 +83,17 @@ services:
       - django
       - frontend
     ports:
-      - "8000:8000"
-      - "3000:3000"
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
     volumes:
-      - ./proxy/default.conf:/etc/nginx/conf.d/default.conf
+      - ./proxy/default.template:/etc/nginx/conf.d/default.template
+      - ./proxy/entrypoint.sh:/entrypoint.sh
       - ./backend/core/static/:/var/www/static/
       - ./backend/core/media/:/var/www/media/
       - ./proxy/certs:/etc/ssl/certs
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - BACKEND_PORT=${BACKEND_PORT}
+      - FRONTEND_PORT=${FRONTEND_PORT}
+      - SOCKET_PORT=${SOCKET_PORT}
+    entrypoint: [ "/bin/sh", "/entrypoint.sh" ]
