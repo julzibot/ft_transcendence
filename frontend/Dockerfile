@@ -1,20 +1,27 @@
-FROM node:22-alpine3.18
-
+FROM node:22-alpine3.18 AS base
 WORKDIR /app
-COPY ./entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENV NEXT_PUBLIC_SESSION_SECRET=NEXT_PUBLIC_SESSION_SECRET
-ENV NEXT_PUBLIC_FORTY_TWO_CLIENT_UID=NEXT_PUBLIC_FORTY_TWO_CLIENT_UID
-ENV NEXT_PUBLIC_FORTY_TWO_CLIENT_SECRET=NEXT_PUBLIC_FORTY_TWO_CLIENT_SECRET
-ENV NEXT_PUBLIC_API_URL=NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_DOMAIN=DOMAIN_NAME
-ENV NEXT_PUBLIC_URL=NEXT_PUBLIC_URL
-
-COPY . /app
-
-# Install dependencies listed in package.json
+COPY package*.json .
 RUN npm install
+COPY . .
+
+# FROM node:22-alpine3.18 AS builder
+# ENV NODE_ENV=production
+# WORKDIR /build
+# COPY --from=base /app /build
 # RUN npm run build
-ENTRYPOINT [ "/bin/sh", "/entrypoint.sh" ]
+
+FROM node:22-alpine3.18 AS runner
+ENV NODE_ENV=development
+WORKDIR /app
+
+# COPY --from=builder
+# COPY --from=builder /build/node_modules ./node_modules
+# COPY --from=builder /build/public ./public
+# COPY --from=builder /build/.next ./.next
+
+COPY --from=base /app .
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/public ./public
+COPY --from=base /app/.next ./.next
+
 CMD ["npm", "run", "dev"]
