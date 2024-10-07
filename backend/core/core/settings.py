@@ -173,7 +173,7 @@ CORS_ORIGIN_WHITELIST = [
 
 CSRF_TRUSTED_ORIGINS = [
     f"https://{DOMAIN_NAME}:{BACKEND_PORT}",
-    f"https://{DOMAIN_NAME}:${FRONTEND_PORT}",
+    f"https://{DOMAIN_NAME}:{FRONTEND_PORT}",
     "https://frontend:${FRONTEND_PORT}",
 ]
 

@@ -38,7 +38,7 @@
   "devDependencies": {
     "@types/dompurify": "^3.0.5",
     "@types/js-cookie": "^3.0.6",
-    "@types/node": "^22.5.5",
+    "@types/node": "22.7.4",
     "@types/prop-types": "^15.7.12",
     "@types/react": "^18.3.6",
     "@types/react-color": "^3.0.12",
@@ -48,6 +48,6 @@
     "@types/webxr": "^0.5.20",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.11",
-    "typescript": "^5.6.2"
+    "typescript": "5.6.2"
   }
 }
