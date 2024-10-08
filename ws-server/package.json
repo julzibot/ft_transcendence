@@ -2,6 +2,9 @@
   "name": "socket-server",
   "version": "0.0.1",
   "description": "server using socket.io",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
   "type": "module",
   "dependencies": {}
 }

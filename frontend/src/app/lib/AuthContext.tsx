@@ -1,6 +1,6 @@
 "use client"
 
-import { API_URL } from '@/config';
+import { BACKEND_URL } from '@/config';
 import React, { createContext, useEffect, useState, useContext } from 'react';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   async function update() {
-    fetch(`${API_URL}/auth/user/`, {
+    fetch(`${BACKEND_URL}/api/auth/user/`, {
       method: 'GET',
       credentials: 'include'
     })
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signIn(provider: 'credentials' | '42-school', username: string, password: string) {
     switch (provider) {
       case 'credentials':
-          const response = await fetch(`${API_URL}/auth/signin/`, {
+          const response = await fetch(`${BACKEND_URL}/api/auth/signin/`, {
             method: 'POST',
             credentials: 'include',
             headers: {
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function logout() {
-    fetch(`${API_URL}/auth/logout/`, {
+    fetch(`${BACKEND_URL}/api/auth/logout/`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'X-CSRFToken':  Cookies.get('csrftoken') as string },
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkUserLoggedIn = async () => {
       if(Cookies.get('sessionid')) {
       try {
-        const response = await fetch(`${API_URL}/auth/user/`, {
+        const response = await fetch(`${BACKEND_URL}/api/auth/user/`, {
           method: 'GET',
           credentials: 'include'
         });

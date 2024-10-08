@@ -6,7 +6,7 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts, custom } from '../../utils/init';
 import { useSocketContext } from '../../context/socket';
-import { API_URL } from '@/config';
+import { BACKEND_URL } from '@/config';
 import Cookies from 'js-cookie';
 
 let keys = {};
@@ -46,7 +46,7 @@ const sparkUniform = {
 	u_time:
 		{ type: 'f', value: 0. },
 	u_texture:
-		{ type: 't', value: new THREE.TextureLoader().load('../../spark.png') }
+		{ type: 't', value: new THREE.TextureLoader().load('../../../spark.png') }
 };
 
 const sparkVs = `
@@ -599,7 +599,7 @@ let display_img = (image, mode) => {
 	const imgGeo = new THREE.CircleGeometry(1.7, 30);
 	let path = image;
 	if (mode >= 2)
-		path = `http://django:8000` + image;
+		path = `${BACKEND_URL} + ${image}`;
 	const pp = new THREE.TextureLoader().load(path);
 	let op = 0.8;
 	if (mode > 1) {
@@ -621,7 +621,7 @@ async function PutScores(gameMode) {
 	let putPath = 'local';
 	if (gameMode >= 2)
 		putPath = 'online';
-	const response = await fetch(API_URL + `/game/${putPath}/update/${game_id}`,
+	const response = await fetch(BACKEND_URL + `/game/${putPath}/update/${game_id}`,
 		{
 			method: 'PUT',
 			credentials: 'include',

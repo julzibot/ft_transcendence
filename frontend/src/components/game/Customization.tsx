@@ -5,7 +5,7 @@ import { HexColorPicker } from "react-colorful";
 import styles from './CustomizationStyles.module.css';
 import './colorPickerStyles.css';
 import { GameSettingsType } from "@/types/GameSettings";
-import { API_URL } from "@/config";
+import { BACKEND_URL } from "@/config";
 import Cookies from "js-cookie";
 
 interface GameSettingsProps {
@@ -40,7 +40,7 @@ export function defaultMatchParameters(updateSettings: Function, gameSettings: G
 export async function fetchGameSettings(user_id: number, updateSettings: Function, gameSettings: GameSettingsType) {
 
 	if (user_id) {
-		const response = await fetch(`${API_URL}/gameCustomization/${user_id}`, {
+		const response = await fetch(`${BACKEND_URL}/api/gameCustomization/${user_id}`, {
 			method: 'GET',
 			credentials: 'include',
 		});
@@ -70,7 +70,7 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 };
 
 export async function fetchMatchParameters(user_id: number, updateSettings: Function, gameSettings: GameSettingsType) {
-	const response = await fetch(`${API_URL}/parameters/${user_id}`, {
+	const response = await fetch(`${BACKEND_URL}/api/parameters/${user_id}`, {
 		method: 'GET',
 		credentials: 'include',
 	});
@@ -89,7 +89,7 @@ export async function fetchMatchParameters(user_id: number, updateSettings: Func
 }
 
 export async function gameCustomSave(backend_url: string, stringified_settings: string) {
-	const response = await fetch(`${API_URL}/${backend_url}`,  {
+	const response = await fetch(`${BACKEND_URL}/api/${backend_url}`,  {
 		method: 'POST',
 		credentials: 'include',
 		headers: { 
