@@ -49,6 +49,9 @@ server {
 
 	location /media {
 			alias /var/www/media;
+			add_header Access-Control-Allow-Origin *;
+			add_header Access-Control-Allow-Methods 'GET, OPTIONS';
+			add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept, Authorization';
 	}
 
 	location / {

@@ -6,7 +6,7 @@ import ThreeScene from './Game';
 import { Spinner } from 'react-bootstrap';
 import "./styles.css"
 import { GameSettingsType } from "@/types/GameSettings";
-import { API_URL } from "@/config/index";
+import { BACKEND_URL } from "@/config/index";
 import Cookies from "js-cookie";
 
 interface JoinProps {
@@ -76,7 +76,7 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 		if (isHost && player2_id && !gameCreated) {
 			const createGame = async () => {
 				console.log('[Join] CreateGame called');
-				const response = await fetch(API_URL + '/game/create', {
+				const response = await fetch(BACKEND_URL + '/api/game/create', {
 					method: 'POST',
 					credentials: 'include',
 					headers: { 
@@ -105,7 +105,7 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 	useEffect(() => {
 		if (isNotHost || (gameCreated && !matchFetched)) {
 			const fetchGameInfos = async (game_id: number) => {
-				const response = await fetch(API_URL + `/game/history/${game_id}`, {
+				const response = await fetch(BACKEND_URL + `/api/game/history/${game_id}`, {
 					method: 'GET',
 					credentials: 'include',
 					headers: { 'Content-Type': 'application/json' }

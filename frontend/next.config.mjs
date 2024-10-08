@@ -1,17 +1,12 @@
 export default {
   reactStrictMode: true,
   images: {
-    domains: ['localhost'],
+    domains: [`${process.env.NEXT_PUBLIC_DOMAIN}`],
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'django',
-        port: '8000',
-      },
-      {
         protocol: 'https',
-        hostname: 'localhost',
-        port: '8000',
+        hostname: `${process.env.NEXT_PUBLIC_DOMAIN}`,
+        port: `${process.env.NEXT_PUBLIC_BACKEND_PORT}`,
       },
     ],
   },

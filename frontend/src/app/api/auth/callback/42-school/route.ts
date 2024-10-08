@@ -1,13 +1,14 @@
 import { FORTY_TWO_CLIENT_SECRET, FORTY_TWO_CLIENT_UID } from "@/config"
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from 'next/headers'
-import { NEXT_PUBLIC_URL } from "@/config"
+import { NEXT_PUBLIC_URL, DOMAIN_NAME, FRONTEND_PORT, BACKEND_PORT } from "@/config"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const state = searchParams.get('state')
 
+  console.log('here', DOMAIN_NAME, FRONTEND_PORT)
   if (!code || !state) {
     return NextResponse.json({ error: 'Missing code or state' }, { status: 400 });
   }
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
         client_id: FORTY_TWO_CLIENT_UID as string,
         client_secret: FORTY_TWO_CLIENT_SECRET as string,
         code,
-        redirect_uri: 'https://localhost:3000/api/auth/callback/42-school',
+        redirect_uri: `https://${DOMAIN_NAME}:${FRONTEND_PORT}/api/auth/callback/42-school`,
         state,
       })
     })
@@ -31,14 +32,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(tokenData, { status: response.status });
     }
 
-    await fetch('http://django:8000/api/csrf-cookie/', {
+    await fetch(`http://django:${BACKEND_PORT}/api/csrf-cookie/`, {
       method: 'GET',
       credentials: 'include',
     });
 
     const csrfToken = cookies().get('csrftoken')?.value;
 
-    const backendResponse = await fetch('http://django:8000/api/auth/signin-with-42/', {
+    const backendResponse = await fetch(`http://django:${BACKEND_PORT}/api/auth/signin-with-42/`, {
       method: 'POST',
       credentials: 'include',
       headers: {

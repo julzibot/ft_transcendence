@@ -14,17 +14,20 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
+      - NEXT_PUBLIC_BACKEND_PORT=${BACKEND_PORT}
+      - NEXT_PUBLIC_FRONTEND_PORT=${FRONTEND_PORT}
+      - NEXT_PUBLIC_SOCKET_PORT=${SOCKET_PORT}
       - NEXT_PUBLIC_SESSION_SECRET=${NEXT_PUBLIC_SESSION_SECRET}
       - NEXT_PUBLIC_FORTY_TWO_CLIENT_UID=${NEXT_PUBLIC_FORTY_TWO_CLIENT_UID}
       - NEXT_PUBLIC_FORTY_TWO_CLIENT_SECRET=${NEXT_PUBLIC_FORTY_TWO_CLIENT_SECRET}
-      - NEXT_PUBLIC_API_URL=https://${DOMAIN_NAME}:${BACKEND_PORT}/api
+      - NEXT_PUBLIC_API_URL=https://${DOMAIN_NAME}:${BACKEND_PORT}
       - NEXT_PUBLIC_DOMAIN=${DOMAIN_NAME}
       - NEXT_PUBLIC_URL=https://${DOMAIN_NAME}:${FRONTEND_PORT}
 
   ws-server:
     container_name: ws-server
     build:
-      context: ./frontend/ws-server
+      context: ./ws-server
       dockerfile: Dockerfile
     restart: always
     depends_on:
@@ -32,8 +35,12 @@ services:
     ports:
       - ${SOCKET_PORT}:${SOCKET_PORT}
     volumes:
-      - ./frontend/ws-server/:/server
+      - ./ws-server/:/server
       - /server/node_modules
+    environment:
+      - SOCKET_PORT=${SOCKET_PORT}
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - FRONTEND_PORT=${FRONTEND_PORT}
 
   postgres:
     container_name: postgres
@@ -64,6 +71,7 @@ services:
     volumes:
       - ./backend/core/:/app
       - ./backend/core/static/:/app/static/
+      - ./backend/core/media/:/app/media/
     environment:
       - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
       - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
