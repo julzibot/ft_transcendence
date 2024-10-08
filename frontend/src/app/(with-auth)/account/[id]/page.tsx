@@ -66,13 +66,17 @@ export default function ProfilePage() {
 	};
 
 	async function getUserInfo() {
+		if (!id || !/^\d+$/.test(id)) {
+			router.push(`/error?code=400`)
+			return
+		}
 		const response = await fetch(`${BACKEND_URL}/api/user/get-user-info/?id=${id}`, {
 			method: 'GET',
       credentials: 'include',
 			headers: { 'Content-Type': 'application/json' }
 		})
 		if (!response.ok) {
-			router.push(`/${id}`)
+			router.push(`/error?code=${response.status}`)
 			return;
 		}
 		const data = await response.json()
