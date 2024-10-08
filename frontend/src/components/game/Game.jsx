@@ -621,7 +621,7 @@ async function PutScores(gameMode) {
 	let putPath = 'local';
 	if (gameMode >= 2)
 		putPath = 'online';
-	const response = await fetch(BACKEND_URL + `/game/${putPath}/update/${game_id}`,
+	const response = await fetch(BACKEND_URL + `/api/game/${putPath}/update/${game_id}`,
 		{
 			method: 'PUT',
 			credentials: 'include',
