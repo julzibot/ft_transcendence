@@ -1,0 +1,16 @@
+.endGameCard {
+    background: linear-gradient(90deg, #20232c, #404a54) !important;
+    color: #fff;
+    opacity: 0.75;
+    transition: opacity 1s ease, transform 1s ease, box-shadow 1s ease;
+}
+
+.endGameCard:hover {
+    transform: scale(1.07);
+    box-shadow:
+        15px 0px 15px rgb(39, 45, 51, 1),
+        0px 15px 15px rgb(39, 45, 51, 1),
+        0 0px 50px rgb(141, 145, 157),
+        0 0px 80px rgba(152, 155, 163, 255);
+    opacity: 0.95;
+}
