@@ -1,30 +1,19 @@
-'use client';
+"use client"
 
-import { signIn, signOut, useSession } from "next-auth/react"
+import React from "react";
 import Link from "next/link";
-import { useEffect } from "react";
 import Image from "next/image";
-import { BACKEND_URL, BASE_URL } from "@/utils/constants";
+import { useAuth } from "@/app/lib/AuthContext";
+import { useEffect } from "react";
 
 export default function AuthButton() {
-  const { data: session } = useSession();
+  const { session, logout } = useAuth();
 
   useEffect(() => {
     require("bootstrap/dist/js/bootstrap.bundle.min.js")
   }, []);
 
-  async function handleSignOut() {
-    const response = await fetch(`${BASE_URL}auth/signout/`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        'id': session?.user.id
-      })
-    })
-    signOut({ callbackUrl: 'http://localhost:3000/auth/signin' })
-  }
-
-  if (session && session.user) {
+  if (session?.user) {
     return (
       <>
         <div className="dropdown me-3">
@@ -37,7 +26,7 @@ export default function AuthButton() {
                       style={{ objectFit: 'cover' }}
                       fetchPriority="high"
                       alt="profile picture"
-                      src={`${BACKEND_URL}${session.user.image}`}
+                      src={`http://django:8000${session.user.image}`}
                       fill
                       sizes="10vw"
                     />
@@ -50,7 +39,7 @@ export default function AuthButton() {
           </button>
 
           <ul className="dropdown-menu">
-            <li><Link className="dropdown-item" href={`/account/${session.user.id}`}>Account</Link></li>
+            <li><Link className="dropdown-item" href={`/account/${session?.user?.id}`}>Account</Link></li>
             <li><hr className="dropdown-divider" /></li>
             <li><button className="dropdown-item btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Sign Out</button></li>
           </ul>
@@ -71,7 +60,7 @@ export default function AuthButton() {
                 <div className="d-flex justify-content-between">
                   <div className="flex-row">
                     <button className="flex-column btn btn-outline-secondary me-md-2" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
-                    <button className=" flex-column btn btn-outline-danger" type="button" onClick={handleSignOut}>Sign out</button>
+                    <button data-bs-dismiss="modal" onClick={() => logout()} className=" flex-column btn btn-outline-danger">Sign out</button>
                   </div>
                 </div>
               </div>
@@ -81,5 +70,4 @@ export default function AuthButton() {
       </>
     );
   }
-  return;
 }

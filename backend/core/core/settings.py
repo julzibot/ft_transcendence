@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
+from django.core.management.utils import get_random_secret_key
+import re
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,17 +26,17 @@ load_dotenv()
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET')
+SECRET_KEY = re.escape(get_random_secret_key())
+DOMAIN_NAME = os.getenv('DOMAIN_NAME')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["0.0.0.0:8000", 'localhost', 'localhost:8000' "backend:8000", "backend"]
+ALLOWED_HOSTS = [DOMAIN_NAME, "0.0.0.0", "127.0.0.1", "django"]
 
 # Application definition
 
 INSTALLED_APPS = [
-    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,13 +46,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'requests',
     'rest_framework',
-    'rest_framework_simplejwt',
     'drf_spectacular',
     'users',
 	'dashboard',
     'friends',
     'game',
-    'chat',
     'tournament',
     'lobby',
     'tournamentParticipants',
@@ -60,9 +60,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -71,6 +71,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'core.urls'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Default backend for username/password
+    'core.backends.ExternalAPITokenBackend',  # Custom backend for external API token
+]
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 TEMPLATES = [
     {
@@ -136,13 +142,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
+STATIC_ROOT = "static/"
+
 MEDIA_URL = 'media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR ,'media/')
 
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
@@ -156,36 +168,61 @@ SPECTACULAR_SETTINGS = {
     # OTHER SETTINGS
 }
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': False,
-    'UPDATE_LAST_LOGIN': False,
-
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': os.getenv('TOKEN_SIGNING_KEY'),
-    'VERIFYING_KEY': None,
-
-    'AUTH_HEADER_TYPES': ('Bearer', 'Refresh', ),
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'id',
-
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-
-    'JTI_CLAIM': 'jti',
-
-    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
-}
-
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    'http://localhost:3000',
+    "https://localhost:3000",
+    "https://127.0.0.1",
+    "http://frontend:3000",
+    "https://frontend:3000",
 ]
-CORS_ALLOW_CREDENTIALS: True
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
+    'OPTIONS',
+]
+
+CORS_ALLOW_HEADERS = [
+    'Authorization',
+    'Accept',
+    'Content-Type',
+    'Referer',
+    'X-CSRFToken',
+]
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+    'https://localhost:3000', 
+    "http://frontend:3000",
+    "https://frontend:3000",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{DOMAIN_NAME}:8000",
+    f"https://{DOMAIN_NAME}:3000",
+    "http://frontend:3000",
+    "https://frontend:3000",
+]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_COOKIE_SECURE= True
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_DOMAIN = DOMAIN_NAME
+CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_COOKIE_AGE = 60 * 60 * 60 * 24
+
+SESSION_COOKIE_AGE = CSRF_COOKIE_AGE 
+SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_DOMAIN = DOMAIN_NAME
+SESSION_COOKIE_PATH = '/'
+SESSION_COOKIE_SAMESITE = 'None'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -193,15 +230,7 @@ CORS_ALLOW_CREDENTIALS: True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "users.UserAccount"
-ASGI_APPLICATION = "core.asgi.application"
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("redis", 6379)],
-        },
-    },
-}
+
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Basic': {
@@ -209,4 +238,3 @@ SWAGGER_SETTINGS = {
         }
     }
 }
-

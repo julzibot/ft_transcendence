@@ -6,6 +6,8 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { vars, objs, csts, custom } from '../../utils/init';
 import { useSocketContext } from '../../context/socket';
+import { API_URL } from '@/config';
+import Cookies from 'js-cookie';
 
 let keys = {};
 const tools = {};
@@ -72,7 +74,7 @@ const sparkFs = `
 
 function printGameInfo(textMesh, string, mode, id, fontsize) {
 	csts.loader.load(CONST.FONTPATH + CONST.FONTNAME, function (font) {
-		let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, height: 0.5 });
+		let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, depth: 0.5 });
 		if (mode === 0 && ((vars.scorePlaceAdjust[id] === 0 && parseInt(string, 10) > 9) || (id === 0 && vars.scorePlaceAdjust[id] === 1 && parseInt(string, 10) > 19))) {
 			if (id === 0 && vars.scorePlaceAdjust[0] === 0)
 				textMesh.position.set(-4.91, CONST.GAMEHEIGHT / 2 + 0.5, 1);
@@ -88,7 +90,7 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
 			if (mode == 1)
 				textMesh.position.set(-4.11, CONST.GAMEHEIGHT / 2 + 0.5, 1);
 			else if (mode == 2) {
-				let hyphenGeo = new TextGeometry("-", { font: font, size: fontsize, height: 0.5 });
+				let hyphenGeo = new TextGeometry("-", { font: font, size: fontsize, depth: 0.5 });
 				vars.hyphenMesh.material = textMaterial;
 				vars.hyphenMesh.position.set(-0.5, CONST.GAMEHEIGHT / 2 + 0.5, 1);
 				tools.scene.add(vars.hyphenMesh);
@@ -148,17 +150,19 @@ const setBallColor = () => {
 }
 
 // CUT
-const scoringLogic = (room_id, socket, isHost, gamemode) => {
+const scoringLogic = (room_id, socket, isHost, gamemode, handleGameEnded) => {
 	// RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
 	if (isHost === true && (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4))) {
 		if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4) {
 			vars.ballVect.set(-1, 0);
 			vars.p1Score += 1;
+			console.log("SCORE1: " + vars.p1Score + "   SCORE2: " + vars.p2Score);
 			printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, 0, 2.75);
 		}
 		else {
 			vars.ballVect.set(1, 0);
 			vars.p2Score += 1;
+			console.log("SCORE1: " + vars.p1Score + "   SCORE2: " + vars.p2Score);
 			printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, 1, 2.75);
 		}
 		if (custom.power_ups === true) {
@@ -192,11 +196,13 @@ const scoringLogic = (room_id, socket, isHost, gamemode) => {
 			vars.endString = `GAME ENDED\n${p1Name} WINS`;
 		else
 			vars.endString = `GAME ENDED\n${p2Name} WINS`;
+		console.log("SCORE1: " + vars.p1Score + "   SCORE2: " + vars.p2Score);
 		printGameInfo(vars.endMsgMesh, vars.endString, 5, -1, 3);
 		put_response = PutScores(gamemode);
 		if (put_response == false)
 			console.log("Ouch ! Scores not updated !")
 		vars.stopGame = 2;
+		handleGameEnded();
 	}
 }
 
@@ -597,7 +603,7 @@ let display_img = (image, mode) => {
 	const imgGeo = new THREE.CircleGeometry(1.7, 30);
 	let path = image;
 	if (mode >= 2)
-		path = CONST.BASE_URL_2 + image;
+		path = `http://django:8000` + image;
 	const pp = new THREE.TextureLoader().load(path);
 	let op = 0.8;
 	if (mode > 1) {
@@ -619,10 +625,14 @@ async function PutScores(gameMode) {
 	let putPath = 'local';
 	if (gameMode >= 2)
 		putPath = 'online';
-	const response = await fetch(CONST.BASE_URL + `game/${putPath}/update/${game_id}`,
+	const response = await fetch(API_URL + `/game/${putPath}/update/${game_id}`,
 		{
 			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': Cookies.get('csrftoken')
+			},
 			body: JSON.stringify({
 				"score1": vars.p1Score,
 				"score2": vars.p2Score
@@ -864,16 +874,15 @@ const create_delete_pu = (isHost, gamemode, socket, room_id) => {
 }
 
 // CUT
-const animate = (socket, room_id, isHost, gamemode, animationFrameIdRef) => {
-	animationFrameIdRef.current = requestAnimationFrame(() => animate(socket, room_id, isHost, gamemode, animationFrameIdRef));
+const animate = (socket, room_id, isHost, gamemode, handleGameEnded) => {
 	if (isHost)
 		collisionLogic(room_id, socket, gamemode);
-	scoringLogic(room_id, socket, isHost, gamemode);
+	scoringLogic(room_id, socket, isHost, gamemode, handleGameEnded);
 
 	if (vars.stopGame > 0)
 		vars.ballVect.set(0, 0);
 
-	if (isHost === true) {
+	if (isHost) {
 		objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
 		objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
 		if (custom.power_ups === true)
@@ -914,7 +923,9 @@ const animate = (socket, room_id, isHost, gamemode, animationFrameIdRef) => {
 
 	uniformData.u_time.value = performance.now() - startTime;
 	tools.renderer.render(tools.scene, tools.camera);
-
+	setTimeout(function () {
+		requestAnimationFrame(() => animate(socket, room_id, isHost, gamemode, handleGameEnded));
+	}, 5);
 }
 
 // CUT
@@ -1024,27 +1035,16 @@ const getColorVector3 = (bgColor) => {
 // 1 -> AI
 // 2 -> remote
 // 3 -> Tournament (?)
-export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode }) {
+export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode, handleGameEnded }) {
 	const containerRef = useRef(null);
 
-	const animationFrameIdRef = useRef();
-	const isAnimatingRef = useRef(true);
+	// const animationFrameIdRef = useRef();
+	// const isAnimatingRef = useRef(true);
 
 	game_id = gameInfos.game_id;
 	let socket = -1;
 	if (gamemode === 2)
 		socket = useSocketContext();
-	// if (isHost)
-	//   CreateGame(user_id, player2_id, gamemode).then(assignId).then(getPlayerInfos);
-	// if (gamemode < 2)
-	// {
-	//   let p2Name = "";
-	//   if (gamemode === 0)
-	//     p2Name = "guest";
-	//   else if (gamemode === 1)
-	//     p2Name = "ai";
-	//   printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 3.5);
-	// }
 
 	useEffect(() => {
 		if (!containerRef.current) return;
@@ -1055,7 +1055,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		tools.controls = new OrbitControls(tools.camera, tools.renderer.domElement);
 		tools.stats = Stats()
 		// document.body.appendChild(tools.renderer.domElement);
-		// document.body.appendChild(tools.stats.dom);
+		document.body.appendChild(tools.stats.dom);
 
 		tools.scene.add(objs.ball);
 		tools.scene.add(objs.ballWrap);
@@ -1174,29 +1174,25 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		if (gamemode === 2)
 			init_socket(socket, isHost);
 		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
-			animate(socket, room_id, isHost, gamemode, animationFrameIdRef);
+			animate(socket, room_id, isHost, gamemode, handleGameEnded);
 
 		// console.log('Renderer DOM Element:', tools.renderer.domElement);
 		// console.log('ContainerRef Current:', containerRef.current);
 		// console.log('Elements are equal:', tools.renderer.domElement === containerRef.current);
 
-
 		return (() => {
+			// isAnimatingRef.current = false;
 
-			isAnimatingRef.current = false;
-
-			if (animationFrameIdRef.current)
-				cancelAnimationFrame(animationFrameIdRef.current);
+			// if (animationFrameIdRef.current)
+			// 	cancelAnimationFrame(animationFrameIdRef.current);
 			document.removeEventListener('keydown', handleKeyDown);
 			document.removeEventListener('keyup', handleKeyUp);
 
 			tools.scene.traverse((object) => {
 				if (!object.isMesh) return;
-
 				if (object.geometry) {
 					object.geometry.dispose();
 				}
-
 				if (object.material) {
 					if (Array.isArray(object.material)) {
 						object.material.forEach((material) => material.dispose());
@@ -1205,9 +1201,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 					}
 				}
 			});
-
 			tools.renderer.dispose();
-
 			if (tools.stats && tools.stats.dom && tools.stats.dom.parentNode) {
 				tools.stats.dom.parentNode.removeChild(tools.stats.dom);
 			}
@@ -1216,7 +1210,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			// if (socket)
 			// 	socket.disconnect();
 		})
-	}, [containerRef.current]);
+	}, []);
 
 	return <canvas className='fixed-top' ref={containerRef} />;
 };

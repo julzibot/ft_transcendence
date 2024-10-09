@@ -1,17 +1,15 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-from rest_framework_simplejwt.views import (TokenRefreshView)
+from rest_framework.permissions import AllowAny, IsAuthenticated
+
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.contrib.auth.hashers import make_password, check_password
-
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponseBadRequest
-from django.db.models import Q 
-
-import jwt, os, datetime
+from django.db.models import Q
+from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.contrib import auth
 
 from .models import UserAccount
 from friends.models import Friendship
@@ -20,161 +18,81 @@ from dashboard.models import DashboardData
 from matchParameters.models import MatchParametersData
 from gameCustomization.models import GameCustomizationData
 
-def get_tokens_for_user(user):
-  refresh = RefreshToken.for_user(user)
-  access = refresh.access_token
-  return{
-    'refresh': str(refresh),
-    'access': str(access),
-    'expiresIn': access.payload['exp']
-  }
 
-class CustomTokenRefreshView(TokenRefreshView):
-  def post(self, request, *args, **kwargs):
-    refresh_token = request.META.get('HTTP_AUTHORIZATION')
-    if not refresh_token:
-      return Response({'error': 'Authorization: Refresh is required'}, status=status.HTTP_400_BAD_REQUEST)
-    refresh_token = refresh_token.split(' ')
-    if refresh_token[0] != 'Refresh':
-      return Response({'error': 'Authorization: Refresh is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-    refresh_token = refresh_token[1]
-    if not refresh_token:
-      raise AuthenticationFailed('Unauthenticated')
-    try:
-      payload = jwt.decode(refresh_token, os.getenv('TOKEN_SIGNING_KEY'), algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-      raise AuthenticationFailed('Unauthenticated')
-    user = UserAccount.objects.filter(id=payload['id']).first()
-    
-    access_token = AccessToken.for_user(user)
-
-    return Response({
-      'access': str(access_token),
-      'refresh': str(refresh_token),
-      'expiresIn': access_token.payload['exp']
-    })
-
-
+@method_decorator(csrf_protect, name='dispatch')
 class RegisterView(APIView):
-  def post(self, request):
-    data = request.data['data']
-    if len(data['email']) < 1 or len(data['username']) < 1 or len(data['password']) < 1 or len(data['rePass']) < 1:
-      return Response({'message': 'Email, Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
-    if  UserAccount.objects.filter(email=data['email']).exists():
-      return Response({'message': 'This adress is already taken.'}, status=status.HTTP_409_CONFLICT)
-    if  UserAccount.objects.filter(username=data['username']).exists():
-      return Response({'message': 'Username is already taken.'}, status=status.HTTP_409_CONFLICT)
-    if data['password'] != data['rePass']:
-      return Response({'message': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
-    user = UserAccount.objects.create(username=data['username'], email=data['email'], password=make_password(data['password']))
-    user.save_image_from_url()
-    serializer = UserAccountSerializer(user)
-    MatchParametersData.objects.create(user=user)
-    DashboardData.objects.create(user=user)
-    GameCustomizationData.objects.create(user=user)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+  permission_classes = [AllowAny]
 
-class OauthView(APIView):
   def post(self, request):
-    data = request.data['user']
     try:
-      user = UserAccount.objects.get(email=data['email'])
-    except ObjectDoesNotExist:
-      serializer = UserAccountSerializer(data=data)
-      serializer.is_valid(raise_exception=True)
-      user = UserAccount.objects.create(**data)
+      data = request.data
+
+      if  UserAccount.objects.filter(username=data['username']).exists():
+        return Response({'error': 'Username already exists.'}, status=status.HTTP_409_CONFLICT)
+
+      user = UserAccount.objects.create(
+        username=data['username'],
+        password=make_password(data['password'])
+      )
+
       user.save_image_from_url()
       MatchParametersData.objects.create(user=user)
       DashboardData.objects.create(user=user)
       GameCustomizationData.objects.create(user=user)
+      return Response({'success': 'User account successfully created'}, status=status.HTTP_201_CREATED)
+    except:
+      return Response({'error': 'An internal error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    backendTokens = get_tokens_for_user(user)
-    user.is_online = True
-    user.save()
-    response = Response({
-      'user': {
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'image': user.image.url
-      },
-      'backendTokens': backendTokens
-    })
-    return response
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class GetSCRFTokenView(APIView):
+  permission_classes = [AllowAny]
+  def get(self, request, format=None):
+    return Response({'success': 'CSRF cookie set'})
 
-
-class AccessTokenView(APIView):
-  def post(self, request):
-    data = request.data['user']
-    
-    try:
-      if 'email' not in data:
-        return HttpResponseBadRequest({'Bad Request: email field is required'})
-      user = UserAccount.objects.get(email=data['email'])
-    except ObjectDoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    backendTokens = get_tokens_for_user(user)
-    response = Response({
-      'user': {
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'image': user.image.url
-      },
-      'backendTokens': backendTokens
-    })
-    return response
-  
+@method_decorator(csrf_protect, name='dispatch')
 class SigninView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
-      data = request.data['user']
-      if len(data['email']) < 1:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-      try:
-        user = UserAccount.objects.get(Q(email=data['email']) | Q(username=data['email']))
-      except ObjectDoesNotExist:
-        return Response({'message': 'User does not exists, try different credentials'}, status=status.HTTP_404_NOT_FOUND)
-      if not check_password(data['password'], user.password):
-        return Response({
-          "error": "Unauthorized",
-          "message": "The password provided does not match our records. Please double-check your password and try again."
-        }, status=status.HTTP_401_UNAUTHORIZED)
+      data = request.data
+
+      user = auth.authenticate(username=data['username'], password=data['password'])
+      if user is not None:
+        request.session.save()
+        auth.login(request, user)
+      else:
+        return Response({ "message": "Given credentials do not match our records." }, status=status.HTTP_401_UNAUTHORIZED)
       user.is_online = True
       user.save()
-      response = Response({
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'image': user.image.url,
-      })
-      return response
+      user = {
+          'id': user.id,
+          'username': user.username,
+          'image': user.image.url if user.image else None
+      }
+      return Response({'user': user}, status=status.HTTP_200_OK)
 
-class UserView(APIView):
-  def get(self, request):
-    access_token = request.META.get('HTTP_AUTHORIZATION')
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class OauthView(APIView):
+  permission_classes = [AllowAny]
+  def post(self, request):
+    access_token = request.data.get('access_token')
+    if access_token is None:
+      return Response({'error': 'Access token is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not access_token:
-      return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
-    access_token = access_token.split(' ')
-    if access_token[0] != 'Bearer':
-      return Response({'error': 'Authorization: Bearer is required'}, status=status.HTTP_400_BAD_REQUEST)
-    access_token = access_token[1]
-    if not access_token:
-      raise AuthenticationFailed('Unauthenticated')
-    try:
-      payload = jwt.decode(access_token, os.getenv('TOKEN_SIGNING_KEY'), algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-      raise AuthenticationFailed('Unauthenticated')
+    user = auth.authenticate(request, access_token=access_token)
+    if user is not None:
+      request.session.save()
+      auth.login(request, user)
+      return Response({
+        'message': 'Successfully logged in',
+        'session_id': request.session.session_key,
+        }, status=status.HTTP_200_OK)
+    else:
+      return Response({'error': 'Invalid access token'}, status=status.HTTP_401_UNAUTHORIZED)
     
-    user = UserAccount.objects.filter(id=payload['id']).first()
-    serializer = UserAccountSerializer(user)
-  
-    return Response(serializer.data)
 
 class UpdateNameView(APIView):
   def put(self, request):
-    instance = UserAccount.objects.get(email=request.data['email'])
+    instance = UserAccount.objects.get(username=request.data['username'])
     newName = request.data.get('name', None)
     if newName is not None:
       try:
@@ -249,6 +167,7 @@ class DeleteAccountView(APIView):
       user = UserAccount.objects.get(id=data['user_id'])
     except ObjectDoesNotExist:
       return Response({'message': 'user does not exists'}, status=status.HTTP_404_NOT_FOUND)
+    auth.logout(request)
     user.delete_image()
     user.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
@@ -262,7 +181,22 @@ class SignOutView(APIView):
     user.save()
     return Response(status=status.HTTP_200_OK)
 
+class LogoutView(APIView):
+  def post(self, request, format=None):
+    try:
+      auth.logout(request)
+      return Response({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
+    except:
+      return Response({'message': 'An internal error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class GetUserView(APIView):
+  permission_classes = [IsAuthenticated]
+  
+  def get(self, request):
+    serializer = UserAccountSerializer(request.user)
+    return Response({'user': serializer.data})
+
+class GetUserInfosView(APIView):
   def get(self, request):
     id = request.query_params.get('id')
     try:

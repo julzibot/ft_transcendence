@@ -1,20 +1,17 @@
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {
 export default {
-	reactStrictMode: false,
-	images: {
-		remotePatterns: [
-			{
-				protocol: 'http',
-				hostname: 'backend',
-				port: '8000',
-			},
-			{
-				protocol: 'http',
-				hostname: 'localhost',
-			},
-		],
-	},
+  reactStrictMode: true,
+  images: {
+    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'django',
+        port: '8000',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+      },
+    ],
+  },
 };
-
-// export default nextConfig;
