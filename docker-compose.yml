@@ -36,8 +36,8 @@ services:
       - ./backend/.env.example
     volumes:
       # - /Users/miky/42mac/ft_transcendence/.dbdata:/var/lib/postgresql/data
-      # - /Users/julzibot/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
-      - /home/anloisea/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
+      - /Users/julzibot/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
+      # - /home/anloisea/goinfre/ft_transcendence/.dbdata:/var/lib/postgresql/data
     expose:
       - "5432"
 
