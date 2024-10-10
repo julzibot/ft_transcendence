@@ -14,7 +14,7 @@ import { useAuth } from "@/app/lib/AuthContext";
 import { Friend } from "@/types/Friend";
 import { User } from "@/types/User";
 import { SearchPlayerInputProps } from "@/types/Props";
-import { API_URL } from "@/config";
+import { BACKEND_URL } from "@/config";
 
 
 export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputProps) {
@@ -36,7 +36,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
   }, [debounce, click])
 
   const fetchData = async () => {
-    const response = await fetch(`${API_URL}/search-user/?query=${inputValue}&id=${session?.user?.id}`, {
+    const response = await fetch(`${BACKEND_URL}/api/search-user/?query=${inputValue}&id=${session?.user?.id}`, {
       method: "GET",
       credentials: 'include',
     })
@@ -49,7 +49,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
   }
 
   async function deleteFriendship(friend: Friend) {
-    const response = await fetch(`${API_URL}/friends/delete-friendship/`, {
+    const response = await fetch(`${BACKEND_URL}/api/friends/delete-friendship/`, {
       method: 'DELETE',
       credentials: 'include',
       headers: { 'Content-type': 'application/json',
@@ -67,7 +67,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
 
 
   const handleFriendRequest = async (fromUserId: number | undefined, toUserId: number | undefined) => {
-    fetch(API_URL + "/friends/send-friend-request/", {
+    fetch(BACKEND_URL + "/friends/send-friend-request/", {
       method: "POST",
       credentials: 'include',
       headers: { 
@@ -103,7 +103,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
   }
 
   async function approveFriendRequest(user: User) {
-    const response = await fetch(`${API_URL}/friends/approve-friend-request/`, {
+    const response = await fetch(`${BACKEND_URL}/api/friends/approve-friend-request/`, {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
@@ -184,13 +184,20 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
                 </div>
                   <Link href={`/account/${user.id}`}>
                   <div className="me-3 position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-                    <Image
-                      style={{ objectFit: 'cover' }}
-                      alt="profile picture"
-                      src={`http://django:8000${user.image}`}
-                      fill
-                      sizes="20vw"
-                      />
+                  <img
+                    style={{
+                      objectFit: 'cover',
+                      width: '100%',
+                      height: '100%',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                    fetchPriority="high"
+                    alt="profile picture"
+                    src={`${BACKEND_URL}${user.image}`}
+                  />
                   </div>
                       </Link>
                   <span className="flex-grow-1 overflow-hidden fs-4 fw-semibold text-truncate">

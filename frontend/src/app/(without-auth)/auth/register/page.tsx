@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link"
 import { RegisterFormSchema, RegisterFormState } from "@/app/lib/definitions"
 import { useState } from "react"
-import { API_URL } from '@/config';
+import { BACKEND_URL } from '@/config';
 import { useRouter } from 'next/navigation'
 import CSRFToken from "@/components/Utils/CSRFToken";
 import Cookies from 'js-cookie'
@@ -29,7 +29,7 @@ export default function RegisterForm() {
     }
     else {
       const { username, password, rePass } = validatedFields.data;
-      const response = await fetch(`${API_URL}/auth/register/`, {
+      const response = await fetch(`${BACKEND_URL}/api/auth/register/`, {
         method: 'POST',
         credentials: 'include',
         headers: {

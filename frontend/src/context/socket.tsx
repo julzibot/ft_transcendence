@@ -2,8 +2,9 @@
 
 import io from "socket.io-client"
 import { createContext, useContext, useEffect } from "react"
+import { DOMAIN_NAME, SOCKET_PORT } from "@/config";
 
-const socket = io("http://localhost:6500");
+const socket = io(`http://${DOMAIN_NAME}:${SOCKET_PORT}`);
 const SocketContext = createContext(socket);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {

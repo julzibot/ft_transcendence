@@ -2,17 +2,17 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useAuth } from "@/app/lib/AuthContext";
 import { useEffect } from "react";
+import { BACKEND_URL } from "@/config";
 
 export default function AuthButton() {
   const { session, logout } = useAuth();
-
+  
   useEffect(() => {
     require("bootstrap/dist/js/bootstrap.bundle.min.js")
   }, []);
-
+  
   if (session?.user) {
     return (
       <>
@@ -22,14 +22,20 @@ export default function AuthButton() {
               session.user.image ? (
                 <>
                   <div className=" border border-2 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden', position: 'relative' }}>
-                    <Image
-                      style={{ objectFit: 'cover' }}
-                      fetchPriority="high"
-                      alt="profile picture"
-                      src={`http://django:8000${session.user.image}`}
-                      fill
-                      sizes="10vw"
-                    />
+                  <img
+                    style={{
+                      objectFit: 'cover',
+                      width: '100%',
+                      height: '100%',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                    fetchPriority="high"
+                    alt="profile picture"
+                    src={`${BACKEND_URL}${session.user.image}`}
+                  />
                   </div>
                 </>
               ) : (
