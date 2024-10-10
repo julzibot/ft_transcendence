@@ -5,20 +5,8 @@ import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournamen
 import { useAuth } from '@/app/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import DOMPurify from 'dompurify';
-import { GameSettings } from '@/types/GameSettings';
+import { GameSettingsProps } from '@/types/GameSettings';
 import { gameCustomSave } from '../game/Customization';
-
-interface MatchParameters {
-	user: number,
-	points_to_win: number,
-	game_difficulty: number,
-	power_ups: boolean
-}
-
-interface GameSettingsProps {
-	setGameSettings: Function,
-	gameSettings: GameSettingsType
-}
 
 export default function Lobby({ setGameSettings, gameSettings }: GameSettingsProps) {
 	const { session } = useAuth()
@@ -61,7 +49,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		let errors = {};
 
 		if (lobbyForm?.name === '') {
-			setErrorfield({name: 'Name field Required'})
+			setErrorfield({ name: 'Name field Required' })
 		}
 
 		if (Object.keys(errors).length > 0) {
@@ -166,12 +154,16 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 				</Modal.Header>
 				<Modal.Body>
 					<form>
+
 						<div className="mb-3">
-							<label className="form-label">Name</label>
-							<span className='text-danger'>*</span>
+							<label className="form-label">Name
+								<span className='text-danger'>*</span>
+							</label>
+
 							<input type="text" className="form-control" value={lobbyForm.name} onChange={(e) => handleFormData(e, 'name')} />
 							{errorfield && lobbyForm.name === '' ? <div className="form-text text-danger">{errorfield.name}</div> : null}
 						</div>
+
 						<div className="mb-3 align-items-center text-center">
 							<label className="form-label">Points Per Game
 								<span className='text-danger'>*</span>
@@ -190,6 +182,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 								onChange={(e) => setGameSettings({ ...gameSettings, points_to_win: parseInt(e.target.value) })}
 							/>
 						</div>
+
 						<div className="mb-3">
 							<label className="form-label">Difficulty Level*</label>
 							<select
@@ -210,6 +203,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 								<option value={7}>Legend</option>
 							</select>
 						</div>
+
 						<div className='d-flex items-center flex-wrap'>
 							<div className="mb-3 form-check form-switch">
 								<input
@@ -225,6 +219,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 								<label className="form-check-label">Power ups</label>
 							</div>
 						</div>
+
 					</form>
 				</Modal.Body>
 				<Modal.Footer>
