@@ -74,7 +74,7 @@ const sparkFs = `
 
 function printGameInfo(textMesh, string, mode, id, fontsize) {
 	csts.loader.load(CONST.FONTPATH + CONST.FONTNAME, function (font) {
-		let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, height: 0.5 });
+		let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, depth: 0.5 });
 		if (mode === 0 && ((vars.scorePlaceAdjust[id] === 0 && parseInt(string, 10) > 9) || (id === 0 && vars.scorePlaceAdjust[id] === 1 && parseInt(string, 10) > 19))) {
 			if (id === 0 && vars.scorePlaceAdjust[0] === 0)
 				textMesh.position.set(-4.91, CONST.GAMEHEIGHT / 2 + 0.5, 1);
@@ -90,7 +90,7 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
 			if (mode == 1)
 				textMesh.position.set(-4.11, CONST.GAMEHEIGHT / 2 + 0.5, 1);
 			else if (mode == 2) {
-				let hyphenGeo = new TextGeometry("-", { font: font, size: fontsize, height: 0.5 });
+				let hyphenGeo = new TextGeometry("-", { font: font, size: fontsize, depth: 0.5 });
 				vars.hyphenMesh.material = textMaterial;
 				vars.hyphenMesh.position.set(-0.5, CONST.GAMEHEIGHT / 2 + 0.5, 1);
 				tools.scene.add(vars.hyphenMesh);
@@ -150,17 +150,19 @@ const setBallColor = () => {
 }
 
 // CUT
-const scoringLogic = (room_id, socket, isHost, gamemode) => {
+const scoringLogic = (room_id, socket, isHost, gamemode, handleGameEnded) => {
 	// RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
 	if (isHost === true && (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4))) {
 		if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4) {
 			vars.ballVect.set(-1, 0);
 			vars.p1Score += 1;
+			console.log("SCORE1: " + vars.p1Score + "   SCORE2: " + vars.p2Score);
 			printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, 0, 2.75);
 		}
 		else {
 			vars.ballVect.set(1, 0);
 			vars.p2Score += 1;
+			console.log("SCORE1: " + vars.p1Score + "   SCORE2: " + vars.p2Score);
 			printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, 1, 2.75);
 		}
 		if (custom.power_ups === true) {
@@ -194,11 +196,13 @@ const scoringLogic = (room_id, socket, isHost, gamemode) => {
 			vars.endString = `GAME ENDED\n${p1Name} WINS`;
 		else
 			vars.endString = `GAME ENDED\n${p2Name} WINS`;
+		console.log("SCORE1: " + vars.p1Score + "   SCORE2: " + vars.p2Score);
 		printGameInfo(vars.endMsgMesh, vars.endString, 5, -1, 3);
 		put_response = PutScores(gamemode);
 		if (put_response == false)
 			console.log("Ouch ! Scores not updated !")
 		vars.stopGame = 2;
+		handleGameEnded();
 	}
 }
 
@@ -870,15 +874,15 @@ const create_delete_pu = (isHost, gamemode, socket, room_id) => {
 }
 
 // CUT
-const animate = (socket, room_id, isHost, gamemode) => {
+const animate = (socket, room_id, isHost, gamemode, handleGameEnded) => {
 	if (isHost)
 		collisionLogic(room_id, socket, gamemode);
-	scoringLogic(room_id, socket, isHost, gamemode);
+	scoringLogic(room_id, socket, isHost, gamemode, handleGameEnded);
 
 	if (vars.stopGame > 0)
 		vars.ballVect.set(0, 0);
 
-	if (isHost === true) {
+	if (isHost) {
 		objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
 		objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
 		if (custom.power_ups === true)
@@ -919,9 +923,8 @@ const animate = (socket, room_id, isHost, gamemode) => {
 
 	uniformData.u_time.value = performance.now() - startTime;
 	tools.renderer.render(tools.scene, tools.camera);
-
 	setTimeout(function () {
-		requestAnimationFrame(() => animate(socket, room_id, isHost, gamemode));
+		requestAnimationFrame(() => animate(socket, room_id, isHost, gamemode, handleGameEnded));
 	}, 5);
 }
 
@@ -1032,34 +1035,26 @@ const getColorVector3 = (bgColor) => {
 // 1 -> AI
 // 2 -> remote
 // 3 -> Tournament (?)
-export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode }) {
-	console.log(JSON.stringify(gameInfos));
+export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode, handleGameEnded }) {
 	const containerRef = useRef(null);
+
+	// const animationFrameIdRef = useRef();
+	// const isAnimatingRef = useRef(true);
+
 	game_id = gameInfos.game_id;
 	let socket = -1;
 	if (gamemode === 2)
 		socket = useSocketContext();
-	// if (isHost)
-	//   CreateGame(user_id, player2_id, gamemode).then(assignId).then(getPlayerInfos);
-	// if (gamemode < 2)
-	// {
-	//   let p2Name = "";
-	//   if (gamemode === 0)
-	//     p2Name = "guest";
-	//   else if (gamemode === 1)
-	//     p2Name = "ai";
-	//   printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 3.5);
-	// }
 
 	useEffect(() => {
-
+		if (!containerRef.current) return;
 		tools.scene = new THREE.Scene();
 
 		tools.renderer = new THREE.WebGLRenderer({ canvas: containerRef.current });
 		tools.renderer.setSize(window.innerWidth, window.innerHeight);
 		tools.controls = new OrbitControls(tools.camera, tools.renderer.domElement);
 		tools.stats = Stats()
-		document.body.appendChild(tools.renderer.domElement);
+		// document.body.appendChild(tools.renderer.domElement);
 		document.body.appendChild(tools.stats.dom);
 
 		tools.scene.add(objs.ball);
@@ -1164,13 +1159,58 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			printGameInfo(vars.latentMesh[1], "none", 3, 1, 0.85);
 		}
 
-		document.addEventListener('keydown', function (event) { keys[event.code] = true; });
-		document.addEventListener('keyup', function (event) { keys[event.code] = false; });
+
+		const handleKeyDown = (event) => {
+			keys[event.code] = true;
+		}
+
+		const handleKeyUp = (event) => {
+			keys[event.code] = false;
+		}
+
+		document.addEventListener('keydown', handleKeyDown);
+		document.addEventListener('keyup', handleKeyUp);
 
 		if (gamemode === 2)
 			init_socket(socket, isHost);
 		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
-			animate(socket, room_id, isHost, gamemode);
+			animate(socket, room_id, isHost, gamemode, handleGameEnded);
+
+		// console.log('Renderer DOM Element:', tools.renderer.domElement);
+		// console.log('ContainerRef Current:', containerRef.current);
+		// console.log('Elements are equal:', tools.renderer.domElement === containerRef.current);
+
+		return (() => {
+			// isAnimatingRef.current = false;
+
+			// if (animationFrameIdRef.current)
+			// 	cancelAnimationFrame(animationFrameIdRef.current);
+			document.removeEventListener('keydown', handleKeyDown);
+			document.removeEventListener('keyup', handleKeyUp);
+
+			tools.scene.traverse((object) => {
+				if (!object.isMesh) return;
+				if (object.geometry) {
+					object.geometry.dispose();
+				}
+				if (object.material) {
+					if (Array.isArray(object.material)) {
+						object.material.forEach((material) => material.dispose());
+					} else {
+						object.material.dispose();
+					}
+				}
+			});
+			tools.renderer.dispose();
+			if (tools.stats && tools.stats.dom && tools.stats.dom.parentNode) {
+				tools.stats.dom.parentNode.removeChild(tools.stats.dom);
+			}
+
+			// Disconnect socket if necessary
+			// if (socket)
+			// 	socket.disconnect();
+		})
 	}, []);
+
 	return <canvas className='fixed-top' ref={containerRef} />;
 };

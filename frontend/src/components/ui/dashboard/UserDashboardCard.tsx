@@ -72,7 +72,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 					setUserHistoryFetched(true);
 				}
 				else if (response.ok) {
-					const data = await response.json();	
+					const data = await response.json();
 					setUserHistory(data);
 					setUserHistoryFetched(true);
 				}
@@ -109,7 +109,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 				setDataCreated(true);
 				return;
 			}
-	
+
 			setWinData([]);
 			setLossData([]);
 			setActivityData([]);
@@ -174,8 +174,8 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 							{
 								dataCreated && (
 									<>
-										<button type='button' className='btn btn-primary m-1' onClick={() => handle7DaysBtn}>Past 7 days</button>
-										<button type='button' className='btn btn-primary m-1' onClick={() => handleAllTimeBtn}>All time</button>
+										<button type='button' className='btn btn-primary m-1' onClick={() => handle7DaysBtn()}>Past 7 days</button>
+										<button type='button' className='btn btn-primary m-1' onClick={() => handleAllTimeBtn()}>All time</button>
 										<input
 											type="checkbox"
 											className="btn-check"
@@ -216,32 +216,32 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 										<div className="modal-body">
 											{
 												!userHistory ? (
-												<><p>No match history</p></>) : (
-												Array.isArray(userHistory?.data) && userHistory?.data.toReversed().map((obj: GameMatch, index: number) => {
-													let cardColor = '';
+													<><p>No match history</p></>) : (
+													Array.isArray(userHistory?.data) && userHistory?.data.toReversed().map((obj: GameMatch, index: number) => {
+														let cardColor = '';
 
-													switch (obj.game_mode) {
-														case 0:
-															cardColor = 'Local';
-															break;
-														case 1:
-															cardColor = 'AI';
-															break;
-														case 2:
-															cardColor = 'Online';
-															break;
-														case 3:
-															cardColor = 'Tournament';
-															break;
-														default:
-															cardColor = '';
-													}
+														switch (obj.game_mode) {
+															case 0:
+																cardColor = 'Local';
+																break;
+															case 1:
+																cardColor = 'AI';
+																break;
+															case 2:
+																cardColor = 'Online';
+																break;
+															case 3:
+																cardColor = 'Tournament';
+																break;
+															default:
+																cardColor = '';
+														}
 
 
-													let player2: Player | null = null;
-													if (obj.game_mode === 2 || obj.game_mode === 3) {
-														player2 = obj.player1.id === user.id ? obj.player2 : obj.player1;
-													}
+														let player2: Player | null = null;
+														if (obj.game_mode === 2 || obj.game_mode === 3) {
+															player2 = obj.player1.id === user.id ? obj.player2 : obj.player1;
+														}
 
 													return (
 														<div key={index} className={`match_item match_item_link ${cardColor}`}>
@@ -308,36 +308,36 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 																							<th className='match-table-row' scope='col'>
 																								<div className="d-flex flex-row align-items-center">
 
-																									<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>Guest</span>
-																									<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
-																										<Image style={{ objectFit: 'cover' }}
-																											fill
-																											src={'/static/images/default.jpg'}
-																											alt="Guest"
-																											priority={true}
-																											sizes="25vw"
-																										/>
+																										<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>Guest</span>
+																										<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+																											<Image style={{ objectFit: 'cover' }}
+																												fill
+																												src={'/static/images/default.jpg'}
+																												alt="Guest"
+																												priority={true}
+																												sizes="25vw"
+																											/>
+																										</div>
 																									</div>
-																								</div>
-																							</th>
-																						)
-																				}
-																			</tr>
-																		</thead>
-																		<tbody>
-																			<tr>
-																				<td>{obj.score1}</td>
-																				<td>-</td>
-																				<td>{obj.score2}</td>
-																			</tr>
-																		</tbody>
-																	</table>
-																}
+																								</th>
+																							)
+																					}
+																				</tr>
+																			</thead>
+																			<tbody>
+																				<tr>
+																					<td>{obj.score1}</td>
+																					<td>-</td>
+																					<td>{obj.score2}</td>
+																				</tr>
+																			</tbody>
+																		</table>
+																	}
+																</div>
 															</div>
-														</div>
-													);
-												})
-					)
+														);
+													})
+												)
 											}
 										</div>
 

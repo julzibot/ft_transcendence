@@ -6,6 +6,7 @@ import { GameSettings } from '@/types/GameSettings';
 import { BACKEND_URL } from '@/config';
 import { gameCustomSave } from './Customization';
 import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
 
 interface LocalGameProps {
 	userId: number,
@@ -14,6 +15,7 @@ interface LocalGameProps {
 
 export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 
+	const router = useRouter();
 	const [gameStarted, setGameStarted] = useState(false);
 	const [gameMode, setGameMode] = useState(-1);
 	const [gameCreated, setGameCreated] = useState(false);
@@ -57,7 +59,7 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 	useEffect(() => {
 		if (gameCreated && !matchFetched) {
 
-			const getGameInfos = async (game_id) => {
+			const getGameInfos = async (game_id: number) => {
 				const response = await fetch(BACKEND_URL + `/api/game/history/${game_id}`, {
 					method: 'GET',
 					credentials: 'include',
@@ -66,13 +68,13 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 				if (response.ok) {
 					const res = await response.json();
 					const data = res.data;
-					setGameInfos({
-						...gameInfos,
+					setGameInfos((prevGameInfos) => ({
+						...prevGameInfos,
 						p1Name: data.player1.username,
 						p2Name: gameMode === 0 ? 'guest' : 'ai',
 						p1p: data.player1.image,
 						p2p: gameMode === 0 ? '../../guest.png' : '../../airobot.png'
-					});
+					}));
 					setMatchFetched(true);
 					setGameStarted(true);
 				}
@@ -82,6 +84,20 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 			getGameInfos(gameInfos.game_id);
 		}
 	}, [gameCreated]);
+
+	useEffect(() => {
+		if (gameStarted) {
+			const localProps = {
+				gameInfos: gameInfos,
+				gameSettings: gameSettings,
+				userId: userId,
+				gameMode: gameMode
+			}
+			localStorage.setItem("localProps", JSON.stringify(localProps));
+			console.log('[LocalGame] localProps:' + JSON.stringify(localProps));
+			router.push("/game/local/play");
+		}
+	}, [gameStarted]);
 
 	const startLocal = () => {
 		gameCustomSave('parameters/', JSON.stringify(gameSettings));
@@ -95,24 +111,14 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 		setClick(true);
 	}
 
-
-
 	return (
 		<>
-			{
-				gameStarted ? (
-					<ThreeScene gameInfos={gameInfos} gameSettings={gameSettings} room_id={-1} user_id={userId} isHost={true} gamemode={gameMode} />
-				) : (
-					<>
-						<div className="d-flex justify-content-center mb-3">
-							<button type="button" className="btn btn-secondary mx-3" onClick={() => startAI()}>Play Against AI</button >
-						</div >
-						<div className="d-flex justify-content-center mb-3">
-							<button type="button" className="btn btn-secondary mx-3" onClick={() => startLocal()}>Local Multiplayer</button>
-						</div>
-					</>
-				)
-			}
+			<div className="d-flex justify-content-center mb-3">
+				<button type="button" className="btn btn-secondary mx-3" onClick={() => startAI()}>Play Against AI</button >
+			</div >
+			<div className="d-flex justify-content-center mb-3">
+				<button type="button" className="btn btn-secondary mx-3" onClick={() => startLocal()}>Local Multiplayer</button>
+			</div>
 		</>
 	)
 }
