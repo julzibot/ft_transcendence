@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import UserAccount
+from tournament.models import TournamentModel
 
 class GameChoices(models.IntegerChoices):
 	LOCAL = 0, 'Local'
@@ -8,7 +9,7 @@ class GameChoices(models.IntegerChoices):
 	TOURNAMENT = 3, 'Tournament'
 
 class GameMatch(models.Model):
-  id = models.BigAutoField(primary_key=True)
+  tournament = models.ForeignKey(TournamentModel, related_name='tournament_gamehistory', null=True, on_delete=models.CASCADE)
   game_mode = models.PositiveSmallIntegerField(
 		choices=GameChoices.choices,
 		default=GameChoices.LOCAL)
