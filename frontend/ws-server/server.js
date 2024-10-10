@@ -3,8 +3,8 @@ import { Server } from "socket.io";
 
 const PORT = 6500;
 
-let player2assigned = false;
-let fetchFinished = new Map;
+const fetchFinished = new Map();
+const socketRooms = new Map();
 
 
 
@@ -20,6 +20,8 @@ const io = new Server(server, {
 
 io.on("connection", async (socket) => {
 	console.log("User connected through socket: " + socket.id);
+	if (!socketRooms.get(socket.id))
+		socketRooms.set(socket.id, new Set());
 
 	socket.on('join_room', data => {
 		const room = io.sockets.adapter.rooms.get(data.room_id);
@@ -38,10 +40,10 @@ io.on("connection", async (socket) => {
 			console.log("[NOT HOST] Client [" + data.user_id + "] joining room: " + data.room_id);
 			socket.to(data.room_id).emit('player2_id', { player2_id: data.user_id });
 			socket.emit('isNotHost');
-			player2assigned = true;
 		}
 
 		socket.join(data.room_id);
+		socketRooms.get(socket.id).add(data.room_id);
 		if (!fetchFinished.has(data.room_id))
 			fetchFinished.set(data.room_id, 0);
 	});
@@ -50,8 +52,10 @@ io.on("connection", async (socket) => {
 		let currentCount = fetchFinished.get(data.room_id) || 0;
 		if (currentCount > -1)
 			fetchFinished.set(data.room_id, currentCount + 1);
-		if (fetchFinished.get(data.room_id) === 2)
+		if (fetchFinished.get(data.room_id) === 2) {
 			io.in(data.room_id).emit('startGame');
+			fetchFinished.delete(data.room_id);
+		}
 	})
 
 	socket.on('sendGameId', (data) => {
@@ -120,6 +124,11 @@ io.on("connection", async (socket) => {
 
 	socket.on('disconnect', () => {
 		console.log(socket.id + " disconnected");
+		socketRooms.get(socket.id).forEach(room_id => {
+			console.log(`[Server] Sending Disconnection Event -> [room] ${room_id}`)
+			socket.to(room_id).emit('playerDisconnected');
+		});
+		socketRooms.delete(socket.id);
 	});
 });
 

@@ -25,7 +25,7 @@ class UpdateMatchParametersView(APIView):
 			user_id = request.data.get('user')
 			user = UserAccount.objects.get(id=user_id)
 			try:
-				parameters = MatchParametersData.objects.get(user=user_id)
+				parameters = MatchParametersData.objects.get(user=user)
 				serialized = MatchParametersSerializer(instance=parameters, data=request.data)
 				operation = 'Updated'
 			except MatchParametersData.DoesNotExist:

@@ -27,6 +27,7 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 	const [player2_id, setPlayer2_id] = useState(null);
 	const [gameCreated, setGameCreated] = useState(false); // POST game to backend
 	const [matchFetched, setMatchFetched] = useState(false); // If gameCreated, GET match infos
+	const [playerDisconnected, setPlayerDisconnected] = useState(false);
 
 	const [gameInfos, setGameInfos] = useState({
 		game_id: -1,
@@ -62,6 +63,11 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 			console.log('Start the game!');
 			setGameJoined(true);
 		});
+
+		socket.on('playerDisconnected', () => {
+			console.log('The other player has disconnected');
+			setPlayerDisconnected(true);
+		})
 
 		return () => {
 			socket.off('isHost');
@@ -133,18 +139,20 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 
 	return (
 		<>
-			{userId && gameJoined ? (
-				<ThreeScene gameInfos={gameInfos} gameSettings={gameSettings} room_id={room} user_id={userId} isHost={isHost} gamemode={gameMode} />
-			) : (
-				<div className="d-flex justify-content-center align-items-center text-light pt-5 mt-5">
-					<div className="flex-row align-items-center mt-5">
-						<h1>Waiting for an opponent</h1>
-						<div className="p-5 text-primary" style={{ marginLeft: "41px", marginBottom: "19px", marginTop: "40px" }}>
-							<Spinner animation="border" style={{ width: '15rem', height: '15rem', borderWidth: "45px", borderRightColor: "#ff0000", borderTopRightRadius: "75px", borderTopColor: '#26cc00', borderBottomColor: '#ffd700', animationDuration: "15s" }} />
+			{
+				playerDisconnected ? (<h2>player disconnected</h2>) : (userId && gameJoined ? (
+					<ThreeScene gameInfos={gameInfos} gameSettings={gameSettings} room_id={room} user_id={userId} isHost={isHost} gamemode={gameMode} />
+				) : (
+					<div className="d-flex justify-content-center align-items-center text-light pt-5 mt-5">
+						<p>{JSON.stringify(gameInfos)}</p>
+						<div className="flex-row align-items-center mt-5">
+							<h1>Waiting for an opponent</h1>
+							<div className="p-5 text-primary" style={{ marginLeft: "41px", marginBottom: "19px", marginTop: "40px" }}>
+								<Spinner animation="border" style={{ width: '15rem', height: '15rem', borderWidth: "45px", borderRightColor: "#ff0000", borderTopRightRadius: "75px", borderTopColor: '#26cc00', borderBottomColor: '#ffd700', animationDuration: "15s" }} />
+							</div>
 						</div>
 					</div>
-				</div>
-			)
+				))
 			}
 		</>
 	)
