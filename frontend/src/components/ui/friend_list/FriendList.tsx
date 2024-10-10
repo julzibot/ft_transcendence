@@ -6,10 +6,9 @@ import { CustomTooltip } from '@/components/Utils/Tooltip';
 import SearchPlayerInput from './SearchPlayerInput';
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/lib/AuthContext';
-import Image from "next/image";
 import { Friendship, Friend } from '@/types/Friend';
 import Link from 'next/link';
-import { API_URL } from '@/config';
+import { BACKEND_URL } from '@/config';
 import Cookies from 'js-cookie';
 
 export default function FriendList() {
@@ -22,7 +21,7 @@ export default function FriendList() {
 	}, [])
 
 	async function fetchFriends() {
-		const response = await fetch(`${API_URL}/friends/get/?id=${session?.user?.id}`, {
+		const response = await fetch(`${BACKEND_URL}/api/friends/get/?id=${session?.user?.id}`, {
 			method: 'GET',
 			credentials: 'include',
 		})
@@ -31,7 +30,7 @@ export default function FriendList() {
 	}
 
 	async function approveFriendRequest(friend: Friend) {
-		const response = await fetch(`${API_URL}/friends/approve-friend-request/`, {
+		const response = await fetch(`${BACKEND_URL}/api/friends/approve-friend-request/`, {
 			method: 'PUT',
 			credentials: 'include',
 			headers: { 
@@ -51,7 +50,7 @@ export default function FriendList() {
 	}
 
 	async function deleteFriendship(friend: Friend) {
-		const response = await fetch(`${API_URL}/friends/delete-friendship/`, {
+		const response = await fetch(`${BACKEND_URL}/api/friends/delete-friendship/`, {
 			method: 'DELETE',
 			credentials: 'include',
 			headers: {
@@ -95,13 +94,20 @@ export default function FriendList() {
 								</div>
 								<Link href={`/account/${friendship.user.id}`}>
 									<div className="position-relative border border-1 border-dark-subtle rounded-circle me-3" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-										<Image
-											style={{ objectFit: 'cover' }}
-											alt="profile picture"
-											src={`http://django:8000${friendship.user.image}`}
-											fill
-											sizes="20vw"
-										/>
+									<img
+                    style={{
+                      objectFit: 'cover',
+                      width: '100%',
+                      height: '100%',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                    fetchPriority="high"
+                    alt="profile picture"
+                    src={`${BACKEND_URL}${friendship.user.image}`}
+                  />
 									</div>
 								</Link>
 								<span className="flex-grow-1 overflow-hidden  fs-4 fw-semibold text-truncate">
@@ -138,13 +144,20 @@ export default function FriendList() {
 								</div>
 								<Link href={`/account/${friendship.user.id}`}>
 									<div className="me-3 position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-										<Image
-											style={{ objectFit: 'cover' }}
-											alt="profile picture"
-											src={`http://django:8000${friendship.user.image}`}
-											fill
-											sizes={"20vw"}
-										/>
+									<img
+                    style={{
+                      objectFit: 'cover',
+                      width: '100%',
+                      height: '100%',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                    fetchPriority="high"
+                    alt="profile picture"
+                    src={`${BACKEND_URL}{friendship.user.image}`}
+                  />
 									</div>
 								</Link>
 								<div className='flex-grow-1 overflow-hidden'>

@@ -1,9 +1,9 @@
-import { API_URL } from "@/config";
+import { BACKEND_URL } from "@/config";
 import Cookies from "js-cookie";
 
 export const GetTournamentData = async () => {
 	try {
-		const response = await fetch(`${API_URL}/tournament/`, {
+		const response = await fetch(`${BACKEND_URL}/api/tournament/`, {
 			method: "GET",
 		});
 		if (!response.ok) {
@@ -19,7 +19,7 @@ export const GetTournamentData = async () => {
 export const GetLobbyData = async () => {
 	// lobby/
 	try {
-		const response = await fetch(`${API_URL}/lobby/`, {
+		const response = await fetch(`${BACKEND_URL}/api/lobby/`, {
 			method: "GET",
 			credentials: 'include'
 		});
@@ -36,7 +36,7 @@ export const GetLobbyData = async () => {
 
 export const AddTournamentData = async (payload: any) => {
 	try {
-		const response = await fetch(API_URL + `/tournament/`, {
+		const response = await fetch(BACKEND_URL + `/tournament/`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -56,7 +56,7 @@ export const AddTournamentData = async (payload: any) => {
 
 export const AddLobbyData = async (payload: any) => {
 	try {
-		const response = await fetch(API_URL + `/lobby/`, {
+		const response = await fetch(BACKEND_URL + `/api/lobby/`, {
 			method: "POST",
 			credentials: 'include',
 			headers: {
@@ -78,7 +78,7 @@ export const AddLobbyData = async (payload: any) => {
 
 export const HandlePutLobby = async (payload: any) => {
 	try {
-		const response = await fetch(API_URL + `/lobby/${payload?.lobby_id}/userId/${payload?.user_id}`, {
+		const response = await fetch(BACKEND_URL + `/api/lobby/${payload?.lobby_id}/userId/${payload?.user_id}`, {
 			method: 'PUT',
 			credentials: 'include',
 			headers: {
@@ -99,7 +99,7 @@ export const HandlePutLobby = async (payload: any) => {
 }
 
 export const fetchTournamentInfo = async (tournamentId: number) => {
-	const response = await fetch(API_URL + `/tournament/${tournamentId}`, {
+	const response = await fetch(BACKEND_URL + `/tournament/${tournamentId}`, {
 		method: "GET",
 	})
 	const data = await response.json()
@@ -107,7 +107,7 @@ export const fetchTournamentInfo = async (tournamentId: number) => {
 }
 
 export const joinTournament = async (tournamentId: number, userId: number) => {
-	const response = await fetch(API_URL + '/tournamentParticipants/joinTournament', {
+	const response = await fetch(BACKEND_URL + '/tournamentParticipants/joinTournament', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -119,21 +119,21 @@ export const joinTournament = async (tournamentId: number, userId: number) => {
 }
 
 export const leaveTournament = async (tournamentId: number, userId: number) => {
-	const response = await fetch(API_URL + `/tournamentParticipants/leaveTournament/${tournamentId}/user/${userId}`, {
+	const response = await fetch(BACKEND_URL + `/tournamentParticipants/leaveTournament/${tournamentId}/user/${userId}`, {
 		method: 'DELETE',
 	})
 	const data = await response.json()
 	return data
 }
 export const createMatchMakingTournament = async (tournamentId: number, userId: number) => {
-	const response = await fetch(API_URL + `/tournamentPairings/createMatchMaking/${tournamentId}/roundId/${userId}`, {
+	const response = await fetch(BACKEND_URL + `/tournamentPairings/createMatchMaking/${tournamentId}/roundId/${userId}`, {
 		method: "GET",
 	})
 	const data = await response.json()
 	return data
 }
 export const createMatchMaking = async (tournamentId: number, roundId: number) => {
-	const response = await fetch(API_URL + `/tournamentPairings/createMatchMaking/${tournamentId}/roundId/${roundId}`, {
+	const response = await fetch(BACKEND_URL + `/tournamentPairings/createMatchMaking/${tournamentId}/roundId/${roundId}`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',

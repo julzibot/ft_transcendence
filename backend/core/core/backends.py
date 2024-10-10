@@ -31,7 +31,7 @@ class ExternalAPITokenBackend(BaseBackend):
             )
             user.save_image_from_url()
             DashboardData.objects.create(user=user)
-            GameCustomizationData.objects.create(user_id=user)
+            GameCustomizationData.objects.create(user=user)
         return user
 
     def get_user(self, user_id):

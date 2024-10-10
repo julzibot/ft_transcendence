@@ -1,14 +1,13 @@
 "use client";
 
 import { useAuth } from "@/app/lib/AuthContext";
-import Image from "next/image";
 import { useState, FormEvent, useEffect } from "react";
 import ImageUpload from "@/components/Utils/ImageUpload";
 import DOMPurify from 'dompurify'
 import UserDashboardCard from "@/components/ui/dashboard/UserDashboardCard"
 import Customization from "@/components/game/Customization";
 import { useParams, useRouter } from "next/navigation";
-import { API_URL } from "@/config";
+import { BACKEND_URL } from "@/config";
 import Cookies from "js-cookie";
 
 interface User {
@@ -67,13 +66,17 @@ export default function ProfilePage() {
 	};
 
 	async function getUserInfo() {
-		const response = await fetch(`${API_URL}/user/get-user-info/?id=${id}`, {
+		if (!id || !/^\d+$/.test(id)) {
+			router.push(`/error?code=400`)
+			return
+		}
+		const response = await fetch(`${BACKEND_URL}/api/user/get-user-info/?id=${id}`, {
 			method: 'GET',
       credentials: 'include',
 			headers: { 'Content-Type': 'application/json' }
 		})
 		if (!response.ok) {
-			router.push(`/${id}`)
+			router.push(`/error?code=${response.status}`)
 			return;
 		}
 		const data = await response.json()
@@ -87,7 +90,7 @@ export default function ProfilePage() {
 	async function changePassword(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault()
 
-		const response = await fetch(`${API_URL}/update/password/`, {
+		const response = await fetch(`${BACKEND_URL}/api/update/password/`, {
 			method: 'PUT',
       credentials : 'include',
 			headers: { 
@@ -118,7 +121,7 @@ export default function ProfilePage() {
 			return;
 		}
 
-		const response = await fetch(`${API_URL}/update/name/`, {
+		const response = await fetch(`${BACKEND_URL}/api/update/name/`, {
 			method: 'PUT',
       credentials: 'include',
 			headers: { 
@@ -143,7 +146,7 @@ export default function ProfilePage() {
 
 
 	async function deleteAccount() {
-		const response = await fetch(`${API_URL}/auth/user/delete/`, {
+		const response = await fetch(`${BACKEND_URL}/api/auth/user/delete/`, {
 			method: 'DELETE',
       credentials: 'include',
 			headers: { 
@@ -176,15 +179,20 @@ export default function ProfilePage() {
 						<div className="position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '280px', height: '280px', overflow: 'hidden' }}>
 							{
 								user.image ? (
-									<>
-										<Image style={{ objectFit: 'cover' }}
-											fill
-											src={`http://django:8000${user.image}`}
-											alt="Profile Picture"
-											priority={true}
-											sizes="25vw"
-										/>
-									</>
+									<img
+                    style={{
+                      objectFit: 'cover',
+                      width: '100%',
+                      height: '100%',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                    fetchPriority="high"
+                    alt="profile picture"
+                    src={`${BACKEND_URL}${user.image}`}
+                  />
 								) : (
 									<div className="placeholder-glow w-100 h-100">
 										<div className="placeholder bg-secondary w-100 h-100"></div>

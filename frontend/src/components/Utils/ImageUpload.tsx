@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/lib/AuthContext';
-import { API_URL } from '@/config';
+import { BACKEND_URL } from '@/config';
 import { Upload } from 'react-bootstrap-icons'
 import Cookies from 'js-cookie';
 
@@ -22,7 +22,7 @@ export default function ImageUpload() {
             if (file) {
                 formData.append('image', file);
             }
-            await fetch(API_URL + '/update/image/', {
+            await fetch(BACKEND_URL + '/api/update/image/', {
                 method: 'PUT',
                 credentials: 'include',
                 headers: {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_URL } from "@/config";
+import { BACKEND_URL } from "@/config";
 import { get } from "http";
 
 export default function CSRFToken() {
@@ -23,7 +23,7 @@ export default function CSRFToken() {
 
   useEffect(() => {
     const fetchCSRFToken = async () => {
-        await fetch(`${API_URL}/csrf-cookie/`,{
+        await fetch(`${BACKEND_URL}/api/csrf-cookie/`,{
           method: 'GET',
           credentials: 'include',
         });

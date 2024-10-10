@@ -1,0 +1,89 @@
+upstream frontend {
+	server frontend:${FRONTEND_PORT};
+}
+
+upstream backend {
+	server django:${BACKEND_PORT};
+}
+
+upstream socket {
+	server ws-server:${SOCKET_PORT};
+}
+server {
+	listen ${FRONTEND_PORT} ssl;
+	server_name ${DOMAIN_NAME};
+
+	ssl_protocols TLSv1.3 TLSv1.2;
+	ssl_certificate /etc/ssl/certs/cert.pem;
+	ssl_certificate_key /etc/ssl/certs/key.pem;
+
+	client_max_body_size 50M;
+
+
+	location / {
+		proxy_pass http://frontend;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade ${DOLLAR}http_upgrade;
+		proxy_set_header Connection "Upgrade";
+    proxy_set_header Host ${DOLLAR}host;
+    proxy_set_header X-Real-IP ${DOLLAR}remote_addr;
+    proxy_set_header X-Forwarded-For ${DOLLAR}proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto ${DOLLAR}scheme;
+		proxy_set_header Cookie ${DOLLAR}http_cookie;
+	}
+}
+
+server {
+	listen ${BACKEND_PORT} ssl;
+	server_name ${DOMAIN_NAME};
+
+	ssl_protocols TLSv1.3 TLSv1.2;
+	ssl_certificate /etc/ssl/certs/cert.pem;
+	ssl_certificate_key /etc/ssl/certs/key.pem;
+
+	client_max_body_size 50M;
+
+	location /static {
+		alias /var/www/static;
+	}
+
+	location /media {
+			alias /var/www/media;
+			add_header Access-Control-Allow-Origin *;
+			add_header Access-Control-Allow-Methods 'GET, OPTIONS';
+			add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept, Authorization';
+	}
+
+	location / {
+				proxy_pass http://backend;
+        proxy_set_header Host ${DOLLAR}host;
+        proxy_set_header X-Real-IP ${DOLLAR}remote_addr;
+        proxy_set_header X-Forwarded-For ${DOLLAR}proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto ${DOLLAR}scheme;
+				proxy_set_header Cookie ${DOLLAR}http_cookie;
+	}
+}
+
+server {
+	listen ${SOCKET_PORT} ssl;
+	server_name ${DOMAIN_NAME};
+
+	ssl_protocols TLSv1.3 TLSv1.2;
+	ssl_certificate /etc/ssl/certs/cert.pem;
+	ssl_certificate_key /etc/ssl/certs/key.pem;
+
+	client_max_body_size 50M;
+
+
+	location / {
+		proxy_pass http://socket;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade ${DOLLAR}http_upgrade;
+		proxy_set_header Connection "Upgrade";
+    proxy_set_header Host ${DOLLAR}host;
+    proxy_set_header X-Real-IP ${DOLLAR}remote_addr;
+    proxy_set_header X-Forwarded-For ${DOLLAR}proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto ${DOLLAR}scheme;
+		proxy_set_header Cookie ${DOLLAR}http_cookie;
+	}
+}
