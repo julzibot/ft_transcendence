@@ -123,6 +123,17 @@ io.on("connection", async (socket) => {
   socket.on('sendDeletePU', data => {
     socket.to(data.room_id).emit('updateDeletePU', { pu_id: data.pu_id });
   })
+  socket.on('Enter_Tournaments_lobby', data => {
+    console.log(`${data.userId} is in the main lobby`)
+  })
+
+  socket.on('updateTournament', data => {
+    socket.emit('updateTournament', data)
+  })
+
+  socket.on('Leave_Tournaments_lobby', data => {
+    console.log(`${data.userId} left main lobby`)
+  })
 
   socket.on('disconnect', () => {
     console.log(socket.id + " disconnected");
@@ -132,6 +143,8 @@ io.on("connection", async (socket) => {
     });
     socketRooms.delete(socket.id);
   });
+
+
 });
 
 server.listen(port, () => {

@@ -5,7 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import { Button } from 'react-bootstrap'
 import { useParams } from 'next/navigation'
 import { createMatchMaking, createMatchMakingTournament, fetchTournamentInfo, joinTournament, leaveTournament } from '@/services/tournaments'
-import { getSession, useSession } from 'next-auth/react'
+import { useAuth } from '@/app/lib/AuthContext'
 import JoinGameRoom from '@/components/Tournament/JoinGameRoom'
 import { SocketProvider } from "../../../../context/socket";
 
@@ -14,7 +14,7 @@ function DetailsPage() {
   // const { data: session, status} = useSession()
   const [tournamentData, setTournamentData] = useState<any>([])
   const [join, setJoin] = useState(false)
-  const [isparticipent, setIsparticipent]= useState(false)
+  const [isparticipent, setIsparticipent] = useState(false)
   const [participantData, setParticipantData] = useState([])
   const [participantKey, setparticipentKey] = useState<string[]>([])
   const [onceUpdate, setOnceUpdate] = useState(false)
@@ -34,7 +34,7 @@ function DetailsPage() {
       console.error('Error : ', error)
     }
   }
-  
+
   const joinParticipants = async () => {
     setLoading(true)
     try {
@@ -44,12 +44,12 @@ function DetailsPage() {
           handleSingleTournament()
           setLoading(false)
         }
-      }) 
+      })
     } catch (error) {
       console.error('Error : ', error)
     }
-  } 
-  
+  }
+
   const LeaveParticipants = async () => {
     try {
       await leaveTournament(tournamentData?.detail[0]?.id, session?.user?.id).then((response) => {
@@ -57,20 +57,20 @@ function DetailsPage() {
           setIsparticipent(false)
           handleSingleTournament()
         }
-      }) 
+      })
     } catch (error) {
       console.error('Error : ', error)
     }
-  } 
-  
+  }
+
   useEffect(() => {
     setLoading(true)
     if (!onceUpdate) {
       setOnceUpdate(true)
       handleSingleTournament()
     }
-	}, [onceUpdate])
- 
+  }, [onceUpdate])
+
   const init = async (data: any) => {
     const session = await getSession()
     setIsSession(session)
@@ -82,14 +82,14 @@ function DetailsPage() {
       }
     } else {
       if (data?.detail[0]?.numberOfPlayers === data?.particpants?.length ||
-        data?.detail[0]?.numberOfPlayers <= data?.particpants?.length 
+        data?.detail[0]?.numberOfPlayers <= data?.particpants?.length
       ) {
         setJoin(false)
       } else {
         setJoin(true)
       }
     }
-  
+
     if (data?.detail[0]?.numberOfPlayers === data?.particpants?.length) {
       setLoading(true)
       const defaultRoundID = data?.detail[0]?.round > 0 ? data?.detail[0]?.round : 1
@@ -123,11 +123,11 @@ function DetailsPage() {
       })
     }
   }
-  
+
   const handlePlayerKey = (data: string | any[]) => {
     for (let index = 0; index < data?.length; index++) {
       let r = Object.keys(data[index]).filter((v) => v?.includes("player") && v?.includes("_name"))
-      setparticipentKey(r)  
+      setparticipentKey(r)
     }
   }
 
@@ -136,7 +136,7 @@ function DetailsPage() {
     for (let index = 0; index < data?.length; index++) {
       const ele = data[index]
       if (ele.winner) {
-        count +=1
+        count += 1
       }
     }
     if (data.length === count) {
@@ -145,8 +145,8 @@ function DetailsPage() {
       return false
     }
   }
-  
-  const handleNextGame = async() => {
+
+  const handleNextGame = async () => {
     const roundID = tournamentData?.detail[0]?.round + 1
     await createMatchMaking(tournamentData?.detail[0]?.id, roundID).then(async () => {
       await createMatchMakingTournament(tournamentData?.detail[0]?.id, roundID).then((res) => {
@@ -159,74 +159,74 @@ function DetailsPage() {
 
   return (
     <div className='text-light d-flex justify-content-center mt-3'>
-      <div className='w-100 border rounded p-4' style={{maxWidth:'800px'}}>
+      <div className='w-100 border rounded p-4' style={{ maxWidth: '800px' }}>
         <div className='d-flex justify-content-between'>
           <h4>Tournament Details</h4>
-          { join && <div>
-            { !isparticipent  ? <Button onClick={joinParticipants}>Join</Button> 
+          {join && <div>
+            {!isparticipent ? <Button onClick={joinParticipants}>Join</Button>
               :
               !leaveOff && <Button onClick={LeaveParticipants}>Leave</Button>
             }
-          </div> }
+          </div>}
         </div>
-          <div className='py-4'>
-              { tournamentData?.detail?.length > 0 && tournamentData?.detail.map((items: any) => {
-                return (
-                  <ul key={items?.name} style={{ listStyle:'none'}} className='p-0'>
-                    <li className="fw-bold fs-5">{items?.name}</li>
-                    <li> Number of Player : {items?.numberOfPlayers ? items?.numberOfPlayers : ' -- ' }</li>
-                    <li> Per Game points : {items?.pointsPerGame ? items?.pointsPerGame : ' -- ' }</li>
-                    <li> Timer : {items?.timer ? items?.timer : ' -- ' }</li>
-                  </ul>
-                )
-              })}
-              { !loading && tournamentData?.particpants?.length === 0 && <p className='text-center'> No particpants Added </p>}
-          </div>
-          {tournamentData?.particpants?.length > 0  && <div className='py-2'>
-            <h5 className='mb-2 fw-bold'>Tournament Participants</h5>
-              { tournamentData?.particpants.map((items: any, i: number) => {
-                return (
-                  <ul key={items?.user_id} style={{ listStyle:'none'}} className='p-0'>
-                    <li>{i+1}. {items?.user_name}</li>
-                  </ul>
-                )
-              })}
-          </div>}
-          {participantData?.length > 0  && <div className='py-2 overflow-auto' style={{ height:'auto'}}>
-              { participantData?.map((items: any, index) => {
-                return (
-                  <div key={items?.linkToJoin}>
-                    {index === 0 && <h4 className='mb-3 fw-bold text-center'>Round : {items.round_id}</h4>}
-                    <ul key={items?.user_id} style={{ listStyle:'none'}} className='p-0'>
-                        {participantKey.map((v,i) => {
-                          const player = v.replace('_name', '')
-                        return(
-                          <li key={i}>
-                              <div className='d-flex align-items-center justify-content-between'>
-                                {items?.[v] && tournamentData?.detail[0]?.tournamentWinner === null && <p className='mb-2'>{items?.[v]} <span style={{color:"#20c620", fontSize:'14px'}}>{items?.[player] === items?.winner? '- WINNER' : ''}</span></p> }
-                                {items?.[v] && tournamentData?.detail[0]?.tournamentWinner && <p className='mb-2'>{items?.[v]} <span style={{color:"#20c620", fontSize:'14px'}}>{items?.[player] === tournamentData?.detail[0]?.tournamentWinner ? '- WINNER' : ''}</span></p> }
-                                {/* {items[player] === session?.user?.id && <p className='mb-2' style={{ fontSize:'14px'}}><Link href={items?.linkToJoin}>{items?.linkToJoin}</Link></p> } */}
-																{items[player] === session?.user?.id &&
-																(<SocketProvider>
-																	<JoinGameRoom room_id={items?.linkToJoin} user_id={session?.user?.id} />
-																</SocketProvider>)}
-                              </div>
-                            </li>
-                        ) 
-                        })}
-                    </ul>
-                  </div>
-                )
-              })}
-          </div>}
-          {nextRound && <div className='text-end'>
-            <button type='button' className='btn btn-primary' onClick={handleNextGame}>Next Round</button>
-          </div>}
-          {loading && <p className='text-center'>
-              <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-              <span role="status">Loading...</span>
-          </p> }
+        <div className='py-4'>
+          {tournamentData?.detail?.length > 0 && tournamentData?.detail.map((items: any) => {
+            return (
+              <ul key={items?.name} style={{ listStyle: 'none' }} className='p-0'>
+                <li className="fw-bold fs-5">{items?.name}</li>
+                <li> Number of Player : {items?.numberOfPlayers ? items?.numberOfPlayers : ' -- '}</li>
+                <li> Per Game points : {items?.pointsPerGame ? items?.pointsPerGame : ' -- '}</li>
+                <li> Timer : {items?.timer ? items?.timer : ' -- '}</li>
+              </ul>
+            )
+          })}
+          {!loading && tournamentData?.particpants?.length === 0 && <p className='text-center'> No particpants Added </p>}
         </div>
+        {tournamentData?.particpants?.length > 0 && <div className='py-2'>
+          <h5 className='mb-2 fw-bold'>Tournament Participants</h5>
+          {tournamentData?.particpants.map((items: any, i: number) => {
+            return (
+              <ul key={items?.user_id} style={{ listStyle: 'none' }} className='p-0'>
+                <li>{i + 1}. {items?.user_name}</li>
+              </ul>
+            )
+          })}
+        </div>}
+        {participantData?.length > 0 && <div className='py-2 overflow-auto' style={{ height: 'auto' }}>
+          {participantData?.map((items: any, index) => {
+            return (
+              <div key={items?.linkToJoin}>
+                {index === 0 && <h4 className='mb-3 fw-bold text-center'>Round : {items.round_id}</h4>}
+                <ul key={items?.user_id} style={{ listStyle: 'none' }} className='p-0'>
+                  {participantKey.map((v, i) => {
+                    const player = v.replace('_name', '')
+                    return (
+                      <li key={i}>
+                        <div className='d-flex align-items-center justify-content-between'>
+                          {items?.[v] && tournamentData?.detail[0]?.tournamentWinner === null && <p className='mb-2'>{items?.[v]} <span style={{ color: "#20c620", fontSize: '14px' }}>{items?.[player] === items?.winner ? '- WINNER' : ''}</span></p>}
+                          {items?.[v] && tournamentData?.detail[0]?.tournamentWinner && <p className='mb-2'>{items?.[v]} <span style={{ color: "#20c620", fontSize: '14px' }}>{items?.[player] === tournamentData?.detail[0]?.tournamentWinner ? '- WINNER' : ''}</span></p>}
+                          {/* {items[player] === session?.user?.id && <p className='mb-2' style={{ fontSize:'14px'}}><Link href={items?.linkToJoin}>{items?.linkToJoin}</Link></p> } */}
+                          {items[player] === session?.user?.id &&
+                            (<SocketProvider>
+                              <JoinGameRoom room_id={items?.linkToJoin} user_id={session?.user?.id} />
+                            </SocketProvider>)}
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )
+          })}
+        </div>}
+        {nextRound && <div className='text-end'>
+          <button type='button' className='btn btn-primary' onClick={handleNextGame}>Next Round</button>
+        </div>}
+        {loading && <p className='text-center'>
+          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          <span role="status">Loading...</span>
+        </p>}
+      </div>
     </div>
   )
 }

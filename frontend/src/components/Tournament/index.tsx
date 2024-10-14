@@ -1,249 +1,299 @@
-'use client'
-
 import React, { useEffect, useState } from 'react'
-import "bootstrap/dist/css/bootstrap.min.css"
 import { Button, Modal } from 'react-bootstrap'
-import { useParams, useRouter } from "next/navigation";
-import { ArrowUpRightSquare } from 'react-bootstrap-icons';
-import { AddTournamentData, GetTournamentData } from '@/services/tournaments';
+import { GetTournamentData, CreateTournament, joinTournament } from '@/services/tournaments';
+import { useAuth } from '@/app/lib/AuthContext';
 import DOMPurify from 'dompurify';
+import { GameSettingsType } from '@/types/GameSettings';
+import { TournamentSettingsType } from '@/types/TournamentSettings'
+import { PersonFillUp, Controller, Toggle2On, Toggle2Off, LightningFill, ClockFill } from 'react-bootstrap-icons'
+import { BACKEND_URL } from '@/config';
+import Link from 'next/link'
+import { CustomTooltip } from '../Utils/Tooltip';
+import { useRouter } from 'next/navigation'
+import { useSocketContext } from '@/context/socket';
 
-const gameLevel = [
-	{ value: 0, level: 'Beginner' },
-	{ value: 1, level: 'Intermediate' },
-	{ value: 2, level: 'Expert' }
-]
-
-interface props {
-	gameName?: string
+interface Tournament {
+	id: number;
+	name: string,
+	points_to_win: number,
+	game_difficulty: number,
+	power_ups: boolean,
+	maxPlayerNumber: number;
+	timer: number;
 }
-export default function Tournament({ gameName }: props) {
-	const router = useRouter();
-	const params = useParams()
+
+interface GameSettingsProps {
+	setGameSettings: Function,
+	setToastShow: Function,
+	setErrorField: Function,
+	errorField: {
+		joinError: string
+	},
+	gameSettings: GameSettingsType
+}
+
+export default function Tournament({ setGameSettings, gameSettings, setToastShow, setErrorField, errorField }: GameSettingsProps) {
+	const socket = useSocketContext()
+	const { session } = useAuth()
+	const router = useRouter()
+
+	const [tournamentData, setTournamentData] = useState<Tournament[] | null>([])
 	const [modalShow, setModalShow] = useState(false);
-	const [tournamentData, setTournamentData] = useState([])
-	const [selectedTournament, setSelectedTournament] = useState()
-	const [tounamentForm, setTounamentForm] = useState({
+	const [tournamentForm, setTournamentForm] = useState<TournamentSettingsType>({
 		name: '',
-		numberOfPlayer: '',
-		isActiveTournament: false,
-		gamePoint: 0,
-		gameLevel: '',
-		timer: '0',
-		isPrivate: false,
-		power_ups: false
+		maxPlayerNumber: 4,
+		timer: 15
 	})
-	const [err, setErr] = useState('')
-	const [errField, setErrFields] = useState({
-		name: '',
-		numberOfPlayer: '',
-		isActiveTournament: '',
-		gamePoint: '',
-		gameLevel: '',
-		isPrivate: '',
-	})
-	const handleShow = () => {
-		setTounamentForm({
-			name: '',
-			numberOfPlayer: '',
-			isActiveTournament: false,
-			gamePoint: 0,
-			gameLevel: '',
-			timer: '0',
-			isPrivate: false,
-			power_ups: false
-		})
-		setErrFields({
-			name: '',
-			numberOfPlayer: '',
-			isActiveTournament: '',
-			gamePoint: '',
-			gameLevel: '',
-			isPrivate: '',
-		})
-		setModalShow(true)
+
+
+	const handleJoin = async (tournamentId: number, userId: number, linkToJoin: string) => {
+		try {
+			await joinTournament(tournamentId, userId)
+			socket.emit('updateTournament', tournamentId)
+			// router.push(`/tournaments/${linkToJoin}`)
+		}
+		catch (error: any) {
+			setErrorField({ ...errorField, joinError: error.message })
+			setToastShow(true)
+		}
 	}
 
-	const [errshow, setErrShow] = useState(false)
-
-	const handleClose = () => {
+	const submitTournament = async () => {
+		const payload = {
+			'name': tournamentForm.name,
+			'maxPlayerNumber': tournamentForm.maxPlayerNumber,
+			'timer': 10,
+			'difficultyLevel': gameSettings.game_difficulty,
+			'pointsPerGame': gameSettings.points_to_win,
+			'power_ups': gameSettings.power_ups,
+			'creator': session.user.id
+		}
+		await CreateTournament(payload)
 		setModalShow(false)
 	}
 
-	const isNumber = (event) => {
-		const charCode = (event.which) ? event.which : event.keyCode
-		if ((charCode > 31 && (charCode < 48 || charCode > 57)) && charCode !== 46) {
-			event.preventDefault()
-		} else {
-			return true
-		}
-	}
 
-	const fetchTournamentData = async () => {
-		try {
-			const tournamentdata = await GetTournamentData(gameName)
-			setTournamentData(tournamentdata?.data?.tournaments)
-		} catch (error) {
-			console.error('Error :', error)
-		}
-	}
-
-	const handleSelectedData = (item: object) => {
-		setSelectedTournament(item?.id)
-		router.push(`/tournaments/${item?.id}`)
-	}
-
-
-	const handleFormData = (e, key) => {
-		setTounamentForm({
-			...tounamentForm,
-			[key]: (key === 'isActiveTournament' || key === 'isPrivate' || key === 'power_ups') ? e.target.checked : DOMPurify.sanitize(e.target.value)
-		})
-	}
-
-	const handleSubmitData = async () => {
-		let errors = {};
-
-		if (tounamentForm?.name === '') {
-			errors.name = 'Name field Required';
-		}
-		if (tounamentForm?.numberOfPlayer === '') {
-			errors.numberOfPlayer = 'Add Number of player';
-		}
-		if (tounamentForm?.gamePoint === '') {
-			errors.gamePoint = 'Add Game point';
-		} else if (tounamentForm?.gamePoint === 0) {
-			errors.gamePoint = 'Game point should be greater than 0';
-		}
-		if (tounamentForm?.gameLevel === '') {
-			errors.gameLevel = 'Add Game level';
-		}
-
-		if (Object.keys(errors).length > 0) {
-			// There are errors, set them and show error message
-			setErrFields(errors);
-			setErrShow(true);
-		} else {
-			// No errors, proceed with form submission
-			setErrShow(false);
-
-			const payload = {
-				"name": tounamentForm?.name,
-				"numberOfPlayers": tounamentForm?.numberOfPlayer,
-				"isPrivate": tounamentForm?.isPrivate,
-				"difficultyLevel": tounamentForm?.gameLevel,
-				"isActiveTournament": tounamentForm?.isActiveTournament,
-				"pointsPerGame": tounamentForm?.gamePoint,
-				"timer": Number(tounamentForm?.timer),
-				"gameName": gameName,
-				"power_ups": tounamentForm?.power_ups,
-			};
-
+	useEffect(() => {
+		const fetchData = async () => {
 			try {
-				await AddTournamentData(payload);
-				handleClose();
-				fetchTournamentData();
+				const tournaments = await GetTournamentData()
+				setTournamentData(tournaments)
 			} catch (error) {
-				console.error('Error:', error);
-				// Handle error from API call
+				console.error('Error :', error)
 			}
 		}
-	};
-
-  useEffect(() => {
-	// localStorage.setItem('GameName', JSON.stringify(null))
-	fetchTournamentData()
-  }, [])
-  return (
-	<div className='text-light d-flex justify-content-end mt-3 vh-100'>
-	<div className='w-100 border rounded p-4' style={{maxWidth:'800px'}}>
-	  <div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
-		<h3 className='mb-0'>Tournaments</h3>
-		<Button className="btn btn-primary me-md-2" type='button' onClick={handleShow}>Create</Button>
-	  </div>
-	  <div className='w-100 pt-2' >
-		<h4 className='py-2 fw-light'>All Tournaments</h4>
-		<div className='d-flex flex-column'>
-		  {
-			tournamentData.length > 0 && tournamentData?.map((item:any, i:number) => {
-			  return(
-				<h6 style={{ cursor:'pointer', borderBottom:'1px solid #f0f0f0'}} className='d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary' key={item.id} onClick={() => handleSelectedData(item)}>
-				  <span>{i + 1}. {item.name}</span>
-				  <ArrowUpRightSquare className='h5'/>
-				</h6>
-			  )
-			})
-		  }
-		</div>
-	  </div>
-	</div>
+		socket.on('updateTournament', () => {
+			fetchData()
+		})
+		socket.emit('Enter_Tournaments_lobby', { userId: session.user.id })
+		fetchData()
+		return () => {
+			socket.emit('Leave_Tournaments_lobby', { userId: session.user.id })
+		}
+	}, [])
 
 
-			<Modal
-				show={modalShow}
-				onHide={handleClose}
-				size="lg"
-				aria-labelledby="contained-modal-title-vcenter"
-				centered
-			>
-				<Modal.Header closeButton>
-					<Modal.Title id="contained-modal-title-vcenter">
-						Add Tournament details
-					</Modal.Title>
-				</Modal.Header>
-				<Modal.Body>
-					<form>
-						<div className="mb-3">
-							<label className="form-label">Name*</label>
-							<input type="text" className="form-control" value={tounamentForm.name} onChange={(e) => handleFormData(e, 'name')} />
-							{errField && tounamentForm?.name === '' ? <div className="form-text text-danger">{errField.name}</div> : ''}
+	return (
+		<>
+			<div className='d-flex justify-content-center'>
+				<div className='w-100 border rounded p-4' style={{ maxWidth: '800px' }}>
+					<div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
+						<h3 className='mb-0 me-4'>Tournament Lobbies</h3>
+						<Button className="btn btn-outline-light me-md-2" type='button' onClick={() => setModalShow(true)}>Create</Button>
+					</div>
+					<div className='w-100 pt-2' >
+						<div className='d-flex flex-column align-items-center'>
+							{
+								tournamentData && tournamentData.map((tournament: TournamentSettingsType, index: number) => {
+									return (
+										<div key={index} className="d-flex align-items-center border-top">
+											<div className="d-flex flex-column">
+												{tournament.name}
+											</div>
+											<div className="d-flex flex-column align-items-center justify-content-evenly border-start border-end p-2">
+												<div className="d-flex flex-row align-items-center">
+													<span>{tournament.creator.username}</span>
+													<Link href={`/account/${tournament.creator.id}`}>
+														< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '18px', height: '18px', overflow: 'hidden' }}>
+															<img
+																style={{
+																	objectFit: 'cover',
+																	width: '100%',
+																	height: '100%',
+																	position: 'absolute',
+																	top: '50%',
+																	left: '50%',
+																	transform: 'translate(-50%, -50%)'
+																}}
+																fetchPriority="high"
+																alt="profile picture"
+																src={`${BACKEND_URL}${tournament.creator.image}`}
+															/>
+														</div>
+													</Link>
+												</div>
+												<CustomTooltip text="Created by" position="bottom">
+													<PersonFillUp
+														size={15}
+														color={'green'} />
+												</CustomTooltip>
+											</div>
+											<div className="d-flex flex-column align-items-center justify-content-evenly border-end p-2">
+												<span className="fw-bold">{tournament.numberOfPlayers} / {tournament.maxPlayerNumber}</span>
+												<CustomTooltip text="Players in Lobby" position="bottom">
+													<Controller size={15} />
+												</CustomTooltip>
+											</div>
+											<div className="d-flex flex-column align-items-center justify-content-evenly border-end p-2">
+												<span className="fw-bold">
+													Power Ups
+												</span>
+												<span>
+
+													<LightningFill className="me-1" size={15} />
+													{
+														tournament.power_ups ? (<Toggle2On size={15} color={'green'} />) : (<Toggle2Off size={15} color={'red'} />)
+													}
+												</span>
+											</div>
+											<div className="d-flex flex-column align-items-center justify-content-evenly border-end p-2">
+												<span className="fw-bold">Duration</span>
+												<div className="d-flex flex-row align-items-center">
+													<ClockFill size={15} />
+													<span className="ms-1">{tournament.timer}'</span>
+												</div>
+											</div>
+											<div className="p-3 border-end">
+
+												{
+													!tournament.isStarted && <button className="btn btn-warning" onClick={() => handleJoin(tournament.id, session.user.id, tournament.linkToJoin)}>Join</button>
+												}
+											</div>
+										</div>
+									)
+								})
+							}
 						</div>
-						<div className="mb-3">
-							<label className="form-label">Number Of Players*</label>
-							<input type="text" className="form-control" value={tounamentForm.numberOfPlayer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'numberOfPlayer')} />
-							{errField && tounamentForm?.numberOfPlayer === '' ? <div className="form-text text-danger">{errField.numberOfPlayer}</div> : ''}
-						</div>
-						<div className="mb-3 flex align-items-center">
-							<label className="form-label">Points Per Game* - {tounamentForm.gamePoint}</label>
-							<input type="range" className="form-range" min="0" max="100" value={tounamentForm.gamePoint} onChange={(e) => handleFormData(e, 'gamePoint')} />
-							{errField && tounamentForm?.gamePoint === 0 || tounamentForm?.gamePoint === null ? <div className="form-text text-danger">{errField.gamePoint}</div> : ''}
-						</div>
-						<div className="mb-3">
-							<label className="form-label">Difficulty Level*</label>
-							<select className="form-select" aria-label="Default select example" value={tounamentForm.gameLevel} onChange={(e) => handleFormData(e, 'gameLevel')}>
-								<option value={''}>Select Game Level</option>
-								{
-									gameLevel?.length > 0 && gameLevel.map((item, i) => {
-										return <option value={item.value} key={item?.level}>{item.level}</option>
-									})
-								}
-							</select>
-							{errField && tounamentForm?.gameLevel === '' ? <div className="form-text text-danger">{errField.gameLevel}</div> : ''}
-						</div>
-						<div className="mb-3">
-							<label className="form-label">Timer</label>
-							<input type="text" className="form-control" value={tounamentForm.timer} onKeyDown={(e) => isNumber(e)} onChange={(e) => handleFormData(e, 'timer')} />
-						</div>
-						<div className='d-flex items-center flex-wrap'>
-							<div className="mb-3 form-check me-5">
-								<input type="checkbox" className="form-check-input" value={tounamentForm.isPrivate} onChange={(e) => handleFormData(e, 'isPrivate')} />
-								<label className="form-check-label">Is This Private Tournament ?*</label>
-								{errField && tounamentForm?.isPrivate === false ? <div className="form-text text-danger">{errField.isPrivate}</div> : ''}
+					</div>
+				</div >
+
+
+				<Modal
+					show={modalShow}
+					onHide={() => setModalShow(false)}
+					size="lg"
+					aria-labelledby="contained-modal-title-vcenter"
+					centered
+				>
+					<Modal.Header closeButton>
+						<Modal.Title id="contained-modal-title-vcenter">
+							Select Game Customizations
+						</Modal.Title>
+					</Modal.Header>
+					<Modal.Body>
+						<form>
+							<div className="mb-3 text-center">
+								<label className="form-label">Name</label>
+								<span className='text-danger'>*</span>
+								<input type="text" className="form-control" value={tournamentForm.name} onChange={(e) => setTournamentForm({ ...tournamentForm, name: (DOMPurify.sanitize(e.target.value)) })} />
 							</div>
-							<div className="mb-3 form-check form-switch">
-								<input type="checkbox" className="form-check-input" value={tounamentForm.power_ups} onChange={(e) => handleFormData(e, 'power_ups')} />
-								<label className="form-check-label">Power ups</label>
+							<div className="mb-3 align-items-center text-center">
+								<label className="form-label">Max Number of Players
+									<span className='text-danger'>*</span>
+								</label>
+								<div className='text-primary m-2 d-flex text-center align-items-center justify-content-center'>
+									{tournamentForm.maxPlayerNumber}
+								</div>
+								<input
+									type="range"
+									className="form-range"
+									min="3"
+									max="8"
+									step="1"
+									id="pointsRange"
+									value={tournamentForm.maxPlayerNumber}
+									onChange={(e) => setTournamentForm({ ...tournamentForm, maxPlayerNumber: parseInt(e.target.value) })}
+								/>
 							</div>
-						</div>
-					</form>
-				</Modal.Body>
-				<Modal.Footer>
-					<Button variant="secondary" onClick={handleClose}>Close</Button>
-					<Button variant="primary" onClick={handleSubmitData}>Add</Button>
-				</Modal.Footer>
-			</Modal>
+							<div className="mb-3 align-items-center text-center">
+								<label className="form-label">Points Per Game
+									<span className='text-danger'>*</span>
+								</label>
+								<div className='text-primary m-2 d-flex3 text-center align-items-center justify-content-center'>
+									{gameSettings.points_to_win}
+								</div>
+								<input
+									type="range"
+									className="form-range"
+									min="1"
+									max="21"
+									step="1"
+									id="pointsRange"
+									value={gameSettings.points_to_win}
+									onChange={(e) => setGameSettings({ ...gameSettings, points_to_win: parseInt(e.target.value) })}
+								/>
+							</div>
+							<div className="align-items-center text-center">
+								<label className="form-label">Timer (in minutes)
+									<span className='text-danger'>*</span>
+								</label>
+								<div className='text-primary m-2 d-flex3 text-center align-items-center justify-content-center'>
+									{tournamentForm.timer}
+								</div>
+								<input
+									type="range"
+									className="form-range"
+									min="3"
+									max="30"
+									step="1"
+									id="pointsRange"
+									value={tournamentForm.timer}
+									onChange={(e) => setTournamentForm({ ...tournamentForm, timer: parseInt(e.target.value) })}
+								/>
+							</div>
+							<div className="mb-3">
+								<label className="form-label">Difficulty Level*</label>
+								<select
+									className="form-select"
+									aria-label="Game Difficulty"
+									value={gameSettings.game_difficulty}
+									onChange={(e) =>
+										setGameSettings({ ...gameSettings, game_difficulty: parseInt(e.target.value) })
+									}
+								>
+									<option value="">Select Game Difficulty</option>
+									<option value={1}>Granny</option>
+									<option value={2}>Boring</option>
+									<option value={3}>Still Slow</option>
+									<option value={4}>Kinda OK</option>
+									<option value={5}>Now We're Talking</option>
+									<option value={6}>Madman</option>
+									<option value={7}>Legend</option>
+								</select>
+							</div>
+							<div className='d-flex items-center flex-wrap'>
+								<div className="mb-3 form-check form-switch">
+									<input
+										className="form-check-input"
+										type="checkbox"
+										role="switch"
+										id="flexSwitchCheckChecked"
+										checked={gameSettings.power_ups}
+										onChange={(e) => setGameSettings({ ...gameSettings, power_ups: e.target.checked })}
+									/>
+									<label className="form-check-label">Power ups</label>
+								</div>
+							</div>You have joined the tournament'
+						</form>
+					</Modal.Body>
+					<Modal.Footer>
+						<Button variant="secondary" onClick={() => setModalShow(false)}>Close</Button>
+						<Button variant="primary" onClick={submitTournament}>Add</Button>
+					</Modal.Footer>
+				</Modal>
 
+			</div >
 
-		</div>
-	);
+		</>
+	)
 }

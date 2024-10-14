@@ -109,7 +109,7 @@ class TournamentListView(APIView):
 	def get(self, request):
 		tournaments = TournamentModel.objects.filter(isFinished=False).all()
 		serializer = TournamentSerializer(tournaments, many=True)
-		return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+		return Response(serializer.data)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class JoinTournamentView(APIView):
