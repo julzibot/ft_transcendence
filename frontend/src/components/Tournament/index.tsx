@@ -283,7 +283,7 @@ export default function Tournament({ setGameSettings, gameSettings, setToastShow
 									/>
 									<label className="form-check-label">Power ups</label>
 								</div>
-							</div>You have joined the tournament'
+							</div>
 						</form>
 					</Modal.Body>
 					<Modal.Footer>
