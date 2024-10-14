@@ -5,7 +5,6 @@ import { PersonFillAdd, CircleFill, PersonDashFill, XCircleFill, CheckCircleFill
 import { CustomTooltip } from "@/components/Utils/Tooltip";
 import useDebounce from "@/components/Utils/CustomHooks/useDebounce";
 import { Toast, ToastContainer } from 'react-bootstrap'
-import Image from "next/image";
 import Link from "next/link";
 import DOMPurify from "dompurify";
 import Cookies from "js-cookie";
@@ -52,9 +51,10 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
     const response = await fetch(`${BACKEND_URL}/api/friends/delete-friendship/`, {
       method: 'DELETE',
       credentials: 'include',
-      headers: { 'Content-type': 'application/json',
+      headers: {
+        'Content-type': 'application/json',
         'X-CSRFToken': Cookies.get('csrftoken') as string
-       },
+      },
       body: JSON.stringify({
         'user_id1': session?.user?.id,
         'user_id2': friend.id
@@ -70,7 +70,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
     fetch(BACKEND_URL + "/friends/send-friend-request/", {
       method: "POST",
       credentials: 'include',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': Cookies.get('csrftoken') as string
       },
@@ -105,7 +105,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
   async function approveFriendRequest(user: User) {
     const response = await fetch(`${BACKEND_URL}/api/friends/approve-friend-request/`, {
       method: 'PUT',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': Cookies.get('csrftoken') as string
       },
@@ -173,17 +173,17 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
         {
           searchQuery.length > 0 && searchQuery.map((user) => (
             <div key={user.id} className="d-flex flex-row align-items-center border-bottom">
-                <div className="ms-2 me-2">
-                  {
-                    user.is_online ? (
-                      <CircleFill color="green" size={12} />
-                    ) : (
-                      <CircleFill color="red" size={12} />
-                    )
-                  }
-                </div>
-                  <Link href={`/account/${user.id}`}>
-                  <div className="me-3 position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
+              <div className="ms-2 me-2">
+                {
+                  user.is_online ? (
+                    <CircleFill color="green" size={12} />
+                  ) : (
+                    <CircleFill color="red" size={12} />
+                  )
+                }
+              </div>
+              <Link href={`/account/${user.id}`}>
+                <div className="me-3 position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
                   <img
                     style={{
                       objectFit: 'cover',
@@ -198,14 +198,14 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
                     alt="profile picture"
                     src={`${BACKEND_URL}${user.image}`}
                   />
-                  </div>
-                      </Link>
-                  <span className="flex-grow-1 overflow-hidden fs-4 fw-semibold text-truncate">
-                    {user.username}
-                  </span>
-                <div className="me-2">
-                  {renderStatus(user)}
                 </div>
+              </Link>
+              <span className="flex-grow-1 overflow-hidden fs-4 fw-semibold text-truncate">
+                {user.username}
+              </span>
+              <div className="me-2">
+                {renderStatus(user)}
+              </div>
             </div>
           ))
         }
