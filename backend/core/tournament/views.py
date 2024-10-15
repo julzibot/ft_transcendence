@@ -95,12 +95,25 @@ class TournamentCreateView(APIView):
 	permission_classes = [AllowAny]
 
 	def post(self, request):
-		serializer = TournamentSerializer(data=request.data)
+		data = request.data.copy()
+		creator = UserAccount.objects.get(id=data['creator'])
+
+		serializer = TournamentSerializer(data=data)
 		if serializer.is_valid():
-				tournament = serializer.save()
-				return Response({
-						'message': 'You have created tournament successfully',
-				}, status=status.HTTP_201_CREATED)
+			validated_data = serializer.validated_data
+			tournament = TournamentModel.objects.create(
+				name=validated_data['name'],
+				maxPlayerNumber=validated_data['maxPlayerNumber'],
+				timer=validated_data['timer'],
+				power_ups=validated_data['power_ups'],
+				difficultyLevel=validated_data['difficultyLevel'],
+				pointsPerGame=validated_data['pointsPerGame'],
+				creator=creator,
+			)
+			tournament.save()
+			return Response({
+					'message': 'You have created tournament successfully',
+			}, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @method_decorator(csrf_exempt, name='dispatch')

@@ -10,7 +10,9 @@ export interface TournamentSettingsType {
   power_ups: boolean,
   timer: number,
   maxPlayerNumber: number,
+  pointsPerGame: number,
   numberOfPlayers: number,
+  difficultyLevel: number,
   creator: Creator,
   linkToJoin: string,
 }
