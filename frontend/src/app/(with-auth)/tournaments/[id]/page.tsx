@@ -1,234 +1,113 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import "bootstrap/dist/css/bootstrap.min.css"
-import { Button } from 'react-bootstrap'
 import { useParams } from 'next/navigation'
-import { createMatchMaking, createMatchMakingTournament, fetchTournamentInfo, joinTournament, leaveTournament } from '@/services/tournaments'
-import { useAuth } from '@/app/lib/AuthContext'
-import JoinGameRoom from '@/components/Tournament/JoinGameRoom'
-import { SocketProvider } from "../../../../context/socket";
+import { useEffect, useState } from 'react'
+import { useAuth } from '@/app/lib/AuthContext';
+import { BACKEND_URL } from '@/config';
+import { TournamentSettingsType, ParticipantType } from '@/types/TournamentSettings';
+import styles from '../GameSettingsStyles.module.css'
+import { PersonFillUp, Controller, Toggle2On, Toggle2Off, LightningFill, ClockFill, Activity, TrophyFill, Alphabet, CircleFill } from 'react-bootstrap-icons'
 
-function DetailsPage() {
-  const param = useParams<any>()
-  // const { data: session, status} = useSession()
-  const [tournamentData, setTournamentData] = useState<any>([])
-  const [join, setJoin] = useState(false)
-  const [isparticipent, setIsparticipent] = useState(false)
-  const [participantData, setParticipantData] = useState([])
-  const [participantKey, setparticipentKey] = useState<string[]>([])
-  const [onceUpdate, setOnceUpdate] = useState(false)
-  const [session, setIsSession] = useState<any>()
-  const [nextRound, setNextRound] = useState(false)
-  const [leaveOff, setLeaveOff] = useState(false)
-  const [loading, setLoading] = useState(false)
 
-  const handleSingleTournament = async () => {
-    try {
-      await fetchTournamentInfo(param?.id).then((response) => {
-        setTournamentData(response?.data)
-        init(response?.data)
-        setLoading(false)
-      })
-    } catch (error) {
-      console.error('Error : ', error)
-    }
-  }
-
-  const joinParticipants = async () => {
-    setLoading(true)
-    try {
-      await joinTournament(tournamentData?.detail[0]?.id, session?.user?.id).then((response) => {
-        if (response) {
-          setIsparticipent(true)
-          handleSingleTournament()
-          setLoading(false)
-        }
-      })
-    } catch (error) {
-      console.error('Error : ', error)
-    }
-  }
-
-  const LeaveParticipants = async () => {
-    try {
-      await leaveTournament(tournamentData?.detail[0]?.id, session?.user?.id).then((response) => {
-        if (response) {
-          setIsparticipent(false)
-          handleSingleTournament()
-        }
-      })
-    } catch (error) {
-      console.error('Error : ', error)
-    }
-  }
+export default function TournamentLobby() {
+  const { id } = useParams()
+  const { session } = useAuth()
+  const [participantsList, setParticipantsList] = useState<ParticipantType[]>([])
+  const [tournamentData, setTournamentData] = useState()
+  const [isMounted, setIsMounted] = useState(false)
+  const [isTranslated, setIsTranslated] = useState(false)
 
   useEffect(() => {
-    setLoading(true)
-    if (!onceUpdate) {
-      setOnceUpdate(true)
-      handleSingleTournament()
-    }
-  }, [onceUpdate])
-
-  const init = async (data: any) => {
-    const session = await getSession()
-    setIsSession(session)
-    const userjoin = data?.particpants?.find((v: any) => v.user_id === session?.user.id)
-    if (userjoin !== undefined) {
-      setIsparticipent(true)
-      if (data?.detail[0]?.numberOfPlayers < data?.particpants?.length) {
-        setJoin(true)
-      }
-    } else {
-      if (data?.detail[0]?.numberOfPlayers === data?.particpants?.length ||
-        data?.detail[0]?.numberOfPlayers <= data?.particpants?.length
-      ) {
-        setJoin(false)
-      } else {
-        setJoin(true)
-      }
-    }
-
-    if (data?.detail[0]?.numberOfPlayers === data?.particpants?.length) {
-      setLoading(true)
-      const defaultRoundID = data?.detail[0]?.round > 0 ? data?.detail[0]?.round : 1
-      await createMatchMakingTournament(data?.detail[0]?.id, defaultRoundID).then(async (res) => {
-        if (res?.particpants === undefined) {
-          await createMatchMaking(data?.detail[0]?.id, defaultRoundID).then(async () => {
-            await createMatchMakingTournament(data?.detail[0]?.id, defaultRoundID).then((res) => {
-              handlePlayerKey(res?.particpants)
-              setParticipantData(res?.particpants)
-              setLeaveOff(true)
-              setLoading(false)
-            })
-          })
-        } else {
-          if (res?.particpants && res?.particpants?.length > 0) {
-            const callRoundApi = handleWinner(res?.particpants)
-            if (data?.detail[0]?.tournamentWinner === null && callRoundApi) {
-              // next game
-              handlePlayerKey(res?.particpants)
-              setParticipantData(res?.particpants)
-              setLeaveOff(true)
-              setNextRound(true)
-            } else {
-              handlePlayerKey(res?.particpants)
-              setParticipantData(res?.particpants)
-              setLeaveOff(true)
-            }
-          }
-          setLoading(false)
-        }
+    const fetchTournamentData = async () => {
+      const response = await fetch(`${BACKEND_URL}/api/tournament/${id}/`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
       })
-    }
-  }
-
-  const handlePlayerKey = (data: string | any[]) => {
-    for (let index = 0; index < data?.length; index++) {
-      let r = Object.keys(data[index]).filter((v) => v?.includes("player") && v?.includes("_name"))
-      setparticipentKey(r)
-    }
-  }
-
-  const handleWinner = (data: any) => {
-    let count = 0
-    for (let index = 0; index < data?.length; index++) {
-      const ele = data[index]
-      if (ele.winner) {
-        count += 1
+      if(response.ok) {
+        const data = await response.json()
+        setParticipantsList(data.participants)
+        setTournamentData(data.tournament)
       }
     }
-    if (data.length === count) {
-      return true
-    } else {
-      return false
-    }
-  }
+    fetchTournamentData()
+  }, [])
 
-  const handleNextGame = async () => {
-    const roundID = tournamentData?.detail[0]?.round + 1
-    await createMatchMaking(tournamentData?.detail[0]?.id, roundID).then(async () => {
-      await createMatchMakingTournament(tournamentData?.detail[0]?.id, roundID).then((res) => {
-        handlePlayerKey(res?.particpants)
-        setParticipantData(res?.particpants)
-        setNextRound(false)
-      })
-    })
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 1000);
+    return () => clearTimeout(timer)
+  }, []);
 
   return (
-    <div className='text-light d-flex justify-content-center mt-3'>
-      <div className='w-100 border rounded p-4' style={{ maxWidth: '800px' }}>
-        <div className='d-flex justify-content-between'>
-          <h4>Tournament Details</h4>
-          {join && <div>
-            {!isparticipent ? <Button onClick={joinParticipants}>Join</Button>
-              :
-              !leaveOff && <Button onClick={LeaveParticipants}>Leave</Button>
-            }
-          </div>}
+    <>
+      <div className="d-flex flex-column align-items-center justify-content-center mt-3">
+        <div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4  ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
+          <div className="card-title text-center">
+            <h2 className="mt-3 fw-bold">{tournamentData?.name}</h2>
+          </div>
         </div>
-        <div className='py-4'>
-          {tournamentData?.detail?.length > 0 && tournamentData?.detail.map((items: any) => {
-            return (
-              <ul key={items?.name} style={{ listStyle: 'none' }} className='p-0'>
-                <li className="fw-bold fs-5">{items?.name}</li>
-                <li> Number of Player : {items?.numberOfPlayers ? items?.numberOfPlayers : ' -- '}</li>
-                <li> Per Game points : {items?.pointsPerGame ? items?.pointsPerGame : ' -- '}</li>
-                <li> Timer : {items?.timer ? items?.timer : ' -- '}</li>
-              </ul>
-            )
-          })}
-          {!loading && tournamentData?.particpants?.length === 0 && <p className='text-center'> No particpants Added </p>}
-        </div>
-        {tournamentData?.particpants?.length > 0 && <div className='py-2'>
-          <h5 className='mb-2 fw-bold'>Tournament Participants</h5>
-          {tournamentData?.particpants.map((items: any, i: number) => {
-            return (
-              <ul key={items?.user_id} style={{ listStyle: 'none' }} className='p-0'>
-                <li>{i + 1}. {items?.user_name}</li>
-              </ul>
-            )
-          })}
-        </div>}
-        {participantData?.length > 0 && <div className='py-2 overflow-auto' style={{ height: 'auto' }}>
-          {participantData?.map((items: any, index) => {
-            return (
-              <div key={items?.linkToJoin}>
-                {index === 0 && <h4 className='mb-3 fw-bold text-center'>Round : {items.round_id}</h4>}
-                <ul key={items?.user_id} style={{ listStyle: 'none' }} className='p-0'>
-                  {participantKey.map((v, i) => {
-                    const player = v.replace('_name', '')
-                    return (
-                      <li key={i}>
-                        <div className='d-flex align-items-center justify-content-between'>
-                          {items?.[v] && tournamentData?.detail[0]?.tournamentWinner === null && <p className='mb-2'>{items?.[v]} <span style={{ color: "#20c620", fontSize: '14px' }}>{items?.[player] === items?.winner ? '- WINNER' : ''}</span></p>}
-                          {items?.[v] && tournamentData?.detail[0]?.tournamentWinner && <p className='mb-2'>{items?.[v]} <span style={{ color: "#20c620", fontSize: '14px' }}>{items?.[player] === tournamentData?.detail[0]?.tournamentWinner ? '- WINNER' : ''}</span></p>}
-                          {/* {items[player] === session?.user?.id && <p className='mb-2' style={{ fontSize:'14px'}}><Link href={items?.linkToJoin}>{items?.linkToJoin}</Link></p> } */}
-                          {items[player] === session?.user?.id &&
-                            (<SocketProvider>
-                              <JoinGameRoom room_id={items?.linkToJoin} user_id={session?.user?.id} />
-                            </SocketProvider>)}
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            )
-          })}
-        </div>}
-        {nextRound && <div className='text-end'>
-          <button type='button' className='btn btn-primary' onClick={handleNextGame}>Next Round</button>
-        </div>}
-        {loading && <p className='text-center'>
-          <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          <span role="status">Loading...</span>
-        </p>}
       </div>
-    </div>
+      <div className={`card mt-3 col-4 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
+        <div className="card-body">
+        <h1>In Lobby</h1>
+        <div className="mt-2 border">
+							{
+								participantsList && participantsList.map((participant: ParticipantType, index: number) => {
+									return (
+										<div 
+											key={index} 
+											className={`${participantsList.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ?  '' : 'border-top'} d-flex flex-row align-items-center fw-bold fs-5`}
+                      style={{ height: '50px' }}
+                      >
+											<div className="border-end justify-content-center col-5 d-flex align-items-center">
+												<div className="d-flex flex-row align-items-center">
+                          <span className="me-2 text-truncate" style={{ maxWidth: 'calc(80%)' }}>{participant.user.username}</span>
+														< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
+															<img
+																style={{
+																	objectFit: 'cover',
+																	width: '100%',
+																	height: '100%',
+																	position: 'absolute',
+																	top: '50%',
+																	left: '50%',
+																	transform: 'translate(-50%, -50%)'
+																}}
+																fetchPriority="high"
+																alt="profile picture"
+																src={`${BACKEND_URL}${participant.user.image}`}
+															/>
+														</div>
+												</div>
+											</div>
+                      <div className="border-end col-1 d-flex justify-content-center align-items-center">
+                        <TrophyFill size={15} />
+                        <span className="ms-2">{participant.wins}</span>
+                      </div>
+                      <div className="border-end col-1 d-flex justify-content-center align-items-center">
+                        <Controller size={15} />
+                        <span className="ms-2">{participant.gamesPlayed}</span>
+                      </div>
+                      <div className="border-end col-2 d-flex justify-content-center align-items-center">
+                      {
+                        session.user.id === participant.user.id &&
+                        <button className="btn btn-warning">
+                          Ready
+                        </button>
+                      }
+                      </div>
+										</div>
+									)
+								})
+							}
+            </div>
+        </div>
+      </div>
+    </>
   )
 }
-
-export default DetailsPage

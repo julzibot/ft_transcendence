@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TournamentModel
+from .models import TournamentModel, ParticipantModel
 
 class TournamentSerializer(serializers.ModelSerializer):
 	creator = serializers.SerializerMethodField()
@@ -14,3 +14,17 @@ class TournamentSerializer(serializers.ModelSerializer):
 			'username': obj.creator.username,
 			'image': obj.creator.image.url
 		}
+
+class ParticipantSerializer(serializers.ModelSerializer):
+	user = serializers.SerializerMethodField()
+
+	class Meta:
+		model = ParticipantModel
+		fields = ['user', 'wins', 'gamesPlayed']
+	
+	def get_user(self, obj):
+		return {
+			'id': obj.user.id,
+			'username': obj.user.username,
+			'image': obj.user.image.url
+	}
