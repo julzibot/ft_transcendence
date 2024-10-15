@@ -154,7 +154,10 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 							</CustomTooltip>
 						</div>
 					</div>
-					<div className="mt-2 border border-top-0 border-end-0 scrollbar overflow-y-auto" style={{height: '550px'}}>
+					<div className="mt-2 border scrollbar overflow-y-auto" style={{height: '550px'}}>
+						{
+							tournamentData && tournamentData.length === 0 && <h2 className="text-center mt-5 pt-5">No Tournaments Available</h2>
+						}
 							{
 								tournamentData && tournamentData.map((tournament: TournamentSettingsType, index: number) => {
 									return (
@@ -162,7 +165,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 											type="button" 
 											key={index} 
 											onClick={() => handleJoin(tournament, session.user.id, tournament.linkToJoin)} 
-											className="border-end border-top tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5"
+											className={`${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ?  '' : 'border-top'} tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5`}
 										>
 											<div className="border-end col-2 d-flex justify-content-center align-items-center text-truncate">
 												{tournament.name}
