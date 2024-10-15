@@ -3,11 +3,9 @@
 import Tournament from "@/components/Tournament";
 import { useAuth } from "@/app/lib/AuthContext";
 import { useEffect, useState } from "react"
-import Customization from "@/components/game/Customization";
 import './styles.css'
 import styles from './GameSettingsStyles.module.css'
 import { Toast, ToastContainer } from 'react-bootstrap'
-import { SocketProvider } from "@/context/socket";
 
 export default function TournamentsPage() {
 
@@ -17,21 +15,10 @@ export default function TournamentsPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [toastShow, setToastShow] = useState<Boolean>(false)
   const [errorField, setErrorField] = useState({
-    joinError: ''
+    joinError: '',
+    nameMissing: '',
+    difficultyMissing: '',
   })
-
-  const [gameSettings, setGameSettings] = useState({
-    user_id: session?.user?.id ?? -1,
-    background: 0,
-    palette: 0,
-    bgColor: '#ff0000',
-    opacity: 80,
-    sparks: true,
-    points_to_win: 5,
-    game_difficulty: 2,
-    maxPlayerNumber: 4,
-    power_ups: true
-  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -42,27 +29,21 @@ export default function TournamentsPage() {
 
   return (
     <>
-      <SocketProvider>
         <div className="d-flex flex-column align-items-center justify-content-center">
-          <div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4 ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
+          <div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4  ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
             <div className="card-title">
               <h2 className="mt-3">Tournaments</h2>
             </div>
           </div>
-          {
-            session?.user && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
-          }
-          <div className={`card mt-3 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
+        </div>
+        <div className="d-flex justify-content-center">
+          <div className={`card mt-3 col-6 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
             <div className="card-body">
-              {
-                gameSettings && session?.user?.id && <Tournament
-                  setGameSettings={setGameSettings}
-                  gameSettings={gameSettings}
-                  setToastShow={setToastShow}
-                  setErrorField={setErrorField}
-                  errorField={errorField}
+            <Tournament
+              setToastShow={setToastShow}
+              setErrorField={setErrorField}
+              errorField={errorField}
                 />
-              }
             </div>
           </div>
         </div>
@@ -85,7 +66,6 @@ export default function TournamentsPage() {
             <Toast.Body className="text-light">{errorField.joinError}</Toast.Body>
           </Toast>
         </ToastContainer>
-      </SocketProvider>
     </>
   );
 }

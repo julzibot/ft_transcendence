@@ -18,7 +18,7 @@ class TournamentModel(models.Model):
     power_ups = models.BooleanField(default=False)
     pointsPerGame = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(21)], default=10)
     numberOfPlayers = models.PositiveIntegerField(default=0)
-    creator = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="tournament_creator")
+    creator = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="tournament_creator", null=False)
     linkToJoin = models.UUIDField(default=uuid4, editable=False)
 
 
