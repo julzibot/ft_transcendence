@@ -1,15 +1,12 @@
 "use client";
 
 import Tournament from "@/components/Tournament";
-import { useAuth } from "@/app/lib/AuthContext";
 import { useEffect, useState } from "react"
 import './styles.css'
 import styles from './GameSettingsStyles.module.css'
 import { Toast, ToastContainer } from 'react-bootstrap'
 
 export default function TournamentsPage() {
-
-  const { session } = useAuth();
 
   const [isTranslated, setIsTranslated] = useState(false);
   const [isMounted, setIsMounted] = useState(false);

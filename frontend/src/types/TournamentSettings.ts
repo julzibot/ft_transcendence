@@ -1,7 +1,7 @@
 interface Creator {
-  id: number;
+  id: string;
   username: string;
-  image_url: string;
+  image: string;
 }
 
 export interface TournamentSettingsType {
@@ -15,4 +15,14 @@ export interface TournamentSettingsType {
   difficultyLevel: number,
   creator: Creator,
   linkToJoin: string,
+}
+
+export interface ParticipantType {
+  user: {
+    id: string;
+    username: string;
+    image: string;
+  }
+  wins: number;
+  gamesPlayed: number;
 }
