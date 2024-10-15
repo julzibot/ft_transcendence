@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useContext } from "react";
-import { useSocketContext } from "../../context/socket";
+import { useSocketContext } from "@/context/socket";
 import ThreeScene from './Game';
 import { Spinner } from 'react-bootstrap';
 import "./styles.css"
@@ -85,10 +85,10 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 				const response = await fetch(BACKEND_URL + '/api/game/create', {
 					method: 'POST',
 					credentials: 'include',
-					headers: { 
+					headers: {
 						'Content-Type': 'application/json',
 						'X-CSRFToken': Cookies.get('csrftoken') as string
-					 },
+					},
 					body: JSON.stringify({
 						'player1': userId,
 						'player2': player2_id,
