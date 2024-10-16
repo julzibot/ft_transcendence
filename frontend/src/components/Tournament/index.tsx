@@ -59,7 +59,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		}
 		try {
 			await joinTournament(tournament.id, userId)
-			// router.push(`/tournaments/${linkToJoin}`)
+			router.push(`/tournaments/${linkToJoin}`)
 		}
 		catch (error: any) {
 			setErrorField({ ...errorField, joinError: error.message })
