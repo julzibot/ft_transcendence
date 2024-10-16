@@ -8,15 +8,21 @@ const frontendPort = process.env.FRONTEND_PORT || 3000;
 const fetchFinished = new Map();
 const socketRooms = new Map();
 
-const tournamentsArray = [];
+const connectedUsers = new Map(); // socket.id -> user.id
+
+let tournamentsArray = [];
 
 // const tournament = {
-// 	tournament_id: 0,
-// 	nb_of_participants: 0,
-// 	players: [],
+// 	tournamentId: 0,
+// 	players: [player...],
 // 	rooms: []
 // }
 
+// const player = {
+// 	id,
+// 	username,
+// 	image
+// }
 
 const server = createServer();
 
@@ -71,24 +77,34 @@ io.on("connection", async (socket) => {
 	});
 
 	// Tournament sockets
-	socket.on('join_tournament', (data) => {
-		// data:
-		// tournament_id,
-		// player_id,
-		// no. of participants
-		if (!tournamentsArray.find(data.tournament_id))
-			tournamentsArray.push({ tournament_id: data.tournament_id, nb_of_participants: data.nb_of_participants, players: [], rooms: [] })
+	socket.on('joinTournament', (data) => {
 
-		socket.join(data.tournament_id);
-		// inform the others that a new player has joined
-		// socket.room(tournament_id).emit('new_player_joined')
-		tournamentsArray.find(data.tournament_id).players.push(data.player_id);
+		connectedUsers.set(socket.id, data.user.id);
+		console.log(`[server.js] connected users: ${JSON.stringify(Array.from(connectedUsers.entries()))}`);
 
-		socket.emit('join_success', data);
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		if (tournament) {
+			const player = tournament.players.find(player => player.id === data.user.id)
+			if (!player) {
+				tournament.players.push(data.user);
+				if (tournament.players.length === 3)
+					io.in(tournament.tournamentId).emit('tournamentCanStart');
+			}
+		}
+		else {
+			const newTournament = {
+				tournamentId: data.tournamentId,
+				players: [data.user],
+				gameRooms: []
+			}
+			tournamentsArray.push(newTournament);
+		}
 
-		if (tournamentsArray.players.size === tournamentsArray.nb_of_participants)
-			io.in(data.tournament_id).emit('tournament_full');
+		socket.join(data.tournamentId);
+		socket.emit('joinSuccess', data);
 
+		// Inform other players about the new player
+		socket.in(data.tournamentId).emit('updatePlayers', data.user);
 	});
 
 	// Game match communication
@@ -168,16 +184,44 @@ io.on("connection", async (socket) => {
 	})
 
 	socket.on('disconnect', () => {
-		console.log(socket.id + " disconnected");
-		socketRooms.get(socket.id).forEach(room_id => {
-			console.log(`[Server] Sending Disconnection Event -> [room] ${room_id}`)
-			socket.to(room_id).emit('playerDisconnected');
+		const disconnectedUserId = connectedUsers.get(socket.id);
+		connectedUsers.delete(socket.id);
+
+		if (disconnectedUserId)
+			console.log(socket.id + ' -> ' + disconnectedUserId + " has disconnected");
+		else
+			console.log('No user to disconnect');
+
+		// Online Game Rooms
+		// socketRooms.get(socket.id).forEach(room_id => {
+		// 	console.log(`[Server] Sending Disconnection Event -> [room] [${room_id}]`)
+		// 	socket.to(room_id).emit('playerDisconnected');
+		// });
+		// socketRooms.delete(socket.id);
+
+		// Tournament
+		console.log(`[server.js] BEFORE [player] delete: ${JSON.stringify(tournamentsArray)}`);
+		// Deleting the player
+		let emptyTournamentId = '';
+		tournamentsArray = tournamentsArray.map(tournament => {
+			const updatedPlayers = tournament.players.filter(player => player.id !== disconnectedUserId);
+			if (updatedPlayers.length === 0)
+				emptyTournamentId = tournament.tournamentId;
+			return { ...tournament, players: updatedPlayers }
 		});
-		socketRooms.delete(socket.id);
+		console.log(`[server.js] AFTER [player] delete: ${JSON.stringify(tournamentsArray)}`);
+
+		// if tournament has no players left, delete tournament
+		if (emptyTournamentId.length !== 0) {
+			console.log(`[server.js] Deleting the tournament [${emptyTournamentId}]`);
+			const tournamentIndex = tournamentsArray.findIndex(tournament => tournament.tournamentId === emptyTournamentId);
+			tournamentsArray.splice(tournamentIndex, 1);
+			console.log(`[server.js] AFTER [tournament] delete: ${JSON.stringify(tournamentsArray)}`);
+			console.log(`[server.js] connected users: ${JSON.stringify(Array.from(connectedUsers.entries()))}`);
+		}
 	});
-
-
 });
+
 
 server.listen(port, () => {
 	console.log(`Socket server is now listening on https://${domain}:` + port);

@@ -4,18 +4,19 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/lib/AuthContext';
 import { BACKEND_URL } from '@/config';
-import { TournamentSettingsType, ParticipantType } from '@/types/TournamentSettings';
+import { TournamentSettingsType, ParticipantType, User } from '@/types/TournamentSettings';
 import styles from '../GameSettingsStyles.module.css'
 import { PersonFillUp, Controller, Toggle2On, Toggle2Off, LightningFill, ClockFill, Activity, TrophyFill, Alphabet, CircleFill } from 'react-bootstrap-icons'
-
+import useSocketContext from '@/context/socket';
 
 export default function TournamentLobby() {
-	const { id } = useParams()
-	const { session } = useAuth()
-	const [participantsList, setParticipantsList] = useState<ParticipantType[]>([])
-	const [tournamentData, setTournamentData] = useState()
-	const [isMounted, setIsMounted] = useState(false)
-	const [isTranslated, setIsTranslated] = useState(false)
+	const { id } = useParams();
+	const { session } = useAuth();
+	const [participantsList, setParticipantsList] = useState<ParticipantType[]>([]);
+	const [tournamentData, setTournamentData] = useState();
+	const [isMounted, setIsMounted] = useState(false);
+	const [isTranslated, setIsTranslated] = useState(false);
+	const socket = useSocketContext();
 
 	useEffect(() => {
 		const fetchTournamentData = async () => {
@@ -42,6 +43,39 @@ export default function TournamentLobby() {
 		}, 1000);
 		return () => clearTimeout(timer)
 	}, []);
+
+	useEffect(() => {
+		if (session)
+			socket.emit('joinTournament', { user: session?.user, tournamentId: id })
+	}, [session]);
+
+	useEffect(() => {
+
+		socket.on('updatePlayers', (data: User) => {
+			console.log(`[Tournament Lobby] ${JSON.stringify(data)}`)
+			setParticipantsList((prevList) => [
+				...prevList,
+				{
+					user: {
+						id: data.id,
+						username: data.username,
+						image: data.image
+					},
+					wins: 0,
+					gamesPlayed: 0
+				}
+			]);
+		});
+
+		return () => {
+			socket.disconnect();
+		};
+	}, [socket]);
+
+	useEffect(() => {
+
+		console.log(`[Participants] ${JSON.stringify(participantsList)}`);
+	}, [participantsList])
 
 	return (
 		<>
