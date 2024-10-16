@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useEffect, useState } from 'react'
 import { Button, Modal } from 'react-bootstrap'
 import { GetTournamentData, CreateTournament, joinTournament } from '@/services/tournaments';
@@ -48,6 +50,10 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		pointsPerGame: 10,
 		difficultyLevel: 4,
 		power_ups: true,
+		// isStarted: false,
+		// numberOfPlayers: 0,
+		// creator: null,
+		// linkToJoin: ''
 	})
 
 
@@ -83,7 +89,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 			'difficultyLevel': tournamentForm.difficultyLevel,
 			'pointsPerGame': tournamentForm.pointsPerGame,
 			'power_ups': tournamentForm.power_ups,
-			'creator': session.user.id
+			'creator': session?.user?.id
 		}
 		await CreateTournament(payload)
 		setModalShow(false)
@@ -234,16 +240,16 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 						</Modal.Title>
 					</Modal.Header>
 					<Modal.Body>
-						<form>
+						<form autoComplete='off'>
 							<div className="form-floating mb-5">
 								<input required type="text" className="form-control form-control-sm" id="floatingName" placeholder="Tournament Name" value={tournamentForm.name} onChange={(e) => setTournamentForm({ ...tournamentForm, name: (DOMPurify.sanitize(e.target.value)) })} />
-								<label For="floatingName">Tournament Name
+								<label htmlFor="floatingName">Tournament Name
 									<span className="text-danger">*</span>
 								</label>
 								<div className="text-danger">{errorField.nameMissing}</div>
 							</div>
 							<div className="text-center mb-3">
-								<label className="form-label" For="playerRange">Max Number of Players</label>
+								<label className="form-label" htmlFor="playerRange">Max Number of Players</label>
 								<p className="form-label text-primary">{tournamentForm.maxPlayerNumber}</p>
 								<input
 									type="range"
@@ -257,7 +263,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 								/>
 							</div>
 							<div className="text-center mb-3">
-								<label className="form-label" For="pointsRange">Points Per Game</label>
+								<label className="form-label" htmlFor="pointsRange">Points Per Game</label>
 								<p className="form-label text-primary">{tournamentForm.pointsPerGame}</p>
 								<input
 									type="range"
@@ -303,12 +309,12 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 									<option value={1}>Granny</option>
 									<option value={2}>Boring</option>
 									<option value={3}>Still Slow</option>
-									<option selected value={4}>Kinda OK</option>
+									<option value={4}>Kinda OK</option>
 									<option value={5}>Now We are Talking</option>
 									<option value={6}>Madman</option>
 									<option value={7}>Legend</option>
 								</select>
-								<label className="text-danger form-label" For="difficultyLevel">{errorField.difficultyMissing}</label>
+								<label className="text-danger form-label" htmlFor="difficultyLevel">{errorField.difficultyMissing}</label>
 							</div>
 							<div className="mb-1 form-check form-switch">
 								<input
