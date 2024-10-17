@@ -10,7 +10,7 @@ DOMAIN_NAME = os.getenv('DOMAIN_NAME')
 FRONTEND_PORT = os.getenv('FRONTEND_PORT')
 BACKEND_PORT = os.getenv('BACKEND_PORT')
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [DOMAIN_NAME, "django"]
 
@@ -33,8 +33,6 @@ INSTALLED_APPS = [
     'game',
     'tournament',
     'lobby',
-    'tournamentParticipants',
-    'tournamentPairings',
 	'gameCustomization',
 	'matchParameters'
 ]

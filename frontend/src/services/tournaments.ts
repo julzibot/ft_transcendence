@@ -5,6 +5,7 @@ export const GetTournamentData = async () => {
 	try {
 		const response = await fetch(`${BACKEND_URL}/api/tournament/`, {
 			method: "GET",
+			credentials: 'include'
 		});
 		if (!response.ok) {
 			throw new Error('Network response was not ok');
@@ -34,12 +35,14 @@ export const GetLobbyData = async () => {
 	}
 }
 
-export const AddTournamentData = async (payload: any) => {
+export const CreateTournament = async (payload: any) => {
 	try {
-		const response = await fetch(BACKEND_URL + `/tournament/`, {
+		const response = await fetch(BACKEND_URL + `/api/tournament/create/`, {
 			method: "POST",
+			credentials: 'include',
 			headers: {
 				"Content-Type": "application/json",
+				"X-CSRFToken": Cookies.get('csrftoken') as string
 			},
 			body: JSON.stringify(payload),
 		})
@@ -107,15 +110,22 @@ export const fetchTournamentInfo = async (tournamentId: number) => {
 }
 
 export const joinTournament = async (tournamentId: number, userId: number) => {
-	const response = await fetch(BACKEND_URL + '/tournamentParticipants/joinTournament', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ tournament_id: tournamentId, user_id: userId }),
-	})
-	const data = await response.json()
-	return data
+	try {
+
+		const response = await fetch(BACKEND_URL + '/api/tournament/join/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ tournament_id: tournamentId, user_id: userId }),
+		})
+		const data = await response.json()
+		if (!response.ok)
+			throw new Error(data.message)
+	}
+	catch (error) {
+		throw error
+	}
 }
 
 export const leaveTournament = async (tournamentId: number, userId: number) => {
