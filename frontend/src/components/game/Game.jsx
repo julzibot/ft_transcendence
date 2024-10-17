@@ -334,7 +334,7 @@ const collisionLogic = (room_id, socket, gamemode, p, arr) => {
 		if (gamemode === 2)
 			socket.emit('sendWallCollision', { room_id: room_id });
 		if (p.custom.sparks === true && arr.particleEffects.length < 4)
-			createSparks();
+			createSparks(p, arr);
 	}
 
 	if (p.custom.power_ups === true) {
