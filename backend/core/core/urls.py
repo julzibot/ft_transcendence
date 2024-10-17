@@ -16,8 +16,6 @@ urlpatterns = [
     path('api/game/', include('game.urls')),
     path('api/lobby/', include('lobby.urls')),
     path('api/tournament/', include('tournament.urls')),
-    path('api/tournamentParticipants/', include('tournamentParticipants.urls')),
-    path('api/tournamentPairings/', include('tournamentPairings.urls')),
 		path('api/gameCustomization/', include('gameCustomization.urls')),
 		path('api/parameters/', include('matchParameters.urls')),
 

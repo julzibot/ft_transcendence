@@ -4,43 +4,10 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
-import { vars, objs, csts, custom } from '../../utils/init';
+import { initVars } from '../../utils/init';
 import { useSocketContext } from '../../context/socket';
 import { BACKEND_URL } from '@/config';
 import Cookies from 'js-cookie';
-
-let keys = {};
-const tools = {};
-const trail = {};
-const particleEffects = [];
-const trailSegments = [];
-const power_ups = [];
-// const modes_colormap = [0x00ff33, 0xff0022, 0x4c4cff, 0xcc00cc, 0xffffff, 0x888888]
-let player_power_ups = [-1, -1];
-let activated_powers = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
-let power_timers = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
-let opponentPos = 0.;
-let game_id = 0;
-let p1Name = "";
-let p2Name = "";
-let put_response = false;
-const startTime = performance.now();
-tools.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-const uniformData = {
-	u_time:
-		{ type: 'f', value: performance.now() - startTime },
-	u_color:
-		{ type: 'v3', value: custom.color },
-	u_palette:
-		{ type: 'i', value: custom.palette },
-	u_resolution:
-		{ type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-	projectionMatrix:
-		{ value: tools.camera.projectionMatrix },
-	viewMatrix:
-		{ value: tools.camera.matrixWorldInverse }
-};
 
 const sparkUniform = {
 	u_time:
@@ -72,17 +39,18 @@ const sparkFs = `
     }
 `;
 
-function printGameInfo(textMesh, string, mode, id, fontsize) {
-	csts.loader.load(CONST.FONTPATH + CONST.FONTNAME, function (font) {
+function printGameInfo(textMesh, string, mode, id, fontsize, p) {
+	console.log("TESTING " + p.csts.loader);
+	p.csts.loader.load(CONST.FONTPATH + CONST.FONTNAME, function (font) {
 		let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, depth: 0.5 });
-		if (mode === 0 && ((vars.scorePlaceAdjust[id] === 0 && parseInt(string, 10) > 9) || (id === 0 && vars.scorePlaceAdjust[id] === 1 && parseInt(string, 10) > 19))) {
-			if (id === 0 && vars.scorePlaceAdjust[0] === 0)
+		if (mode === 0 && ((p.vars.scorePlaceAdjust[id] === 0 && parseInt(string, 10) > 9) || (id === 0 && p.vars.scorePlaceAdjust[id] === 1 && parseInt(string, 10) > 19))) {
+			if (id === 0 && p.vars.scorePlaceAdjust[0] === 0)
 				textMesh.position.set(-4.91, CONST.GAMEHEIGHT / 2 + 0.5, 1);
-			else if (id === 0 && vars.scorePlaceAdjust[0] === 1)
+			else if (id === 0 && p.vars.scorePlaceAdjust[0] === 1)
 				textMesh.position.set(-5.31, CONST.GAMEHEIGHT / 2 + 0.5, 1);
 			else
 				textMesh.position.set(1.5, CONST.GAMEHEIGHT / 2 + 0.5, 1);
-			vars.scorePlaceAdjust[id] += 1;
+			p.vars.scorePlaceAdjust[id] += 1;
 		}
 		else if (mode > 0 && mode < 3) {
 			const textMaterial = new THREE.MeshStandardMaterial({ color: 0x0000cc, emissive: 0xee00ee, emissiveIntensity: 0.3 });
@@ -91,10 +59,10 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
 				textMesh.position.set(-4.11, CONST.GAMEHEIGHT / 2 + 0.5, 1);
 			else if (mode == 2) {
 				let hyphenGeo = new TextGeometry("-", { font: font, size: fontsize, depth: 0.5 });
-				vars.hyphenMesh.material = textMaterial;
-				vars.hyphenMesh.position.set(-0.5, CONST.GAMEHEIGHT / 2 + 0.5, 1);
-				tools.scene.add(vars.hyphenMesh);
-				vars.hyphenMesh.geometry = hyphenGeo;
+				p.vars.hyphenMesh.material = textMaterial;
+				p.vars.hyphenMesh.position.set(-0.5, CONST.GAMEHEIGHT / 2 + 0.5, 1);
+				p.tools.scene.add(p.vars.hyphenMesh);
+				p.vars.hyphenMesh.geometry = hyphenGeo;
 				textMesh.position.set(2.2, CONST.GAMEHEIGHT / 2 + 0.5, 1);
 			}
 		}
@@ -107,7 +75,7 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
 				textMesh.position.set(7.5, CONST.GAMEHEIGHT / 2 - 7, -1.7);
 		}
 		else if (mode == 3) {
-			const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
+			const textMaterial = new THREE.MeshStandardMaterial({ color: p.custom.modes_colormap[5], emissive: p.custom.modes_colormap[5], emissiveIntensity: 0.3 });
 			textMesh.material = textMaterial;
 			if (id === 0)
 				textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1.6, CONST.GAMEHEIGHT / 2 + 2.4, 1)
@@ -115,7 +83,7 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
 				textMesh.position.set(CONST.GAMEWIDTH / 2 - 8.5, CONST.GAMEHEIGHT / 2 + 2.4, 1)
 		}
 		else if (mode == 4) {
-			const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[5], emissive: custom.modes_colormap[5], emissiveIntensity: 0.3 });
+			const textMaterial = new THREE.MeshStandardMaterial({ color: p.custom.modes_colormap[5], emissive: p.custom.modes_colormap[5], emissiveIntensity: 0.3 });
 			textMesh.material = textMaterial;
 			if (id === 0)
 				textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 0.75, 1)
@@ -128,105 +96,105 @@ function printGameInfo(textMesh, string, mode, id, fontsize) {
 			textMesh.position.set(-11.5, -7, -1.5);
 		}
 		else if (mode > 5) {
-			const textMaterial = new THREE.MeshStandardMaterial({ color: custom.modes_colormap[mode - 6], emissive: custom.modes_colormap[mode - 6], emissiveIntensity: 0.3 });
+			const textMaterial = new THREE.MeshStandardMaterial({ color: p.custom.modes_colormap[mode - 6], emissive: p.custom.modes_colormap[mode - 6], emissiveIntensity: 0.3 });
 			textMesh.material.dispose();
 			textMesh.material = textMaterial;
 		}
 		if (mode > -3 && mode < 6 && mode != 0)
-			tools.scene.add(textMesh);
+			p.tools.scene.add(textMesh);
 		textMesh.geometry.dispose();
 		textMesh.geometry = updatedStringGeo;
 	})
 }
 
-const setBallColor = () => {
+const setBallColor = (p) => {
 	const speedDiff = CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED;
-	const interpolate = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / speedDiff;
+	const interpolate = (p.vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / speedDiff;
 	let color = Math.min(interpolate * 255, 255) << 16 | 255 * (1 - interpolate);
 	const ballMaterial = new THREE.MeshPhongMaterial({ color: color, emissive: color, emissiveIntensity: 0.1 });
-	objs.ball.material.dispose();
-	objs.ball.material = ballMaterial;
-	csts.ballLight.color.set(color);
+	p.objs.ball.material.dispose();
+	p.objs.ball.material = ballMaterial;
+	p.csts.ballLight.color.set(color);
 }
 
 // CUT
-const scoringLogic = (room_id, socket, isHost, gamemode, handleGameEnded) => {
+const scoringLogic = (room_id, socket, isHost, gamemode, handleGameEnded, p, arr, g) => {
 	// RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
-	if (isHost === true && (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4))) {
-		if (objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4) {
-			vars.ballVect.set(-1, 0);
-			vars.p1Score += 1;
-			console.log("SCORE1: " + vars.p1Score + "   SCORE2: " + vars.p2Score);
-			printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, 0, 2.75);
+	if (isHost === true && (p.objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || p.objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4))) {
+		if (p.objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4) {
+			p.vars.ballVect.set(-1, 0);
+			p.vars.p1Score += 1;
+			console.log("SCORE1: " + p.vars.p1Score + "   SCORE2: " + p.vars.p2Score);
+			printGameInfo(p.vars.p1textMesh, p.vars.p1Score.toString(), 0, 0, 2.75, p);
 		}
 		else {
-			vars.ballVect.set(1, 0);
-			vars.p2Score += 1;
-			console.log("SCORE1: " + vars.p1Score + "   SCORE2: " + vars.p2Score);
-			printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, 1, 2.75);
+			p.vars.ballVect.set(1, 0);
+			p.vars.p2Score += 1;
+			console.log("SCORE1: " + p.vars.p1Score + "   SCORE2: " + p.vars.p2Score);
+			printGameInfo(p.vars.p2textMesh, p.vars.p2Score.toString(), 0, 1, 2.75, p);
 		}
-		if (custom.power_ups === true) {
+		if (p.custom.power_ups === true) {
 			for (let i = 0; i < 2; i++) {
-				if (activated_powers[i][1] == 2) {
+				if (arr.activated_powers[i][1] == 2) {
 					if (gamemode === 2)
 						socket.emit('sendDeactivatePU', { room_id: room_id, player_id: i, type: 1 })
-					deactivate_power(i, 1, gamemode);
+					deactivate_power(i, 1, gamemode, p, arr);
 				}
-				if (activated_powers[i][4] == 2) {
+				if (arr.activated_powers[i][4] == 2) {
 					if (gamemode === 2)
 						socket.emit('sendDeactivatePU', { room_id: room_id, player_id: i, type: 4 })
-					deactivate_power(i, 4, gamemode);
+					deactivate_power(i, 4, gamemode, p, arr);
 				}
 			}
 		}
 
-		objs.ball.position.set(0, 0, 0);
-		objs.ballWrap.position.set(0, 0, 0);
-		vars.ballSpeed = CONST.BASE_BALLSPEED;
-		vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
-		vars.ai_aim = 0;
-		setBallColor();
-		if (Math.max(vars.p1Score, vars.p2Score) == custom.win_score && vars.stopGame == 0)
-			vars.stopGame = 1;
+		p.objs.ball.position.set(0, 0, 0);
+		p.objs.ballWrap.position.set(0, 0, 0);
+		p.vars.ballSpeed = CONST.BASE_BALLSPEED;
+		p.vars.adjustedBallSpeed = CONST.BASE_BALLSPEED;
+		p.vars.ai_aim = 0;
+		setBallColor(p);
+		if (Math.max(p.vars.p1Score, p.vars.p2Score) == p.custom.win_score && p.vars.stopGame == 0)
+			p.vars.stopGame = 1;
 		if (gamemode === 2)
-			socket.emit('sendScore', { room_id: room_id, score1: vars.p1Score, score2: vars.p2Score, stopGame: vars.stopGame });
+			socket.emit('sendScore', { room_id: room_id, score1: p.vars.p1Score, score2: p.vars.p2Score, stopGame: p.vars.stopGame });
 	}
-	if (vars.stopGame === 1) {
-		if (vars.p1Score > vars.p2Score)
-			vars.endString = `GAME ENDED\n${p1Name} WINS`;
+	if (p.vars.stopGame === 1) {
+		if (p.vars.p1Score > p.vars.p2Score)
+			p.vars.endString = `GAME ENDED\n${g.p1Name} WINS`;
 		else
-			vars.endString = `GAME ENDED\n${p2Name} WINS`;
-		console.log("SCORE1: " + vars.p1Score + "   SCORE2: " + vars.p2Score);
-		printGameInfo(vars.endMsgMesh, vars.endString, 5, -1, 3);
-		put_response = PutScores(gamemode);
+			p.vars.endString = `GAME ENDED\n${g.p2Name} WINS`;
+		console.log("SCORE1: " + p.vars.p1Score + "   SCORE2: " + p.vars.p2Score);
+		printGameInfo(p.vars.endMsgMesh, p.vars.endString, 5, -1, 3, p);
+		const put_response = PutScores(gamemode, g.game_id, p);
 		if (put_response == false)
 			console.log("Ouch ! Scores not updated !")
-		vars.stopGame = 2;
+		p.vars.stopGame = 2;
 		handleGameEnded();
 	}
 }
 
-const createSparks = () => {
-	let topDownRebound = objs.ball.position.y > 0 ? 1 : 0;
+const createSparks = (p, arr) => {
+	let topDownRebound = p.objs.ball.position.y > 0 ? 1 : 0;
 
 	const vertices = [];
 	const speedVecs = [];
 	const sizes = [];
-	let speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED);
-	vars.dotProduct = vars.ballVect.dot(csts.gameVect);
+	let speedFactor = (p.vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED);
+	p.vars.dotProduct = p.vars.ballVect.dot(p.csts.gameVect);
 	if (speedFactor < 0.3)
 		speedFactor = 0.3;
 	const particleSize = Math.max(1., speedFactor * 3.);
 	// console.log("speedfactor: " + speedFactor);
-	let x = objs.ball.position.x;
-	let y = objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3 / 2);
-	let z = objs.ball.position.z;
-	let light = new THREE.PointLight(objs.ball.material.color, 15, 42);
+	let x = p.objs.ball.position.x;
+	let y = p.objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3 / 2);
+	let z = p.objs.ball.position.z;
+	let light = new THREE.PointLight(p.objs.ball.material.color, 15, 42);
 	light.position.set(x, y, z);
 	let vecx = 0.0;
 	let vecy = 0.0;
 	let vecz = 0.0;
-	for (let i = 0.0; i < speedFactor * Math.abs(vars.dotProduct) * 25; i++) {
+	for (let i = 0.0; i < speedFactor * Math.abs(p.vars.dotProduct) * 25; i++) {
 		vertices.push(x, y, z);
 		vecx = THREE.MathUtils.randFloatSpread(0.8 * speedFactor);
 		vecy = (THREE.MathUtils.randFloatSpread(0.1 * speedFactor) + 0.1 * speedFactor) * -topDownRebound;
@@ -250,179 +218,179 @@ const createSparks = () => {
 	});
 	let points = new THREE.Points(geometry, material);
 	const impactTime = performance.now();
-	particleEffects.push([points, impactTime, light]);
-	tools.scene.add(points);
-	tools.scene.add(light);
+	arr.particleEffects.push([points, impactTime, light]);
+	p.tools.scene.add(points);
+	p.tools.scene.add(light);
 }
 
 // CUT
-const collision_pu_handle = (room_id, socket, gamemode) => {
-	if ((vars.isRebound === 1 && activated_powers[0][1] === 1) || (vars.isRebound === 2 && activated_powers[1][1] === 1)) {
-		vars.adjustedBallSpeed = Math.min(2. * vars.adjustedBallSpeed, 1.3 * CONST.BALLSPEED_MAX);
-		if (vars.isRebound === 1)
-			activated_powers[0][1] = 2;
+const collision_pu_handle = (room_id, socket, gamemode, p, arr) => {
+	if ((p.vars.isRebound === 1 && arr.activated_powers[0][1] === 1) || (p.vars.isRebound === 2 && arr.activated_powers[1][1] === 1)) {
+		p.vars.adjustedBallSpeed = Math.min(2. * p.vars.adjustedBallSpeed, 1.3 * CONST.BALLSPEED_MAX);
+		if (p.vars.isRebound === 1)
+			arr.activated_powers[0][1] = 2;
 		else
-			activated_powers[1][1] = 2;
+			arr.activated_powers[1][1] = 2;
 	}
-	else if ((vars.isRebound === 1 && activated_powers[1][1] === 2) || (vars.isRebound === 2 && activated_powers[0][1] === 2)) {
+	else if ((p.vars.isRebound === 1 && arr.activated_powers[1][1] === 2) || (p.vars.isRebound === 2 && arr.activated_powers[0][1] === 2)) {
 		let id = 0;
-		if (vars.isRebound === 1)
+		if (p.vars.isRebound === 1)
 			id = 1;
 		if (gamemode === 2)
 			socket.emit('sendDeactivatePU', { room_id: room_id, player_id: id, type: 1 });
-		deactivate_power(id, 1, gamemode);
+		deactivate_power(id, 1, gamemode, p, arr);
 	}
-	if ((vars.isRebound == 1 && activated_powers[0][3] === 1) || (vars.isRebound == 2 && activated_powers[1][3] === 1)) {
-		if (vars.isRebound == 1) {
+	if ((p.vars.isRebound == 1 && arr.activated_powers[0][3] === 1) || (p.vars.isRebound == 2 && arr.activated_powers[1][3] === 1)) {
+		if (p.vars.isRebound == 1) {
 			if (gamemode === 2)
 				socket.emit('sendInvert', { room_id: room_id })
-			power_timers[0][3] = performance.now();
-			activated_powers[0][3] = 2;
+			arr.power_timers[0][3] = performance.now();
+			arr.activated_powers[0][3] = 2;
 		}
 		else {
-			power_timers[1][3] = performance.now();
-			activated_powers[1][3] = 2;
+			arr.power_timers[1][3] = performance.now();
+			arr.activated_powers[1][3] = 2;
 		}
 	}
-	if ((vars.isRebound === 1 && activated_powers[0][4] === 1) || (vars.isRebound === 2 && activated_powers[1][4] === 1)) {
+	if ((p.vars.isRebound === 1 && arr.activated_powers[0][4] === 1) || (p.vars.isRebound === 2 && arr.activated_powers[1][4] === 1)) {
 		if (gamemode === 2)
-			socket.emit('sendInvisiball', { room_id: room_id, player_id: vars.isRebound - 1 });
-		objs.ball.visible = false;
-		objs.ballWrap.visible = false;
-		csts.ballLight.intensity = 5;
-		power_timers[vars.isRebound - 1][4] = performance.now();
-		activated_powers[vars.isRebound - 1][4] = 2;
+			socket.emit('sendInvisiball', { room_id: room_id, player_id: p.vars.isRebound - 1 });
+		p.objs.ball.visible = false;
+		p.objs.ballWrap.visible = false;
+		p.csts.ballLight.intensity = 5;
+		arr.power_timers[p.vars.isRebound - 1][4] = performance.now();
+		arr.activated_powers[p.vars.isRebound - 1][4] = 2;
 	}
-	else if ((vars.isRebound === 1 && activated_powers[1][4] === 2) || (vars.isRebound === 2 && activated_powers[0][4] === 2)) {
+	else if ((p.vars.isRebound === 1 && arr.activated_powers[1][4] === 2) || (p.vars.isRebound === 2 && arr.activated_powers[0][4] === 2)) {
 		let id = 0;
-		if (vars.isRebound === 1)
+		if (p.vars.isRebound === 1)
 			id = 1;
 		if (gamemode === 2)
 			socket.emit('sendDeactivatePU', { room_id: room_id, player_id: id, type: 4 });
-		deactivate_power(id, 4, gamemode);
+		deactivate_power(id, 4, gamemode, p, arr);
 	}
 }
 
 // CUT
-const collisionLogic = (room_id, socket, gamemode) => {
-	let p1HB = new THREE.Box3().setFromObject(objs.player1);
-	let p2HB = new THREE.Box3().setFromObject(objs.player2);
-	let sph = new THREE.Box3().setFromObject(objs.ball);
+const collisionLogic = (room_id, socket, gamemode, p, arr) => {
+	let p1HB = new THREE.Box3().setFromObject(p.objs.player1);
+	let p2HB = new THREE.Box3().setFromObject(p.objs.player2);
+	let sph = new THREE.Box3().setFromObject(p.objs.ball);
 
 	// CHECK PLAYER COLLISIONS
 	if (p1HB.intersectsBox(sph))
-		vars.isRebound = 1;
+		p.vars.isRebound = 1;
 	else if (p2HB.intersectsBox(sph))
-		vars.isRebound = 2;
-	if (vars.isRebound > 0) {
+		p.vars.isRebound = 2;
+	if (p.vars.isRebound > 0) {
 		// COMPUTE THE NORMALIZED REBOUND VECTOR
-		vars.glowStartTime = performance.now();
+		p.vars.glowStartTime = performance.now();
 		if (gamemode === 2)
 			socket.emit('sendBounceGlow', { room_id: room_id });
-		if (vars.isRebound == 1)
-			vars.reboundDiff = objs.player1.position.y - objs.ball.position.y;
+		if (p.vars.isRebound == 1)
+			p.vars.reboundDiff = p.objs.player1.position.y - p.objs.ball.position.y;
 		else
-			vars.reboundDiff = objs.player2.position.y - objs.ball.position.y;
-		if (Math.abs(vars.reboundDiff) > CONST.PLAYERLEN / 2 + CONST.BALLRADIUS / 2 - 0.3 &&
-			(Math.abs(objs.ball.position.x - objs.player1.position.x) < 0.52 || Math.abs(objs.ball.position.x - objs.player2.position.x) < 0.52))
-			vars.ballVect.set(objs.ball.position.x / (CONST.GAMEWIDTH / 2), -vars.reboundDiff);
+			p.vars.reboundDiff = p.objs.player2.position.y - p.objs.ball.position.y;
+		if (Math.abs(p.vars.reboundDiff) > CONST.PLAYERLEN / 2 + CONST.BALLRADIUS / 2 - 0.3 &&
+			(Math.abs(p.objs.ball.position.x - p.objs.player1.position.x) < 0.52 || Math.abs(p.objs.ball.position.x - p.objs.player2.position.x) < 0.52))
+			p.vars.ballVect.set(p.objs.ball.position.x / (CONST.GAMEWIDTH / 2), -p.vars.reboundDiff);
 		else {
-			vars.ballVect.x *= -1;
-			vars.ballVect.y -= vars.reboundDiff / 2;
+			p.vars.ballVect.x *= -1;
+			p.vars.ballVect.y -= p.vars.reboundDiff / 2;
 		}
-		vars.ballVect.normalize();
+		p.vars.ballVect.normalize();
 
 		// IF THE REBOUND ANDLE IS TOO WIDE, SET IT TO 40 degrees
-		vars.dotProduct = vars.ballVect.dot(csts.gameVect);
-		vars.directions = [1, 1];
-		if (vars.isRebound == 2)
-			vars.directions[0] = -1;
-		if (vars.ballVect.y < 0)
-			vars.directions[1] = -1;
-		if (Math.acos(vars.dotProduct * vars.directions[0]) * 180 / Math.PI > 90 - CONST.MINREBOUNDANGLE) {
-			vars.ballVect.set(Math.cos(CONST.MINREBOUNDANGLE * Math.PI / 180) * vars.directions[0], Math.sin(CONST.MINREBOUNDANGLE * Math.PI / 180) * vars.directions[1]);
-			vars.ballVect.normalize();
+		p.vars.dotProduct = p.vars.ballVect.dot(p.csts.gameVect);
+		p.vars.directions = [1, 1];
+		if (p.vars.isRebound == 2)
+			p.vars.directions[0] = -1;
+		if (p.vars.ballVect.y < 0)
+			p.vars.directions[1] = -1;
+		if (Math.acos(p.vars.dotProduct * p.vars.directions[0]) * 180 / Math.PI > 90 - CONST.MINREBOUNDANGLE) {
+			p.vars.ballVect.set(Math.cos(CONST.MINREBOUNDANGLE * Math.PI / 180) * p.vars.directions[0], Math.sin(CONST.MINREBOUNDANGLE * Math.PI / 180) * p.vars.directions[1]);
+			p.vars.ballVect.normalize();
 		}
 
 		// ADJUST THE BALL SPEED, WITHOUT GOING OVER OR UNDER THE LIMITS
-		if (vars.ballSpeed < CONST.BALLSPEED_MAX)
-			vars.ballSpeed *= CONST.BALLSPEED_INCREMENT;
-		vars.adjustedBallSpeed *= 1 + (Math.abs(vars.reboundDiff) - (CONST.PLAYERLEN / 6)) / 2;
-		if (vars.adjustedBallSpeed < vars.ballSpeed)
-			vars.adjustedBallSpeed = vars.ballSpeed;
-		else if (vars.adjustedBallSpeed > CONST.BALLSPEED_MAX)
-			vars.adjustedBallSpeed = CONST.BALLSPEED_MAX;
+		if (p.vars.ballSpeed < CONST.BALLSPEED_MAX)
+			p.vars.ballSpeed *= CONST.BALLSPEED_INCREMENT;
+		p.vars.adjustedBallSpeed *= 1 + (Math.abs(p.vars.reboundDiff) - (CONST.PLAYERLEN / 6)) / 2;
+		if (p.vars.adjustedBallSpeed < p.vars.ballSpeed)
+			p.vars.adjustedBallSpeed = p.vars.ballSpeed;
+		else if (p.vars.adjustedBallSpeed > CONST.BALLSPEED_MAX)
+			p.vars.adjustedBallSpeed = CONST.BALLSPEED_MAX;
 
 		// activate the pending power-ups
-		if (custom.power_ups === true)
-			collision_pu_handle(room_id, socket, gamemode);
-		vars.isRebound = 0;
+		if (p.custom.power_ups === true)
+			collision_pu_handle(room_id, socket, gamemode, p, arr);
+		p.vars.isRebound = 0;
 
-		setBallColor();
+		setBallColor(p);
 	}
 	// CHECK TOP AND BOT BOUNDARY COLLISIONS
-	if (csts.topHB.intersectsBox(sph) || csts.botHB.intersectsBox(sph)) {
-		vars.ballVect.y *= -1;
+	if (p.csts.topHB.intersectsBox(sph) || p.csts.botHB.intersectsBox(sph)) {
+		p.vars.ballVect.y *= -1;
 		if (gamemode === 2)
 			socket.emit('sendWallCollision', { room_id: room_id });
-		if (custom.sparks === true && particleEffects.length < 4)
+		if (p.custom.sparks === true && arr.particleEffects.length < 4)
 			createSparks();
 	}
 
-	if (custom.power_ups === true) {
+	if (p.custom.power_ups === true) {
 		let pu_dir = 0;
-		if (vars.ballVect.x < 0)
+		if (p.vars.ballVect.x < 0)
 			pu_dir = 1;
-		for (let i = 0; i < power_ups.length; i++) {
-			if (power_ups[i][4].intersectsBox(sph)) {
-				player_power_ups[pu_dir] = power_ups[i][5];
-				printGameInfo(vars.latentMesh[pu_dir], custom.powerUp_names[player_power_ups[pu_dir]], player_power_ups[pu_dir] + 6, pu_dir, 0.85);
+		for (let i = 0; i < arr.power_ups.length; i++) {
+			if (arr.power_ups[i][4].intersectsBox(sph)) {
+				arr.player_power_ups[pu_dir] = arr.power_ups[i][5];
+				printGameInfo(p.vars.latentMesh[pu_dir], p.custom.powerUp_names[arr.player_power_ups[pu_dir]], arr.player_power_ups[pu_dir] + 6, pu_dir, 0.85, p);
 				if (gamemode === 2) {
-					socket.emit('sendCollectPU', { player_id: pu_dir, power_id: power_ups[i][5], room_id: room_id });
-					socket.emit('sendDeletePU', { pu_id: power_ups[i][6], room_id: room_id })
+					socket.emit('sendCollectPU', { player_id: pu_dir, power_id: arr.power_ups[i][5], room_id: room_id });
+					socket.emit('sendDeletePU', { pu_id: arr.power_ups[i][6], room_id: room_id })
 				}
-				tools.scene.remove(power_ups[i][0]);
-				power_ups.splice(i, 1);
+				p.tools.scene.remove(arr.power_ups[i][0]);
+				arr.power_ups.splice(i, 1);
 			}
 		}
 	}
 }
 
-const activate_power = (i, mode) => {
-	if (player_power_ups[i] > -1) {
-		activated_powers[i][player_power_ups[i]] = 1;
-		objs.puGaugeLights[i][player_power_ups[i]].intensity = 400;
-		printGameInfo(vars.latentMesh[i], "none", 11, i, 0.85);
-		player_power_ups[i] = -1;
+const activate_power = (i, mode, p, arr) => {
+	if (arr.player_power_ups[i] > -1) {
+		arr.activated_powers[i][arr.player_power_ups[i]] = 1;
+		p.objs.puGaugeLights[i][arr.player_power_ups[i]].intensity = 400;
+		printGameInfo(p.vars.latentMesh[i], "none", 11, i, 0.85, p);
+		arr.player_power_ups[i] = -1;
 	}
-	if (activated_powers[i][0] === 1) {
-		power_timers[i][0] = performance.now();
+	if (arr.activated_powers[i][0] === 1) {
+		arr.power_timers[i][0] = performance.now();
 		if (i === 0)
-			objs.player1.scale.y = 1.4;
+			p.objs.player1.scale.y = 1.4;
 		else
-			objs.player2.scale.y = 1.4;
-		vars.playerlens[i] *= 1.4;
-		activated_powers[i][0] = 2;
+			p.objs.player2.scale.y = 1.4;
+		p.vars.playerlens[i] *= 1.4;
+		arr.activated_powers[i][0] = 2;
 	}
-	else if (mode === 0 && activated_powers[i][2] === 1) {
-		power_timers[i][2] = performance.now();
-		vars.bulletTime = 0.4;
-		activated_powers[i][2] = 2;
+	else if (mode === 0 && arr.activated_powers[i][2] === 1) {
+		arr.power_timers[i][2] = performance.now();
+		p.vars.bulletTime = 0.4;
+		arr.activated_powers[i][2] = 2;
 	}
 }
 
-const computeBallMove = () => {
-	if (vars.ballVect.x < 0) {
-		if (vars.ai_offset != 0)
-			vars.ai_offset = 0;
+const computeBallMove = (p, arr) => {
+	if (p.vars.ballVect.x < 0) {
+		if (p.vars.ai_offset != 0)
+			p.vars.ai_offset = 0;
 		return 0;
 	}
 	else {
-		let d = ((CONST.GAMEWIDTH / 2) - objs.ball.position.x) / vars.ballVect.x;
-		let aim_y = objs.ball.position.y + d * vars.ballVect.y;
-		let tempx = objs.ball.position.x;
-		let tempy = objs.ball.position.y;
-		let tempv = new THREE.Vector2(vars.ballVect.x, vars.ballVect.y);
+		let d = ((CONST.GAMEWIDTH / 2) - p.objs.ball.position.x) / p.vars.ballVect.x;
+		let aim_y = p.objs.ball.position.y + d * p.vars.ballVect.y;
+		let tempx = p.objs.ball.position.x;
+		let tempy = p.objs.ball.position.y;
+		let tempv = new THREE.Vector2(p.vars.ballVect.x, p.vars.ballVect.y);
 		let newd = d;
 		let ydir = 1;
 		while (Math.abs(aim_y) > CONST.GAMEHEIGHT / 2) {
@@ -434,124 +402,124 @@ const computeBallMove = () => {
 			newd = ((CONST.GAMEWIDTH / 2) - tempx) / tempv.x;
 			aim_y = tempy + newd * tempv.y;
 		}
-		if (vars.ai_offset === 0) {
-			if (custom.difficulty < 1.3) {
-				let randFactor = 6.7 - custom.difficulty + vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - objs.ball.position.y) / CONST.GAMEHEIGHT / 2;
-				vars.ai_offset = THREE.MathUtils.randFloatSpread(randFactor);
+		if (p.vars.ai_offset === 0) {
+			if (p.custom.difficulty < 1.3) {
+				let randFactor = 6.7 - p.custom.difficulty + p.vars.adjustedBallSpeed / CONST.BALLSPEED_MAX + Math.abs(aim_y - p.objs.ball.position.y) / CONST.GAMEHEIGHT / 2;
+				p.vars.ai_offset = THREE.MathUtils.randFloatSpread(randFactor);
 			}
-			else if (custom.difficulty === 1.3)
-				vars.ai_offset = THREE.MathUtils.randFloatSpread(5);
-			else if (custom.difficulty > 1.3)
-				vars.ai_offset = THREE.MathUtils.randFloatSpread(3);
-			if (activated_powers[0][4] === 2)
-				vars.ai_offset *= 2;
+			else if (p.custom.difficulty === 1.3)
+				p.vars.ai_offset = THREE.MathUtils.randFloatSpread(5);
+			else if (p.custom.difficulty > 1.3)
+				p.vars.ai_offset = THREE.MathUtils.randFloatSpread(3);
+			if (arr.activated_powers[0][4] === 2)
+				p.vars.ai_offset *= 2;
 		}
-		return aim_y + vars.ai_offset;
+		return aim_y + p.vars.ai_offset;
 	}
 }
 
-let keyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls) => {
-	const blockLen = CONST.GAMEHEIGHT / 2 - vars.playerlens[player_id] / 2;
+let keyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls, p) => {
+	const blockLen = CONST.GAMEHEIGHT / 2 - p.vars.playerlens[player_id] / 2;
 	if (player_id === 1)
-		invert_controls *= vars.ai_invert;
+		invert_controls *= p.vars.ai_invert;
 
-	if (keys[keyUp] || keys[keyDown])
-		vars.playerspeed[player_id] = Math.min(vars.playerspeed[player_id] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+	if (p.keys[keyUp] || p.keys[keyDown])
+		p.vars.playerspeed[player_id] = Math.min(p.vars.playerspeed[player_id] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
 	else
-		vars.playerspeed[player_id] = CONST.BASE_PLAYERSPEED;
+		p.vars.playerspeed[player_id] = CONST.BASE_PLAYERSPEED;
 
-	if (keys[keyUp] && ((invert_controls == 1 && player_y < blockLen)
+	if (p.keys[keyUp] && ((invert_controls == 1 && player_y < blockLen)
 		|| (invert_controls == -1 && player_y > -blockLen))) {
-		player_y += vars.playerspeed[player_id] * invert_controls;
+		player_y += p.vars.playerspeed[player_id] * invert_controls;
 	}
-	if (keys[keyDown] && ((invert_controls == -1 && player_y < blockLen)
+	if (p.keys[keyDown] && ((invert_controls == -1 && player_y < blockLen)
 		|| (invert_controls == 1 && player_y > -blockLen))) {
-		player_y -= vars.playerspeed[player_id] * invert_controls;
+		player_y -= p.vars.playerspeed[player_id] * invert_controls;
 	}
 	return player_y;
 }
 
-let aiMoveHandle = (invert_controls) => {
-	if (objs.player2.position.y > vars.ai_aim + 0.2) {
-		keys['AIdown'] = true;
-		keys['AIup'] = false;
+let aiMoveHandle = (invert_controls, p) => {
+	if (p.objs.player2.position.y > p.vars.ai_aim + 0.2) {
+		p.keys['AIdown'] = true;
+		p.keys['AIup'] = false;
 	}
-	else if (objs.player2.position.y < vars.ai_aim - 0.2) {
-		keys['AIup'] = true;
-		keys['AIdown'] = false;
+	else if (p.objs.player2.position.y < p.vars.ai_aim - 0.2) {
+		p.keys['AIup'] = true;
+		p.keys['AIdown'] = false;
 	}
 	else {
-		if (keys['AIdown'] === true)
-			keys['AIdown'] = false;
-		if (keys['AIup'] === true)
-			keys['AIup'] = false;
+		if (p.keys['AIdown'] === true)
+			p.keys['AIdown'] = false;
+		if (p.keys['AIup'] === true)
+			p.keys['AIup'] = false;
 	}
-	return keyPressHandle('AIup', 'AIdown', 1, objs.player2.position.y, invert_controls);
+	return keyPressHandle('AIup', 'AIdown', 1, p.objs.player2.position.y, invert_controls, p);
 }
 
-let aiPuHandle = () => {
-	const pu = player_power_ups[1];
+let aiPuHandle = (p, arr) => {
+	const pu = arr.player_power_ups[1];
 	if (pu >= 0) {
-		if ((pu === 0 && vars.ballVect.x > 0)
-			|| (pu === 1 && vars.adjustedBallSpeed > 0.8 * CONST.BALLSPEED_MAX)
-			|| (pu === 2 && vars.ballVect.x > 0 && vars.adjustedBallSpeed > 0.9 * CONST.BALLSPEED_MAX
-				&& Math.abs(vars.ai_aim - objs.ball.position.y) > CONST.GAMEHEIGHT / 4 && objs.ball.position.x > 0)
+		if ((pu === 0 && p.vars.ballVect.x > 0)
+			|| (pu === 1 && p.vars.adjustedBallSpeed > 0.8 * CONST.BALLSPEED_MAX)
+			|| (pu === 2 && p.vars.ballVect.x > 0 && p.vars.adjustedBallSpeed > 0.9 * CONST.BALLSPEED_MAX
+				&& Math.abs(p.vars.ai_aim - p.objs.ball.position.y) > CONST.GAMEHEIGHT / 4 && p.objs.ball.position.x > 0)
 			|| pu === 3 || pu === 4) {
-			activate_power(1, 0);
+			activate_power(1, 0, p, arr);
 		}
 	}
 }
 
-const local_update = (gamemode) => {
+const local_update = (gamemode, p, arr) => {
 	let invert_controls = [1, 1];
-	invert_controls[0] = activated_powers[1][3] === 2 ? -1 : 1;
-	invert_controls[1] = activated_powers[0][3] === 2 ? -1 : 1;
+	invert_controls[0] = arr.activated_powers[1][3] === 2 ? -1 : 1;
+	invert_controls[1] = arr.activated_powers[0][3] === 2 ? -1 : 1;
 
-	objs.player1.position.y = keyPressHandle('KeyW', 'KeyS', 0, objs.player1.position.y, invert_controls[0]);
+	p.objs.player1.position.y = keyPressHandle('KeyW', 'KeyS', 0, p.objs.player1.position.y, invert_controls[0], p);
 
 	if (gamemode === 0)
-		objs.player2.position.y = keyPressHandle('ArrowUp', 'ArrowDown', 1, objs.player2.position.y, invert_controls[1]);
+		p.objs.player2.position.y = keyPressHandle('ArrowUp', 'ArrowDown', 1, p.objs.player2.position.y, invert_controls[1], p);
 	else
-		objs.player2.position.y = aiMoveHandle(invert_controls[1]);
+		p.objs.player2.position.y = aiMoveHandle(invert_controls[1], p);
 
-	if (keys['Space'] && custom.power_ups === true)
-		activate_power(0, 0);
-	if (keys['ArrowRight'] && gamemode === 0 && custom.power_ups === true)
-		activate_power(1, 0);
-	else if (gamemode === 1 && custom.power_ups === true)
-		aiPuHandle();
+	if (p.keys['Space'] && p.custom.power_ups === true)
+		activate_power(0, 0, p, arr);
+	if (p.keys['ArrowRight'] && gamemode === 0 && p.custom.power_ups === true)
+		activate_power(1, 0, p, arr);
+	else if (gamemode === 1 && p.custom.power_ups === true)
+		aiPuHandle(p, arr);
 
-	if (keys['KeyC']) {
-		vars.colorswitch[0] = (vars.colorswitch[0] + 1) % 3;
-		let ind = vars.colorswitch[0];
-		objs.player1.material.dispose();
-		objs.player1.material = new THREE.MeshStandardMaterial({ color: custom.player_colormap[2 * ind], emissive: custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
-		keys['KeyC'] = false;
+	if (p.keys['KeyC']) {
+		p.vars.colorswitch[0] = (p.vars.colorswitch[0] + 1) % 3;
+		let ind = p.vars.colorswitch[0];
+		p.objs.player1.material.dispose();
+		p.objs.player1.material = new THREE.MeshStandardMaterial({ color: p.custom.player_colormap[2 * ind], emissive: p.custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
+		p.keys['KeyC'] = false;
 	}
-	if (keys['ArrowLeft']) {
-		vars.colorswitch[1] = (vars.colorswitch[1] + 1) % 3;
-		let ind = vars.colorswitch[1];
-		objs.player2.material.dispose();
-		objs.player2.material = new THREE.MeshStandardMaterial({ color: custom.player_colormap[2 * ind], emissive: custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
-		keys['ArrowLeft'] = false;
+	if (p.keys['ArrowLeft']) {
+		p.vars.colorswitch[1] = (p.vars.colorswitch[1] + 1) % 3;
+		let ind = p.vars.colorswitch[1];
+		p.objs.player2.material.dispose();
+		p.objs.player2.material = new THREE.MeshStandardMaterial({ color: p.custom.player_colormap[2 * ind], emissive: p.custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
+		p.keys['ArrowLeft'] = false;
 	}
 }
 
-let remoteKeyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls, socket, room_id) => {
-	const blockLen = CONST.GAMEHEIGHT / 2 - vars.playerlens[player_id] / 2;
+let remoteKeyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls, socket, room_id, p) => {
+	const blockLen = CONST.GAMEHEIGHT / 2 - p.vars.playerlens[player_id] / 2;
 
-	if (keys[keyUp] || keys[keyDown])
-		vars.playerspeed[player_id] = Math.min(vars.playerspeed[player_id] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
+	if (p.keys[keyUp] || p.keys[keyDown])
+		p.vars.playerspeed[player_id] = Math.min(p.vars.playerspeed[player_id] * CONST.PLAYERSPEED_INCREMENT, CONST.PLAYERSPEED_MAX);
 	else
-		vars.playerspeed[player_id] = CONST.BASE_PLAYERSPEED;
+		p.vars.playerspeed[player_id] = CONST.BASE_PLAYERSPEED;
 
-	if (keys[keyUp] && ((invert_controls == 1 && player_y < blockLen)
+	if (p.keys[keyUp] && ((invert_controls == 1 && player_y < blockLen)
 		|| (invert_controls == -1 && player_y > -blockLen))) {
-		player_y += vars.playerspeed[player_id] * invert_controls;
+		player_y += p.vars.playerspeed[player_id] * invert_controls;
 	}
-	if (keys[keyDown] && ((invert_controls == -1 && player_y < blockLen)
+	if (p.keys[keyDown] && ((invert_controls == -1 && player_y < blockLen)
 		|| (invert_controls == 1 && player_y > -blockLen))) {
-		player_y -= vars.playerspeed[player_id] * invert_controls;
+		player_y -= p.vars.playerspeed[player_id] * invert_controls;
 	}
 	if (player_id === 0)
 		socket.emit('sendPlayer1Pos', { room_id: room_id, player1pos: player_y });
@@ -560,46 +528,46 @@ let remoteKeyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls
 	return player_y;
 }
 
-const remote_update = (socket, room_id, isHost) => {
+const remote_update = (socket, room_id, isHost, p, arr) => {
 	let invert_controls = [1, 1];
-	invert_controls[0] = activated_powers[1][3] === 2 ? -1 : 1;
-	invert_controls[1] = activated_powers[0][3] === 2 ? -1 : 1;
+	invert_controls[0] = arr.activated_powers[1][3] === 2 ? -1 : 1;
+	invert_controls[1] = arr.activated_powers[0][3] === 2 ? -1 : 1;
 
 	if (isHost) {
-		objs.player1.position.y = remoteKeyPressHandle('KeyW', 'KeyS', 0, objs.player1.position.y, invert_controls[0], socket, room_id);
-		objs.player2.position.y = opponentPos;
+		p.objs.player1.position.y = remoteKeyPressHandle('KeyW', 'KeyS', 0, p.objs.player1.position.y, invert_controls[0], socket, room_id, p);
+		p.objs.player2.position.y = opponentPos;
 
-		if (keys['Space'] && custom.power_ups === true && player_power_ups[0] > -1) {
-			socket.emit('sendActivatePU1', { room_id: room_id, powerType: player_power_ups[0] });
-			activate_power(0, 0);
+		if (p.keys['Space'] && p.custom.power_ups === true && arr.player_power_ups[0] > -1) {
+			socket.emit('sendActivatePU1', { room_id: room_id, powerType: arr.player_power_ups[0] });
+			activate_power(0, 0, p, arr);
 		}
 	}
 	else {
-		objs.player2.position.y = remoteKeyPressHandle('ArrowUp', 'ArrowDown', 1, objs.player2.position.y, invert_controls[1], socket, room_id);
-		objs.player1.position.y = opponentPos;
+		p.objs.player2.position.y = remoteKeyPressHandle('ArrowUp', 'ArrowDown', 1, p.objs.player2.position.y, invert_controls[1], socket, room_id, p);
+		p.objs.player1.position.y = opponentPos;
 
-		if (keys['ArrowRight'] && custom.power_ups === true && player_power_ups[1] > -1) {
-			socket.emit('sendActivatePU2', { room_id: room_id, powerType: player_power_ups[1] });
-			activate_power(1, 1);
+		if (p.keys['ArrowRight'] && p.custom.power_ups === true && arr.player_power_ups[1] > -1) {
+			socket.emit('sendActivatePU2', { room_id: room_id, powerType: arr.player_power_ups[1] });
+			activate_power(1, 1, p, arr);
 		}
 	}
-	if (keys['KeyC']) {
-		vars.colorswitch[0] = (vars.colorswitch[0] + 1) % 3;
-		let ind = vars.colorswitch[0];
-		objs.player1.material.dispose();
-		objs.player1.material = new THREE.MeshStandardMaterial({ color: custom.player_colormap[2 * ind], emissive: custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
-		keys['KeyC'] = false;
+	if (p.keys['KeyC']) {
+		p.vars.colorswitch[0] = (p.vars.colorswitch[0] + 1) % 3;
+		let ind = p.vars.colorswitch[0];
+		p.objs.player1.material.dispose();
+		p.objs.player1.material = new THREE.MeshStandardMaterial({ color: p.custom.player_colormap[2 * ind], emissive: p.custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
+		p.keys['KeyC'] = false;
 	}
-	if (keys['ArrowLeft']) {
-		vars.colorswitch[1] = (vars.colorswitch[1] + 1) % 3;
-		let ind = vars.colorswitch[1];
-		objs.player2.material.dispose();
-		objs.player2.material = new THREE.MeshStandardMaterial({ color: custom.player_colormap[2 * ind], emissive: custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
-		keys['ArrowLeft'] = false;
+	if (p.keys['ArrowLeft']) {
+		p.vars.colorswitch[1] = (p.vars.colorswitch[1] + 1) % 3;
+		let ind = p.vars.colorswitch[1];
+		p.objs.player2.material.dispose();
+		p.objs.player2.material = new THREE.MeshStandardMaterial({ color: p.custom.player_colormap[2 * ind], emissive: p.custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
+		p.keys['ArrowLeft'] = false;
 	}
 }
 
-let display_img = (image, mode) => {
+let display_img = (image, mode, p) => {
 	const imgGeo = new THREE.CircleGeometry(1.7, 30);
 	let path = image;
 	if (mode >= 2)
@@ -618,10 +586,10 @@ let display_img = (image, mode) => {
 	const imgMat = new THREE.MeshBasicMaterial({ map: pp, transparent: true, opacity: op });
 	const imgDisplay = new THREE.Mesh(imgGeo, imgMat);
 	imgDisplay.position.set(xcoord, CONST.GAMEHEIGHT / 2 + 1.6, 1.8);
-	tools.scene.add(imgDisplay);
+	p.tools.scene.add(imgDisplay);
 }
 
-async function PutScores(gameMode) {
+async function PutScores(gameMode, game_id, p) {
 	let putPath = 'local';
 	if (gameMode >= 2)
 		putPath = 'online';
@@ -634,8 +602,8 @@ async function PutScores(gameMode) {
 				'X-CSRFToken': Cookies.get('csrftoken')
 			},
 			body: JSON.stringify({
-				"score1": vars.p1Score,
-				"score2": vars.p2Score
+				"score1": p.vars.p1Score,
+				"score2": p.vars.p2Score
 			})
 		})
 	if (response.ok)
@@ -643,32 +611,32 @@ async function PutScores(gameMode) {
 	return false
 }
 
-const render_effects = () => {
-	vars.glowElapsed = performance.now() - vars.glowStartTime;
-	if (vars.glowElapsed < 750 && activated_powers[0][4] != 2 && activated_powers[1][4] != 2) {
-		if (vars.glowElapsed < 100) {
-			objs.ball.material.emissiveIntensity = 0.95;
-			csts.ballLight.intensity = 15;
+const render_effects = (p, arr) => {
+	p.vars.glowElapsed = performance.now() - p.vars.glowStartTime;
+	if (p.vars.glowElapsed < 750 && arr.activated_powers[0][4] != 2 && arr.activated_powers[1][4] != 2) {
+		if (p.vars.glowElapsed < 100) {
+			p.objs.ball.material.emissiveIntensity = 0.95;
+			p.csts.ballLight.intensity = 15;
 		}
 		else {
-			objs.ball.material.emissiveIntensity = 0.95 - (vars.glowElapsed / 750 * 0.7);
-			csts.ballLight.intensity = 15 - (vars.glowElapsed / 750 * 10);
+			p.objs.ball.material.emissiveIntensity = 0.95 - (p.vars.glowElapsed / 750 * 0.7);
+			p.csts.ballLight.intensity = 15 - (p.vars.glowElapsed / 750 * 10);
 		}
 	}
 
 	let particleElapsed = 0;
-	for (let i = 0; i < particleEffects.length; i++) {
-		particleElapsed = performance.now() - particleEffects[i][1];
+	for (let i = 0; i < arr.particleEffects.length; i++) {
+		particleElapsed = performance.now() - arr.particleEffects[i][1];
 		if (particleElapsed > 600) {
-			tools.scene.remove(particleEffects[0][0]);
+			p.tools.scene.remove(arr.particleEffects[0][0]);
 			if (particleElapsed > 1000) {
-				tools.scene.remove(particleEffects[0][2]);
-				particleEffects.shift();
+				p.tools.scene.remove(arr.particleEffects[0][2]);
+				arr.particleEffects.shift();
 			}
 		}
 		else {
-			let positions = particleEffects[i][0].geometry.attributes.position.array;
-			let velocities = particleEffects[i][0].geometry.attributes.velocity.array;
+			let positions = arr.particleEffects[i][0].geometry.attributes.position.array;
+			let velocities = arr.particleEffects[i][0].geometry.attributes.velocity.array;
 			let initialSpeedBoost = 1.;
 			if (particleElapsed < 250)
 				initialSpeedBoost += 1 - particleElapsed / 250;
@@ -677,56 +645,56 @@ const render_effects = () => {
 				positions[j + 1] += velocities[j + 1] * initialSpeedBoost * (particleElapsed / 1000);
 				positions[j + 2] += velocities[j + 2] * initialSpeedBoost * (particleElapsed / 1000);
 			}
-			particleEffects[i][0].geometry.attributes.position.needsUpdate = true;
-			particleEffects[i][0].geometry.attributes.size.needsUpdate = true;
+			arr.particleEffects[i][0].geometry.attributes.position.needsUpdate = true;
+			arr.particleEffects[i][0].geometry.attributes.size.needsUpdate = true;
 			if (particleElapsed > 250)
 				sparkUniform.u_time.value = particleElapsed;
 		}
 	}
 }
 
-const render_trail = (x, y) => {
-	let ballFloor = Math.floor(objs.ball.position.x * 2.);
-	const speedFactor = (vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED) / 2.5;
+const render_trail = (x, y, p, arr, trail) => {
+	let ballFloor = Math.floor(p.objs.ball.position.x * 2.);
+	const speedFactor = (p.vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED) / 2.5;
 
-	if (ballFloor != vars.ballFloorPos) {
+	if (ballFloor != p.vars.ballFloorPos) {
 		// let segment = trail.ballTrail.clone();
 		let segment = new THREE.Mesh(trail.trailGeo.clone(), trail.trailMaterial.clone());
 		let direction = 1;
-		if (vars.ballVect.x > 0) direction = -1;
-		segment.position.x = objs.ball.position.x - vars.ballVect.x * (1. + segment.geometry.parameters.height / 2.);
-		segment.position.y = objs.ball.position.y - vars.ballVect.y * (1. + segment.geometry.parameters.height / 2.);
-		segment.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2 * direction);
-		segment.scale.y = Math.sqrt(1 + Math.pow(Math.abs(vars.ballVect.y / vars.ballVect.x), 2.))
+		if (p.vars.ballVect.x > 0) direction = -1;
+		segment.position.x = p.objs.ball.position.x - p.vars.ballVect.x * (1. + segment.geometry.parameters.height / 2.);
+		segment.position.y = p.objs.ball.position.y - p.vars.ballVect.y * (1. + segment.geometry.parameters.height / 2.);
+		segment.rotation.set(0, 0, Math.atan(p.vars.ballVect.y / p.vars.ballVect.x) + Math.PI / 2 * direction);
+		segment.scale.y = Math.sqrt(1 + Math.pow(Math.abs(p.vars.ballVect.y / p.vars.ballVect.x), 2.))
 			* (1.1 + speedFactor * 0.6);
-		tools.scene.add(segment);
-		trailSegments.push([segment, performance.now()]);
-		vars.ballFloorPos = ballFloor;
+		p.tools.scene.add(segment);
+		arr.trailSegments.push([segment, performance.now()]);
+		p.vars.ballFloorPos = ballFloor;
 	}
-	if (trailSegments.length > 0 && performance.now() - trailSegments[0][1] > 120) {
-		tools.scene.remove(trailSegments[0][0]);
-		trailSegments.shift();
+	if (arr.trailSegments.length > 0 && performance.now() - arr.trailSegments[0][1] > 120) {
+		p.tools.scene.remove(arr.trailSegments[0][0]);
+		arr.trailSegments.shift();
 	}
-	for (let i = 0; i < trailSegments.length; i++) {
-		if (Math.abs(trailSegments[i][0].position.y) > CONST.GAMEHEIGHT / 2 - 1.5
-			|| activated_powers[0][4] === 2 || activated_powers[1][4] === 2)
-			trailSegments[i][0].material.opacity = 0;
+	for (let i = 0; i < arr.trailSegments.length; i++) {
+		if (Math.abs(arr.trailSegments[i][0].position.y) > CONST.GAMEHEIGHT / 2 - 1.5
+			|| arr.activated_powers[0][4] === 2 || arr.activated_powers[1][4] === 2)
+			arr.trailSegments[i][0].material.opacity = 0;
 		else
-			trailSegments[i][0].material.opacity = speedFactor - ((performance.now() - trailSegments[i][1]) / 120 * speedFactor);
-		trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - trailSegments[i][1]) / 120, 1.);
+			arr.trailSegments[i][0].material.opacity = speedFactor - ((performance.now() - arr.trailSegments[i][1]) / 120 * speedFactor);
+		arr.trailSegments[i][0].scale.x = Math.pow(1. - (performance.now() - arr.trailSegments[i][1]) / 120, 1.);
 	}
 
-	if (activated_powers[0][4] === 2 || activated_powers[1][4] === 2)
+	if (arr.activated_powers[0][4] === 2 || arr.activated_powers[1][4] === 2)
 		trail.ballTrail.material.opacity = 0.;
 	else {
-		trail.ballTrail.position.x = x - vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
-		trail.ballTrail.position.y = y - vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
-		trail.ballTrail.rotation.set(0, 0, Math.atan(vars.ballVect.y / vars.ballVect.x) + Math.PI / 2);
+		trail.ballTrail.position.x = x - p.vars.ballVect.x * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+		trail.ballTrail.position.y = y - p.vars.ballVect.y * (1.2 + trail.ballTrail.geometry.parameters.height / 2.);
+		trail.ballTrail.rotation.set(0, 0, Math.atan(p.vars.ballVect.y / p.vars.ballVect.x) + Math.PI / 2);
 		trail.ballTrail.material.opacity = speedFactor;
 	}
 }
 
-const createPUObject = (powerType, radius, spawnx, spawny) => {
+const createPUObject = (powerType, radius, spawnx, spawny, p, arr, g) => {
 	const timedelta = Math.random() * 2000;
 
 	let color = new THREE.Vector3(0., 0., 0.);
@@ -740,7 +708,7 @@ const createPUObject = (powerType, radius, spawnx, spawny) => {
 	let puUniform =
 	{
 		u_time:
-			{ type: 'f', value: performance.now() - startTime + timedelta },
+			{ type: 'f', value: performance.now() - g.startTime + timedelta },
 		u_color:
 			{ type: 'v3', value: color },
 		u_spawn:
@@ -752,8 +720,8 @@ const createPUObject = (powerType, radius, spawnx, spawny) => {
 	}
 	let puMat = new THREE.ShaderMaterial({
 		uniforms: puUniform,
-		vertexShader: csts.pu_vs,
-		fragmentShader: csts.pu_fs,
+		vertexShader: p.csts.pu_vs,
+		fragmentShader: p.csts.pu_fs,
 		transparent: true,
 		blending: THREE.NormalBlending,
 	});
@@ -766,13 +734,13 @@ const createPUObject = (powerType, radius, spawnx, spawny) => {
 	power_up.rotation.set(Math.PI / 2, 0, 0);
 	pu_box.position.set(spawnx, spawny, 0);
 
-	tools.scene.add(power_up);
+	p.tools.scene.add(power_up);
 	const puHB = new THREE.Box3().setFromObject(pu_box);
-	power_ups.push([power_up, performance.now(), puUniform, timedelta, puHB, powerType, vars.puIdCount]);
-	vars.puIdCount += 1;
+	arr.power_ups.push([power_up, performance.now(), puUniform, timedelta, puHB, powerType, p.vars.puIdCount]);
+	p.vars.puIdCount += 1;
 }
 
-const createPowerUp = (gamemode, socket, room_id) => {
+const createPowerUp = (gamemode, socket, room_id, p, arr, g) => {
 	const powerTypeRoll = Math.random() * 10;
 	let powerType = -1;
 	if (powerTypeRoll < 10 / 3) { powerType = 0; } // longer pad
@@ -785,164 +753,173 @@ const createPowerUp = (gamemode, socket, room_id) => {
 	const spawny = THREE.MathUtils.randFloatSpread(CONST.GAMEHEIGHT * 0.9);
 	// powerType = 3; color.set(0.8, 0., 0.8);
 	if (gamemode === 2)
-		socket.emit('sendCreatePU', { pu_id: vars.puIdCount, type: powerType, radius: radius, x: spawnx, y: spawny, room_id: room_id });
-	createPUObject(powerType, radius, spawnx, spawny);
+		socket.emit('sendCreatePU', { pu_id: p.vars.puIdCount, type: powerType, radius: radius, x: spawnx, y: spawny, room_id: room_id });
+	createPUObject(powerType, radius, spawnx, spawny, p, arr, g);
 }
 
-const deactivate_power = (player_id, type, gamemode) => {
-	activated_powers[player_id][type] = 0;
-	objs.puGaugeLights[player_id][type].intensity = 0;
+const deactivate_power = (player_id, type, gamemode, p, arr) => {
+	arr.activated_powers[player_id][type] = 0;
+	p.objs.puGaugeLights[player_id][type].intensity = 0;
 	if (type === 0) {
 		if (player_id === 0)
-			objs.player1.scale.y = 1;
+			p.objs.player1.scale.y = 1;
 		else
-			objs.player2.scale.y = 1;
-		vars.playerlens[player_id] = CONST.PLAYERLEN;
-		activated_powers[player_id][0] = 0;
-		objs.puGaugeLights[player_id][0].intensity = 0;
+			p.objs.player2.scale.y = 1;
+		p.vars.playerlens[player_id] = CONST.PLAYERLEN;
+		arr.activated_powers[player_id][0] = 0;
+		p.objs.puGaugeLights[player_id][0].intensity = 0;
 	}
 	else if (type === 3) {
-		activated_powers[player_id][3] = 0;
-		objs.puGaugeLights[player_id][3].intensity = 0;
+		arr.activated_powers[player_id][3] = 0;
+		p.objs.puGaugeLights[player_id][3].intensity = 0;
 		if (player_id === 0 && gamemode === 1)
-			vars.ai_invert = 1;
+			p.vars.ai_invert = 1;
 	}
 	else if (type === 4) {
-		objs.ball.visible = true;
-		objs.ballWrap.visible = true;
-		csts.ballLight.intensity = 5;
+		p.objs.ball.visible = true;
+		p.objs.ballWrap.visible = true;
+		p.csts.ballLight.intensity = 5;
 	}
 }
 
-const check_pu_timers = (gamemode, socket, room_id) => {
+const check_pu_timers = (gamemode, socket, room_id, p, arr) => {
 	const timestamp = performance.now()
 	for (let i = 0; i < 2; i++) {
-		if (activated_powers[i][0] === 2 && timestamp - power_timers[i][0] > 10000) {
+		if (arr.activated_powers[i][0] === 2 && timestamp - arr.power_timers[i][0] > 10000) {
 			if (gamemode === 2)
 				socket.emit('sendDeactivatePU', { room_id: room_id, player_id: i, type: 0 });
-			deactivate_power(i, 0, gamemode);
+			deactivate_power(i, 0, gamemode, p, arr);
 		}
-		if (activated_powers[i][2] === 2 && timestamp - power_timers[i][2] > 5000) {
+		if (arr.activated_powers[i][2] === 2 && timestamp - arr.power_timers[i][2] > 5000) {
 			if (gamemode === 2)
 				socket.emit('sendDeactivatePU', { room_id: room_id, player_id: i, type: 2 })
-			deactivate_power(i, 2, gamemode);
+			deactivate_power(i, 2, gamemode, p, arr);
 		}
-		if (activated_powers[i][3] === 2) {
-			if (timestamp - power_timers[i][3] > 10000) {
+		if (arr.activated_powers[i][3] === 2) {
+			if (timestamp - arr.power_timers[i][3] > 10000) {
 				if (gamemode === 2)
 					socket.emit('sendDeactivatePU', { room_id: room_id, player_id: i, type: 3 })
-				deactivate_power(i, 3, gamemode);
+				deactivate_power(i, 3, gamemode, p, arr);
 			}
-			else if (i === 0 && gamemode === 1 && timestamp - power_timers[i][3] > 10000 - 6000 * custom.difficulty)
-				vars.ai_invert = -1;
+			else if (i === 0 && gamemode === 1 && timestamp - arr.power_timers[i][3] > 10000 - 6000 * p.custom.difficulty)
+				p.vars.ai_invert = -1;
 		}
 	}
-	if (vars.bulletTime < 1 && activated_powers[0][2] === 0 && activated_powers[1][2] === 0)
-		vars.bulletTime = 1;
+	if (p.vars.bulletTime < 1 && arr.activated_powers[0][2] === 0 && arr.activated_powers[1][2] === 0)
+		p.vars.bulletTime = 1;
 }
 
-const create_delete_pu = (isHost, gamemode, socket, room_id) => {
-	let puTimer = performance.now() - startTime;
-	if (isHost === true && puTimer - vars.puTimeSave > CONST.PU_TICK) {
-		vars.puTimeSave = puTimer;
-		const spawnChance = Math.random() - (1 - (vars.puChanceCounter / 10));
+const create_delete_pu = (isHost, gamemode, socket, room_id, p, arr, g) => {
+	let puTimer = performance.now() - g.startTime;
+	if (isHost === true && puTimer - p.vars.puTimeSave > CONST.PU_TICK) {
+		p.vars.puTimeSave = puTimer;
+		const spawnChance = Math.random() - (1 - (p.vars.puChanceCounter / 10));
 		if (spawnChance > 0) {
-			createPowerUp(gamemode, socket, room_id);
-			vars.puChanceCounter = 1;
+			createPowerUp(gamemode, socket, room_id, p, arr, g);
+			p.vars.puChanceCounter = 1;
 		}
 		else
-			vars.puChanceCounter += 1;
+			p.vars.puChanceCounter += 1;
 	}
 	let checkTime = 0;
-	for (let i = 0; i < power_ups.length; i++) {
-		power_ups[i][2].u_time.value = performance.now() - startTime + power_ups[i][3];
-		checkTime = performance.now() - power_ups[i][1];
+	for (let i = 0; i < arr.power_ups.length; i++) {
+		arr.power_ups[i][2].u_time.value = performance.now() - g.startTime + arr.power_ups[i][3];
+		checkTime = performance.now() - arr.power_ups[i][1];
 		if (checkTime < 1000)
-			power_ups[i][2].u_spawn.value = checkTime;
-		else if (power_ups[i][2].u_spawn.value > 0)
-			power_ups[i][2].u_spawn.value = -1;
+			arr.power_ups[i][2].u_spawn.value = checkTime;
+		else if (arr.power_ups[i][2].u_spawn.value > 0)
+			arr.power_ups[i][2].u_spawn.value = -1;
 
 		if (isHost === true && checkTime > CONST.PU_LIFESPAN) {
-			tools.scene.remove(power_ups[i][0]);
+			p.tools.scene.remove(arr.power_ups[i][0]);
 			if (gamemode === 2)
-				socket.emit('sendDeletePU', { pu_id: power_ups[i][6], room_id: room_id });
-			power_ups.splice(i, 1);
+				socket.emit('sendDeletePU', { pu_id: arr.power_ups[i][6], room_id: room_id });
+			arr.power_ups.splice(i, 1);
 		}
 		else if (checkTime > CONST.PU_LIFESPAN * 2 / 3)
-			power_ups[i][2].u_fade.value = checkTime - CONST.PU_LIFESPAN * 2 / 3
+			arr.power_ups[i][2].u_fade.value = checkTime - CONST.PU_LIFESPAN * 2 / 3
 	}
 }
 
 // CUT
-const animate = (socket, room_id, isHost, gamemode, handleGameEnded) => {
+const animate = (socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool) => {
+	if (stopAnim.current === true)
+	{
+		console.log("IT'S OVER");
+		return;
+	}
 	if (isHost)
-		collisionLogic(room_id, socket, gamemode);
-	scoringLogic(room_id, socket, isHost, gamemode, handleGameEnded);
+		collisionLogic(room_id, socket, gamemode, p, arr);
+	scoringLogic(room_id, socket, isHost, gamemode, handleGameEnded, p, arr, g);
 
-	if (vars.stopGame > 0)
-		vars.ballVect.set(0, 0);
+	if (p.vars.stopGame > 0)
+		p.vars.ballVect.set(0, 0);
 
 	if (isHost) {
-		objs.ball.position.x += vars.ballVect.x * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
-		objs.ball.position.y += vars.ballVect.y * vars.adjustedBallSpeed * custom.difficulty * vars.bulletTime;
-		if (custom.power_ups === true)
-			check_pu_timers(gamemode, socket, room_id);
+		p.objs.ball.position.x += p.vars.ballVect.x * p.vars.adjustedBallSpeed * p.custom.difficulty * p.vars.bulletTime;
+		p.objs.ball.position.y += p.vars.ballVect.y * p.vars.adjustedBallSpeed * p.custom.difficulty * p.vars.bulletTime;
+		if (p.custom.power_ups === true)
+			check_pu_timers(gamemode, socket, room_id, p, arr);
 		if (gamemode === 1) {
 			const ai_time = performance.now();
-			if (ai_time - vars.ai_timer >= 1000) {
-				vars.ai_timer = ai_time;
-				vars.ai_aim = computeBallMove();
+			if (ai_time - p.vars.ai_timer >= 1000) {
+				p.vars.ai_timer = ai_time;
+				p.vars.ai_aim = computeBallMove(p, arr);
 			}
 		}
 		else if (gamemode === 2)
-			socket.emit('sendBallPos', { x: objs.ball.position.x, y: objs.ball.position.y, vectx: vars.ballVect.x, vecty: vars.ballVect.y, speed: vars.adjustedBallSpeed, room_id: room_id })
+			socket.emit('sendBallPos', { x: p.objs.ball.position.x, y: p.objs.ball.position.y, vectx: p.vars.ballVect.x, vecty: p.vars.ballVect.y, speed: p.vars.adjustedBallSpeed, room_id: room_id })
 	}
 	for (let i = 0; i < 2; i++) {
-		if (activated_powers[i][4] === 2)
-			csts.ballLight.intensity = Math.max(0., Math.cos((performance.now() - power_timers[i][4]) / 80) * 5);
+		if (arr.activated_powers[i][4] === 2)
+			p.csts.ballLight.intensity = Math.max(0., Math.cos((performance.now() - arr.power_timers[i][4]) / 80) * 5);
 	}
 
-	const x = objs.ball.position.x;
-	const y = objs.ball.position.y;
-	objs.ballWrap.position.x = x;
-	objs.ballWrap.position.y = y;
-	csts.ballLight.position.x = x;
-	csts.ballLight.position.y = y;
+	const x = p.objs.ball.position.x;
+	const y = p.objs.ball.position.y;
+	p.objs.ballWrap.position.x = x;
+	p.objs.ballWrap.position.y = y;
+	p.csts.ballLight.position.x = x;
+	p.csts.ballLight.position.y = y;
 
-	render_trail(x, y);
-	render_effects();
-	if (custom.power_ups === true)
-		create_delete_pu(isHost, gamemode, socket, room_id);
+	// COMMENT IN PROD
+	if (testbool.current === false && (x > 2 || x < -2))
+		testbool.current = true;
+
+	render_trail(x, y, p, arr, trail);
+	render_effects(p, arr);
+	if (p.custom.power_ups === true)
+		create_delete_pu(isHost, gamemode, socket, room_id, p, arr, g);
 
 	if (gamemode === 2)
-		remote_update(socket, room_id, isHost);
+		remote_update(socket, room_id, isHost, p, arr);
 	else
-		local_update(gamemode);
-	// tools.controls.update();
-	tools.stats.update();
+		local_update(gamemode, p, arr);
+	// p.tools.controls.update();
+	p.tools.stats.update();
 
-	uniformData.u_time.value = performance.now() - startTime;
-	tools.renderer.render(tools.scene, tools.camera);
+	p.uniformData.u_time.value = performance.now() - g.startTime;
+	p.tools.renderer.render(p.tools.scene, p.tools.camera);
 	setTimeout(function () {
-		requestAnimationFrame(() => animate(socket, room_id, isHost, gamemode, handleGameEnded));
+		animationFrameIdRef.current = requestAnimationFrame(() => animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool));
 	}, 5);
 }
 
 // CUT
-const init_socket = (socket, isHost) => {
+const init_socket = (socket, isHost, p, arr, g) => {
 	if (isHost) {
 		socket.on('updatePlayer2Pos', position => {
 			opponentPos = position.player2pos;
 		})
 		socket.on('updateActivatePU2', data => {
-			if (data.powerType === player_power_ups[1])
-				activate_power(1, 0);
+			if (data.powerType === arr.player_power_ups[1])
+				activate_power(1, 0, p, arr);
 		})
 	}
 	else {
 		socket.on('setPlayerInfos', data => {
-			p1Name = data.p1Name;
-			p2Name = data.p2Name;
+			g.p1Name = data.g.p1Name;
+			g.p2Name = data.g.p2Name;
 			display_img(data.p1p, 2);
 			display_img(data.p2p, 3);
 			game_id = data.game_id;
@@ -951,67 +928,67 @@ const init_socket = (socket, isHost) => {
 			opponentPos = position.player1pos;
 		});
 		socket.on('updateBallPos', data => {
-			objs.ball.position.x = data.x;
-			objs.ball.position.y = data.y;
-			vars.ballVect.x = data.vectx;
-			vars.ballVect.y = data.vecty;
-			if (vars.adjustedBallSpeed != data.speed) {
-				vars.adjustedBallSpeed = data.speed;
-				setBallColor();
+			p.objs.ball.position.x = data.x;
+			p.objs.ball.position.y = data.y;
+			p.vars.ballVect.x = data.vectx;
+			p.vars.ballVect.y = data.vecty;
+			if (p.vars.adjustedBallSpeed != data.speed) {
+				p.vars.adjustedBallSpeed = data.speed;
+				setBallColor(p);
 			}
 		});
 		socket.on('startBounceGlow', () => {
-			vars.glowStartTime = performance.now();
+			p.vars.glowStartTime = performance.now();
 		});
 		socket.on('newWallCollision', () => {
-			if (custom.sparks === true && particleEffects.length < 4)
-				createSparks();
+			if (p.custom.sparks === true && arr.particleEffects.length < 4)
+				createSparks(p, arr);
 		});
 		socket.on('updateScore', data => {
-			if (data.score1 > vars.p1Score) {
-				vars.p1Score = data.score1;
-				printGameInfo(vars.p1textMesh, vars.p1Score.toString(), 0, 0, 2.75);
+			if (data.score1 > p.vars.p1Score) {
+				p.vars.p1Score = data.score1;
+				printGameInfo(p.vars.p1textMesh, p.vars.p1Score.toString(), 0, 0, 2.75, p);
 			}
 			else {
-				vars.p2Score = data.score2;
-				printGameInfo(vars.p2textMesh, vars.p2Score.toString(), 0, 1, 2.75);
+				p.vars.p2Score = data.score2;
+				printGameInfo(p.vars.p2textMesh, p.vars.p2Score.toString(), 0, 1, 2.75, p);
 			}
-			setBallColor();
-			vars.stopGame = data.stopGame;
+			setBallColor(p);
+			p.vars.stopGame = data.stopGame;
 		});
 		socket.on('updateCreatePU', data => {
 			console.log("PU CREATION SIGNAL");
-			if (data.pu_id === vars.puIdCount)
-				createPUObject(data.powerType, data.radius, data.spawnx, data.spawny);
+			if (data.pu_id === p.vars.puIdCount)
+				createPUObject(data.powerType, data.radius, data.spawnx, data.spawny, p, arr, g);
 		})
 		socket.on('updateCollectPU', data => {
-			const p = data.player_id;
-			player_power_ups[p] = data.powerType;
-			printGameInfo(vars.latentMesh[p], custom.powerUp_names[data.powerType], player_power_ups[p] + 6, p, 0.85);
+			const pl = data.player_id;
+			arr.player_power_ups[pl] = data.powerType;
+			printGameInfo(p.vars.latentMesh[pl], p.custom.powerUp_names[data.powerType], arr.player_power_ups[pl] + 6, pl, 0.85, p);
 		})
 		socket.on('updateActivatePU1', data => {
 			// if (data.powerType === player_powerUps[0])
-			activate_power(0, 1);
+			activate_power(0, 1, p, arr);
 		})
 		socket.on('updateInvisiball', data => {
-			objs.ball.visible = false;
-			objs.ballWrap.visible = false;
-			csts.ballLight.intensity = 5;
-			power_timers[data.id][4] = performance.now();
-			activated_powers[data.id][4] = 2;
+			p.objs.ball.visible = false;
+			p.objs.ballWrap.visible = false;
+			p.csts.ballLight.intensity = 5;
+			arr.power_timers[data.id][4] = performance.now();
+			arr.activated_powers[data.id][4] = 2;
 		})
 		socket.on('updateInvert', () => {
-			activated_powers[0][3] = 2;
+			arr.activated_powers[0][3] = 2;
 		})
 		socket.on('updateDeactivatePU', data => {
-			deactivate_power(data.player_id, data.type, 2);
+			deactivate_power(data.player_id, data.type, 2, p, arr);
 		})
 		socket.on('updateDeletePU', data => {
 			console.log("PU DESTRUCTION SIGNAL");
-			for (let j = 0; j < power_ups.length; j++) {
-				if (power_ups[j][6] === data.pu_id) {
-					tools.scene.remove(power_ups[j][0]);
-					power_ups.splice(j, 1);
+			for (let j = 0; j < arr.power_ups.length; j++) {
+				if (arr.power_ups[j][6] === data.pu_id) {
+					p.tools.scene.remove(arr.power_ups[j][0]);
+					arr.power_ups.splice(j, 1);
 					break;
 				}
 			}
@@ -1037,62 +1014,102 @@ const getColorVector3 = (bgColor) => {
 // 3 -> Tournament (?)
 export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode, handleGameEnded }) {
 	const containerRef = useRef(null);
+	const animationFrameIdRef = useRef();
+	const stopAnim = useRef(false);
+	const testbool = useRef(false);
+	const p = {};
+	p.objs = {};
+	p.csts = {};
+	p.vars = {};
+	p.custom = {};
 
-	// const animationFrameIdRef = useRef();
-	// const isAnimatingRef = useRef(true);
+	p.keys = {};
+	p.tools = {};
+	const trail = {};
+	const arr = {};
+	arr.particleEffects = [];
+	arr.trailSegments = [];
+	arr.power_ups = [];
+	// const modes_colormap = [0x00ff33, 0xff0022, 0x4c4cff, 0xcc00cc, 0xffffff, 0x888888]
+	arr.player_power_ups = [-1, -1];
+	arr.activated_powers = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
+	arr.power_timers = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
 
-	game_id = gameInfos.game_id;
+	const g = {};
+	g.opponentPos = 0.;
+	g.game_id = gameInfos.game_id;
+	g.p1Name = "";
+	g.p2Name = "";
+	g.startTime = performance.now();
+	p.tools.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+	p.uniformData = {
+		u_time:
+			{ type: 'f', value: performance.now() - g.startTime },
+		u_color:
+			{ type: 'v3', value: p.custom.color },
+		u_palette:
+			{ type: 'i', value: p.custom.palette },
+		u_resolution:
+			{ type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+		projectionMatrix:
+			{ value: p.tools.camera.projectionMatrix },
+		viewMatrix:
+			{ value: p.tools.camera.matrixWorldInverse }
+	};
+
 	let socket = -1;
 	if (gamemode === 2)
 		socket = useSocketContext();
+	initVars(p.objs, p.csts, p.vars, p.custom);
+	console.log("PARAMETERS: " + p);
+
 
 	useEffect(() => {
 		if (!containerRef.current) return;
-		tools.scene = new THREE.Scene();
 
-		tools.renderer = new THREE.WebGLRenderer({ canvas: containerRef.current });
-		tools.renderer.setSize(window.innerWidth, window.innerHeight);
-		tools.controls = new OrbitControls(tools.camera, tools.renderer.domElement);
-		tools.stats = Stats()
-		// document.body.appendChild(tools.renderer.domElement);
-		document.body.appendChild(tools.stats.dom);
+		p.tools.scene = new THREE.Scene();
+		p.tools.renderer = new THREE.WebGLRenderer({ canvas: containerRef.current });
+		p.tools.renderer.setSize(window.innerWidth, window.innerHeight);
+		p.tools.controls = new OrbitControls(p.tools.camera, p.tools.renderer.domElement);
+		p.tools.stats = Stats()
+		// document.body.appendChild(p.tools.renderer.domElement);
+		document.body.appendChild(p.tools.stats.dom);
 
-		tools.scene.add(objs.ball);
-		tools.scene.add(objs.ballWrap);
-		tools.scene.add(objs.player1);
-		tools.scene.add(objs.player2);
-		tools.scene.add(objs.topB);
-		tools.scene.add(objs.botB);
-		tools.scene.add(objs.backB);
-		// tools.scene.add( objs.background );
-		tools.scene.add(objs.display);
+		p.tools.scene.add(p.objs.ball);
+		p.tools.scene.add(p.objs.ballWrap);
+		p.tools.scene.add(p.objs.player1);
+		p.tools.scene.add(p.objs.player2);
+		p.tools.scene.add(p.objs.topB);
+		p.tools.scene.add(p.objs.botB);
+		p.tools.scene.add(p.objs.backB);
+		// p.tools.scene.add( p.objs.background );
+		p.tools.scene.add(p.objs.display);
 
-		tools.scene.add(csts.ambLight);
-		tools.scene.add(csts.dirLight);
-		tools.scene.add(csts.dirLight2);
-		tools.scene.add(csts.ballLight);
+		p.tools.scene.add(p.csts.ambLight);
+		p.tools.scene.add(p.csts.dirLight);
+		p.tools.scene.add(p.csts.dirLight2);
+		p.tools.scene.add(p.csts.ballLight);
 
 		let quaternion = new THREE.Quaternion();
-		tools.camera.position.set(custom.classicCamPos.x, custom.classicCamPos.y, custom.classicCamPos.z);
-		// quaternion.setFromAxisAngle(custom.classicCamPos.clone().normalize(), -Math.PI / 2);
-		// tools.camera.quaternion.multiplyQuaternions(quaternion, tools.camera.quaternion);
-		tools.camera.lookAt(0, 2.2, 0);
+		p.tools.camera.position.set(p.custom.classicCamPos.x, p.custom.classicCamPos.y, p.custom.classicCamPos.z);
+		// quaternion.setFromAxisAngle(p.custom.classicCamPos.clone().normalize(), -Math.PI / 2);
+		// p.tools.camera.quaternion.multiplyQuaternions(quaternion, p.tools.camera.quaternion);
+		p.tools.camera.lookAt(0, 2.2, 0);
 
-		// if (isHost)
-		// 	CreateGame(user_id, player2_id, gamemode).then(assignId).then(getPlayerInfos(socket, room_id));
-		p1Name = gameInfos.p1Name;
-		if (p1Name.length > 8)
-			p1Name = p1Name.slice(0, 8) + ".";
-		p2Name = gameInfos.p2Name;
-		if (p2Name.length > 8)
-			p2Name = p2Name.slice(0, 8) + ".";
-		printGameInfo(csts.p1nameMesh, p1Name, -1, -1, 2.5);
-		printGameInfo(csts.p2nameMesh, p2Name, -2, -1, 2.5);
-		display_img(gameInfos.p1p, 3);
-		display_img(gameInfos.p2p, gamemode);
+		g.p1Name = gameInfos.p1Name;
+		if (g.p1Name.length > 8)
+			g.p1Name = g.p1Name.slice(0, 8) + ".";
+		g.p2Name = gameInfos.p2Name;
+		if (g.p2Name.length > 8)
+			g.p2Name = g.p2Name.slice(0, 8) + ".";
+		printGameInfo(p.csts.p1nameMesh, g.p1Name, -1, -1, 2.5, p);
+		printGameInfo(p.csts.p2nameMesh, g.p2Name, -2, -1, 2.5, p);
+		display_img(gameInfos.p1p, 3, p);
+		display_img(gameInfos.p2p, gamemode, p);
 
 		let backgroundGeo = new THREE.SphereGeometry(CONST.DECORSIZE, 40, 40);
-		// console.log(tools.camera.projectionMatrix);
+		// console.log(p.tools.camera.projectionMatrix);
 
 		let decorFilePath = '';
 		let backgroundMaterial;
@@ -1105,31 +1122,31 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			backgroundMaterial = new THREE.MeshBasicMaterial({ side: THREE.BackSide, map: landscape });
 		}
 		else {
-			let b = custom.b_default
+			let b = p.custom.b_default
 			if (gameSettings.background == 1)
-				b = custom.b_lightsquares;
+				b = p.custom.b_lightsquares;
 			else if (gameSettings.background == 2)
-				b = custom.b_waves;
+				b = p.custom.b_waves;
 			else if (gameSettings.background == 3)
-				b = custom.b_fractcircles;
-			uniformData.u_palette.value = gameSettings.palette;
-			uniformData.u_color.value = getColorVector3(gameSettings.bgColor);
+				b = p.custom.b_fractcircles;
+			p.uniformData.u_palette.value = gameSettings.palette;
+			p.uniformData.u_color.value = getColorVector3(gameSettings.bgColor);
 			backgroundMaterial = new THREE.ShaderMaterial({
 				side: THREE.BackSide,
-				uniforms: uniformData,
-				fragmentShader: custom.shader_utils + b
+				uniforms: p.uniformData,
+				fragmentShader: p.custom.shader_utils + b
 			});
 		}
 		let background = new THREE.Mesh(backgroundGeo, backgroundMaterial);
 
-		objs.backB.material.opacity = gameSettings.opacity / 100;
-		custom.difficulty = 0.3 + gameSettings.game_difficulty / 6;
-		custom.win_score = gameSettings.points_to_win;
-		custom.power_ups = gameSettings.power_ups;
-		custom.sparks = gameSettings.sparks;
+		p.objs.backB.material.opacity = gameSettings.opacity / 100;
+		p.custom.difficulty = 0.3 + gameSettings.game_difficulty / 6;
+		p.custom.win_score = gameSettings.points_to_win;
+		p.custom.power_ups = gameSettings.power_ups;
+		p.custom.sparks = gameSettings.sparks;
 
 		if (gamemode === 1)
-			vars.ai_timer = startTime;
+			p.vars.ai_timer = g.startTime;
 
 		trail.trailGeo = new THREE.CylinderGeometry(0.4 * CONST.BALLRADIUS, 0.3 * CONST.BALLRADIUS, 0.6, 30, 1, true);
 		trail.trailMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0, transparent: true });
@@ -1138,77 +1155,86 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		trail.ballTrail.position.set(1.2 + trail.ballTrail.geometry.parameters.height / 2., 0, 0);
 		trail.ballTrail.rotation.set(0, 0, Math.PI / 2);
 
-		tools.scene.add(background);
-		tools.scene.add(trail.ballTrail);
+		p.tools.scene.add(background);
+		p.tools.scene.add(trail.ballTrail);
 		for (let i = 0; i < 5; i++) {
-			tools.scene.add(objs.puGauges[0][i])
-			tools.scene.add(objs.puGauges[1][i])
-			tools.scene.add(objs.puGaugeDiscs[0][i])
-			tools.scene.add(objs.puGaugeDiscs[1][i])
-			tools.scene.add(objs.puGaugeLights[0][i])
-			tools.scene.add(objs.puGaugeLights[1][i])
+			p.tools.scene.add(p.objs.puGauges[0][i])
+			p.tools.scene.add(p.objs.puGauges[1][i])
+			p.tools.scene.add(p.objs.puGaugeDiscs[0][i])
+			p.tools.scene.add(p.objs.puGaugeDiscs[1][i])
+			p.tools.scene.add(p.objs.puGaugeLights[0][i])
+			p.tools.scene.add(p.objs.puGaugeLights[1][i])
 		}
-		// tools.scene.add(objs.puGaugePanels[0]);
-		// tools.scene.add(objs.puGaugePanels[1]);
 
 		// ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
-		printGameInfo(vars.p1textMesh, "0", 1, -1, 2.75);
-		printGameInfo(vars.p2textMesh, "0", 2, -1, 2.75);
-		if (custom.power_ups === true) {
-			printGameInfo(vars.latentMesh[0], "none", 3, 0, 0.85);
-			printGameInfo(vars.latentMesh[1], "none", 3, 1, 0.85);
+		printGameInfo(p.vars.p1textMesh, "0", 1, -1, 2.75, p);
+		printGameInfo(p.vars.p2textMesh, "0", 2, -1, 2.75, p);
+		if (p.custom.power_ups === true) {
+			printGameInfo(p.vars.latentMesh[0], "none", 3, 0, 0.85, p);
+			printGameInfo(p.vars.latentMesh[1], "none", 3, 1, 0.85, p);
 		}
 
+		// document.addEventListener('keydown', handleKeyDown);
+		// document.addEventListener('keyup', handleKeyUp);
+
+		if (gamemode === 2)
+			init_socket(socket, isHost, p, arr, g);
+		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
+			animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool);
 
 		const handleKeyDown = (event) => {
-			keys[event.code] = true;
+			p.keys[event.code] = true;
 		}
 
 		const handleKeyUp = (event) => {
-			keys[event.code] = false;
+			p.keys[event.code] = false;
 		}
-
 		document.addEventListener('keydown', handleKeyDown);
 		document.addEventListener('keyup', handleKeyUp);
 
-		if (gamemode === 2)
-			init_socket(socket, isHost);
-		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
-			animate(socket, room_id, isHost, gamemode, handleGameEnded);
-
-		// console.log('Renderer DOM Element:', tools.renderer.domElement);
+		// console.log('Renderer DOM Element:', p.tools.renderer.domElement);
 		// console.log('ContainerRef Current:', containerRef.current);
-		// console.log('Elements are equal:', tools.renderer.domElement === containerRef.current);
+		// console.log('Elements are equal:', p.tools.renderer.domElement === containerRef.current);
 
+		console.log(testbool + "     OUTSIDE THE RETURN")
 		return (() => {
-			// isAnimatingRef.current = false;
+			console.log("INSIDE THE RETURN")
+			// notanimating = true
 
-			// if (animationFrameIdRef.current)
-			// 	cancelAnimationFrame(animationFrameIdRef.current);
+			cancelAnimationFrame(animationFrameIdRef.current);
 			document.removeEventListener('keydown', handleKeyDown);
 			document.removeEventListener('keyup', handleKeyUp);
+			p.tools.renderer.dispose();
+			// p.tools.camera.dispose();
+			// p.tools.scene.dispose();
 
-			tools.scene.traverse((object) => {
-				if (!object.isMesh) return;
-				if (object.geometry) {
-					object.geometry.dispose();
-				}
-				if (object.material) {
-					if (Array.isArray(object.material)) {
-						object.material.forEach((material) => material.dispose());
-					} else {
+			const objectsToRemove = [];
+			p.tools.scene.traverse((object) => {
+				// console.log(object);
+				if (object.isMesh)
+				{
+					if (object.geometry) {
+						object.geometry.dispose();
+					}
+					if (object.material) {
 						object.material.dispose();
 					}
 				}
+				objectsToRemove.push(object);
 			});
-			tools.renderer.dispose();
-			if (tools.stats && tools.stats.dom && tools.stats.dom.parentNode) {
-				tools.stats.dom.parentNode.removeChild(tools.stats.dom);
-			}
 
+			objectsToRemove.forEach((object) => { p.tools.scene.remove(object);})
+			if (p.tools.stats && p.tools.stats.dom && p.tools.stats.dom.parentNode) {
+				p.tools.stats.dom.parentNode.removeChild(p.tools.stats.dom);
+			}
+			if (testbool.current === true)
+				stopAnim.current = true;
 			// Disconnect socket if necessary
+
 			// if (socket)
 			// 	socket.disconnect();
+			// containerRef.current.remove();
+			// containerRef.current = null;
 		})
 	}, []);
 
