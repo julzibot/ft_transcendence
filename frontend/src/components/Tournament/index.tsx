@@ -170,7 +170,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 							<div
 								type="button"
 								key={index}
-								onClick={() => handleJoin(tournament, session.user.id, tournament.linkToJoin)}
+								onClick={() => handleJoin(tournament, session?.user?.id, tournament.linkToJoin)}
 								className={`${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5`}
 							>
 								<div className="border-end col-2 d-flex justify-content-center align-items-center text-truncate">

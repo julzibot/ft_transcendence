@@ -67,9 +67,13 @@ export default function TournamentLobby() {
 			]);
 		});
 
-		return () => {
-			socket.disconnect();
-		};
+		setTimeout(() => {
+			socket.emit('startedTournament', { tournamentId: id });
+		}, 3000);
+
+		// return () => {
+		// 	socket.disconnect();
+		// };
 	}, [socket]);
 
 	useEffect(() => {
