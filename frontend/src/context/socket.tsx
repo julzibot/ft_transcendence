@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import io from "socket.io-client"
 import { createContext, useContext, useEffect, React } from "react"
@@ -9,14 +9,13 @@ const SocketContext = createContext(socket);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
 
-
 	useEffect(() => {
 
 		socket.on('connect', () => { });
 
-		// return (() => {
-		// 	socket.disconnect()
-		// })
+		return (() => {
+			socket.disconnect()
+		})
 
 	}, [socket]);
 
@@ -27,6 +26,4 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 	)
 }
 
-export function useSocketContext() {
-	return useContext(SocketContext);
-}
+export default function useSocketContext() { return useContext(SocketContext) };
