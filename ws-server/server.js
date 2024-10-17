@@ -14,6 +14,7 @@ let tournamentsArray = [];
 
 // const tournament = {
 // 	tournamentId: 0,
+//	isStarted: false
 // 	players: [player...],
 // 	rooms: []
 // }
@@ -85,15 +86,13 @@ io.on("connection", async (socket) => {
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
 		if (tournament) {
 			const player = tournament.players.find(player => player.id === data.user.id)
-			if (!player) {
+			if (!player)
 				tournament.players.push(data.user);
-				if (tournament.players.length === 3)
-					io.in(tournament.tournamentId).emit('tournamentCanStart');
-			}
 		}
 		else {
 			const newTournament = {
 				tournamentId: data.tournamentId,
+				isStarted: false,
 				players: [data.user],
 				gameRooms: []
 			}
@@ -102,10 +101,25 @@ io.on("connection", async (socket) => {
 
 		socket.join(data.tournamentId);
 		socket.emit('joinSuccess', data);
+		if (tournament.players.length === 3)
+			io.in(tournament.tournamentId).emit('tournamentCanStart');
 
 		// Inform other players about the new player
 		socket.in(data.tournamentId).emit('updatePlayers', data.user);
 	});
+
+	socket.on('startedTournament', (data) => {
+		// data = { tournamentId }
+		const userId = connectedUsers.get(socket.id);
+		console.log(`[activeTournament] data: ${JSON.stringify(data)}`);
+		console.log(`[activeTournament] userId: ${JSON.stringify(userId)}`);
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		if (tournament && tournament.players.find(player => player.id === userId)) {
+			console.log('[activeTournament] setting isStarted to true');
+			tournament.isStarted = true;
+		}
+		console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
+	})
 
 	// Game match communication
 	socket.on('sendGameId', (data) => {
@@ -171,17 +185,6 @@ io.on("connection", async (socket) => {
 	socket.on('sendDeletePU', data => {
 		socket.to(data.room_id).emit('updateDeletePU', { pu_id: data.pu_id });
 	})
-	socket.on('Enter_Tournaments_lobby', data => {
-		console.log(`${data.userId} is in the main lobby`)
-	})
-
-	socket.on('updateTournament', data => {
-		socket.emit('updateTournament', data)
-	})
-
-	socket.on('Leave_Tournaments_lobby', data => {
-		console.log(`${data.userId} left main lobby`)
-	})
 
 	socket.on('disconnect', () => {
 		const disconnectedUserId = connectedUsers.get(socket.id);
@@ -205,7 +208,7 @@ io.on("connection", async (socket) => {
 		let emptyTournamentId = '';
 		tournamentsArray = tournamentsArray.map(tournament => {
 			const updatedPlayers = tournament.players.filter(player => player.id !== disconnectedUserId);
-			if (updatedPlayers.length === 0)
+			if (tournament.isStarted && updatedPlayers.length === 0)
 				emptyTournamentId = tournament.tournamentId;
 			return { ...tournament, players: updatedPlayers }
 		});
