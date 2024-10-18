@@ -49,24 +49,17 @@ export default function TournamentLobby() {
 	}, []);
 
 	useEffect(() => {
-		if (session)
+		if (session && socket)
 			socket.emit('joinTournament', { tournamentId: id, user: session?.user })
-	}, [session]);
+	}, [session, socket, id]);
 
 	useEffect(() => {
+		if(socket) {
 		socket.on('updateParticipants', (data: ParticipantType[]) => {
-			// console.log(`[updateParticipants] ${JSON.stringify(data)}`)
 			setParticipantsList(data);
-		});
-
-		setTimeout(() => {
-			socket.emit('startedTournament', { tournamentId: id });
-		}, 3000);
-
-		// return () => {
-		// 	socket.disconnect();
-		// };
-	}, [socket, participantsList]);
+		})
+		}
+	}, [socket]);
 
 	useEffect(() => {
 

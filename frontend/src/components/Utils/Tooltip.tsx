@@ -11,9 +11,6 @@ export function CustomTooltip(p: { children: JSX.Element, text: string, position
           {p.text}
         </Tooltip>
       }
-      container={document.body}
-      flip={false}
-      className="z-3"
     >
       {p.children}
     </OverlayTrigger>

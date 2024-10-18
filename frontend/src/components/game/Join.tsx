@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useContext } from "react";
-import { useSocketContext } from "@/context/socket";
+import { useEffect, useState } from "react";
+import  useSocketContext  from "@/context/socket";
 import ThreeScene from './Game';
 import { Spinner } from 'react-bootstrap';
 import "./styles.css"
@@ -38,6 +38,7 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 	})
 
 	useEffect(() => {
+		if(socket) {
 		socket.emit('join_room', { room_id: room, user_id: userId });
 
 		socket.on('isHost', () => {
@@ -68,6 +69,7 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 			console.log('The other player has disconnected');
 			setPlayerDisconnected(true);
 		})
+		}
 
 		return () => {
 			socket.off('isHost');

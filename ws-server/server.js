@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 const port = process.env.SOCKET_PORT || 6500;
 const domain = process.env.DOMAIN_NAME || "localhost";
 const frontendPort = process.env.FRONTEND_PORT || 3000;
+const backendPort = process.env.BACKEND_PORT || 8000;
 
 const fetchFinished = new Map();
 const socketRooms = new Map();
@@ -175,9 +176,22 @@ io.on("connection", async (socket) => {
 		socket.to(data.room_id).emit('updateDeletePU', { pu_id: data.pu_id });
 	})
 
-	socket.on('disconnect', () => {
+	socket.on('disconnect', async () => {
 		const disconnectedUserId = connectedUsers.get(socket.id);
 		connectedUsers.delete(socket.id);
+
+		const deleteParticipant = async (tournamentId, userId) => {
+
+			// Inform other participants about the disconnected participant
+			await fetch(`http://django:${backendPort}/api/tournament/${tournamentId}/delete-participant/`, {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ userId })
+			})
+		}
+
 
 		if (disconnectedUserId)
 			console.log(socket.id + ' -> ' + disconnectedUserId + " has disconnected");
@@ -200,9 +214,9 @@ io.on("connection", async (socket) => {
 			if (tournament.isStarted && updatedParticipants.length === 0)
 				emptyTournamentId = tournament.tournamentId;
 			else {
-				// Inform other participants about the disconnected participant
 				socket.in(tournament.tournamentId).emit('updateParticipants', updatedParticipants);
 			}
+			deleteParticipant(tournament.tournamentId, disconnectedUserId)
 			return { ...tournament, participants: updatedParticipants }
 		});
 
