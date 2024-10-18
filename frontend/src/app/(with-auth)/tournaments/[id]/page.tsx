@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/lib/AuthContext';
 import { BACKEND_URL } from '@/config';
@@ -12,6 +12,7 @@ import useSocketContext from '@/context/socket';
 export default function TournamentLobby() {
 	const { id } = useParams();
 	const { session } = useAuth();
+	const router = useRouter();
 	const [participantsList, setParticipantsList] = useState<ParticipantType[]>([]);
 	const [tournamentData, setTournamentData] = useState();
 	const [isMounted, setIsMounted] = useState(false);
@@ -32,6 +33,9 @@ export default function TournamentLobby() {
 				const data = await response.json()
 				setParticipantsList(data.participants)
 				setTournamentData(data.tournament)
+			}
+			else{
+				router.push(`/error?code=${response.status}`)
 			}
 		}
 		fetchTournamentData()
