@@ -15,14 +15,18 @@ let tournamentsArray = [];
 // const tournament = {
 // 	tournamentId: 0,
 //	isStarted: false
-// 	players: [player...],
+// 	participants: [participant1...],
 // 	rooms: []
 // }
 
-// const player = {
-// 	id,
-// 	username,
-// 	image
+// const participant = {
+// 	user: {
+// 		id,
+// 		username,
+// 		image
+// 	},
+// 	wins,
+// 	gamesPlayed
 // }
 
 const server = createServer();
@@ -46,7 +50,7 @@ io.on("connection", async (socket) => {
 
 		// if (room) {
 		// 	const roomSize = io._nsps.get('/').adapter.rooms.get(data.room_id).size;
-		// 	console.log(`${data.room_id} Two players are already connected`);
+		// 	console.log(`${data.room_id} Two participants are already connected`);
 		// 	return;
 		// }
 
@@ -56,7 +60,7 @@ io.on("connection", async (socket) => {
 		}
 		else {
 			console.log("[NOT HOST] Client [" + data.user_id + "] joining room: " + data.room_id);
-			socket.to(data.room_id).emit('player2_id', { player2_id: data.user_id });
+			socket.to(data.room_id).emit('participant2_id', { participant2_id: data.user_id });
 			socket.emit('isNotHost');
 		}
 
@@ -74,7 +78,6 @@ io.on("connection", async (socket) => {
 			io.in(data.room_id).emit('startGame');
 			fetchFinished.delete(data.room_id);
 		}
-
 	});
 
 	// Tournament sockets
@@ -84,104 +87,90 @@ io.on("connection", async (socket) => {
 		console.log(`[server.js] connected users: ${JSON.stringify(Array.from(connectedUsers.entries()))}`);
 
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		let updatedParticipants = [];
 		if (tournament) {
-			const player = tournament.players.find(player => player.id === data.user.id)
-			if (!player)
-				tournament.players.push(data.user);
+			const participant = tournament.participants.find(participant => participant.user.id === data.user.id)
+			if (!participant)
+				tournament.participants.push({ user: data.user, wins: 0, gamesPlayed: 0 });
+			if (tournament.participants.length === 3)
+				io.in(tournament.tournamentId).emit('tournamentCanStart');
+			updatedParticipants = tournament.participants;
 		}
 		else {
 			const newTournament = {
 				tournamentId: data.tournamentId,
 				isStarted: false,
-				players: [data.user],
+				participants: [{ user: data.user, wins: 0, gamesPlayed: 0 }],
 				gameRooms: []
 			}
 			tournamentsArray.push(newTournament);
+			updatedParticipants = newTournament.participants;
 		}
+		// Inform other participants about the new participant
+		socket.in(data.tournamentId).emit('updateParticipants', updatedParticipants);
 
 		socket.join(data.tournamentId);
-		socket.emit('joinSuccess', data);
-		if (tournament.players.length === 3)
-			io.in(tournament.tournamentId).emit('tournamentCanStart');
-
-		// Inform other players about the new player
-		socket.in(data.tournamentId).emit('updatePlayers', data.user);
 	});
 
 	socket.on('startedTournament', (data) => {
 		// data = { tournamentId }
 		const userId = connectedUsers.get(socket.id);
-		console.log(`[activeTournament] data: ${JSON.stringify(data)}`);
-		console.log(`[activeTournament] userId: ${JSON.stringify(userId)}`);
+		// console.log(`[activeTournament] data: ${JSON.stringify(data)}`);
+		// console.log(`[activeTournament] userId: ${JSON.stringify(userId)}`);
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
-		if (tournament && tournament.players.find(player => player.id === userId)) {
-			console.log('[activeTournament] setting isStarted to true');
+		if (tournament && tournament.participants.find(participant => participant.user.id === userId)) {
+			// console.log('[activeTournament] setting isStarted to true');
 			tournament.isStarted = true;
 		}
-		console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
+		// console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
 	})
 
 	// Game match communication
 	socket.on('sendGameId', (data) => {
 		socket.to(data.room_id).emit('receiveGameId', { game_id: data.game_id });
 	});
-
-	socket.on('sendPlayerInfos', (data) => {
-		socket.to(data.room_id).emit('setPlayerInfos', { p1Name: data.p1Name, p2Name: data.p2Name, p1p: data.p1p, p2p: data.p2p, game_id: data.game_id });
+	socket.on('sendparticipantInfos', (data) => {
+		socket.to(data.room_id).emit('setparticipantInfos', { p1Name: data.p1Name, p2Name: data.p2Name, p1p: data.p1p, p2p: data.p2p, game_id: data.game_id });
 	})
-
 	socket.on('sendBallPos', (data) => {
 		socket.to(data.room_id).emit('updateBallPos', { x: data.x, y: data.y, vectx: data.vectx, vecty: data.vecty, speed: data.speed });
 	})
-
-	socket.on('sendPlayer1Pos', data => {
-		socket.to(data.room_id).emit('updatePlayer1Pos', { player1pos: data.player1pos });
+	socket.on('sendparticipant1Pos', data => {
+		socket.to(data.room_id).emit('updateparticipant1Pos', { participant1pos: data.participant1pos });
 	});
-
-	socket.on('sendPlayer2Pos', data => {
-		socket.to(data.room_id).emit('updatePlayer2Pos', { player2pos: data.player2pos });
+	socket.on('sendparticipant2Pos', data => {
+		socket.to(data.room_id).emit('updateparticipant2Pos', { participant2pos: data.participant2pos });
 	});
-
 	socket.on('sendBounceGlow', data => {
 		socket.to(data.room_id).emit('startBounceGlow');
 	})
-
 	socket.on('sendWallCollision', data => {
 		socket.to(data.room_id).emit('newWallCollision');
 	})
-
 	socket.on('sendScore', data => {
 		socket.to(data.room_id).emit('updateScore', { score1: data.score1, score2: data.score2, stopGame: data.stopGame });
 	})
-
 	socket.on('sendCreatePU', data => {
 		socket.to(data.room_id).emit('updateCreatePU', { pu_id: data.pu_id, powerType: data.type, radius: data.radius, spawnx: data.x, spawny: data.y });
 	})
-
 	socket.on('sendCollectPU', data => {
-		socket.to(data.room_id).emit('updateCollectPU', { player_id: data.player_id, powerType: data.power_id });
+		socket.to(data.room_id).emit('updateCollectPU', { participant_id: data.participant_id, powerType: data.power_id });
 	})
-
 	socket.on('sendActivatePU1', data => {
 		socket.to(data.room_id).emit('updateActivatePU1', { powerType: data.powerType });
 	})
-
 	socket.on('sendActivatePU2', data => {
 		socket.to(data.room_id).emit('updateActivatePU2', { powerType: data.powerType });
 	})
-
 	socket.on('sendInvert', data => {
 		socket.to(data.room_id).emit('updateInvert');
 	})
-
 	socket.on('sendInvisiball', data => {
-		socket.to(data.room_id).emit('updateInvisiball', { id: data.player_id });
+		socket.to(data.room_id).emit('updateInvisiball', { id: data.participant_id });
 	})
-
 	socket.on('sendDeactivatePU', data => {
-		socket.to(data.room_id).emit('updateDeactivatePU', { player_id: data.player_id, type: data.type });
+		socket.to(data.room_id).emit('updateDeactivatePU', { participant_id: data.participant_id, type: data.type });
 	})
-
 	socket.on('sendDeletePU', data => {
 		socket.to(data.room_id).emit('updateDeletePU', { pu_id: data.pu_id });
 	})
@@ -198,29 +187,29 @@ io.on("connection", async (socket) => {
 		// Online Game Rooms
 		// socketRooms.get(socket.id).forEach(room_id => {
 		// 	console.log(`[Server] Sending Disconnection Event -> [room] [${room_id}]`)
-		// 	socket.to(room_id).emit('playerDisconnected');
+		// 	socket.to(room_id).emit('participantDisconnected');
 		// });
 		// socketRooms.delete(socket.id);
 
 		// Tournament
-		console.log(`[server.js] BEFORE [player] delete: ${JSON.stringify(tournamentsArray)}`);
-		// Deleting the player
+		// Deleting the participant
 		let emptyTournamentId = '';
+		let updatedParticipants = [];
 		tournamentsArray = tournamentsArray.map(tournament => {
-			const updatedPlayers = tournament.players.filter(player => player.id !== disconnectedUserId);
-			if (tournament.isStarted && updatedPlayers.length === 0)
+			updatedParticipants = tournament.participants.filter(participant => participant.user.id !== disconnectedUserId);
+			if (tournament.isStarted && updatedParticipants.length === 0)
 				emptyTournamentId = tournament.tournamentId;
-			return { ...tournament, players: updatedPlayers }
+			else {
+				// Inform other participants about the disconnected participant
+				socket.in(tournament.tournamentId).emit('updateParticipants', updatedParticipants);
+			}
+			return { ...tournament, participants: updatedParticipants }
 		});
-		console.log(`[server.js] AFTER [player] delete: ${JSON.stringify(tournamentsArray)}`);
 
-		// if tournament has no players left, delete tournament
+		// if tournament has no participants left, delete tournament
 		if (emptyTournamentId.length !== 0) {
-			console.log(`[server.js] Deleting the tournament [${emptyTournamentId}]`);
 			const tournamentIndex = tournamentsArray.findIndex(tournament => tournament.tournamentId === emptyTournamentId);
 			tournamentsArray.splice(tournamentIndex, 1);
-			console.log(`[server.js] AFTER [tournament] delete: ${JSON.stringify(tournamentsArray)}`);
-			console.log(`[server.js] connected users: ${JSON.stringify(Array.from(connectedUsers.entries()))}`);
 		}
 	});
 });

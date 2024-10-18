@@ -4,9 +4,9 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/lib/AuthContext';
 import { BACKEND_URL } from '@/config';
-import { TournamentSettingsType, ParticipantType, User } from '@/types/TournamentSettings';
+import { ParticipantType, User } from '@/types/TournamentSettings';
 import styles from '../GameSettingsStyles.module.css'
-import { PersonFillUp, Controller, Toggle2On, Toggle2Off, LightningFill, ClockFill, Activity, TrophyFill, Alphabet, CircleFill } from 'react-bootstrap-icons'
+import { Controller, TrophyFill } from 'react-bootstrap-icons'
 import useSocketContext from '@/context/socket';
 
 export default function TournamentLobby() {
@@ -46,25 +46,13 @@ export default function TournamentLobby() {
 
 	useEffect(() => {
 		if (session)
-			socket.emit('joinTournament', { user: session?.user, tournamentId: id })
+			socket.emit('joinTournament', { tournamentId: id, user: session?.user })
 	}, [session]);
 
 	useEffect(() => {
-
-		socket.on('updatePlayers', (data: User) => {
-			console.log(`[Tournament Lobby] ${JSON.stringify(data)}`)
-			setParticipantsList((prevList) => [
-				...prevList,
-				{
-					user: {
-						id: data.id,
-						username: data.username,
-						image: data.image
-					},
-					wins: 0,
-					gamesPlayed: 0
-				}
-			]);
+		socket.on('updateParticipants', (data: ParticipantType[]) => {
+			// console.log(`[updateParticipants] ${JSON.stringify(data)}`)
+			setParticipantsList(data);
 		});
 
 		setTimeout(() => {
@@ -74,7 +62,7 @@ export default function TournamentLobby() {
 		// return () => {
 		// 	socket.disconnect();
 		// };
-	}, [socket]);
+	}, [socket, participantsList]);
 
 	useEffect(() => {
 
