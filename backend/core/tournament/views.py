@@ -58,18 +58,12 @@ class JoinTournamentView(APIView):
 		tournament_id = request.data.get('tournament_id')
 		user = UserAccount.objects.get(id=request.data.get('user_id'))
 		try:
-			uuid.UUID(tournament_id, version=4)
-		except ValueError:
-			return Response({'message': 'Invalid id'}, status=status.HTTP_400_BAD_REQUEST)
-		try:
 			tournament = TournamentModel.objects.get(id=tournament_id)
 		except ObjectDoesNotExist:
 			return Response({'message': 'Tournament not found'}, status=status.HTTP_404_NOT_FOUND)
 		if tournament.numberOfPlayers + 1 > tournament.maxPlayerNumber:
 			return Response({'message': 'Tournament is full'}, status=status.HTTP_400_BAD_REQUEST)
-		tournament.numberOfPlayers += 1
-		tournament.save()
-		participant = ParticipantModel.objects.create(tournament=tournament, user=user)
+		participant = ParticipantModel.objects.get_or_create(tournament=tournament, user=user)
 		return Response({'message': 'You have joined the tournament'}, status=status.HTTP_200_OK)
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -88,3 +82,21 @@ class TournamentView(APIView):
 		participants = ParticipantModel.objects.filter(tournament=tournament).all()
 		participantSerializer = ParticipantSerializer(participants, many=True)
 		return Response({'participants': participantSerializer.data, 'tournament': tournamentSerializer.data}, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DeleteParticipantView(APIView):
+	permission_classes = [AllowAny]
+	def delete(self, request, id):
+		try:
+			uuid.UUID(id, version=4)
+		except ValueError:
+			return Response({'message': 'Invalid id'}, status=status.HTTP_400_BAD_REQUEST)
+		try:
+			tournament = TournamentModel.objects.get(linkToJoin=id)
+			user = UserAccount.objects.get(id=request.data['userId'])
+			participant = ParticipantModel.objects.get(user=user, tournament=tournament)
+		except ObjectDoesNotExist:
+			return Response({'message': 'Participant not found'}, status=status.HTTP_404_NOT_FOUND)
+		participant.delete()
+		return Response({'message': 'Participant deleted'}, status=status.HTTP_204_NO_CONTENT)
