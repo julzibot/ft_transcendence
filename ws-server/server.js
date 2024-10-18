@@ -12,11 +12,11 @@ const socketRooms = new Map();
 const connectedUsers = new Map(); // socket.id -> user.id
 
 let tournamentsArray = [];
-
 // const tournament = {
 // 	tournamentId: 0,
 //	isStarted: false
 // 	participants: [participant1...],
+//	inLobby: [part_id1, ...],
 // 	rooms: []
 // }
 
@@ -26,6 +26,8 @@ let tournamentsArray = [];
 // 		username,
 // 		image
 // 	},
+//	waiting_time,
+//	opponents: new Map(),
 // 	wins,
 // 	gamesPlayed
 // }
@@ -92,7 +94,7 @@ io.on("connection", async (socket) => {
 		if (tournament) {
 			const participant = tournament.participants.find(participant => participant.user.id === data.user.id)
 			if (!participant)
-				tournament.participants.push({ user: data.user, wins: 0, gamesPlayed: 0 });
+				tournament.participants.push({ user: data.user, opponents: new Map(), wins: 0, gamesPlayed: 0 });
 			if (tournament.participants.length === 3)
 				io.in(tournament.tournamentId).emit('tournamentCanStart');
 			updatedParticipants = tournament.participants;
@@ -101,7 +103,7 @@ io.on("connection", async (socket) => {
 			const newTournament = {
 				tournamentId: data.tournamentId,
 				isStarted: false,
-				participants: [{ user: data.user, wins: 0, gamesPlayed: 0 }],
+				participants: [{ user: data.user, opponents: new Map(), wins: 0, gamesPlayed: 0 }],
 				gameRooms: []
 			}
 			tournamentsArray.push(newTournament);
@@ -113,17 +115,31 @@ io.on("connection", async (socket) => {
 		socket.join(data.tournamentId);
 	});
 
-	socket.on('startedTournament', (data) => {
+	socket.on('startTournament', (data) => {
+		// INITIALIZE TOURNAMENT INFOS + SEND FIRST MATCHMAKING 
 		// data = { tournamentId }
 		const userId = connectedUsers.get(socket.id);
-		// console.log(`[activeTournament] data: ${JSON.stringify(data)}`);
-		// console.log(`[activeTournament] userId: ${JSON.stringify(userId)}`);
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
-		if (tournament && tournament.participants.find(participant => participant.user.id === userId)) {
-			// console.log('[activeTournament] setting isStarted to true');
-			tournament.isStarted = true;
+		if (tournament && !tournament.isStarted) {
+
+			if (tournament && tournament.participants.find(participant => participant.user.id === userId)) {
+				// console.log('[activeTournament] setting isStarted to true');
+				tournament.isStarted = true;
+			}
+			tournament.participants.forEach(participant1 => {
+				tournament.participants.forEach(participant2 => {
+					if (participant1.user.id != participant2.user.id) {
+						participant1.opponents.set(participant2.user.id, 0);
+						console.log(`[startTournament] Participants' opponents: ${Array.from(participant1.opponents.entries())}`);
+					}
+				})
+			});
 		}
 		// console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
+	})
+
+	socket.on('returnToLobby', (data) => {
+
 	})
 
 	// Game match communication
@@ -211,6 +227,12 @@ io.on("connection", async (socket) => {
 		let updatedParticipants = [];
 		tournamentsArray = tournamentsArray.map(tournament => {
 			updatedParticipants = tournament.participants.filter(participant => participant.user.id !== disconnectedUserId);
+			updatedParticipants.forEach(participant => {
+				for (const key of participant.opponents.keys()) {
+					participant.opponents.delete(key);
+				}
+				console.log(`[disconnect] Opponents for: ${participant.user.id} - ${Array.from(participant.opponents.entries())}`)
+			})
 			if (tournament.isStarted && updatedParticipants.length === 0)
 				emptyTournamentId = tournament.tournamentId;
 			else {
