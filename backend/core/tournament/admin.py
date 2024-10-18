@@ -2,12 +2,18 @@ from django.contrib import admin
 from .models import TournamentModel, ParticipantModel
 
 class TournamentAdmin(admin.ModelAdmin):
-    fields = ['name']
-    list_display = ['name']
+    fields = ['name', 'maxPlayerNumber', 'numberOfPlayers', 'isFinished', 'isStarted', 'timer', 'difficultyLevel', 'power_ups', 'pointsPerGame', 'creator', 'linkToJoin']
+    list_display = ['name', 'creator', 'maxPlayerNumber', 'numberOfPlayers', 'isFinished', 'isStarted', 'timer', 'difficultyLevel', 'power_ups', 'pointsPerGame']
+    readonly_fields = ['linkToJoin', 'numberOfPlayers']
+    
+    def numberOfPlayers(self, obj):
+        return obj.numberOfPlayers
+    
+    numberOfPlayers.short_description = 'Number of Players'
 
 class ParticipantAdmin(admin.ModelAdmin):
-    fields = ['user', 'tournament_name']
-    list_display = ['user', 'tournament_name']
+    fields = ['user', 'tournament_name', 'gamesPlayed', 'wins']
+    list_display = ['user', 'tournament_name', 'gamesPlayed', 'wins']
     readonly_fields = ['tournament_name']
 
     def tournament_name(self, obj):
