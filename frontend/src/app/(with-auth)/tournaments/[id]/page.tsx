@@ -34,7 +34,7 @@ export default function TournamentLobby() {
 				setParticipantsList(data.participants)
 				setTournamentData(data.tournament)
 			}
-			else{
+			else {
 				router.push(`/error?code=${response.status}`)
 			}
 		}
@@ -49,15 +49,20 @@ export default function TournamentLobby() {
 	}, []);
 
 	useEffect(() => {
-		if (session && socket)
-			socket.emit('joinTournament', { tournamentId: id, user: session?.user })
+		if (session && socket) {
+			socket.emit('joinTournament', { tournamentId: id, user: session?.user });
+
+			// setTimeout(() => {
+			// 	socket?.emit('startTournament', { tournamentId: id });
+			// }, 10000);
+		}
 	}, [session, socket, id]);
 
 	useEffect(() => {
-		if(socket) {
-		socket.on('updateParticipants', (data: ParticipantType[]) => {
-			setParticipantsList(data);
-		})
+		if (socket) {
+			socket.on('updateParticipants', (data: ParticipantType[]) => {
+				setParticipantsList(data);
+			})
 		}
 	}, [socket]);
 
