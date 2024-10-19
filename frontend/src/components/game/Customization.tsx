@@ -52,7 +52,7 @@ export async function fetchGameSettings(user_id: number, updateSettings: Functio
 			else {
 				const fetched = await response.json();
 				const data = fetched.data;
-				updateSettings((prevSettings: GameSettings) => ({
+				updateSettings((prevSettings: GameSettingsType) => ({
 					...prevSettings,
 					user: user_id,
 					background: data.background,
@@ -81,7 +81,7 @@ export async function fetchMatchParameters(user_id: number, updateSettings: Func
 		}
 		else {
 			const fetched = await response.json();
-			updateSettings((prevSettings: GameSettings) => ({
+			updateSettings((prevSettings: GameSettingsType) => ({
 				...prevSettings,
 				...fetched.data
 			}));
@@ -92,11 +92,11 @@ export async function fetchMatchParameters(user_id: number, updateSettings: Func
 }
 
 export async function gameCustomSave(backend_url: string, stringified_settings: string) {
-	const response = await fetch(`${BACKEND_URL}/api/${backend_url}`,  {
+	const response = await fetch(`${BACKEND_URL}/api/${backend_url}`, {
 		method: 'POST',
 		credentials: 'include',
-		headers: { 
-			'Content-Type': 'application/json', 
+		headers: {
+			'Content-Type': 'application/json',
 			'X-CSRFToken': Cookies.get('csrftoken') as string
 		},
 		body: stringified_settings
@@ -123,19 +123,19 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 	}, [userId]);
 
 	const handleColorChange = (color: string) => {
-		updateSettings((prevSettings: GameSettings) => ({ ...prevSettings, bgColor: color }))
+		updateSettings((prevSettings: GameSettingsType) => ({ ...prevSettings, bgColor: color }))
 	};
 
 	const handlePalette = () => {
 		if (palette)
-			updateSettings((prevSettings: GameSettings) => ({ ...prevSettings, palette: 0 }))
+			updateSettings((prevSettings: GameSettingsType) => ({ ...prevSettings, palette: 0 }))
 		else if (!palette)
-			updateSettings((prevSettings: GameSettings) => ({ ...prevSettings, palette: 1 }))
+			updateSettings((prevSettings: GameSettingsType) => ({ ...prevSettings, palette: 1 }))
 		setPalette((prevPalette: boolean) => !prevPalette);
 	}
 
 	const handlePaletteRadio = (e: React.ChangeEvent<HTMLInputElement>) => {
-		updateSettings((prevSettings: GameSettings) => ({ ...prevSettings, palette: parseInt(e.target.value) }))
+		updateSettings((prevSettings: GameSettingsType) => ({ ...prevSettings, palette: parseInt(e.target.value) }))
 	}
 
 	const gameCustomDefault = () => {
@@ -162,7 +162,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 											name="bgRadio"
 											id="flexRadioDefault1"
 											value={0}
-											onChange={() => updateSettings((prevSettings: GameSettings) => ({ ...prevSettings, background: 0 }))}
+											onChange={() => updateSettings((prevSettings: GameSettingsType) => ({ ...prevSettings, background: 0 }))}
 											checked={(gameSettings.background >= 0 && gameSettings.background <= 3)}
 										/>
 										<label className="form-check-label" htmlFor="flexRadioDefault1">
@@ -176,7 +176,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 											name="bgRadio"
 											id="flexRadioDefault2"
 											value={4}
-											onChange={() => updateSettings((prevSettings: GameSettings) => ({ ...prevSettings, background: 4 }))}
+											onChange={() => updateSettings((prevSettings: GameSettingsType) => ({ ...prevSettings, background: 4 }))}
 											checked={(gameSettings.background === 4 || gameSettings.background === 5)}
 										/>
 										<label className="form-check-label" htmlFor="flexRadioDefault2">
@@ -193,7 +193,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 												aria-label="Animated Background"
 												value={gameSettings.background}
 												onChange={(e) =>
-													updateSettings((prevSettings: GameSettings) => ({ ...prevSettings, background: parseInt(e.target.value) }))
+													updateSettings((prevSettings: GameSettingsType) => ({ ...prevSettings, background: parseInt(e.target.value) }))
 												}
 											>
 												<option value="">Select Animated Background</option>
@@ -300,7 +300,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 											aria-label="Static Background"
 											value={gameSettings.background}
 											onChange={(e) =>
-												updateSettings((prevSettings: GameSettings) => ({ ...prevSettings, background: parseInt(e.target.value) }))
+												updateSettings((prevSettings: GameSettingsType) => ({ ...prevSettings, background: parseInt(e.target.value) }))
 											}
 										>
 											<option value="">Select Static Background</option>
@@ -327,7 +327,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 										step="1"
 										id="bgOpacity"
 										value={gameSettings.opacity}
-										onChange={(e) => updateSettings((prevSettings: GameSettings) => ({ ...prevSettings, opacity: parseInt(e.target.value) }))}
+										onChange={(e) => updateSettings((prevSettings: GameSettingsType) => ({ ...prevSettings, opacity: parseInt(e.target.value) }))}
 									/>
 									<div className="mb-1">
 										<p>{gameSettings.opacity}%</p>
@@ -341,7 +341,7 @@ export default function Customization({ updateSettings, gameSettings, userId }: 
 											id="flexSwitchCheckDefault"
 											checked={gameSettings.sparks}
 											onChange={() =>
-												updateSettings((prevSettings: GameSettings) => ({ ...prevSettings, sparks: !gameSettings.sparks }))
+												updateSettings((prevSettings: GameSettingsType) => ({ ...prevSettings, sparks: !gameSettings.sparks }))
 											}
 										/>
 										<label className="form-check-label" htmlFor="flexSwitchCheckDefault">Collision Sparks</label>

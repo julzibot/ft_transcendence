@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ThreeScene from './Game';
-import { GameSettings } from '@/types/GameSettings';
+import { GameSettingsType } from '@/types/GameSettings';
 import { BACKEND_URL } from '@/config';
 import { gameCustomSave } from './Customization';
 import Cookies from 'js-cookie';
@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 
 interface LocalGameProps {
 	userId: number,
-	gameSettings: GameSettings
+	gameSettings: GameSettingsType
 }
 
 export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
@@ -35,7 +35,7 @@ export default function LocalGame({ userId, gameSettings }: LocalGameProps) {
 				const response = await fetch(BACKEND_URL + '/api/game/create', {
 					method: 'POST',
 					credentials: 'include',
-					headers: { 
+					headers: {
 						'Content-Type': 'application/json',
 						'X-CSRFToken': Cookies.get('csrftoken') as string
 					},

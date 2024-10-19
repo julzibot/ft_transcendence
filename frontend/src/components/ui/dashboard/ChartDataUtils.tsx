@@ -51,7 +51,7 @@ export default function createScoreData(
 				newMinDate = itemDate;
 
 			// Wins and losses
-			if ((item.player1 === user_id && item.score1 > item.score2) || (item.player2 === user_id && item.score1 < item.score2)) {
+			if ((Number(item.player1) === user_id && item.score1 > item.score2) || (Number(item.player2) === user_id && item.score1 < item.score2)) {
 				const existingDate = newWinData.find(obj => obj.x === dateISO);
 
 				if (existingDate === undefined)

@@ -1058,8 +1058,8 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	};
 
 	let socket = -1;
-	if (gamemode === 2)
-		socket = useSocketContext();
+	// if (gamemode === 2)
+	socket = useSocketContext();
 	initVars(p.objs, p.csts, p.vars, p.custom);
 	console.log("PARAMETERS: " + p);
 
@@ -1073,7 +1073,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		p.tools.controls = new OrbitControls(p.tools.camera, p.tools.renderer.domElement);
 		p.tools.stats = Stats()
 		// document.body.appendChild(p.tools.renderer.domElement);
-		document.body.appendChild(p.tools.stats.dom);
+		document?.body.appendChild(p.tools.stats.dom);
 
 		p.tools.scene.add(p.objs.ball);
 		p.tools.scene.add(p.objs.ballWrap);
@@ -1176,11 +1176,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		// document.addEventListener('keydown', handleKeyDown);
 		// document.addEventListener('keyup', handleKeyUp);
 
-		if (gamemode === 2)
-			init_socket(socket, isHost, p, arr, g);
-		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
-			animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool);
-
 		const handleKeyDown = (event) => {
 			p.keys[event.code] = true;
 		}
@@ -1188,9 +1183,14 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		const handleKeyUp = (event) => {
 			p.keys[event.code] = false;
 		}
-		document.addEventListener('keydown', handleKeyDown);
-		document.addEventListener('keyup', handleKeyUp);
 
+		if (gamemode === 2)
+			init_socket(socket, isHost, p, arr, g);
+		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
+			animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool);
+
+		document?.addEventListener('keydown', handleKeyDown);
+		document?.addEventListener('keyup', handleKeyUp);
 		// console.log('Renderer DOM Element:', p.tools.renderer.domElement);
 		// console.log('ContainerRef Current:', containerRef.current);
 		// console.log('Elements are equal:', p.tools.renderer.domElement === containerRef.current);
@@ -1201,8 +1201,8 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			// notanimating = true
 
 			cancelAnimationFrame(animationFrameIdRef.current);
-			document.removeEventListener('keydown', handleKeyDown);
-			document.removeEventListener('keyup', handleKeyUp);
+			document?.removeEventListener('keydown', handleKeyDown);
+			document?.removeEventListener('keyup', handleKeyUp);
 			p.tools.renderer.dispose();
 			// p.tools.camera.dispose();
 			// p.tools.scene.dispose();

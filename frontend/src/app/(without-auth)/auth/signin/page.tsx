@@ -25,7 +25,9 @@ export default function SignIn() {
       setFormState({ errors: validatedFields.error.flatten().fieldErrors })
     else {
       const { username, password } = validatedFields.data;
-      setFormState({ message: signIn(username, password) })
+      signIn(username, password).then((message) => {
+        setFormState({ message: [message || ""] });
+      });
     }
   }
 

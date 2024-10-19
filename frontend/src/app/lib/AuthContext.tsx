@@ -20,13 +20,13 @@ interface Session {
 interface AuthContextType {
 	session: Session | null;
 	loading: boolean;
-	signIn: (username: string, password: string) => string[] | undefined;
+	signIn: (username: string, password: string) => Promise<string | undefined>;
 	setLoading: (loading: boolean) => void;
 	update: () => void;
 	logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ session: null, loading: true, update: () => { }, logout: () => { }, signIn: () => undefined, setLoading: () => { } });
+const AuthContext = createContext<AuthContextType>({ session: null, loading: true, update: () => { }, logout: () => { }, signIn: async () => undefined, setLoading: () => { } });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [session, setSession] = useState<Session | null>(null);

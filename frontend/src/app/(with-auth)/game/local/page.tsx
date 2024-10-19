@@ -16,7 +16,7 @@ export default function GameSettings() {
 	const [isMounted, setIsMounted] = useState(false);
 
 	const [gameSettings, setGameSettings] = useState<GameSettingsType>({
-		user_id: session?.user?.id ?? -1,
+		user: session?.user?.id ?? -1,
 		background: 0,
 		palette: 0,
 		bgColor: '#ff0000',
@@ -30,6 +30,7 @@ export default function GameSettings() {
 	useEffect(() => {
 		const timer = setTimeout(() => {
 			setIsMounted(true);
+			setIsTranslated(true);
 		}, 500);
 		return () => clearTimeout(timer)
 	}, []);
@@ -66,7 +67,7 @@ export default function GameSettings() {
 								<option value={2}>Boring</option>
 								<option value={3}>Still Slow</option>
 								<option value={4}>Kinda OK</option>
-								<option value={5}>Now We're Talking</option>
+								<option value={5}>Now We are Talking</option>
 								<option value={6}>Madman</option>
 								<option value={7}>Legend</option>
 							</select>

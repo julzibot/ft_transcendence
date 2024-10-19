@@ -5,7 +5,7 @@ import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournamen
 import { useAuth } from '@/app/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import DOMPurify from 'dompurify';
-import { GameSettings } from '@/types/GameSettings';
+import { GameSettingsType } from '@/types/GameSettings';
 import { gameCustomSave } from '../game/Customization';
 
 interface MatchParameters {
@@ -58,10 +58,10 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 	}
 
 	const handleSubmitData = async () => {
-		let errors = {};
+		let errors = { name: '' };
 
 		if (lobbyForm?.name === '') {
-			setErrorfield({name: 'Name field Required'})
+			setErrorfield({ name: 'Name field Required' })
 		}
 
 		if (Object.keys(errors).length > 0) {
@@ -90,7 +90,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		}
 	};
 
-	const handlePutLobbyApi = async (element) => {
+	const handlePutLobbyApi = async (element: any) => {
 		const payload = {
 			"lobby_id": element?.id.toString(),
 			"user_id": session?.user?.id.toString()
@@ -100,7 +100,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 			fetchLobbyData()
 		}
 	}
-	const handleUser = async (item) => {
+	const handleUser = async (item: any) => {
 		if ((item?.player1 && item?.player1 !== session?.user?.id) && item?.player2 === null) {
 			handlePutLobbyApi(item);
 			localStorage.setItem('gameSettings', JSON.stringify(gameSettings));
@@ -205,7 +205,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 								<option value={2}>Boring</option>
 								<option value={3}>Still Slow</option>
 								<option value={4}>Kinda OK</option>
-								<option value={5}>Now We're Talking</option>
+								<option value={5}>Now We are Talking</option>
 								<option value={6}>Madman</option>
 								<option value={7}>Legend</option>
 							</select>

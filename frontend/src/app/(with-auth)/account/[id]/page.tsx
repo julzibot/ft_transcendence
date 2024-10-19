@@ -17,7 +17,7 @@ interface User {
 }
 
 export default function ProfilePage() {
-	const [isEditing, setIsEditing] = useState<Boolean>(false)
+	const [isEditing, setIsEditing] = useState<boolean>(false)
 	const { session, update } = useAuth();
 	const { id } = useParams()
 	const router = useRouter()
@@ -47,6 +47,7 @@ export default function ProfilePage() {
 	})
 
 	const [gameSettings, setGameSettings] = useState({
+		user: session?.user?.id || 0,
 		background: 0, // 0 - 3 animated, 4 - 5 static
 		palette: 0, // palette: 4 choices
 		bgColor: '#ff0000',
@@ -67,7 +68,7 @@ export default function ProfilePage() {
 	};
 
 	async function getUserInfo() {
-		if (!id || !/^\d+$/.test(id)) {
+		if (!id || !/^\d+$/.test(id as string)) {
 			router.push(`/error?code=400`)
 			return
 		}
