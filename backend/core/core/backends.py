@@ -27,7 +27,8 @@ class ExternalAPITokenBackend(BaseBackend):
             user = UserAccount.objects.create(
                 id=user_info['id'],
                 username=user_info['login'],
-                image_url = user_info.get('image', {}).get('versions', {}).get('medium')
+                image_url = user_info.get('image', {}).get('versions', {}).get('medium'),
+                provider='42-school'
             )
             user.save_image_from_url()
             DashboardData.objects.create(user=user)
