@@ -9,3 +9,8 @@ export interface GameSettingsType {
 	points_to_win: number,
 	power_ups: boolean
 }
+
+export interface GameSettingsProps {
+	setGameSettings: Function,
+	gameSettings: GameSettingsType
+}
