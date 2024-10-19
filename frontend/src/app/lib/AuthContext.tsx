@@ -9,6 +9,7 @@ interface User {
 	id: number;
 	username: string;
 	image: string;
+	provider: 'credentials' | '42-school';
 }
 
 interface Session {
@@ -19,12 +20,13 @@ interface Session {
 interface AuthContextType {
 	session: Session | null;
 	loading: boolean;
-	signIn: (provider: 'credentials' | '42-school', username: string, password: string) => string[] | undefined;
+	signIn: (username: string, password: string) => string[] | undefined;
+	setLoading: (loading: boolean) => void;
 	update: () => void;
 	logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ session: null, loading: true, update: () => { }, logout: () => { }, signIn: () => undefined });
+const AuthContext = createContext<AuthContextType>({ session: null, loading: true, update: () => { }, logout: () => { }, signIn: () => undefined, setLoading: () => { } });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [session, setSession] = useState<Session | null>(null);
@@ -43,38 +45,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					user: data.user,
 					provider: prevSession?.provider || null
 				}));
-			});
+			})
+			.finally(() => setLoading(false));
 	}
 
-	async function signIn(provider: 'credentials' | '42-school', username: string, password: string) {
-		switch (provider) {
-			case 'credentials':
-				const response = await fetch(`${BACKEND_URL}/api/auth/signin/`, {
-					method: 'POST',
-					credentials: 'include',
-					headers: {
-						'Accept': 'application/json',
-						'Content-Type': 'application/json',
-						'X-CSRFToken': Cookies.get('csrftoken') as string,
-					},
-					body: JSON.stringify({
-						username,
-						password,
-					}),
-				})
-				const data = await response.json();
-				setLoading(false);
-				if (response.ok) {
-					setSession({ user: data.user, provider: 'credentials' });
-					window.location.reload();
-				}
-				else {
-					return ('Invalid Username or Password');
-				}
-				break;
-			case '42-school':
-				break;
-		}
+	async function signIn(username: string, password: string) {
+
+		const response = await fetch(`${BACKEND_URL}/api/auth/signin/`, {
+			method: 'POST',
+			credentials: 'include',
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+				'X-CSRFToken': Cookies.get('csrftoken') as string,
+			},
+			body: JSON.stringify({
+				username,
+				password,
+				provider: 'credentials',
+			}),
+		})
+		if (!response.ok)
+			return ('Invalid Username or Password');
+		setLoading(false);
+		window.location.reload();
 	}
 
 	async function logout() {
@@ -86,34 +80,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			.finally(() => router.push('/auth/signin'));
 	}
 
-	useEffect(() => {
-		const checkUserLoggedIn = async () => {
-			if (Cookies.get('sessionid')) {
-				try {
-					const response = await fetch(`${BACKEND_URL}/api/auth/user/`, {
-						method: 'GET',
-						credentials: 'include'
-					});
-					const data = await response.json();
-					if (response.ok) {
-						setSession((prevSession) => ({ user: data.user, provider: prevSession?.provider || null }));
-					}
-					else {
-						setSession({ user: null, provider: null });
-					}
+	const checkUserLoggedIn = async () => {
+		if (Cookies.get('sessionid')) {
+			try {
+				const response = await fetch(`${BACKEND_URL}/api/auth/user/`, {
+					method: 'GET',
+					credentials: 'include'
+				});
+				const data = await response.json();
+				if (response.ok) {
+					setSession({ user: data.user, provider: data.user.provider });
 				}
-				catch (error) {
+				else {
 					setSession({ user: null, provider: null });
-				} finally {
-					setLoading(false);
 				}
 			}
+			catch (error) {
+				setSession({ user: null, provider: null });
+			} finally {
+				setLoading(false);
+			}
 		}
+	}
+	useEffect(() => {
 		checkUserLoggedIn();
 	}, []);
 
 	return (
-		<AuthContext.Provider value={{ session, loading, update, logout, signIn }}>
+		<AuthContext.Provider value={{ session, loading, update, logout, signIn, setLoading }}>
 			{children}
 		</AuthContext.Provider>
 	)
