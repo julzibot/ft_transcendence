@@ -43,6 +43,7 @@ export default function SignIn() {
               <div className="mb-3">
                 <label htmlFor="username" className="form-label fw-bold" >Username*</label>
                 <input
+                  disabled={!loading}
                   type="text"
                   name="username"
                   id="username"
@@ -53,6 +54,7 @@ export default function SignIn() {
               <div className="mb-3">
                 <label htmlFor="password" className="form-label fw-bold">Password*</label>
                 <input
+                  disabled={!loading}
                   type="password"
                   className="form-control"
                   id="password"
@@ -69,7 +71,7 @@ export default function SignIn() {
           <div className="card-footer">
             <span>Not Registered Yet ? </span>
             <Link href="/auth/register">
-              <button className="ms-2 btn btn-primary btn-sm">Register</button>
+              <button disabled={!loading} className="ms-2 btn btn-primary btn-sm">Register</button>
             </Link>
           </div>
         </div>

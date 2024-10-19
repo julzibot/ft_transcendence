@@ -83,6 +83,8 @@ class OauthView(APIView):
 
     user = auth.authenticate(request, access_token=access_token)
     if user is not None:
+      user.is_online = True
+      user.save()
       request.session.save()
       auth.login(request, user)
       return Response({
@@ -182,6 +184,9 @@ class DeleteAccountView(APIView):
 class LogoutView(APIView):
   def post(self, request, format=None):
     try:
+      user = request.user
+      user.is_online = False
+      user.save()
       auth.logout(request)
       return Response({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
     except:
