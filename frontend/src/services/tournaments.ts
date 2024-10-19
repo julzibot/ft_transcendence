@@ -109,7 +109,7 @@ export const fetchTournamentInfo = async (tournamentId: number) => {
 	return data
 }
 
-export const joinTournament = async (tournamentId: number, userId: number) => {
+export const joinTournament = async (tournamentId: number, userId: number | undefined) => {
 	try {
 
 		const response = await fetch(BACKEND_URL + '/api/tournament/join/', {

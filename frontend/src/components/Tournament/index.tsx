@@ -5,7 +5,6 @@ import { Button, Modal } from 'react-bootstrap'
 import { GetTournamentData, CreateTournament, joinTournament } from '@/services/tournaments';
 import { useAuth } from '@/app/lib/AuthContext';
 import DOMPurify from 'dompurify';
-import { GameSettingsType } from '@/types/GameSettings';
 import { TournamentSettingsType } from '@/types/TournamentSettings'
 import { PersonFillUp, Controller, Toggle2On, Toggle2Off, LightningFill, ClockFill, Activity, TrophyFill, Alphabet, CircleFill } from 'react-bootstrap-icons'
 import { BACKEND_URL } from '@/config';
@@ -23,10 +22,18 @@ interface Tournament {
 	maxPlayerNumber: number;
 	timer: number;
 	isStarted: boolean;
+	linkToJoin: string;
+	creator: {
+		id: number;
+		username: string;
+		image: string;
+	};
+	numberOfPlayers: number;
+	pointsPerGame: number;
+	difficultyLevel: number;
 }
 
-interface GameSettingsProps {
-	setGameSettings: Function,
+interface TournamentSettingsProps {
 	setToastShow: Function,
 	setErrorField: Function,
 	errorField: {
@@ -34,10 +41,9 @@ interface GameSettingsProps {
 		nameMissing: string,
 		difficultyMissing: string,
 	},
-	tournamentForm: GameSettingsType
 }
 
-export default function Tournament({ setToastShow, setErrorField, errorField }: GameSettingsProps) {
+export default function Tournament({ setToastShow, setErrorField, errorField }: TournamentSettingsProps) {
 	const { session } = useAuth()
 	const router = useRouter()
 
@@ -50,14 +56,14 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		pointsPerGame: 10,
 		difficultyLevel: 4,
 		power_ups: true,
-		// isStarted: false,
-		// numberOfPlayers: 0,
-		// creator: null,
-		// linkToJoin: ''
+		isStarted: false,
+		numberOfPlayers: 0,
+		creator: null,
+		linkToJoin: ''
 	})
 
 
-	const handleJoin = async (tournament: Tournament, userId: number, linkToJoin: string) => {
+	const handleJoin = async (tournament: Tournament, userId: number | undefined, linkToJoin: string) => {
 		if (tournament.isStarted) {
 			setErrorField({ ...errorField, joinError: 'Tournament has already started' })
 			setToastShow(true)
@@ -165,10 +171,9 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 					tournamentData && tournamentData.length === 0 && <h2 className="text-center mt-5 pt-5">No Tournaments Available</h2>
 				}
 				{
-					tournamentData && tournamentData.map((tournament: TournamentSettingsType, index: number) => {
+					tournamentData && tournamentData.map((tournament: Tournament, index: number) => {
 						return (
 							<div
-								type="button"
 								key={index}
 								onClick={() => handleJoin(tournament, session?.user?.id, tournament.linkToJoin)}
 								className={`${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5`}
