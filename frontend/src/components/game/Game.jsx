@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { initVars } from '../../utils/init';
-import { useSocketContext } from '../../context/socket';
+import useSocketContext from '../../context/socket';
 import { BACKEND_URL } from '@/config';
 import Cookies from 'js-cookie';
 
@@ -571,7 +571,7 @@ let display_img = (image, mode, p) => {
 	const imgGeo = new THREE.CircleGeometry(1.7, 30);
 	let path = image;
 	if (mode >= 2)
-		path = `${BACKEND_URL} + ${image}`;
+		path = `${BACKEND_URL}${image}`;
 	const pp = new THREE.TextureLoader().load(path);
 	let op = 0.8;
 	if (mode > 1) {
@@ -843,8 +843,7 @@ const create_delete_pu = (isHost, gamemode, socket, room_id, p, arr, g) => {
 
 // CUT
 const animate = (socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool) => {
-	if (stopAnim.current === true)
-	{
+	if (stopAnim.current === true) {
 		console.log("IT'S OVER");
 		return;
 	}
@@ -1211,8 +1210,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			const objectsToRemove = [];
 			p.tools.scene.traverse((object) => {
 				// console.log(object);
-				if (object.isMesh)
-				{
+				if (object.isMesh) {
 					if (object.geometry) {
 						object.geometry.dispose();
 					}
@@ -1223,7 +1221,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				objectsToRemove.push(object);
 			});
 
-			objectsToRemove.forEach((object) => { p.tools.scene.remove(object);})
+			objectsToRemove.forEach((object) => { p.tools.scene.remove(object); })
 			if (p.tools.stats && p.tools.stats.dom && p.tools.stats.dom.parentNode) {
 				p.tools.stats.dom.parentNode.removeChild(p.tools.stats.dom);
 			}
