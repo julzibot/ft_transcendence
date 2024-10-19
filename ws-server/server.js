@@ -63,7 +63,7 @@ io.on("connection", async (socket) => {
 		}
 		else {
 			console.log("[NOT HOST] Client [" + data.user_id + "] joining room: " + data.room_id);
-			socket.to(data.room_id).emit('participant2_id', { participant2_id: data.user_id });
+			socket.to(data.room_id).emit('player2_id', { player2_id: data.user_id });
 			socket.emit('isNotHost');
 		}
 
@@ -74,10 +74,12 @@ io.on("connection", async (socket) => {
 	});
 
 	socket.on('fetchFinished', (data) => {
+		console.log('fetchFinished');
 		let currentCount = fetchFinished.get(data.room_id) || 0;
 		if (currentCount > -1)
 			fetchFinished.set(data.room_id, currentCount + 1);
 		if (fetchFinished.get(data.room_id) === 2) {
+			console.log(`[Online Game] 2 Players in the room: ${io._nsps.get('/').adapter.rooms.get(data.room_id).size}`);
 			io.in(data.room_id).emit('startGame');
 			fetchFinished.delete(data.room_id);
 		}
@@ -146,48 +148,63 @@ io.on("connection", async (socket) => {
 	socket.on('sendGameId', (data) => {
 		socket.to(data.room_id).emit('receiveGameId', { game_id: data.game_id });
 	});
-	socket.on('sendparticipantInfos', (data) => {
-		socket.to(data.room_id).emit('setparticipantInfos', { p1Name: data.p1Name, p2Name: data.p2Name, p1p: data.p1p, p2p: data.p2p, game_id: data.game_id });
+
+	socket.on('sendPlayerInfos', (data) => {
+		socket.to(data.room_id).emit('setPlayerInfos', { p1Name: data.p1Name, p2Name: data.p2Name, p1p: data.p1p, p2p: data.p2p, game_id: data.game_id });
 	})
+
 	socket.on('sendBallPos', (data) => {
 		socket.to(data.room_id).emit('updateBallPos', { x: data.x, y: data.y, vectx: data.vectx, vecty: data.vecty, speed: data.speed });
 	})
-	socket.on('sendparticipant1Pos', data => {
-		socket.to(data.room_id).emit('updateparticipant1Pos', { participant1pos: data.participant1pos });
+
+	socket.on('sendPlayer1Pos', data => {
+		socket.to(data.room_id).emit('updatePlayer1Pos', { player1pos: data.player1pos });
 	});
-	socket.on('sendparticipant2Pos', data => {
-		socket.to(data.room_id).emit('updateparticipant2Pos', { participant2pos: data.participant2pos });
+
+	socket.on('sendPlayer2Pos', data => {
+		socket.to(data.room_id).emit('updatePlayer2Pos', { player2pos: data.player2pos });
 	});
+
 	socket.on('sendBounceGlow', data => {
 		socket.to(data.room_id).emit('startBounceGlow');
 	})
+
 	socket.on('sendWallCollision', data => {
 		socket.to(data.room_id).emit('newWallCollision');
 	})
+
 	socket.on('sendScore', data => {
 		socket.to(data.room_id).emit('updateScore', { score1: data.score1, score2: data.score2, stopGame: data.stopGame });
 	})
+
 	socket.on('sendCreatePU', data => {
 		socket.to(data.room_id).emit('updateCreatePU', { pu_id: data.pu_id, powerType: data.type, radius: data.radius, spawnx: data.x, spawny: data.y });
 	})
+
 	socket.on('sendCollectPU', data => {
-		socket.to(data.room_id).emit('updateCollectPU', { participant_id: data.participant_id, powerType: data.power_id });
+		socket.to(data.room_id).emit('updateCollectPU', { player_id: data.player_id, powerType: data.power_id });
 	})
+
 	socket.on('sendActivatePU1', data => {
 		socket.to(data.room_id).emit('updateActivatePU1', { powerType: data.powerType });
 	})
+
 	socket.on('sendActivatePU2', data => {
 		socket.to(data.room_id).emit('updateActivatePU2', { powerType: data.powerType });
 	})
+
 	socket.on('sendInvert', data => {
 		socket.to(data.room_id).emit('updateInvert');
 	})
+
 	socket.on('sendInvisiball', data => {
-		socket.to(data.room_id).emit('updateInvisiball', { id: data.participant_id });
+		socket.to(data.room_id).emit('updateInvisiball', { id: data.player_id });
 	})
+
 	socket.on('sendDeactivatePU', data => {
-		socket.to(data.room_id).emit('updateDeactivatePU', { participant_id: data.participant_id, type: data.type });
+		socket.to(data.room_id).emit('updateDeactivatePU', { player_id: data.player_id, type: data.type });
 	})
+
 	socket.on('sendDeletePU', data => {
 		socket.to(data.room_id).emit('updateDeletePU', { pu_id: data.pu_id });
 	})
@@ -197,7 +214,6 @@ io.on("connection", async (socket) => {
 		connectedUsers.delete(socket.id);
 
 		const deleteParticipant = async (tournamentId, userId) => {
-
 			// Inform other participants about the disconnected participant
 			await fetch(`http://django:${backendPort}/api/tournament/${tournamentId}/delete-participant/`, {
 				method: 'DELETE',
@@ -206,8 +222,7 @@ io.on("connection", async (socket) => {
 				},
 				body: JSON.stringify({ userId })
 			})
-		}
-
+		};
 
 		if (disconnectedUserId)
 			console.log(socket.id + ' -> ' + disconnectedUserId + " has disconnected");
@@ -250,8 +265,6 @@ io.on("connection", async (socket) => {
 	});
 });
 
-
 server.listen(port, () => {
 	console.log(`Socket server is now listening on https://${domain}:` + port);
 });
-
