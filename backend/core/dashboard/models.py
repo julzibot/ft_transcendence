@@ -29,7 +29,7 @@ class DashboardData(models.Model):
 
 	class Meta:
 		verbose_name = 'Dashboard Data'
-		verbose_name_plural = 'Dashboard Data'
+		verbose_name_plural = 'Dashboards'
 
 	def __str__(self):
 		try:
