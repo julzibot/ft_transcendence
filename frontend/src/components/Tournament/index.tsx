@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { CustomTooltip } from '../Utils/Tooltip';
 import { useRouter } from 'next/navigation'
 import './styles.css'
+import DifficultyLevel from '../Utils/DifficultyLevel';
 
 interface Tournament {
 	id: number;
@@ -54,7 +55,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		maxPlayerNumber: 4,
 		timer: 15,
 		pointsPerGame: 10,
-		difficultyLevel: 4,
+		difficultyLevel: 0,
 		power_ups: true,
 		isStarted: false,
 		numberOfPlayers: 0,
@@ -98,16 +99,18 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 			'creator': session?.user?.id
 		}
 		await CreateTournament(payload)
-		setModalShow(false)
 		setErrorField({ ...errorField, nameMissing: '', difficultyMissing: '' })
 		setTournamentForm({ ...tournamentForm, name: '' })
 		fetchData()
+		setModalShow(false)
 	}
 
 	const fetchData = async () => {
 		try {
 			const tournaments = await GetTournamentData()
-			setTournamentData(tournaments)
+			setTournamentData([...tournaments].sort((a, b) => {
+				return (a.isStarted === b.isStarted) ? 0 : ((a.isStarted ? 1 : -1))
+			}))
 		} catch (error) {
 			console.error('Error :', error)
 		}
@@ -155,14 +158,9 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 						<LightningFill className="me-1" size={15} />
 					</CustomTooltip>
 				</div>
-				<div className="border-end col-1 d-flex justify-content-center align-items-center">
+				<div className="col-1 d-flex justify-content-center align-items-center">
 					<CustomTooltip text="Duration" position="top">
 						<ClockFill size={15} />
-					</CustomTooltip>
-				</div>
-				<div className="col-1 d-flex justify-content-center align-items-center">
-					<CustomTooltip text="Availability" position="top">
-						<CircleFill size={15} />
 					</CustomTooltip>
 				</div>
 			</div>
@@ -176,7 +174,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 							<div
 								key={index}
 								onClick={() => handleJoin(tournament, session?.user?.id, tournament.linkToJoin)}
-								className={`${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5`}
+								className={`${tournament.isStarted ? 'disabled' : ''} ${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5`}
 							>
 								<div className="border-end col-2 d-flex justify-content-center align-items-center text-truncate">
 									{tournament.name}
@@ -209,7 +207,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 									<span className="fw-bold">{tournament.pointsPerGame}</span>
 								</div>
 								<div className="border-end col-1 d-flex justify-content-center align-items-center">
-									<span className="fw-bold">{tournament.difficultyLevel}</span>
+									{DifficultyLevel(tournament.difficultyLevel)}
 								</div>
 								<div className="border-end col-1 d-flex justify-content-center align-items-center">
 									<span>
@@ -218,13 +216,8 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 										}
 									</span>
 								</div>
-								<div className="col-1 border-end d-flex justify-content-center align-items-center">
-									<span className="ms-1">{tournament.timer}'</span>
-								</div>
 								<div className="col-1 d-flex justify-content-center align-items-center">
-									{
-										tournament.isStarted ? (<CircleFill size={20} color={'red'} />) : (<CircleFill size={20} color={'green'} />)
-									}
+									<span className="ms-1">{tournament.timer}'</span>
 								</div>
 							</div>
 						)
