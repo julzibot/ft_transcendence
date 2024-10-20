@@ -67,10 +67,6 @@ export default function TournamentLobby() {
 		}
 	}, [socket]);
 
-	useEffect(() => {
-
-		console.log(`[Participants] ${JSON.stringify(participantsList)}`);
-	}, [participantsList])
 
 	return (
 		<>
