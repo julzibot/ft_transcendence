@@ -12,20 +12,22 @@ const socketRooms = new Map();
 const connectedUsers = new Map(); // socket.id -> user.id
 
 let tournamentsArray = [];
-
 // const tournament = {
 // 	tournamentId: 0,
 //	isStarted: false
 // 	participants: [participant1...],
+//	inLobby: [participant1, ...],
 // 	rooms: []
 // }
 
-// const participant = {
+//	const participant = {
 // 	user: {
 // 		id,
 // 		username,
 // 		image
 // 	},
+//	return_time,
+//	opponents: new Map(),
 // 	wins,
 // 	gamesPlayed
 // }
@@ -40,21 +42,117 @@ const io = new Server(server, {
 	}
 });
 
+const computeMatches = (tournament) => {
+
+	let pairs = [];
+	let time_elapsed = 0;
+	let prio = 0;
+	let maxMatchesNumber = 0;
+	let filtered_lobby = new Map();
+	let priosMap = new Map();
+		
+	// FIRST, check which opponents in lobby are viable for pairing
+	inLobby.forEach(participant => {
+		time_elapsed = performance.now() - participant.return_time;
+		prio = 0;
+		if (time_elapsed > 60000)
+			prio += 1 + Math.floor((time_elapsed - 60000) / 30000)
+		maxMatchesNumber = Math.min(...participant.opponents.values()) + prio;
+		
+		const filteredOpps = new Map(
+			[...participant.opponents].filter(([key]) => [...inLobby].map(sub => sub[0]).indexOf(key) !== -1).filter(([, value]) => value <= maxMatchesNumber));
+		const possibleOpps = [...filteredOpps].map(sub => sub[0])
+		// HERE, possibleOpps is an array of all viable opponents' IDs for the participant
+		if (possibleOpps.length > 0)
+		{
+			priosMap.set(participant.user.id, prio);
+			filtered_lobby.set(participant.user.id, possibleOpps);
+		}
+	})
+
+	if (filtered_lobby.size > 0)
+	{
+		// REARRANGE indexes according to priority (highest first)
+		let priosArray = [...priosMap];
+		const OppsArray = [...possibleOpps];
+		priosArray.sort((a, b) => a[1] + b[1]);
+		const sortedOppsArray = priosArray.map(([key]) => OppsArray.find(([k]) => k === key));
+		const sortedOppsMap = new Map(sortedOppsArray);
+
+		// NEXT, check reciprocity for each opponent in the sorted opponents map, for each participant
+		let finalOppsArray = [];
+		let index = 0;
+		sortedOppsMap.forEach((participant, opps) => {
+			opps.forEach(opp => {
+				if (sortedOppsMap.get(opp).includes(participant))
+					finalOppsArray.push(opp);
+			})
+			// FINALLY, if reciprocity check still leaves viable opponents, one of them is randomly selected for pairing
+			if (finalOppsArray.length > 0)
+			{
+				index = Math.floor(Math.random() * finalOppsArray.length);
+				pairs.push([participant, finalOppsArray[index]]);
+				sortedOppsMap.delete(participant);
+				sortedOppsMap.delete(finalOppsArray[index]);
+				finalOppsArray.length = 0;
+			}
+		})
+	}
+
+	return pairs
+}
+
 io.on("connection", async (socket) => {
 	console.log("User connected through socket: " + socket.id);
-
+	
 	if (!socketRooms.get(socket.id))
 		socketRooms.set(socket.id, new Set());
+	
+	socket.on('startTournament', (data) => {
+		// INITIALIZE TOURNAMENT INFOS + SEND FIRST MATCHMAKING 
+		// data = { tournamentId }
+		const userId = connectedUsers.get(socket.id);
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		if (tournament && tournament.participants.find(participant => participant.user.id === userId)) {
+			// console.log('[activeTournament] setting isStarted to true');
+			tournament.isStarted = true;
+		}
+		tournament.inLobby = tournament.participants;
+
+		const pairs = computeMatches(tournament);
+		if (pairs.length > 0)
+			socket.to(data.tournamentId).emit('getMatchPairs', {pairs})
+		// console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
+	})
+
+	socket.on('returnToLobby', (data) => {
+		const userId = connectedUsers.get(socket.id);
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		p = tournament.participants.find(participant => participant.user.id === userId);
+		p.return_time = performance.now();
+		tournament.inLobby.push(p);
+
+		const pairs = computeMatches(tournament);
+		if (pairs.length > 0)
+			socket.to(data.tournamentId).emit('getMatchPairs', {pairs});
+	})
+
+	socket.on('TournamentGameEntered', (data) => {
+		const userId = connectedUsers.get(socket.id);
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		i = tournament.inLobby.findIndex(participant => participant.user.id === userId);
+		tournament.inLobby.splice(i);
+	})
 
 	socket.on('join_room', data => {
 		const room = io.sockets.adapter.rooms.get(data.room_id);
-
+		
 		// if (room) {
 		// 	const roomSize = io._nsps.get('/').adapter.rooms.get(data.room_id).size;
 		// 	console.log(`${data.room_id} Two participants are already connected`);
 		// 	return;
 		// }
-
+		
 		if (!room || room.size === 0) {
 			console.log("[HOST] Client [" + data.user_id + "] joining room: " + data.room_id);
 			socket.emit('isHost');
@@ -64,13 +162,13 @@ io.on("connection", async (socket) => {
 			socket.to(data.room_id).emit('participant2_id', { participant2_id: data.user_id });
 			socket.emit('isNotHost');
 		}
-
+		
 		socket.join(data.room_id);
 		socketRooms.get(socket.id).add(data.room_id);
 		if (!fetchFinished.has(data.room_id))
 			fetchFinished.set(data.room_id, 0);
 	});
-
+	
 	socket.on('fetchFinished', (data) => {
 		let currentCount = fetchFinished.get(data.room_id) || 0;
 		if (currentCount > -1)
@@ -80,20 +178,20 @@ io.on("connection", async (socket) => {
 			fetchFinished.delete(data.room_id);
 		}
 	});
-
+	
 	// Tournament sockets
 	socket.on('joinTournament', (data) => {
-
+		
 		connectedUsers.set(socket.id, data.user.id);
 		console.log(`[server.js] connected users: ${JSON.stringify(Array.from(connectedUsers.entries()))}`);
-
+		
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
 		let updatedParticipants = [];
 		if (tournament) {
 			const participant = tournament.participants.find(participant => participant.user.id === data.user.id)
 			if (!participant)
 				tournament.participants.push({ user: data.user, wins: 0, gamesPlayed: 0 });
-			if (tournament.participants.length === 3)
+			if (tournament.participants.length === 2)
 				io.in(tournament.tournamentId).emit('tournamentCanStart');
 			updatedParticipants = tournament.participants;
 		}
@@ -112,19 +210,6 @@ io.on("connection", async (socket) => {
 
 		socket.join(data.tournamentId);
 	});
-
-	socket.on('startedTournament', (data) => {
-		// data = { tournamentId }
-		const userId = connectedUsers.get(socket.id);
-		// console.log(`[activeTournament] data: ${JSON.stringify(data)}`);
-		// console.log(`[activeTournament] userId: ${JSON.stringify(userId)}`);
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
-		if (tournament && tournament.participants.find(participant => participant.user.id === userId)) {
-			// console.log('[activeTournament] setting isStarted to true');
-			tournament.isStarted = true;
-		}
-		// console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
-	})
 
 	// Game match communication
 	socket.on('sendGameId', (data) => {
