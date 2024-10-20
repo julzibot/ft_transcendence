@@ -3,7 +3,7 @@ from .models import TournamentModel, ParticipantModel
 
 class TournamentAdmin(admin.ModelAdmin):
     fields = ['name', 'maxPlayerNumber', 'numberOfPlayers', 'isFinished', 'isStarted', 'timer', 'difficultyLevel', 'power_ups', 'pointsPerGame', 'creator', 'linkToJoin']
-    list_display = ['name', 'creator', 'maxPlayerNumber', 'numberOfPlayers', 'isFinished', 'isStarted', 'timer', 'difficultyLevel', 'power_ups', 'pointsPerGame']
+    list_display = ['name', 'creator', 'pointsPerGame', 'maxPlayerNumber', 'timer', 'isFinished', 'isStarted']
     readonly_fields = ['linkToJoin', 'numberOfPlayers']
     
     def numberOfPlayers(self, obj):
