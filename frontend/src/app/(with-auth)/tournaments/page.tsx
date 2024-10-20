@@ -8,7 +8,7 @@ import { Toast, ToastContainer } from 'react-bootstrap'
 
 export default function TournamentsPage() {
 
-  const [isTranslated, setIsTranslated] = useState(false);
+  const [isTranslated, setIsTranslated] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const [toastShow, setToastShow] = useState<boolean>(false)
   const [errorField, setErrorField] = useState({
