@@ -92,6 +92,8 @@ const computeMatches = (tournament) => {
 			{
 				index = Math.floor(Math.random() * finalOppsArray.length);
 				pairs.push([participant, finalOppsArray[index]]);
+
+				// TO DO: INCREMENT GAME COUNT IN .opponents FOR EACH PAIRED PLAYER
 				sortedOppsMap.delete(participant);
 				sortedOppsMap.delete(finalOppsArray[index]);
 				finalOppsArray.length = 0;
@@ -140,7 +142,8 @@ io.on("connection", async (socket) => {
 	socket.on('TournamentGameEntered', (data) => {
 		const userId = connectedUsers.get(socket.id);
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
-		i = tournament.inLobby.findIndex(participant => participant.user.id === userId);
+		const i = tournament.inLobby.findIndex(participant => participant.user.id === userId);
+		// TO DO: ITERATE MATCHES PLAYED WITH GAME OPPONENT
 		tournament.inLobby.splice(i);
 	})
 
