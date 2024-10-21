@@ -88,7 +88,6 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 	const fetchLobbyData = async () => {
 		try {
 			const lobbies = await GetLobbyData()
-			console.log(lobbies[0])
 			setLobbyData([...lobbies].sort((a, b) => {
 				return (a.isStarted === b.isStarted) ? 0 : ((a.isStarted ? 1 : -1))
 			}))
@@ -135,7 +134,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 					</CustomTooltip>
 				</div>
 			</div>
-			<div className="mt-2 border scrollbar overflow-y-auto" style={{ height: '550px' }}>
+			<div className="mt-2 border scrollbar overflow-y-auto" style={{ height: '520px' }}>
 				{
 					lobbyData && lobbyData.length === 0 && <h2 className="text-center mt-5 pt-5">No Games Available</h2>
 				}
@@ -153,7 +152,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">
 									<div className="d-flex flex-row align-items-center">
 										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{lobby.player1.username}</span>
-										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '45px', height: '45px', overflow: 'hidden' }}>
+										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '40px', height: '40px', overflow: 'hidden' }}>
 											<img
 												style={{
 													objectFit: 'cover',
