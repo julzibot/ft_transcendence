@@ -5,7 +5,7 @@ import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournamen
 import { useAuth } from '@/app/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import DOMPurify from 'dompurify';
-import { GameSettings } from '@/types/GameSettings';
+import { GameSettingsProps } from '@/types/GameSettings';
 import { gameCustomSave } from '../game/Customization';
 
 interface MatchParameters {
@@ -13,11 +13,6 @@ interface MatchParameters {
 	points_to_win: number,
 	game_difficulty: number,
 	power_ups: boolean
-}
-
-interface GameSettingsProps {
-	setGameSettings: Function,
-	gameSettings: GameSettingsType
 }
 
 export default function Lobby({ setGameSettings, gameSettings }: GameSettingsProps) {
@@ -61,7 +56,7 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		let errors = {};
 
 		if (lobbyForm?.name === '') {
-			setErrorfield({name: 'Name field Required'})
+			setErrorfield({ name: 'Name field Required' })
 		}
 
 		if (Object.keys(errors).length > 0) {

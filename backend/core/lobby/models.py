@@ -19,4 +19,6 @@ class LobbyData(models.Model):
     player1 = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, related_name='lobby_player1')
     player2 = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, related_name='lobby_player2')
 
-
+    class Meta:
+      verbose_name = 'Lobby'
+      verbose_name_plural = 'Lobbies'

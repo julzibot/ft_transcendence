@@ -3,7 +3,7 @@
 import ThreeScene from "@/components/game/Game"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { GameSettings } from "@/types/GameSettings"
+import { GameSettingsType } from "@/types/GameSettings"
 import EndGameCard from "@/components/cards/EndGameCard";
 
 interface GameInfos {
@@ -15,20 +15,19 @@ interface GameInfos {
 }
 interface LocalProps {
 	gameInfos: GameInfos,
-	gameSettings: GameSettings,
+	gameSettings: GameSettingsType,
 	userId: number,
 	gameMode: number
 }
 
 export default function Play() {
-	
+
 	const router = useRouter();
 	const [localProps, setLocalProps] = useState<LocalProps | null>(null);
 	const [start, setStart] = useState<Boolean>(false);
 	const [gameEnded, setGameEnded] = useState<Boolean>(false);
 
-	const handleGameEnded = () =>
-	{
+	const handleGameEnded = () => {
 		setGameEnded(true);
 	}
 
@@ -49,14 +48,14 @@ export default function Play() {
 
 	return (
 		<>
-		{
-			start && (
-			<> 
-				<ThreeScene gameInfos={localProps.gameInfos} gameSettings={localProps.gameSettings} room_id={-1} user_id={localProps.userId} isHost={true} gamemode={localProps.gameMode} handleGameEnded={handleGameEnded} />
-				{ gameEnded && <EndGameCard/>}
-			</> )
+			{
+				start && (
+					<>
+						<ThreeScene gameInfos={localProps.gameInfos} gameSettings={localProps.gameSettings} room_id={-1} user_id={localProps.userId} isHost={true} gamemode={localProps.gameMode} handleGameEnded={handleGameEnded} />
+						{gameEnded && <EndGameCard />}
+					</>)
 
-		}
+			}
 		</>
 	)
 }

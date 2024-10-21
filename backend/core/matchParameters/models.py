@@ -8,3 +8,7 @@ class MatchParametersData(models.Model):
 	points_to_win = models.SmallIntegerField(default=1)
 	game_difficulty = models.SmallIntegerField(default=3)
 	power_ups = models.BooleanField(default=True)
+	
+	class Meta:
+		verbose_name = 'Match Parameters'
+		verbose_name_plural = 'Match Parameters'
