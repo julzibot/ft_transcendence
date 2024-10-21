@@ -1,27 +1,22 @@
 'use client';
 
-import { useAuth } from "@/app/lib/AuthContext";
 import { useEffect, useState } from "react"
 import Customization from "@/components/game/Customization";
-import LocalGame from "@/components/game/LocalGame";
 import './styles.css'
 import styles from './GameSettingsStyles.module.css'
-import { GameSettingsType } from "@/types/GameSettings";
+import { useRouter } from 'next/navigation';
 
-export default function GameSettings() {
 
-	const { session } = useAuth();
+
+export default function LocalGame() {
+	
+	const router = useRouter();
 
 	const [isTranslated, setIsTranslated] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
+	const [localData, setLocalData] = useState(null)
 
-	const [gameSettings, setGameSettings] = useState<GameSettingsType>({
-		user: session?.user?.id ?? -1,
-		background: 0,
-		palette: 0,
-		bgColor: '#ff0000',
-		opacity: 80,
-		sparks: true,
+	const [gameSettings, setGameSettings] = useState({
 		game_difficulty: 4,
 		points_to_win: 5,
 		power_ups: true
@@ -35,6 +30,16 @@ export default function GameSettings() {
 		return () => clearTimeout(timer)
 	}, []);
 
+	const handleClick = (gameMode: 'ai' | 'local') => {
+		const localProps = {
+			gameMode: gameMode === 'ai' ? 1 : 0,
+			gameSettings: gameSettings
+		}
+		if (typeof window !== 'undefined') {
+			localStorage.setItem("gameSettings", JSON.stringify(localProps));
+		}
+		router.push("/game/local/play");
+	}
 
 	return (
 		<div className="d-flex flex-column align-items-center justify-content-center">
@@ -43,10 +48,7 @@ export default function GameSettings() {
 					<h2 className="mt-3">Pong Game Settings</h2>
 				</div>
 			</div>
-			{
-				session?.user && <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} />
-			}
-
+				<Customization />
 			<div className={`card ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 				<div className="card-body">
 
@@ -106,13 +108,12 @@ export default function GameSettings() {
 							<label className="form-check-label" htmlFor="flexSwitchCheckChecked">Power-ups</label>
 						</div>
 					</div>
-					{
-						session?.user && (
-							<>
-								<LocalGame userId={session.user.id} gameSettings={gameSettings} />
-							</>
-						)
-					}
+					<div className="d-flex justify-content-center mb-3">
+				<button type="button" className="btn btn-secondary mx-3" onClick={() => handleClick('ai')}>Play Against AI</button >
+			</div >
+			<div className="d-flex justify-content-center mb-3">
+				<button type="button" className="btn btn-secondary mx-3" onClick={() => handleClick('local')}>Local Multiplayer</button>
+			</div>
 				</div>
 			</div>
 		</div>

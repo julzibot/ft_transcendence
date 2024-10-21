@@ -58,7 +58,9 @@ export default function Lobby() {
 		return () => clearTimeout(timer)
 	}, []);
 
-
+	useEffect(() => {
+		console.log(lobbyData)
+	}, [lobbyData])
 	// const [gameSettings, setGameSettings] = useState(() => {
 	// 	const settings = localStorage.getItem("gameSettings");
 	// 	const obj = JSON.parse(settings ?? "{}");

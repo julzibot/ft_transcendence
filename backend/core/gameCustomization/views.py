@@ -5,6 +5,10 @@ from rest_framework import status
 from .models import GameCustomizationData
 from users.models import UserAccount
 from .serializers import GameCustomizationSerializer
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework.permissions import AllowAny
+from django.core.exceptions import ObjectDoesNotExist
 
 # Create your views here.
 class GameCustomizationView(APIView):
@@ -13,32 +17,26 @@ class GameCustomizationView(APIView):
 			user = UserAccount.objects.get(id=id)
 			settings = GameCustomizationData.objects.get(user=user)
 			serializer = GameCustomizationSerializer(settings)
-			return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+			return Response(serializer.data, status=status.HTTP_200_OK)
 		except UserAccount.DoesNotExist:
-			return Response({'message': f'[{id}] User Not Found'}, status=status.HTTP_404_NOT_FOUND)
+			return Response({'message': 'User Not Found'}, status=status.HTTP_404_NOT_FOUND)
 		except GameCustomizationData.DoesNotExist:
 			return Response({'message': '204 No Settings'}, status=status.HTTP_204_NO_CONTENT)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UpdateGameCustomizationView(APIView):
-	def post(self, request):
+	permission_classes = [AllowAny]
+	def put(self, request):
 		data = request.data
 		user_id = data.get('user')
 		
 		try:
 			user = UserAccount.objects.get(id=user_id)
-		except UserAccount.DoesNotExist:
-			return Response({'message': f'[{id}] User Not Found'}, status=status.HTTP_404_NOT_FOUND)
-
-		try:
-			obj = GameCustomizationData.objects.get(user=user_id)
-			obj.background = data['background']
-			obj.palette = data['palette']
-			obj.bgColor = data['bgColor']
-			obj.opacity = data['opacity']
-			obj.sparks = data['sparks']
-			obj.save()
+			obj = GameCustomizationData.objects.get(user=user)
+		except ObjectDoesNotExist:
+			return Response({'message': 'User Not Found'}, status=status.HTTP_404_NOT_FOUND)
+		serializer = GameCustomizationSerializer(obj, data=data, partial=True)
+		if serializer.is_valid():
+			serializer.save()
 			return Response({'message': 'Game Customization Settings Updated Successfully'}, status=status.HTTP_202_ACCEPTED)
-		except GameCustomizationData.DoesNotExist:
-			newObj = GameCustomizationData.objects.create(user=user, background=data['background'], palette=data['palette'], bgColor=data['bgColor'], opacity=data['opacity'], sparks=data['sparks'])
-			newObj.save()
-			return Response({'message': 'Game Customization Settings Created Successfully'}, status=status.HTTP_202_ACCEPTED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

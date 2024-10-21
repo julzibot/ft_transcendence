@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import './styles.css'
 import styles from './GameSettingsStyles.module.css'
 import { Toast, ToastContainer } from 'react-bootstrap'
+import Customization from "@/components/game/Customization";
 
 export default function OnlineGamePage() {
 
@@ -28,12 +29,13 @@ export default function OnlineGamePage() {
 	return (
 		<>
 			<div className="d-flex flex-column align-items-center justify-content-center">
-				<div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4  ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
+				<div className={`card mt-1 mb-4 m-2  ps-4 pe-4  ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-title">
 						<h2 className="mt-3">Online Games</h2>
 					</div>
 				</div>
 			</div>
+			<Customization />
 			<div className="d-flex justify-content-center">
 				<div className={`card mt-3 col-6 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-body">
