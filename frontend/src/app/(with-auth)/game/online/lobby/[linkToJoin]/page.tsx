@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation"
+import { useState } from "react";
+import { useParams } from "next/navigation"
 import { useAuth } from "@/app/lib/AuthContext";
 import { SocketProvider } from "@/context/socket";
 import Join from "@/components/game/Join";
-import { fetchGameSettings } from "@/components/game/Customization";
-import { GameSettings } from "@/types/GameSettings";
 
 export default function Lobby() {
 	const { session } = useAuth();

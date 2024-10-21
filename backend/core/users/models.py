@@ -62,6 +62,9 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []
+    class Meta:
+     verbose_name = 'User Account'
+     verbose_name_plural = 'User Accounts'
 
     def __str__(self):
         return self.username
@@ -88,6 +91,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
                 return True
         else:
             return False
+        
 
 @receiver(post_delete, sender=UserAccount)
 def delete_image_on_model_delete(sender, instance, **kwargs):

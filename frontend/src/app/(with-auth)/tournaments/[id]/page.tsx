@@ -34,7 +34,7 @@ export default function TournamentLobby() {
 				setParticipantsList(data.participants)
 				setTournamentData(data.tournament)
 			}
-			else{
+			else {
 				router.push(`/error?code=${response.status}`)
 			}
 		}
@@ -49,15 +49,22 @@ export default function TournamentLobby() {
 	}, []);
 
 	useEffect(() => {
-		if (session && socket)
-			socket.emit('joinTournament', { tournamentId: id, user: session?.user })
+		if (session && socket) {
+			socket.emit('joinTournament', { tournamentId: id, user: session?.user });
+
+			// setTimeout(() => {
+			// 	socket?.emit('startTournament', { tournamentId: id });
+			// }, 10000);
+		}
 	}, [session, socket, id]);
 
 	useEffect(() => {
-		if(socket) {
-		socket.on('updateParticipants', (data: ParticipantType[]) => {
-			setParticipantsList(data);
-		})
+		if (socket) {
+			socket.on('updateParticipants', (data: ParticipantType[]) => {
+				setParticipantsList(data);
+			})
+			socket.on('getMatchPairs', (data) => {
+				console.log("PAIRS RECEIVED: " + data.pairs)});
 		}
 	}, [socket]);
 
@@ -118,7 +125,7 @@ export default function TournamentLobby() {
 										</div>
 										<div className="border-end col-2 d-flex justify-content-center align-items-center">
 											{
-												session.user.id === participant.user.id &&
+												session?.user?.id === participant.user.id &&
 												<button className="btn btn-warning">
 													Ready
 												</button>
@@ -128,6 +135,9 @@ export default function TournamentLobby() {
 								)
 							})
 						}
+						<button className="btn btn-primary" onClick={() => socket?.emit('startTournament', {tournamentId: id})}>
+							Start Tournament
+						</button>
 					</div>
 				</div>
 			</div>

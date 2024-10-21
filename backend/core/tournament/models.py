@@ -23,13 +23,21 @@ class TournamentModel(models.Model):
     @property
     def numberOfPlayers(self):
         return ParticipantModel.objects.filter(tournament=self).count()
+    
+    class Meta:
+      verbose_name = 'Tournament'
+      verbose_name_plural = 'Tournaments'
 
 class ParticipantModel(models.Model):
     tournament = models.ForeignKey(TournamentModel, on_delete=models.CASCADE, related_name='players')
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name='tournaments')
     gamesPlayed = models.PositiveIntegerField(default=0)
     wins = models.PositiveIntegerField(default=0)
-
+    
+    class Meta:
+      verbose_name = 'Participant'
+      verbose_name_plural = 'Participants'
+      
 
     
 
