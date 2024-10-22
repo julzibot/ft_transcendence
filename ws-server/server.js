@@ -58,7 +58,6 @@ const computeMatches = (tournament) => {
 		if (time_elapsed > 60000)
 			prio += 1 + Math.floor((time_elapsed - 60000) / 30000)
 		maxMatchesNumber = Math.min(...participant.opponents.values()) + prio;
-		// console.log("MAXMATCHNUMBER: " + maxMatchesNumber);
 		
 		const inLobbyOpps = [...participant.opponents].filter(([key]) => tournament.inLobby.map(participant => participant.user.id).indexOf(key) !== -1);
 		const possibleOpps = inLobbyOpps.filter(([, value]) => value <= maxMatchesNumber).map(sub => sub[0]);
@@ -73,27 +72,21 @@ const computeMatches = (tournament) => {
 	if (filtered_lobby.size > 0)
 	{
 		// REARRANGE indexes according to priority (highest first)
-		// console.log("FILTERED LOBBY: " + JSON.stringify([...filtered_lobby]));
 		let priosArray = [...priosMap];
 		const OppsArray = [...filtered_lobby];
 		priosArray.sort((a, b) => b[1] - a[1]);
-		// console.log("PRIOSARRAY: " + priosArray);
 		const sortedOppsArray = priosArray.map(([key]) => OppsArray.find(([k]) => k === key));
 		const sortedOppsMap = new Map(sortedOppsArray);
-		// console.log("sortedOppsMap: " + JSON.stringify([...sortedOppsMap]));
 
 		// NEXT, check reciprocity for each opponent in the sorted opponents map, for each participant
 		let finalOppsArray = [];
 		let index = 0;
 		sortedOppsMap.forEach((opps, participant) => {
-			// console.log("OPPS: " + opps);
 			opps.forEach((opp) => {
-				// console.log("HERE: " + sortedOppsMap.get(opp) + " AND ----" + participant);
 				if (sortedOppsMap.has(opp) && sortedOppsMap.get(opp).includes(participant))
 					finalOppsArray.push(opp);
 			})
 			// FINALLY, if reciprocity check still leaves viable opponents, one of them is randomly selected for pairing
-			// console.log("YE BOI" + finalOppsArray)
 			if (finalOppsArray.length > 0)
 			{
 				index = Math.floor(Math.random() * finalOppsArray.length);
@@ -102,12 +95,10 @@ const computeMatches = (tournament) => {
 				// TO DO: INCREMENT GAME COUNT IN .opponents FOR EACH PAIRED PLAYER
 				sortedOppsMap.delete(participant);
 				sortedOppsMap.delete(finalOppsArray[index]);
-				// console.log("sortedOppsMap: " + JSON.stringify([...sortedOppsMap]));
 				finalOppsArray.length = 0;
 			}
 		})
 	}
-	console.log("PAIRS COMPUTED: " + pairs);
 	return pairs
 }
 
@@ -128,58 +119,58 @@ io.on("connection", async (socket) => {
 			
 			// TEST
 
-			// const p1 = {
-			// 	user: {
-			// 		id:10
-			// 	},
-			// 	return_time:0,
-			// 	opponents: new Map(),
-			// 	wins: 0,
-			// 	gamesPlayed: 0
-			// }
-			// const p2 = {
-			// 	user: {
-			// 		id:20
-			// 	},
-			// 	return_time:0,
-			// 	opponents: new Map(),
-			// 	wins: 0,
-			// 	gamesPlayed: 0
-			// }
-			// const p3 = {
-			// 	user: {
-			// 		id:30
-			// 	},
-			// 	return_time:0,
-			// 	opponents: new Map(),
-			// 	wins: 0,
-			// 	gamesPlayed: 0
-			// }
+			const p1 = {
+				user: {
+					id:10
+				},
+				return_time:0,
+				opponents: new Map(),
+				wins: 0,
+				gamesPlayed: 0
+			}
+			const p2 = {
+				user: {
+					id:20
+				},
+				return_time:0,
+				opponents: new Map(),
+				wins: 0,
+				gamesPlayed: 0
+			}
+			const p3 = {
+				user: {
+					id:30
+				},
+				return_time:0,
+				opponents: new Map(),
+				wins: 0,
+				gamesPlayed: 0
+			}
 
-			// const p4 = {
-			// 	user: {
-			// 		id:50
-			// 	},
-			// 	return_time:0,
-			// 	opponents: new Map(),
-			// 	wins: 0,
-			// 	gamesPlayed: 0
-			// }
-			// const p5 = {
-			// 	user: {
-			// 		id:40
-			// 	},
-			// 	return_time:0,
-			// 	opponents: new Map(),
-			// 	wins: 0,
-			// 	gamesPlayed: 0
-			// }
+			const p4 = {
+				user: {
+					id:50
+				},
+				return_time:0,
+				opponents: new Map(),
+				wins: 0,
+				gamesPlayed: 0
+			}
+			const p5 = {
+				user: {
+					id:40
+				},
+				return_time:0,
+				opponents: new Map(),
+				wins: 0,
+				gamesPlayed: 0
+			}
 
-			// tournament.participants.push(p1)
-			// tournament.participants.push(p3)
-			// tournament.participants.push(p2)
-			// tournament.participants.push(p4)
-			// tournament.participants.push(p5)
+			tournament.participants.push(p1)
+			tournament.participants.push(p3)
+			tournament.participants.push(p2)
+			tournament.participants.push(p4)
+			tournament.participants.push(p5)
 
 			tournament.participants.forEach(participant1 => {
 				tournament.participants.forEach(participant2 => {
@@ -196,7 +187,10 @@ io.on("connection", async (socket) => {
 			const pairs = computeMatches(tournament);
 			console.log(pairs);
 			if (pairs.length > 0)
-				socket.to(data.tournamentId).emit('getMatchPairs', {pairs: pairs})
+			{
+				console.log("EMITTING PAIRS");
+				socket.in(data.tournamentId).emit('getMatchPairs', {pairs: pairs});
+			}
 			// console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
 		}
 	})
@@ -210,7 +204,10 @@ io.on("connection", async (socket) => {
 
 		const pairs = computeMatches(tournament);
 		if (pairs.length > 0)
-			socket.to(data.tournamentId).emit('getMatchPairs', {pairs});
+		{
+			console.log("EMITTING PAIRS");
+			socket.in(data.tournamentId).emit('getMatchPairs', {pairs});
+		}
 	})
 
 	socket.on('TournamentGameEntered', (data) => {
