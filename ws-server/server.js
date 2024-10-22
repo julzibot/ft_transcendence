@@ -179,7 +179,7 @@ io.on("connection", async (socket) => {
 		const userId = connectedUsers.get(socket.id);
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
 		const i = tournament.inLobby.findIndex(participant => participant.user.id === userId);
-		// TO DO: ITERATE MATCHES PLAYED WITH GAME OPPONENT
+		tournament.participants.find(participant => participant.user.id === userId).opponents.get(data.oppId) += 1;
 		tournament.inLobby.splice(i);
 	})
 
