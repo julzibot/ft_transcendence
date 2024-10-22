@@ -40,7 +40,6 @@ const sparkFs = `
 `;
 
 function printGameInfo(textMesh, string, mode, id, fontsize, p) {
-	console.log("TESTING " + p.csts.loader);
 	p.csts.loader.load(CONST.FONTPATH + CONST.FONTNAME, function (font) {
 		let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, depth: 0.5 });
 		if (mode === 0 && ((p.vars.scorePlaceAdjust[id] === 0 && parseInt(string, 10) > 9) || (id === 0 && p.vars.scorePlaceAdjust[id] === 1 && parseInt(string, 10) > 19))) {
@@ -844,7 +843,6 @@ const create_delete_pu = (isHost, gamemode, socket, room_id, p, arr, g) => {
 // CUT
 const animate = (socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool) => {
 	if (stopAnim.current === true) {
-		console.log("IT'S OVER");
 		return;
 	}
 	if (isHost)
@@ -1061,7 +1059,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	// if (gamemode === 2)
 	socket = useSocketContext();
 	initVars(p.objs, p.csts, p.vars, p.custom);
-	console.log("PARAMETERS: " + p);
 
 
 	useEffect(() => {
@@ -1195,9 +1192,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		// console.log('ContainerRef Current:', containerRef.current);
 		// console.log('Elements are equal:', p.tools.renderer.domElement === containerRef.current);
 
-		console.log(testbool + "     OUTSIDE THE RETURN")
 		return (() => {
-			console.log("INSIDE THE RETURN")
 			// notanimating = true
 
 			cancelAnimationFrame(animationFrameIdRef.current);
