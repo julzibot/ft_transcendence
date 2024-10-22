@@ -13,9 +13,18 @@ import { Spinner } from 'react-bootstrap';
 export default function Play() {
 	const { session } = useAuth();
 	const [gameEnded, setGameEnded] = useState<boolean>(false);
-	const [gameInfos, setGameInfos] = useState<GameInfos | undefined>()
+	const [gameInfos, setGameInfos] = useState<GameInfos>()
 	const [gameMode, setGameMode] = useState<number | null>(null);
-	const [finalSettings, setFinalSettings] = useState<FinalSettings | undefined>({});
+	const [finalSettings, setFinalSettings] = useState<FinalSettings>({
+		background: 0,
+		palette: 0,
+		bgColor: '',
+		opacity: 0,
+		sparks: false,
+		game_difficulty: 0,
+		points_to_win: 0,
+		power_ups: false
+	});
 	const [loading, setLoading] = useState<boolean>(true);
 
 	async function fetchGameCustoms(id: number | undefined) {
@@ -31,7 +40,8 @@ export default function Play() {
 				palette: data.palette,
 				bgColor: data.bgColor,
 				opacity: data.opacity,
-				sparks: data.sparks
+				sparks: data.sparks,
+
 			}))
 		}
 	}
@@ -41,7 +51,7 @@ export default function Play() {
 			const localData = localStorage.getItem('gameSettings');
 			if (localData) {
 				const settings = JSON.parse(localData);
-				setGameMode(JSON.parse(settings.gameMode))
+				setGameMode(settings.gameMode)
 				const gameSettings = settings.gameSettings
 				setFinalSettings((prev: FinalSettings) => ({
 					...prev,
@@ -80,7 +90,7 @@ export default function Play() {
 
 	useEffect(() => {
 		if (session) {
-			fetchGameCustoms(session.user.id)
+			fetchGameCustoms(session?.user?.id)
 			retrieveGameSettings()
 		}
 	}, [session])

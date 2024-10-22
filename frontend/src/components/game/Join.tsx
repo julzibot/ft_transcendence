@@ -5,14 +5,14 @@ import useSocketContext from "@/context/socket";
 import ThreeScene from './Game';
 import { Spinner } from 'react-bootstrap';
 import "./styles.css"
-import { GameSettingsType } from "@/types/GameSettings";
+import { GameSettings } from "@/types/Game";
 import { BACKEND_URL } from "@/config/index";
 import Cookies from "js-cookie";
 
 interface JoinProps {
 	userId: number,
 	room: string,
-	gameSettings: GameSettingsType,
+	gameSettings: GameSettings,
 	gameMode: number
 }
 
@@ -79,8 +79,8 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 				socket.off('player2_id');
 				socket.off('startGame');
 			};
-			}
-		}, [socket]);
+		}
+	}, [socket]);
 
 	useEffect(() => {
 		if (isHost && player2_id && !gameCreated) {

@@ -262,11 +262,7 @@ export default function ProfilePage() {
 						{
 							session?.user?.id == Number(id) ? (
 								<>
-									{
-										session?.user.id ? <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} /> : (
-											<a className="btn btn-primary rounded-pill disabled placeholder" aria-disabled="true">Game Customization</a>
-										)
-									}
+									<Customization />
 									{
 										session?.provider !== '42-school' && (
 											<>
