@@ -528,14 +528,14 @@ let remoteKeyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls
 	return player_y;
 }
 
-const remote_update = (socket, room_id, isHost, p, arr) => {
+const remote_update = (socket, room_id, isHost, p, arr, g) => {
 	let invert_controls = [1, 1];
 	invert_controls[0] = arr.activated_powers[1][3] === 2 ? -1 : 1;
 	invert_controls[1] = arr.activated_powers[0][3] === 2 ? -1 : 1;
 
 	if (isHost) {
 		p.objs.player1.position.y = remoteKeyPressHandle('KeyW', 'KeyS', 0, p.objs.player1.position.y, invert_controls[0], socket, room_id, p);
-		p.objs.player2.position.y = opponentPos;
+		p.objs.player2.position.y = g.opponentPos;
 
 		if (p.keys['Space'] && p.custom.power_ups === true && arr.player_power_ups[0] > -1) {
 			socket.emit('sendActivatePU1', { room_id: room_id, powerType: arr.player_power_ups[0] });
@@ -544,7 +544,7 @@ const remote_update = (socket, room_id, isHost, p, arr) => {
 	}
 	else {
 		p.objs.player2.position.y = remoteKeyPressHandle('ArrowUp', 'ArrowDown', 1, p.objs.player2.position.y, invert_controls[1], socket, room_id, p);
-		p.objs.player1.position.y = opponentPos;
+		p.objs.player1.position.y = g.opponentPos;
 
 		if (p.keys['ArrowRight'] && p.custom.power_ups === true && arr.player_power_ups[1] > -1) {
 			socket.emit('sendActivatePU2', { room_id: room_id, powerType: arr.player_power_ups[1] });
@@ -891,7 +891,7 @@ const animate = (socket, room_id, isHost, gamemode, handleGameEnded, animationFr
 		create_delete_pu(isHost, gamemode, socket, room_id, p, arr, g);
 
 	if (gamemode === 2)
-		remote_update(socket, room_id, isHost, p, arr);
+		remote_update(socket, room_id, isHost, p, arr, g);
 	else
 		local_update(gamemode, p, arr);
 	// p.tools.controls.update();
@@ -908,7 +908,7 @@ const animate = (socket, room_id, isHost, gamemode, handleGameEnded, animationFr
 const init_socket = (socket, isHost, p, arr, g) => {
 	if (isHost) {
 		socket.on('updatePlayer2Pos', position => {
-			opponentPos = position.player2pos;
+			g.opponentPos = position.player2pos;
 		})
 		socket.on('updateActivatePU2', data => {
 			if (data.powerType === arr.player_power_ups[1])
@@ -924,7 +924,7 @@ const init_socket = (socket, isHost, p, arr, g) => {
 			game_id = data.game_id;
 		})
 		socket.on('updatePlayer1Pos', position => {
-			opponentPos = position.player1pos;
+			g.opponentPos = position.player1pos;
 		});
 		socket.on('updateBallPos', data => {
 			p.objs.ball.position.x = data.x;
