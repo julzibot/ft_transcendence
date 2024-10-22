@@ -6,7 +6,7 @@ export interface GameCustoms {
 	sparks: boolean,
 }
 
-export interface GameSettingsType {
+export interface GameSettings {
 	game_difficulty: number;
 	points_to_win: number;
 	power_ups: boolean;
@@ -18,4 +18,15 @@ export interface GameInfos {
 	p2Name: string;
 	p1p: string | undefined;
 	p2p: string;
+}
+
+export interface FinalSettings {
+	background: number;
+	palette: number,
+	bgColor: string,
+	opacity: number,
+	sparks: boolean,
+	game_difficulty: number;
+	points_to_win: number;
+	power_ups: boolean;
 }
