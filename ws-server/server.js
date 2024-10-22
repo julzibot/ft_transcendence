@@ -189,7 +189,7 @@ io.on("connection", async (socket) => {
 			if (pairs.length > 0)
 			{
 				console.log("EMITTING PAIRS");
-				socket.in(data.tournamentId).emit('getMatchPairs', {pairs: pairs});
+				io.in(data.tournamentId).emit('getMatchPairs', {pairs: pairs});
 			}
 			// console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
 		}
