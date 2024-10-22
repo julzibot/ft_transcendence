@@ -53,7 +53,7 @@ export default function Play() {
 		}
 	}
 
-	const createLocalGame = async () => {
+	const createLocalGame = async (mode: number | null) => {
 		const response = await fetch(BACKEND_URL + '/api/game/create', {
 			method: 'POST',
 			credentials: 'include',
@@ -63,7 +63,7 @@ export default function Play() {
 			},
 			body: JSON.stringify({
 				'player1': session?.user?.id,
-				'game_mode': gameMode
+				'game_mode': mode
 			})
 		});
 		if (response.status === 201) {
@@ -79,21 +79,22 @@ export default function Play() {
 	}
 
 	useEffect(() => {
-		// Perform initialization tasks (e.g., retrieving settings, creating game)
-		if (session?.user?.id) {
+		if (session) {
 			fetchGameCustoms(session.user.id)
-				.then(() => retrieveGameSettings())
-				.then(() => {
-					if (gameMode)
-						createLocalGame()
-				})
-				.finally(() => {
-					setTimeout(() => {
-						setLoading(false)
-					}, 1000)
-				});
+			retrieveGameSettings()
 		}
-	}, [session, gameMode])
+	}, [session])
+
+	useEffect(() => {
+		if (gameMode == 0 || gameMode == 1)
+			createLocalGame(gameMode)
+	}, [gameMode])
+
+	useEffect(() => {
+		setTimeout(() => {
+			setLoading(false)
+		}, 800)
+	}, [])
 
 	const handleGameEnded = () => {
 		setGameEnded(true)
@@ -103,7 +104,7 @@ export default function Play() {
 		return (
 			<div className="d-flex justify-content-center mt-5">
 				<div style={{ marginLeft: "-37px", marginTop: "250px" }}>
-					<Spinner animation="border" style={{ width: '15rem', height: '15rem', borderWidth: "2px", borderRight: "none", borderLeft: "none", borderTopColor: 'white', borderBottom: "none", animationDuration: "0.s" }} />
+					<Spinner animation="border" style={{ width: '15rem', height: '15rem', borderWidth: "2px", borderRight: "none", borderLeft: "none", borderTopColor: 'white', borderBottom: "none", animationDuration: "0.7s" }} />
 				</div>
 			</div>
 		);
