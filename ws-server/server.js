@@ -7,9 +7,8 @@ const frontendPort = process.env.FRONTEND_PORT || 3000;
 const backendPort = process.env.BACKEND_PORT || 8000;
 
 const fetchFinished = new Map();
-const socketRooms = new Map();
 
-const connectedUsers = new Map(); // socket.id -> user.id
+const connectedUsers = new Map(); // socket.id -> [user.id, <Map>{SIMPLE (0) or TOURNAMENT (1)}]
 
 let tournamentsArray = [];
 // const tournament = {
@@ -45,10 +44,8 @@ const io = new Server(server, {
 io.on("connection", async (socket) => {
 	console.log("User connected through socket: " + socket.id);
 
-	if (!socketRooms.get(socket.id))
-		socketRooms.set(socket.id, new Set());
-
 	socket.on('join_room', data => {
+		connectedUsers.set(socket.id, {userId: data.user_id, gameMode: 0});
 		const room = io.sockets.adapter.rooms.get(data.room_id);
 
 		// if (room) {
@@ -68,7 +65,6 @@ io.on("connection", async (socket) => {
 		}
 
 		socket.join(data.room_id);
-		socketRooms.get(socket.id).add(data.room_id);
 		if (!fetchFinished.has(data.room_id))
 			fetchFinished.set(data.room_id, 0);
 	});
@@ -88,7 +84,7 @@ io.on("connection", async (socket) => {
 	// Tournament sockets
 	socket.on('joinTournament', (data) => {
 
-		connectedUsers.set(socket.id, data.user.id);
+		connectedUsers.set(socket.id, {userId: data.user_id, gameMode: 1});
 		console.log(`[server.js] connected users: ${JSON.stringify(Array.from(connectedUsers.entries()))}`);
 
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
@@ -148,63 +144,48 @@ io.on("connection", async (socket) => {
 	socket.on('sendGameId', (data) => {
 		socket.to(data.room_id).emit('receiveGameId', { game_id: data.game_id });
 	});
-
 	socket.on('sendPlayerInfos', (data) => {
 		socket.to(data.room_id).emit('setPlayerInfos', { p1Name: data.p1Name, p2Name: data.p2Name, p1p: data.p1p, p2p: data.p2p, game_id: data.game_id });
 	})
-
 	socket.on('sendBallPos', (data) => {
 		socket.to(data.room_id).emit('updateBallPos', { x: data.x, y: data.y, vectx: data.vectx, vecty: data.vecty, speed: data.speed });
 	})
-
 	socket.on('sendPlayer1Pos', data => {
 		socket.to(data.room_id).emit('updatePlayer1Pos', { player1pos: data.player1pos });
 	});
-
 	socket.on('sendPlayer2Pos', data => {
 		socket.to(data.room_id).emit('updatePlayer2Pos', { player2pos: data.player2pos });
 	});
-
 	socket.on('sendBounceGlow', data => {
 		socket.to(data.room_id).emit('startBounceGlow');
 	})
-
 	socket.on('sendWallCollision', data => {
 		socket.to(data.room_id).emit('newWallCollision');
 	})
-
 	socket.on('sendScore', data => {
 		socket.to(data.room_id).emit('updateScore', { score1: data.score1, score2: data.score2, stopGame: data.stopGame });
 	})
-
 	socket.on('sendCreatePU', data => {
 		socket.to(data.room_id).emit('updateCreatePU', { pu_id: data.pu_id, powerType: data.type, radius: data.radius, spawnx: data.x, spawny: data.y });
 	})
-
 	socket.on('sendCollectPU', data => {
 		socket.to(data.room_id).emit('updateCollectPU', { player_id: data.player_id, powerType: data.power_id });
 	})
-
 	socket.on('sendActivatePU1', data => {
 		socket.to(data.room_id).emit('updateActivatePU1', { powerType: data.powerType });
 	})
-
 	socket.on('sendActivatePU2', data => {
 		socket.to(data.room_id).emit('updateActivatePU2', { powerType: data.powerType });
 	})
-
 	socket.on('sendInvert', data => {
 		socket.to(data.room_id).emit('updateInvert');
 	})
-
 	socket.on('sendInvisiball', data => {
 		socket.to(data.room_id).emit('updateInvisiball', { id: data.player_id });
 	})
-
 	socket.on('sendDeactivatePU', data => {
 		socket.to(data.room_id).emit('updateDeactivatePU', { player_id: data.player_id, type: data.type });
 	})
-
 	socket.on('sendDeletePU', data => {
 		socket.to(data.room_id).emit('updateDeletePU', { pu_id: data.pu_id });
 	})
@@ -229,41 +210,37 @@ io.on("connection", async (socket) => {
 		else
 			console.log('No user to disconnect');
 
-		// Online Game Rooms
-		// socketRooms.get(socket.id).forEach(room_id => {
-		// 	console.log(`[Server] Sending Disconnection Event -> [room] [${room_id}]`)
-		// 	socket.to(room_id).emit('participantDisconnected');
-		// });
-		// socketRooms.delete(socket.id);
-
 		// Tournament
 		// Deleting the participant
-		let emptyTournamentId = '';
-		let updatedParticipants = [];
-		tournamentsArray = tournamentsArray.map(tournament => {
-			updatedParticipants = tournament.participants.filter(participant => participant.user.id !== disconnectedUserId);
-			updatedParticipants.forEach(participant => {
-				for (const key of participant.opponents.keys()) {
-					participant.opponents.delete(key);
-				}
-				console.log(`[disconnect] Opponents for: ${participant.user.id} - ${Array.from(participant.opponents.entries())}`)
-			})
-			if (tournament.isStarted && updatedParticipants.length === 0)
-				emptyTournamentId = tournament.tournamentId;
-			else {
-				socket.in(tournament.tournamentId).emit('updateParticipants', updatedParticipants);
-			}
-			deleteParticipant(tournament.tournamentId, disconnectedUserId)
-			return { ...tournament, participants: updatedParticipants }
-		});
+		if (disconnectedUserId.gameMode === 1) {
+			let emptyTournamentId = '';
+			let updatedParticipants = [];
 
-		// if tournament has no participants left, delete tournament
-		if (emptyTournamentId.length !== 0) {
-			const tournamentIndex = tournamentsArray.findIndex(tournament => tournament.tournamentId === emptyTournamentId);
-			tournamentsArray.splice(tournamentIndex, 1);
+			tournamentsArray = tournamentsArray.map(tournament => {
+				updatedParticipants = tournament.participants.filter(participant => participant.user.id !== disconnectedUserId);
+				updatedParticipants.forEach(participant => {
+					for (const key of participant.opponents.keys()) {
+						participant.opponents.delete(key);
+					}
+					console.log(`[disconnect] Opponents for: ${participant.user.id} - ${Array.from(participant.opponents.entries())}`)
+				})
+				if (tournament.isStarted && updatedParticipants.length === 0)
+					emptyTournamentId = tournament.tournamentId;
+				else {
+					socket.in(tournament.tournamentId).emit('updateParticipants', updatedParticipants);
+				}
+				deleteParticipant(tournament.tournamentId, disconnectedUserId)
+				return { ...tournament, participants: updatedParticipants }
+			});
+			
+			// if tournament has no participants left, delete tournament
+			if (emptyTournamentId.length !== 0) {
+				const tournamentIndex = tournamentsArray.findIndex(tournament => tournament.tournamentId === emptyTournamentId);
+				tournamentsArray.splice(tournamentIndex, 1);
+			}
 		}
+		});
 	});
-});
 
 server.listen(port, () => {
 	console.log(`Socket server is now listening on https://${domain}:` + port);
