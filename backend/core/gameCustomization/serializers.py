@@ -4,4 +4,4 @@ from .models import GameCustomizationData
 class GameCustomizationSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = GameCustomizationData
-		fields = ['id', 'user', 'background', 'palette', 'bgColor', 'opacity', 'sparks']
+		fields = ['background', 'palette', 'bgColor', 'opacity', 'sparks']

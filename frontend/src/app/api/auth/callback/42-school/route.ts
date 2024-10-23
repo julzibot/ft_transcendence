@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const state = searchParams.get('state')
 
-  console.log('here', DOMAIN_NAME, FRONTEND_PORT)
   if (!code || !state) {
     return NextResponse.json({ error: 'Missing code or state' }, { status: 400 });
   }

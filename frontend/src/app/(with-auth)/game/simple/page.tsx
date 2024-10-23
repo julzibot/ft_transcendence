@@ -36,7 +36,7 @@ export default function SimpleGamePage() {
 
   return (
 		<>
-			<div className="d-flex justify-content-center mt-5 pt-5">
+			<div className="d-flex justify-content-center">
 				<div className={`card mt-5 ${styles.pageTitle} ${isMounted ? styles.mounted : ''} ${move ? styles.top : ''}`}>
 						<h2 className="card-title m-3 p-2">Simple Game</h2>
 				</div>

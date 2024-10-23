@@ -2,6 +2,7 @@
   background-color: white;
   height: 80px;
   transition: background-color 0.3s;
+  cursor: pointer;
 }
 
 .tournament-entry:hover {
@@ -10,4 +11,10 @@
 
 .scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+.disabled {
+  background-color: #f0f0f080;
+  pointer-events: none;
+  opacity: 0.3;
 }

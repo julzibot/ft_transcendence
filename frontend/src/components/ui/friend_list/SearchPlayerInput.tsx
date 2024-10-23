@@ -67,7 +67,7 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
 
 
   const handleFriendRequest = async (fromUserId: number | undefined, toUserId: number | undefined) => {
-    fetch(BACKEND_URL + "/friends/send-friend-request/", {
+    fetch(`${BACKEND_URL}/api/friends/send-friend-request/`, {
       method: "POST",
       credentials: 'include',
       headers: {

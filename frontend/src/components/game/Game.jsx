@@ -6,6 +6,7 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { initVars } from '../../utils/init';
 import useSocketContext from '../../context/socket';
+import useSocketContext from '../../context/socket';
 import { BACKEND_URL } from '@/config';
 import Cookies from 'js-cookie';
 
@@ -40,7 +41,6 @@ const sparkFs = `
 `;
 
 function printGameInfo(textMesh, string, mode, id, fontsize, p) {
-	console.log("TESTING " + p.csts.loader);
 	p.csts.loader.load(CONST.FONTPATH + CONST.FONTNAME, function (font) {
 		let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, depth: 0.5 });
 		if (mode === 0 && ((p.vars.scorePlaceAdjust[id] === 0 && parseInt(string, 10) > 9) || (id === 0 && p.vars.scorePlaceAdjust[id] === 1 && parseInt(string, 10) > 19))) {
@@ -571,7 +571,7 @@ let display_img = (image, mode, p) => {
 	const imgGeo = new THREE.CircleGeometry(1.7, 30);
 	let path = image;
 	if (mode >= 2)
-		path = `${BACKEND_URL} + ${image}`;
+		path = `${BACKEND_URL}${image}`;
 	const pp = new THREE.TextureLoader().load(path);
 	let op = 0.8;
 	if (mode > 1) {
@@ -844,7 +844,6 @@ const create_delete_pu = (isHost, gamemode, socket, room_id, p, arr, g) => {
 // CUT
 const animate = (socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool) => {
 	if (stopAnim.current === true) {
-		console.log("IT'S OVER");
 		return;
 	}
 	if (isHost)
@@ -1058,10 +1057,9 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	};
 
 	let socket = -1;
-	if (gamemode === 2)
-		socket = useSocketContext();
+	// if (gamemode === 2)
+	socket = useSocketContext();
 	initVars(p.objs, p.csts, p.vars, p.custom);
-	console.log("PARAMETERS: " + p);
 
 
 	useEffect(() => {
@@ -1073,7 +1071,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		p.tools.controls = new OrbitControls(p.tools.camera, p.tools.renderer.domElement);
 		p.tools.stats = Stats()
 		// document.body.appendChild(p.tools.renderer.domElement);
-		document.body.appendChild(p.tools.stats.dom);
+		document?.body.appendChild(p.tools.stats.dom);
 
 		p.tools.scene.add(p.objs.ball);
 		p.tools.scene.add(p.objs.ballWrap);
@@ -1176,11 +1174,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		// document.addEventListener('keydown', handleKeyDown);
 		// document.addEventListener('keyup', handleKeyUp);
 
-		if (gamemode === 2)
-			init_socket(socket, isHost, p, arr, g);
-		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
-			animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool);
-
 		const handleKeyDown = (event) => {
 			p.keys[event.code] = true;
 		}
@@ -1188,21 +1181,24 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		const handleKeyUp = (event) => {
 			p.keys[event.code] = false;
 		}
-		document.addEventListener('keydown', handleKeyDown);
-		document.addEventListener('keyup', handleKeyUp);
 
+		if (gamemode === 2)
+			init_socket(socket, isHost, p, arr, g);
+		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
+			animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool);
+
+		document?.addEventListener('keydown', handleKeyDown);
+		document?.addEventListener('keyup', handleKeyUp);
 		// console.log('Renderer DOM Element:', p.tools.renderer.domElement);
 		// console.log('ContainerRef Current:', containerRef.current);
 		// console.log('Elements are equal:', p.tools.renderer.domElement === containerRef.current);
 
-		console.log(testbool + "     OUTSIDE THE RETURN")
 		return (() => {
-			console.log("INSIDE THE RETURN")
 			// notanimating = true
 
 			cancelAnimationFrame(animationFrameIdRef.current);
-			document.removeEventListener('keydown', handleKeyDown);
-			document.removeEventListener('keyup', handleKeyUp);
+			document?.removeEventListener('keydown', handleKeyDown);
+			document?.removeEventListener('keyup', handleKeyUp);
 			p.tools.renderer.dispose();
 			// p.tools.camera.dispose();
 			// p.tools.scene.dispose();

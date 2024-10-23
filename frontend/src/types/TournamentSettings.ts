@@ -13,7 +13,7 @@ export interface TournamentSettingsType {
 	pointsPerGame: number,
 	numberOfPlayers: number,
 	difficultyLevel: number,
-	creator: User,
+	creator: User | null,
 	linkToJoin: string,
 }
 
@@ -25,4 +25,12 @@ export interface ParticipantType {
 	}
 	wins: number;
 	gamesPlayed: number;
+}
+
+export interface TournamentType {
+	id: string;
+	name: string;
+	creator: User;
+	participants: ParticipantType[];
+	settings: TournamentSettingsType;
 }

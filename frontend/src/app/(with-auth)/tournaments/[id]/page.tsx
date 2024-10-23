@@ -4,17 +4,18 @@ import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/lib/AuthContext';
 import { BACKEND_URL } from '@/config';
-import { ParticipantType, User } from '@/types/TournamentSettings';
+import { ParticipantType, TournamentType } from '@/types/TournamentSettings';
 import styles from '../GameSettingsStyles.module.css'
 import { Controller, TrophyFill } from 'react-bootstrap-icons'
 import useSocketContext from '@/context/socket';
+
 
 export default function TournamentLobby() {
 	const { id } = useParams();
 	const { session } = useAuth();
 	const router = useRouter();
 	const [participantsList, setParticipantsList] = useState<ParticipantType[]>([]);
-	const [tournamentData, setTournamentData] = useState();
+	const [tournamentData, setTournamentData] = useState<TournamentType>();
 	const [isMounted, setIsMounted] = useState(false);
 	const [isTranslated, setIsTranslated] = useState(false);
 	const socket = useSocketContext();
@@ -68,10 +69,6 @@ export default function TournamentLobby() {
 		}
 	}, [socket]);
 
-	useEffect(() => {
-
-		console.log(`[Participants] ${JSON.stringify(participantsList)}`);
-	}, [participantsList])
 
 	return (
 		<>
@@ -125,7 +122,7 @@ export default function TournamentLobby() {
 										</div>
 										<div className="border-end col-2 d-flex justify-content-center align-items-center">
 											{
-												session?.user?.id === participant.user.id &&
+												String(session?.user?.id) === String(participant.user.id) &&
 												<button className="btn btn-warning">
 													Ready
 												</button>
