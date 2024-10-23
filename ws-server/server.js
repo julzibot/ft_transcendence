@@ -307,21 +307,26 @@ io.on("connection", async (socket) => {
 	socket.on('disconnect', async () => {
 
 		const disconnectedUser = connectedUsers.get(socket.id);
-		console.log('disconnected user:' + JSON.stringify(disconnectedUser));
 		const userId = disconnectedUser.userId;
 		connectedUsers.delete(socket.id);
 
-		gameLobbies.forEach((lobby, lobbyId) => {
-			console.log('disconnecting from lobby');
-			if (lobby.player1 && lobby.player1.id === userId)
+		gameLobbies.forEach(async (lobby, lobbyId) => {
+			if (lobby.player1 && lobby.player1.id === userId) {
 				lobby.player1 = null;
-			else if (lobby.player2 && lobby.player2.id === userId)
-				lobby.player2 = null;
-			if (lobby.player1 || lobby.player2) {
-				console.log(`Emitting updated players: ` + JSON.stringify(lobby.player1));
-				console.log(`Emitting updated players: ` + JSON.stringify(lobby.player2));
-				io.in(lobbyId).emit('updatedPlayers', lobby);
 			}
+			else if (lobby.player2 && lobby.player2.id === userId) {
+				lobby.player2 = null;
+			}
+			if (lobby.player1 || lobby.player2) {
+			}
+			else {
+				gameLobbies.delete(lobbyId);
+				await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
+					method: 'DELETE',
+					credentials: 'include',
+				})
+			}
+			io.in(lobbyId).emit('updatedPlayers', lobby);
 		})
 
 		const deleteParticipant = async (tournamentId, userId) => {
@@ -354,7 +359,7 @@ io.on("connection", async (socket) => {
 		tournamentsArray = tournamentsArray.map(tournament => {
 			updatedParticipants = tournament.participants.filter(participant => participant.user.id !== disconnectedUserId);
 			updatedParticipants.forEach(participant => {
-				for (const key of participant.opponents.keys()) {
+				for (const key of participant.opponentsuser.keys()) {
 					participant.opponents.delete(key);
 				}
 				console.log(`[disconnect] Opponents for: ${participant.user.id} - ${Array.from(participant.opponents.entries())}`)

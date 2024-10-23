@@ -42,6 +42,7 @@ services:
       - SOCKET_PORT=${SOCKET_PORT}
       - DOMAIN_NAME=${DOMAIN_NAME}
       - FRONTEND_PORT=${FRONTEND_PORT}
+      - BACKEND_PORT=${BACKEND_PORT}
 
   postgres:
     container_name: postgres
