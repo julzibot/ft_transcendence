@@ -9,7 +9,6 @@ import { BACKEND_URL } from "@/config";
 import Cookies from "js-cookie";
 import { Spinner } from 'react-bootstrap';
 
-
 export default function Play() {
 	const { session } = useAuth();
 	const [gameEnded, setGameEnded] = useState<boolean>(false);

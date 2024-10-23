@@ -18,4 +18,6 @@ class LobbyData(models.Model):
     @property
     def isFull(self):
       return self.player1 is not None and self.player2 is not None
-
+    class Meta:
+      verbose_name = 'Lobby'
+      verbose_name_plural = 'Lobbies'

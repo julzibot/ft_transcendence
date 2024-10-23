@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import useSocketContext from "@/context/socket";
+import useSocketContext from "@/context/socket";
 import ThreeScene from './Game';
 import { Spinner } from 'react-bootstrap';
 import "./styles.css"
@@ -28,6 +29,11 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 	const [gameCreated, setGameCreated] = useState(false); // POST game to backend
 	const [matchFetched, setMatchFetched] = useState(false); // If gameCreated, GET match infos
 	const [playerDisconnected, setPlayerDisconnected] = useState(false);
+	const [gameEnded, setGameEnded] = useState<Boolean>(false);
+
+	const handleGameEnded = () => {
+		setGameEnded(true);
+	}
 
 	const [gameInfos, setGameInfos] = useState({
 		game_id: -1,
@@ -40,47 +46,72 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 	useEffect(() => {
 		if (socket) {
 			socket.emit('join_room', { room_id: room, user_id: userId });
-
-			socket.on('isHost', () => {
-				setIsHost(true);
-				console.log(`[${room}] You are player 1 [HOST]`);
-			});
-
-			socket.on('isNotHost', () => {
-				setIsNotHost(true);
-				console.log(`[${room}] You are player 2 [NOT HOST]`);
-			})
-
-			socket.on('player2_id', (data) => {
-				setPlayer2_id(data.player2_id);
-				console.log(`[socket] data.player2_id ${data.player2_id}`);
-			});
-
-			socket.on('receiveGameId', (data) => {
-				setGameInfos({ ...gameInfos, game_id: data.game_id });
-			})
-
-			socket.on('startGame', () => {
-				console.log('Start the game!');
-				setGameJoined(true);
-			});
-
-			socket.on('playerDisconnected', () => {
-				console.log('The other player has disconnected');
-				setPlayerDisconnected(true);
-			})
-		}
-
-		return () => {
 			if (socket) {
-				socket.off('isHost');
-				socket.off('isNotHost');
-				socket.off('receiveGameId');
-				socket.off('player2_id');
-				socket.off('startGame');
-			};
-		}
-	}, [socket]);
+				socket.emit('join_room', { room_id: room, user_id: userId });
+
+				socket.on('isHost', () => {
+					setIsHost(true);
+					console.log(`[${room}] You are player 1 [HOST]`);
+				});
+				socket.on('isHost', () => {
+					setIsHost(true);
+					console.log(`[${room}] You are player 1 [HOST]`);
+				});
+
+				socket.on('isNotHost', () => {
+					setIsNotHost(true);
+					console.log(`[${room}] You are player 2 [NOT HOST]`);
+				})
+				socket.on('isNotHost', () => {
+					setIsNotHost(true);
+					console.log(`[${room}] You are player 2 [NOT HOST]`);
+				})
+
+				socket.on('player2_id', (data) => {
+					setPlayer2_id(data.player2_id);
+					console.log(`[socket] data.player2_id ${data.player2_id}`);
+				});
+				socket.on('player2_id', (data) => {
+					setPlayer2_id(data.player2_id);
+					console.log(`[socket] data.player2_id ${data.player2_id}`);
+				});
+
+				socket.on('receiveGameId', (data) => {
+					setGameInfos({ ...gameInfos, game_id: data.game_id });
+				})
+				socket.on('receiveGameId', (data) => {
+					setGameInfos({ ...gameInfos, game_id: data.game_id });
+				})
+
+				socket.on('startGame', () => {
+					console.log('Start the game!');
+					setGameJoined(true);
+				});
+				socket.on('startGame', () => {
+					console.log('Start the game!');
+					setGameJoined(true);
+				});
+
+				socket.on('playerDisconnected', () => {
+					console.log('The other player has disconnected');
+					setPlayerDisconnected(true);
+				})
+				socket.on('playerDisconnected', () => {
+					console.log('The other player has disconnected');
+					setPlayerDisconnected(true);
+				})
+			}
+
+			return () => {
+				if (socket) {
+					socket.off('isHost');
+					socket.off('isNotHost');
+					socket.off('receiveGameId');
+					socket.off('player2_id');
+					socket.off('startGame');
+				};
+			}
+		}, [socket]);
 
 	useEffect(() => {
 		if (isHost && player2_id && !gameCreated) {

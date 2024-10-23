@@ -4,7 +4,6 @@ import { AddLobbyData, GetLobbyData, joinLobby } from '@/services/onlineGames'
 import { useAuth } from '@/app/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import DOMPurify from 'dompurify';
-import { CustomTooltip } from '@/components/Utils/Tooltip';
 import { Alphabet, PersonFillUp, TrophyFill, Activity, LightningFill, Toggle2Off, Toggle2On } from 'react-bootstrap-icons';
 import "./styles.css";
 import { BACKEND_URL } from '@/config';
@@ -265,7 +264,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 				</Modal.Body>
 				<Modal.Footer>
 					<Button variant="secondary" onClick={() => setModalShow(false)}>Close</Button>
-					<Button variant="primary" onClick={() => handleSubmitData()}>Add</Button>
+					<Button variant="primary" onClick={() => handleSubmitData()}>Enter</Button>
 				</Modal.Footer>
 			</Modal>
 		</>

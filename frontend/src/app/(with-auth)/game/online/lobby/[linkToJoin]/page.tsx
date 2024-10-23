@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/app/lib/AuthContext";
 import useSocketContext from "@/context/socket";
-import Join from "@/components/game/Join";
 import { BACKEND_URL } from "@/config";
 import { User } from "@/types/Auth";
 import styles from '../../GameSettingsStyles.module.css'
@@ -23,7 +22,10 @@ export default function Lobby() {
 	const { linkToJoin } = useParams();
 	const [lobbyData, setLobbyData] = useState<Lobby | null>(null);
 	const [isMounted, setIsMounted] = useState(false);
-	const [players, setPlayers] = useState<User[]>([]);
+	const [players, setPlayers] = useState<{}>({
+		player1: null,
+		player2: null
+	})
 	const [isTranslated, setIsTranslated] = useState(false);
 	const socket = useSocketContext();
 
@@ -41,7 +43,6 @@ export default function Lobby() {
 				else {
 					const data = await response.json()
 					setLobbyData(data);
-					setPlayers(players => [...players, data.player1]);
 				}
 			} catch (error) {
 				console.error('Error fetching tournament data:', error)
@@ -59,15 +60,56 @@ export default function Lobby() {
 	}, []);
 
 	useEffect(() => {
-		console.log(lobbyData)
-	}, [lobbyData])
-	// const [gameSettings, setGameSettings] = useState(() => {
-	// 	const settings = localStorage.getItem("gameSettings");
-	// 	const obj = JSON.parse(settings ?? "{}");
-	// 	localStorage.removeItem('gameSettings');
-	// 	return obj || {};
-	// });
+		if (socket && session) {
+			socket.emit('joinRoom', {
+				lobbyId: linkToJoin,
+				user: {
+					id: session.user.id,
+					username: session.user.username,
+					image: session.user.image
+				}
+			})
 
+			socket.on('updatedPlayers', (data: {}) => {
+				setPlayers(data)
+			})
+			return () => {
+				console.log(`[CLeanUp] [leaveLobby]`);
+				socket.emit('leaveLobby', { userId: session.user.id, lobbyId: linkToJoin })
+			};
+		}
+	}, [socket, session])
+
+	const renderPlayer = (player: User) => {
+		return (
+			<div
+				className={`d-flex flex-row align-items-center fw-bold fs-5`}
+				style={{ height: '50px' }}
+			>
+				<div className="justify-content-center col d-flex align-items-center">
+					<div className="d-flex flex-row align-items-center">
+						<span className="me-2 text-truncate" style={{ maxWidth: 'calc(80%)' }}>{player.username}</span>
+						< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
+							<img
+								style={{
+									objectFit: 'cover',
+									width: '100%',
+									height: '100%',
+									position: 'absolute',
+									top: '50%',
+									left: '50%',
+									transform: 'translate(-50%, -50%)'
+								}}
+								fetchPriority="high"
+								alt="profile picture"
+								src={`${BACKEND_URL}${player.image}`}
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+		)
+	}
 
 	return (
 		<>
@@ -82,47 +124,9 @@ export default function Lobby() {
 				<div className="card-body">
 					<h1>In Lobby</h1>
 					<div className="mt-2 border">
-						{
-							players && players.map((player: User, index: number) => {
-								return (
-									<div
-										key={index}
-										className={`${players.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} d-flex flex-row align-items-center fw-bold fs-5`}
-										style={{ height: '50px' }}
-									>
-										<div className="border-end justify-content-center col-5 d-flex align-items-center">
-											<div className="d-flex flex-row align-items-center">
-												<span className="me-2 text-truncate" style={{ maxWidth: 'calc(80%)' }}>{player.username}</span>
-												< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-													<img
-														style={{
-															objectFit: 'cover',
-															width: '100%',
-															height: '100%',
-															position: 'absolute',
-															top: '50%',
-															left: '50%',
-															transform: 'translate(-50%, -50%)'
-														}}
-														fetchPriority="high"
-														alt="profile picture"
-														src={`${BACKEND_URL}${player.image}`}
-													/>
-												</div>
-											</div>
-										</div>
-										<div className="border-end col-2 d-flex justify-content-center align-items-center">
-											{
-												String(session?.user?.id) === String(player.id) &&
-												<button className="btn btn-warning">
-													Ready
-												</button>
-											}
-										</div>
-									</div>
-								)
-							})
-						}
+						{players.player1 && renderPlayer(players.player1)}
+						<hr />
+						{players.player2 && renderPlayer(players.player2)}
 					</div>
 				</div>
 			</div>

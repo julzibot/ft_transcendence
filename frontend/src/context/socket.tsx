@@ -10,13 +10,18 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 	const [socket, setSocket] = useState<Socket | null>(null);
 
 	useEffect(() => {
-		const newSocket = io(`http://${DOMAIN_NAME}:${SOCKET_PORT}`);
+		const newSocket = io(`https://${DOMAIN_NAME}:${SOCKET_PORT}`, {
+			transports: ['websocket'],
+			secure: true
+		});
 
 		setSocket(newSocket)
 		newSocket.on('connect', () => { });
 
 		return (() => {
-			newSocket.disconnect()
+
+			console.log(`[SocketProvider] disconnect()`);
+			newSocket.disconnect();
 		})
 
 	}, []);
