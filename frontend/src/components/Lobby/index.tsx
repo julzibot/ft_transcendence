@@ -38,6 +38,7 @@ interface Lobby {
 	isFull: boolean,
 	isStarted: boolean,
 	linkToJoin: string,
+	creator: User,
 }
 
 export default function Lobby({ setToastShow, setErrorField, errorField }: LobbyProps) {
@@ -139,7 +140,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 					lobbyData && lobbyData.length === 0 && <h2 className="text-center mt-5 pt-5">No Games Available</h2>
 				}
 				{
-					lobbyData && lobbyData.map((lobby: any, index: number) => {
+					lobbyData && lobbyData.map((lobby: Lobby, index: number) => {
 						return (
 							<div
 								key={index}
@@ -151,7 +152,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 								</div>
 								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">
 									<div className="d-flex flex-row align-items-center">
-										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{lobby.player1.username}</span>
+										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{lobby.creator.username}</span>
 										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '40px', height: '40px', overflow: 'hidden' }}>
 											<img
 												style={{
@@ -165,7 +166,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 												}}
 												fetchPriority="high"
 												alt="profile picture"
-												src={`${BACKEND_URL}${lobby.player1.image}`}
+												src={`${BACKEND_URL}${lobby.creator.image}`}
 											/>
 										</div>
 									</div>
