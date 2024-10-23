@@ -13,7 +13,7 @@ class GameCustomizationData(models.Model):
 
 	class Meta:
 		verbose_name = 'Game Customization Data'
-		verbose_name_plural = 'Game Customization Data'
+		verbose_name_plural = 'Game Customizations'
 
 	def __str__(self):
 		try:
