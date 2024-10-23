@@ -11,7 +11,9 @@ from rest_framework.permissions import AllowAny
 from django.core.exceptions import ObjectDoesNotExist
 
 # Create your views here.
+@method_decorator(csrf_exempt, name='dispatch')
 class GameCustomizationView(APIView):
+	permission_classes = [AllowAny]
 	def get(self, request, id):
 		try:
 			user = UserAccount.objects.get(id=id)

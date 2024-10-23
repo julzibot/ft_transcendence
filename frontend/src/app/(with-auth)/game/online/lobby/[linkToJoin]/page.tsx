@@ -8,6 +8,11 @@ import { BACKEND_URL } from "@/config";
 import { User } from "@/types/Auth";
 import styles from '../../GameSettingsStyles.module.css'
 
+interface Players {
+	player1: User,
+	player2: User
+}
+
 interface Lobby {
 	id: number;
 	name: string;
@@ -22,10 +27,7 @@ export default function Lobby() {
 	const { linkToJoin } = useParams();
 	const [lobbyData, setLobbyData] = useState<Lobby | null>(null);
 	const [isMounted, setIsMounted] = useState(false);
-	const [players, setPlayers] = useState<{}>({
-		player1: null,
-		player2: null
-	})
+	const [players, setPlayers] = useState<Players>()
 	const [isTranslated, setIsTranslated] = useState(false);
 	const socket = useSocketContext();
 
@@ -64,18 +66,18 @@ export default function Lobby() {
 			socket.emit('joinRoom', {
 				lobbyId: linkToJoin,
 				user: {
-					id: session.user.id,
-					username: session.user.username,
-					image: session.user.image
+					id: session?.user?.id,
+					username: session?.user?.username,
+					image: session?.user?.image
 				}
 			})
 
-			socket.on('updatedPlayers', (data: {}) => {
+			socket.on('updatedPlayers', (data: Players) => {
 				setPlayers(data)
 			})
 			return () => {
 				console.log(`[CLeanUp] [leaveLobby]`);
-				socket.emit('leaveLobby', { userId: session.user.id, lobbyId: linkToJoin })
+				socket.emit('leaveLobby', { userId: session?.user?.id, lobbyId: linkToJoin })
 			};
 		}
 	}, [socket, session])
@@ -124,9 +126,9 @@ export default function Lobby() {
 				<div className="card-body">
 					<h1>In Lobby</h1>
 					<div className="mt-2 border">
-						{players.player1 && renderPlayer(players.player1)}
+						{players?.player1 && renderPlayer(players.player1)}
 						<hr />
-						{players.player2 && renderPlayer(players.player2)}
+						{players?.player2 && renderPlayer(players.player2)}
 					</div>
 				</div>
 			</div>
