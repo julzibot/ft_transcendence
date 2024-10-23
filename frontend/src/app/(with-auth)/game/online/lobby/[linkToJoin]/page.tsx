@@ -7,6 +7,7 @@ import useSocketContext from "@/context/socket";
 import { BACKEND_URL } from "@/config";
 import { User } from "@/types/Auth";
 import styles from '../../GameSettingsStyles.module.css'
+import GameCountdownModal from "@/components/cards/GameStartingModal";
 
 interface Lobby {
 	id: number;
@@ -116,16 +117,38 @@ export default function Lobby() {
 					</div>
 				</div>
 			</div>
-			<div className={`card mt-3 col-4 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
-				<div className="card-body">
-					<h1>In Lobby</h1>
-					<div className="mt-2 border">
-						{players.player1 && renderPlayer(players.player1)}
-						<hr />
-						{players.player2 && renderPlayer(players.player2)}
+			<div className="d-flex text-light justify-content-between">
+
+				{players.player1 && renderPlayer(players.player1)}
+				<h1 >VS</h1>
+				<div
+					className={`d-flex flex-row align-items-center fw-bold fs-5`}
+					style={{ height: '50px' }}
+				>
+					<div className="justify-content-center col d-flex align-items-center">
+						<div className="d-flex flex-row align-items-center">
+							<span className="me-2 text-truncate" style={{ maxWidth: 'calc(80%)' }}>Antoine</span>
+							< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
+								<img
+									style={{
+										objectFit: 'cover',
+										width: '100%',
+										height: '100%',
+										position: 'absolute',
+										top: '50%',
+										left: '50%',
+										transform: 'translate(-50%, -50%)'
+									}}
+									fetchPriority="high"
+									alt="profile picture"
+									src={`${BACKEND_URL}/media/images/ff436ecb-fb02-4c66-832c-9d19692175ba.png`}
+								/>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
+			{players.player1 && players.player2 && <GameCountdownModal players={players} show={true} />}
 		</>
 	)
 }
