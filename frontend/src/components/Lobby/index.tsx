@@ -5,6 +5,7 @@ import { useAuth } from '@/app/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import DOMPurify from 'dompurify';
 import { Alphabet, PersonFillUp, TrophyFill, Activity, LightningFill, Toggle2Off, Toggle2On } from 'react-bootstrap-icons';
+import { CustomTooltip } from '../Utils/Tooltip';
 import "./styles.css";
 import { BACKEND_URL } from '@/config';
 import DifficultyLevel from '../Utils/DifficultyLevel';
