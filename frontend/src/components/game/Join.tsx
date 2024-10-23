@@ -59,11 +59,6 @@ export default function Join({ userId, room, gameSettings, gameMode }: JoinProps
 				});
 
 				socket.on('isNotHost', () => {
-					setIsNotHost(true);
-					console.log(`[${room}] You are player 2 [NOT HOST]`);
-				})
-				socket.on('isNotHost', () => {
-					setIsNotHost(true);
 					console.log(`[${room}] You are player 2 [NOT HOST]`);
 				})
 

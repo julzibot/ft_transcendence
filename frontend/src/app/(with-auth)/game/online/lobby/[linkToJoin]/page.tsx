@@ -71,12 +71,13 @@ export default function Lobby() {
 			})
 
 			socket.on('updatedPlayers', (data: {}) => {
+				console.log(`[updatedPlayers]`, { data });
 				setPlayers(data)
 			})
-			return () => {
-				console.log(`[CLeanUp] [leaveLobby]`);
-				socket.emit('leaveLobby', { userId: session.user.id, lobbyId: linkToJoin })
-			};
+			// return () => {
+			// 	console.log(`[CLeanUp] [leaveLobby]`);
+			// 	socket.emit('leaveLobby', { userId: session.user.id, lobbyId: linkToJoin })
+			// };
 		}
 	}, [socket, session])
 
