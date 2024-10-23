@@ -178,9 +178,13 @@ io.on("connection", async (socket) => {
 			socket.emit('isHost');
 		}
 		else {
-			if (!lobby.player2) {
+			if (!lobby.player1) {
+				if (lobby.player2.id != user.id)
+					lobby.player1 = user;
+			}
+			else if (!lobby.player2) {
 				if (lobby.player1.id != user.id)
-					lobby.player2 = user
+					lobby.player2 = user;
 			}
 		}
 		socket.join(lobbyId);
@@ -313,18 +317,27 @@ io.on("connection", async (socket) => {
 		connectedUsers.delete(socket.id);
 
 		if (disconnectedUser.mode === 0) {
-			gameLobbies.forEach((lobby, lobbyId) => {
+			gameLobbies.forEach(async (lobby, lobbyId) => {
 				if (lobby.player1 || lobby.player2) {
 					if (lobby.player1 && lobby.player1.id === userId)
 						lobby.player1 = null;
 					else if (lobby.player2 && lobby.player2.id === userId)
 						lobby.player2 = null;
 					if (!lobby.player1 && !lobby.player2) {
-						// DELETE backend:8000
+						await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
+							method: 'DELETE',
+							headers: { 'Content-Type': 'application/json' },
+							credentials: 'include',
+						});
 						gameLobbies.delete(lobbyId);
 					}
 					else {
-						// PUT backend:8000
+						await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							credentials: 'include',
+							body: JSON.stringify({ userId })
+						});
 						io.in(lobbyId).emit('updatedPlayers', lobby);
 					}
 				}
