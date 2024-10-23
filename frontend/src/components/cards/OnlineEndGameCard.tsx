@@ -18,7 +18,7 @@ export default function EndGameCard() {
 
     return (show && (
     <>
-    <div className={`modal fade show d-block`} id="staticBackDrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="10">
+    <div className={`modal fade show d-block`} id="staticBackDrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={10}>
         <div className={`modal-dialog modal-dialog-centered`}>
             <div className={`modal-content ${styles.endGameCard}`}>
             <div className="modal-header justify-content-center">

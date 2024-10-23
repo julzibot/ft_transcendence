@@ -8,6 +8,7 @@ import { Alphabet, PersonFillUp, TrophyFill, Activity, LightningFill, Toggle2Off
 import "./styles.css";
 import { BACKEND_URL } from '@/config';
 import DifficultyLevel from '../Utils/DifficultyLevel';
+import { CustomTooltip } from '../Utils/Tooltip';
 
 interface LobbyProps {
 	setToastShow: Function,
