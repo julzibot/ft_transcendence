@@ -33,7 +33,7 @@ export default function FriendList() {
 		const response = await fetch(`${BACKEND_URL}/api/friends/approve-friend-request/`, {
 			method: 'PUT',
 			credentials: 'include',
-			headers: { 
+			headers: {
 				'Content-Type': 'application/json',
 				'Accept': 'application/json',
 				'X-CSRFToken': Cookies.get('csrftoken') as string
@@ -54,10 +54,10 @@ export default function FriendList() {
 			method: 'DELETE',
 			credentials: 'include',
 			headers: {
-				'Accept': 'application/json', 
+				'Accept': 'application/json',
 				'Content-type': 'application/json',
 				'X-CSRFToken': Cookies.get('csrftoken') as string
-		},
+			},
 			body: JSON.stringify({
 				'user_id1': session?.user?.id,
 				'user_id2': friend.id
@@ -94,20 +94,20 @@ export default function FriendList() {
 								</div>
 								<Link href={`/account/${friendship.user.id}`}>
 									<div className="position-relative border border-1 border-dark-subtle rounded-circle me-3" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-									<img
-                    style={{
-                      objectFit: 'cover',
-                      width: '100%',
-                      height: '100%',
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)'
-                    }}
-                    fetchPriority="high"
-                    alt="profile picture"
-                    src={`${BACKEND_URL}${friendship.user.image}`}
-                  />
+										<img
+											style={{
+												objectFit: 'cover',
+												width: '100%',
+												height: '100%',
+												position: 'absolute',
+												top: '50%',
+												left: '50%',
+												transform: 'translate(-50%, -50%)'
+											}}
+											fetchPriority="high"
+											alt="profile picture"
+											src={`${BACKEND_URL}${friendship.user.image}`}
+										/>
 									</div>
 								</Link>
 								<span className="flex-grow-1 overflow-hidden  fs-4 fw-semibold text-truncate">
@@ -144,20 +144,20 @@ export default function FriendList() {
 								</div>
 								<Link href={`/account/${friendship.user.id}`}>
 									<div className="me-3 position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-									<img
-                    style={{
-                      objectFit: 'cover',
-                      width: '100%',
-                      height: '100%',
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)'
-                    }}
-                    fetchPriority="high"
-                    alt="profile picture"
-                    src={`${BACKEND_URL}{friendship.user.image}`}
-                  />
+										<img
+											style={{
+												objectFit: 'cover',
+												width: '100%',
+												height: '100%',
+												position: 'absolute',
+												top: '50%',
+												left: '50%',
+												transform: 'translate(-50%, -50%)'
+											}}
+											fetchPriority="high"
+											alt="profile picture"
+											src={`${BACKEND_URL}${friendship.user.image}`}
+										/>
 									</div>
 								</Link>
 								<div className='flex-grow-1 overflow-hidden'>

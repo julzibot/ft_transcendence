@@ -14,7 +14,7 @@ class TournamentModel(models.Model):
     isStarted = models.BooleanField(default=False)
     timer = models.PositiveIntegerField(validators=[MinValueValidator(5), MaxValueValidator(60)], default=10) #in minutes
     # results = models.OneToOneField('TournamentResultsModel', on_delete=models.CASCADE, null=True, related_name='winner_tournament')
-    difficultyLevel = models.PositiveIntegerField(validators=[MinValueValidator(0), MaxValueValidator(6)], default=4) #TO DO: verify the range
+    difficultyLevel = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(7)], default=4)
     power_ups = models.BooleanField(default=False)
     pointsPerGame = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(21)], default=10)
     creator = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name="tournament_creator", null=False)

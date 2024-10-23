@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import Join from './Join';
 import { SocketProvider } from '../../context/socket';
-import { GameSettings } from '@/types/GameSettings';
+import { GameSettingsType } from '@/types/GameSettings';
 
 interface OnlineGameProps {
 	userId: number,
-	gameSettings: GameSettings
+	gameSettings: GameSettingsType
 }
 
 export default function OnlineGame({ userId, gameSettings }: OnlineGameProps) {
