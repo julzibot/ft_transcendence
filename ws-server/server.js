@@ -2,14 +2,15 @@ import { createServer } from 'node:https';
 import { Server } from "socket.io";
 import { readFileSync } from "fs";
 
+import gameEvents from './gameEvents.js';
+
 const port = process.env.SOCKET_PORT;
 const domain = process.env.DOMAIN_NAME;
 const frontendPort = process.env.FRONTEND_PORT;
 const backendPort = process.env.BACKEND_PORT;
 
-const fetchFinished = new Map();
 const gameLobbies = new Map(); // lobbyId -> {player1, player2}
-
+const gameRooms = new Map(); // roomId -> {player1,}
 const connectedUsers = new Map(); // socket.id -> {user.id, 0 || 1}
 
 let tournamentsArray = [];
@@ -240,18 +241,6 @@ io.on("connection", async (socket) => {
 		socket.join(data.gameId);
 	})
 
-	// socket.on('fetchFinished', (data) => {
-	// 	console.log('fetchFinished');
-	// 	let currentCount = fetchFinished.get(data.roomId) || 0;
-	// 	if (currentCount > -1)
-	// 		fetchFinished.set(data.roomId, currentCount + 1);
-	// 	if (fetchFinished.get(data.roomId) === 2) {
-	// 		console.log(`[Online Game] 2 Players in the room: ${io._nsps.get('/').adapter.rooms.get(data.roomId).size}`);
-	// 		io.in(data.roomId).emit('startGame');
-	// 		fetchFinished.delete(data.roomId);
-	// 	}
-	// });
-
 	// Tournament sockets
 	socket.on('joinTournament', (data) => {
 
@@ -285,55 +274,7 @@ io.on("connection", async (socket) => {
 		socket.join(data.tournamentId);
 	});
 
-	// Game match communication
-	socket.on('sendGameId', (data) => {
-		socket.to(data.room_id).emit('receiveGameId', { game_id: data.game_id });
-	});
-	socket.on('sendPlayerInfos', (data) => {
-		socket.to(data.room_id).emit('setPlayerInfos', { p1Name: data.p1Name, p2Name: data.p2Name, p1p: data.p1p, p2p: data.p2p, game_id: data.game_id });
-	})
-	socket.on('sendBallPos', (data) => {
-		socket.to(data.room_id).emit('updateBallPos', { x: data.x, y: data.y, vectx: data.vectx, vecty: data.vecty, speed: data.speed });
-	})
-	socket.on('sendPlayer1Pos', data => {
-		socket.to(data.room_id).emit('updatePlayer1Pos', { player1pos: data.player1pos });
-	});
-	socket.on('sendPlayer2Pos', data => {
-		socket.to(data.room_id).emit('updatePlayer2Pos', { player2pos: data.player2pos });
-	});
-	socket.on('sendBounceGlow', data => {
-		socket.to(data.room_id).emit('startBounceGlow');
-	})
-	socket.on('sendWallCollision', data => {
-		socket.to(data.room_id).emit('newWallCollision');
-	})
-	socket.on('sendScore', data => {
-		socket.to(data.room_id).emit('updateScore', { score1: data.score1, score2: data.score2, stopGame: data.stopGame });
-	})
-	socket.on('sendCreatePU', data => {
-		socket.to(data.room_id).emit('updateCreatePU', { pu_id: data.pu_id, powerType: data.type, radius: data.radius, spawnx: data.x, spawny: data.y });
-	})
-	socket.on('sendCollectPU', data => {
-		socket.to(data.room_id).emit('updateCollectPU', { player_id: data.player_id, powerType: data.power_id });
-	})
-	socket.on('sendActivatePU1', data => {
-		socket.to(data.room_id).emit('updateActivatePU1', { powerType: data.powerType });
-	})
-	socket.on('sendActivatePU2', data => {
-		socket.to(data.room_id).emit('updateActivatePU2', { powerType: data.powerType });
-	})
-	socket.on('sendInvert', data => {
-		socket.to(data.room_id).emit('updateInvert');
-	})
-	socket.on('sendInvisiball', data => {
-		socket.to(data.room_id).emit('updateInvisiball', { id: data.player_id });
-	})
-	socket.on('sendDeactivatePU', data => {
-		socket.to(data.room_id).emit('updateDeactivatePU', { player_id: data.player_id, type: data.type });
-	})
-	socket.on('sendDeletePU', data => {
-		socket.to(data.room_id).emit('updateDeletePU', { pu_id: data.pu_id });
-	})
+	gameEvents(io, socket);
 
 	socket.on('leaveLobby', data => {
 		// userId
@@ -350,10 +291,6 @@ io.on("connection", async (socket) => {
 			console.log(`[leaveLobby] ${{ lobby }}`);
 			socket.to(lobbyId).emit('updatedPlayers', lobby);
 		}
-	});
-
-	socket.on('leaveTournament', data => {
-
 	});
 
 	socket.on('disconnect', async () => {
@@ -409,13 +346,6 @@ io.on("connection", async (socket) => {
 			console.log(socket.id + ' -> ' + userId + " has disconnected");
 		else
 			console.log('No user to disconnect');
-
-		// Online Game Rooms
-		// socketRooms.get(socket.id).forEach(room_id => {
-		// 	console.log(`[Server] Sending Disconnection Event -> [room] [${room_id}]`)
-		// 	socket.to(room_id).emit('participantDisconnected');
-		// });
-		// socketRooms.delete(socket.id);
 
 		if (disconnectedUser.mode === 1) {
 
