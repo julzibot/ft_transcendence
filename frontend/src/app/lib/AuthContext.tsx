@@ -73,12 +73,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	}
 
 	async function logout() {
-		fetch(`${BACKEND_URL}/api/auth/logout/`, {
+		await fetch(`${BACKEND_URL}/api/auth/logout/`, {
 			method: 'POST',
 			credentials: 'include',
 			headers: { 'X-CSRFToken': Cookies.get('csrftoken') as string },
-		}).then(() => setSession({ user: null, provider: null }))
-			.finally(() => router.push('/auth/signin'));
+		})
+		const sessionId = Cookies.get('sessionid')
+		if (sessionId)
+			Cookies.remove('sessionid')
+		setSession({ user: null, provider: null })
+		router.push('/auth/signin');
 	}
 
 	const checkUserLoggedIn = async () => {

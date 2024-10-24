@@ -12,6 +12,8 @@ interface Players {
 	player1: User,
 	player2: User
 }
+import GameCountdownModal from "@/components/cards/GameCountdownModal";
+import WaitingLobbyModal from "@/components/cards/WaitingLobbyModal";
 
 interface Lobby {
 	id: number;
@@ -115,7 +117,7 @@ export default function Lobby() {
 
 	return (
 		<>
-			<div className="d-flex flex-column align-items-center justify-content-center mt-3">
+			{/* <div className="d-flex flex-column align-items-center justify-content-center mt-3">
 				<div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4  ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-title text-center">
 						<h2 className="mt-3 fw-bold">{lobbyData?.name}</h2>
@@ -131,7 +133,8 @@ export default function Lobby() {
 						{players?.player2 && renderPlayer(players.player2)}
 					</div>
 				</div>
-			</div>
+			</div> */}
+			{(players.player1 && players.player2) ? <GameCountdownModal players={players} /> : <WaitingLobbyModal players={players} />}
 		</>
 	)
 }

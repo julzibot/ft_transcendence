@@ -5,6 +5,7 @@ import { useAuth } from '@/app/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import DOMPurify from 'dompurify';
 import { Alphabet, PersonFillUp, TrophyFill, Activity, LightningFill, Toggle2Off, Toggle2On } from 'react-bootstrap-icons';
+import { CustomTooltip } from '../Utils/Tooltip';
 import "./styles.css";
 import { BACKEND_URL } from '@/config';
 import DifficultyLevel from '../Utils/DifficultyLevel';
@@ -38,6 +39,7 @@ interface Lobby {
 	isFull: boolean,
 	isStarted: boolean,
 	linkToJoin: string,
+	creator: User,
 }
 
 export default function Lobby({ setToastShow, setErrorField, errorField }: LobbyProps) {
@@ -49,7 +51,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 	const [lobbyForm, setLobbyForm] = useState({
 		name: '',
 		pointsPerGame: 10,
-		difficultyLevel: 0,
+		difficultyLevel: "",
 		power_ups: false,
 	})
 
@@ -65,15 +67,12 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 	}
 
 
-	const handleSubmitData = async () => {
-		if (lobbyForm.name.trim() === '') {
-			setErrorField({ ...errorField, nameMissing: 'Lobby Name is Required' })
-			return
-		}
-		if (lobbyForm.difficultyLevel === 0) {
-			setErrorField({ ...errorField, difficultyMissing: 'Select a difficulty' })
-			return
-		}
+	const handleSubmitData = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		// if (lobbyForm.difficultyLevel === 0) {
+		// 	setErrorField({ ...errorField, difficultyMissing: 'Select a difficulty' })
+		// 	return
+		// }
 		const payload = {
 			'name': lobbyForm.name,
 			'difficultyLevel': lobbyForm.difficultyLevel,
@@ -139,7 +138,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 					lobbyData && lobbyData.length === 0 && <h2 className="text-center mt-5 pt-5">No Games Available</h2>
 				}
 				{
-					lobbyData && lobbyData.map((lobby: any, index: number) => {
+					lobbyData && lobbyData.map((lobby: Lobby, index: number) => {
 						return (
 							<div
 								key={index}
@@ -151,7 +150,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 								</div>
 								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">
 									<div className="d-flex flex-row align-items-center">
-										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{lobby.player1.username}</span>
+										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{lobby.creator.username}</span>
 										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '40px', height: '40px', overflow: 'hidden' }}>
 											<img
 												style={{
@@ -165,7 +164,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 												}}
 												fetchPriority="high"
 												alt="profile picture"
-												src={`${BACKEND_URL}${lobby.player1.image}`}
+												src={`${BACKEND_URL}${lobby.creator.image}`}
 											/>
 										</div>
 									</div>
@@ -202,7 +201,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 					</Modal.Title>
 				</Modal.Header>
 				<Modal.Body>
-					<form autoComplete='off'>
+					<form autoComplete='off' onSubmit={handleSubmitData}>
 						<div className="form-floating mb-5">
 							<input required type="text" className="form-control form-control-sm" id="floatingName" placeholder="Lobby Name" value={lobbyForm.name} onChange={(e) => setLobbyForm({ ...lobbyForm, name: (DOMPurify.sanitize(e.target.value)) })} />
 							<label htmlFor="floatingName">Lobby Name
@@ -229,6 +228,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 								<Activity className="ms-2" size={15} />
 							</label>
 							<select
+								required
 								className="form-select"
 								aria-label="Game Difficulty"
 								id="difficultyLevel"
@@ -237,7 +237,9 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 									setLobbyForm({ ...lobbyForm, difficultyLevel: parseInt(e.target.value) })
 								}
 							>
-								<option value={0}>Select Game Difficulty</option>
+								<option value="" disabled>
+									Select Game Difficulty
+								</option>
 								<option value={1}>Granny</option>
 								<option value={2}>Boring</option>
 								<option value={3}>Still Slow</option>
@@ -248,7 +250,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 							</select>
 							<label className="text-danger form-label" htmlFor="difficultyLevel">{errorField.difficultyMissing}</label>
 						</div>
-						<div className="mb-1 form-check form-switch">
+						<div className="mb-4 form-check form-switch">
 							<input
 								className="form-check-input"
 								type="checkbox"
@@ -261,12 +263,12 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 								<LightningFill className="ms-1" size={15} />
 							</label>
 						</div>
+						<div className="d-flex justify-content-end">
+							<Button variant="secondary" onClick={() => setModalShow(false)}>Close</Button>
+							<Button variant="primary" type="submit">Enter</Button>
+						</div>
 					</form>
 				</Modal.Body>
-				<Modal.Footer>
-					<Button variant="secondary" onClick={() => setModalShow(false)}>Close</Button>
-					<Button variant="primary" onClick={() => handleSubmitData()}>Enter</Button>
-				</Modal.Footer>
 			</Modal>
 		</>
 	)
