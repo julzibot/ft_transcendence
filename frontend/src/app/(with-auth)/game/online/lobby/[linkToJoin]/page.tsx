@@ -7,7 +7,8 @@ import useSocketContext from "@/context/socket";
 import { BACKEND_URL } from "@/config";
 import { User } from "@/types/Auth";
 import styles from '../../GameSettingsStyles.module.css'
-import GameCountdownModal from "@/components/cards/GameStartingModal";
+import GameCountdownModal from "@/components/cards/GameCountdownModal";
+import WaitingLobbyModal from "@/components/cards/WaitingLobbyModal";
 
 interface Lobby {
 	id: number;
@@ -110,7 +111,7 @@ export default function Lobby() {
 
 	return (
 		<>
-			<div className="d-flex flex-column align-items-center justify-content-center mt-3">
+			{/* <div className="d-flex flex-column align-items-center justify-content-center mt-3">
 				<div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4  ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
 					<div className="card-title text-center">
 						<h2 className="mt-3 fw-bold">{lobbyData?.name}</h2>
@@ -147,8 +148,8 @@ export default function Lobby() {
 						</div>
 					</div>
 				</div>
-			</div>
-			{players.player1 && players.player2 && <GameCountdownModal players={players} show={true} />}
+			</div> */}
+			{(players.player1 && players.player2) ? <GameCountdownModal players={players} /> : <WaitingLobbyModal players={players} />}
 		</>
 	)
 }
