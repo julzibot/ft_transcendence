@@ -6,14 +6,23 @@ import { useAuth } from "@/app/lib/AuthContext";
 import useSocketContext from "@/context/socket";
 import { BACKEND_URL } from "@/config";
 import { User } from "@/types/Auth";
-import styles from '../../GameSettingsStyles.module.css'
+import GameCountdownModal from "@/components/cards/GameCountdownModal";
+import WaitingLobbyModal from "@/components/cards/WaitingLobbyModal";
+import ThreeScene from "@/components/game/Game";
+import { FinalSettings } from "@/types/Game";
+import EndGameCard from "@/components/cards/EndGameCard";
+
+interface GameInfos {
+	game_id: number,
+	game_mode: number,
+	player1: User,
+	player2: User,
+}
 
 interface Players {
 	player1: User,
 	player2: User
 }
-import GameCountdownModal from "@/components/cards/GameCountdownModal";
-import WaitingLobbyModal from "@/components/cards/WaitingLobbyModal";
 
 interface Lobby {
 	id: number;
@@ -27,10 +36,13 @@ export default function Lobby() {
 	const { session } = useAuth();
 	const router = useRouter();
 	const { linkToJoin } = useParams();
+
 	const [lobbyData, setLobbyData] = useState<Lobby | null>(null);
-	const [isMounted, setIsMounted] = useState(false);
 	const [players, setPlayers] = useState<Players>()
-	const [isTranslated, setIsTranslated] = useState(false);
+	const [gameInfos, setGameInfos] = useState<GameInfos>()
+	const [countdown, setCountdown] = useState<number>(3);
+	const [gameSettings, setGameSettings] = useState<FinalSettings>();
+	const [gameEnded, setGameEnded] = useState<boolean>(false)
 	const socket = useSocketContext();
 
 	useEffect(() => {
@@ -47,6 +59,12 @@ export default function Lobby() {
 				else {
 					const data = await response.json()
 					setLobbyData(data);
+					setGameSettings((prevSettings: any) => ({
+						...prevSettings,
+						game_difficulty: data.difficultyLevel,
+						points_to_win: data.pointsPerGame,
+						power_ups: data.power_ups
+					}))
 				}
 			} catch (error) {
 				console.error('Error fetching tournament data:', error)
@@ -55,13 +73,6 @@ export default function Lobby() {
 		}
 		getLobbyData()
 	}, [])
-
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setIsMounted(true);
-		}, 1000);
-		return () => clearTimeout(timer)
-	}, []);
 
 	useEffect(() => {
 		if (socket && session) {
@@ -74,67 +85,53 @@ export default function Lobby() {
 				}
 			})
 
+			socket.on('startGame', (data: any) => {
+				setGameInfos(data)
+			})
 			socket.on('updatedPlayers', (data: Players) => {
 				setPlayers(data)
 			})
 			return () => {
-				console.log(`[CLeanUp] [leaveLobby]`);
 				socket.emit('leaveLobby', { userId: session?.user?.id, lobbyId: linkToJoin })
 			};
 		}
+		async function fetchGameCustoms(id: number | undefined) {
+			const response = await fetch(`${BACKEND_URL}/api/gameCustomization/${id}`, {
+				method: 'GET',
+				credentials: 'include',
+			});
+			if (response.ok) {
+				const data = await response.json();
+				setGameSettings((prev: any) => ({
+					...prev,
+					bgColor: data.bgColor,
+					palette: data.palette,
+					opacity: data.opacity,
+					sparks: data.sparks,
+					background: data.background
+				}))
+			}
+		}
+		if (session)
+			fetchGameCustoms(session?.user?.id);
 	}, [socket, session])
 
-	const renderPlayer = (player: User) => {
-		return (
-			<div
-				className={`d-flex flex-row align-items-center fw-bold fs-5`}
-				style={{ height: '50px' }}
-			>
-				<div className="justify-content-center col d-flex align-items-center">
-					<div className="d-flex flex-row align-items-center">
-						<span className="me-2 text-truncate" style={{ maxWidth: 'calc(80%)' }}>{player.username}</span>
-						< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-							<img
-								style={{
-									objectFit: 'cover',
-									width: '100%',
-									height: '100%',
-									position: 'absolute',
-									top: '50%',
-									left: '50%',
-									transform: 'translate(-50%, -50%)'
-								}}
-								fetchPriority="high"
-								alt="profile picture"
-								src={`${BACKEND_URL}${player.image}`}
-							/>
-						</div>
-					</div>
-				</div>
-			</div>
-		)
+	const handleGameEnded = () => {
+		setGameEnded(true)
 	}
 
 	return (
+
 		<>
-			{/* <div className="d-flex flex-column align-items-center justify-content-center mt-3">
-				<div className={`card mt-1 mb-4 m-2 p-1 ps-4 pe-4  ${styles.pageTitle} ${isMounted ? styles.mounted : ''}`}>
-					<div className="card-title text-center">
-						<h2 className="mt-3 fw-bold">{lobbyData?.name}</h2>
-					</div>
-				</div>
-			</div>
-			<div className={`card mt-3 col-4 ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
-				<div className="card-body">
-					<h1>In Lobby</h1>
-					<div className="mt-2 border">
-						{players?.player1 && renderPlayer(players.player1)}
-						<hr />
-						{players?.player2 && renderPlayer(players.player2)}
-					</div>
-				</div>
-			</div> */}
-			{(players.player1 && players.player2) ? <GameCountdownModal players={players} /> : <WaitingLobbyModal players={players} />}
+			{countdown !== 0 ? ((players && players.player1 && players.player2 && gameInfos && gameInfos.game_id) ? (<GameCountdownModal game_id={gameInfos.game_id} players={players} countdown={countdown} setCountdown={setCountdown} />
+			) : (<WaitingLobbyModal players={players} />)
+			) : (session && gameSettings && <ThreeScene
+				gameInfos={gameInfos}
+				gameSettings={gameSettings}
+				room_id={gameInfos.game_id} user_id={session.user.id}
+				isHost={(players?.player1?.id === session.user.id) ? true : false}
+				gamemode={gameInfos.game_mode} handleGameEnded={handleGameEnded} />)}
+			{gameEnded && <EndGameCard callbackUrl={'/game/online/'} />}
 		</>
 	)
 }

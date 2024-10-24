@@ -5,10 +5,9 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import styles from './EndGameCard.module.css'
 import { useState, useEffect } from 'react'
 
-export default function EndGameCard() {
+export default function EndGameCard({ callbackUrl }: { callbackUrl: string }) {
     const router = useRouter()
     const [show, setShow] = useState<Boolean>(false)
-    // const [isMounted, setIsMounted] = useState<Boolean>(false)
 
     useEffect(() => {
         setTimeout(() => {
@@ -27,7 +26,7 @@ export default function EndGameCard() {
                             </div>
                         </div>
                         <div className="modal-footer justify-content-center">
-                            <button type="button" className="btn btn-outline-light" onClick={() => router.push('/game/simple')} data-bs-dismiss="modal">Return to Lobby</button>
+                            <button type="button" className="btn btn-outline-light" onClick={() => router.push(callbackUrl)} data-bs-dismiss="modal">Return to Lobby</button>
                             <button type="button" className="btn btn-secondary" onClick={() => location.reload()} data-bs-dismiss="modal">Play Again</button>
                         </div>
                     </div>

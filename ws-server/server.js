@@ -150,7 +150,7 @@ io.on("connection", async (socket) => {
 			if (pairs.length > 0) {
 				console.log("EMITTING PAIRS");
 				pairs.forEach(pair => {
-					io.in(data.tournamentId).emit('getMatchPair', {pair: pair});
+					io.in(data.tournamentId).emit('getMatchPair', { pair: pair });
 				})
 			}
 			// console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
@@ -161,18 +161,16 @@ io.on("connection", async (socket) => {
 		const userId = connectedUsers.get(socket.id);
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
 		if (tournament && performance.now() - tournament.startTime)
-		p = tournament.participants.find(participant => participant.user.id === userId);
+			p = tournament.participants.find(participant => participant.user.id === userId);
 		p.return_time = performance.now();
 		tournament.inLobby.push(p);
 		const tournament_elapsed = (p.return_time - tournament.startTime) / 1000;
-		if (tournament_elapsed < tournament.duration)
-		{
+		if (tournament_elapsed < tournament.duration) {
 			const pairs = computeMatches(tournament);
-			if (pairs.length > 0)
-			{
+			if (pairs.length > 0) {
 				console.log("EMITTING PAIRS");
 				pairs.forEach(pair => {
-					io.in(data.tournamentId).emit('getMatchPair', {pair: pair});
+					io.in(data.tournamentId).emit('getMatchPair', { pair: pair });
 				})
 			}
 		}
@@ -188,7 +186,7 @@ io.on("connection", async (socket) => {
 		tournament.inLobby.splice(i);
 	})
 
-	socket.on('joinRoom', data => {
+	socket.on('joinRoom', async (data) => {
 		const { lobbyId, user } = data;
 		connectedUsers.set(socket.id, { userId: user.id, mode: 0 });
 
@@ -203,7 +201,7 @@ io.on("connection", async (socket) => {
 		}
 		else {
 			if (!lobby.player1) {
-				if (lobby.player2.id != user.id)
+				if (lobby.player2 && lobby.player2.id != user.id)
 					lobby.player1 = user;
 			}
 			else if (!lobby.player2) {
@@ -213,19 +211,46 @@ io.on("connection", async (socket) => {
 		}
 		socket.join(lobbyId);
 		io.in(lobbyId).emit('updatedPlayers', lobby);
-	});
 
-	socket.on('fetchFinished', (data) => {
-		console.log('fetchFinished');
-		let currentCount = fetchFinished.get(data.roomId) || 0;
-		if (currentCount > -1)
-			fetchFinished.set(data.roomId, currentCount + 1);
-		if (fetchFinished.get(data.roomId) === 2) {
-			console.log(`[Online Game] 2 Players in the room: ${io._nsps.get('/').adapter.rooms.get(data.roomId).size}`);
-			io.in(data.roomId).emit('startGame');
-			fetchFinished.delete(data.roomId);
+
+		const createGame = async (lobby) => {
+			const response = await fetch(`http://django:${backendPort}/api/game/create`, {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					'player1': lobby.player1.id,
+					'player2': lobby.player2.id,
+					'game_mode': 2
+				})
+			});
+			if (response.status === 201) {
+				const data = await response.json()
+				return data
+			}
+		}
+		if (lobby.player1 && lobby.player2) {
+			const gameInfos = await createGame(lobby);
+			io.in(lobbyId).emit('startGame', gameInfos);
 		}
 	});
+
+	socket.on('joinGame', (data) => {
+		console.log(`[joinGame] ${socket.id} has joined -> ${data.gameId}`);
+		socket.join(data.gameId);
+	})
+
+	// socket.on('fetchFinished', (data) => {
+	// 	console.log('fetchFinished');
+	// 	let currentCount = fetchFinished.get(data.roomId) || 0;
+	// 	if (currentCount > -1)
+	// 		fetchFinished.set(data.roomId, currentCount + 1);
+	// 	if (fetchFinished.get(data.roomId) === 2) {
+	// 		console.log(`[Online Game] 2 Players in the room: ${io._nsps.get('/').adapter.rooms.get(data.roomId).size}`);
+	// 		io.in(data.roomId).emit('startGame');
+	// 		fetchFinished.delete(data.roomId);
+	// 	}
+	// });
 
 	// Tournament sockets
 	socket.on('joinTournament', (data) => {
@@ -238,7 +263,7 @@ io.on("connection", async (socket) => {
 		if (tournament) {
 			const participant = tournament.participants.find(participant => participant.user.id === data.user.id)
 			if (!participant)
-				tournament.participants.push({ user: data.user, return_time: 0, opponents: new Map()});
+				tournament.participants.push({ user: data.user, return_time: 0, opponents: new Map() });
 			if (tournament.participants.length === 3)
 				io.in(tournament.tournamentId).emit('tournamentCanStart');
 			updatedParticipants = tournament.participants;
@@ -248,7 +273,7 @@ io.on("connection", async (socket) => {
 				tournamentId: data.tournamentId,
 				startTime: 0,
 				duration: 0,
-				participants: [{ user: data.user, return_time: 0, opponents: new Map()}],
+				participants: [{ user: data.user, return_time: 0, opponents: new Map() }],
 				gameRooms: []
 			}
 			tournamentsArray.push(newTournament);

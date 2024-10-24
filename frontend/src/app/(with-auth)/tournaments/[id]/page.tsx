@@ -65,7 +65,8 @@ export default function TournamentLobby() {
 				setParticipantsList(data);
 			})
 			socket.on('getMatchPair', (data) => {
-				console.log("PAIR RECEIVED: " + data.pair)});
+				console.log("PAIR RECEIVED: " + data.pair)
+			});
 		}
 	}, [socket]);
 
@@ -132,7 +133,7 @@ export default function TournamentLobby() {
 								)
 							})
 						}
-						<button className="btn btn-primary" onClick={() => socket?.emit('startTournament', {tournamentId: id, tournamentDuration: 10})}>
+						<button className="btn btn-primary" onClick={() => socket?.emit('startTournament', { tournamentId: id, tournamentDuration: 10 })}>
 							Start Tournament
 						</button>
 					</div>

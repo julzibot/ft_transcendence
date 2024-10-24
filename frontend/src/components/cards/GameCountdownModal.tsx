@@ -1,19 +1,19 @@
 "use client"
-import { User } from '@/types/Auth';
 import { useState, useEffect } from 'react'
 import { BACKEND_URL } from '@/config';
+import useSocketContext from '@/context/socket';
 
-export default function GameCountdownModal({ players }) {
+export default function GameCountdownModal({ game_id, players, countdown, setCountdown }: { game_id: number, players: {}, countdown: number, setCountdown: Function }) {
 
-	const [countdown, setCountdown] = useState<number>(3)
-
+	const socket = useSocketContext();
 
 	useEffect(() => {
 		const interval = setInterval(() => {
+			if (countdown === 1)
+				socket.emit('joinGame', { gameId: game_id })
 			if (countdown > 0)
 				setCountdown(countdown - 1);
 			else {
-				console.log('Start the Game!');
 				clearInterval(interval);
 			}
 		}, 1000);
@@ -24,7 +24,7 @@ export default function GameCountdownModal({ players }) {
 
 	return (
 		<>
-			<div className={`modal fade show d-block`} id="staticBackDrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1}>
+			<div className={`modal fade show d-block`} tabIndex={-1}>
 				<div className={`modal-dialog modal-lg modal-dialog-centered`}>
 					<div className={`modal-content`}>
 						<div className="modal-body">
