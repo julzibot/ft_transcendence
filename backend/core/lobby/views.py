@@ -1,92 +1,113 @@
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework import status
+
 from django.db.models import Q
-from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer, OpenApiResponse
-from rest_framework import serializers
+from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from .models import LobbyData
 from .serializers import LobbySerializer
 from users.models import UserAccount
-from rest_framework import status
-from django.core.exceptions import ObjectDoesNotExist
+import uuid
 
-import random
-
-# Create your views here.
+@method_decorator(csrf_exempt, name='dispatch') # TO DO: remove this line
 class LobbyView(APIView):
-	def get(self, request):
-		lobby = LobbyData.objects.filter(Q(lobbyWinner__isnull=True) | Q(lobbyWinner = None))
-		serializer = LobbySerializer(lobby, many=True)
+	permission_classes = [AllowAny]
+
+	def get(self, reauest): # Get all lobbies
+		lobbies = LobbyData.objects.filter(Q(lobbyWinner__isnull=True) | Q(lobbyWinner = None))
+		serializer = LobbySerializer(lobbies, many=True)
 		return Response(serializer.data)
 
-	@extend_schema(
-    request=inline_serializer(
-        name="InlineFormSerializer",
-        fields={
-					"name": serializers.CharField(),
-					# "isPrivate": serializers.BooleanField(),
-					# "difficultyLevel": serializers.CharField(),
-					"isActiveLobby": serializers.BooleanField(),
-					# "pointsPerGame": serializers.CharField(),
-					# "timer": serializers.CharField(),
-					# "power_ups": serializers.BooleanField(),
-					"user_id": serializers.CharField(),
-        },
-    ),
-    description="create Lobby",
-    responses={
-       200: inline_serializer(
-           name='CreateLobbyresponse',
-           fields={
-               'message': serializers.CharField(),
-           }
-       ), 
-       400: OpenApiResponse(description='user not found'),
-    }
-	)
+	def post(self, request): # Create a new lobby
+		data = request.data.copy()
+		try:
+			if 'player1' not in data:
+				raise ObjectDoesNotExist
+			player1 = UserAccount.objects.get(id=data['player1'])
+		except ObjectDoesNotExist:
+			return Response({'message': 'Creator not found'}, status=status.HTTP_400_BAD_REQUEST)
+		serializer = LobbySerializer(data=data)
+		if serializer.is_valid():
+			validated_data = serializer.validated_data
+			lobby = LobbyData.objects.create(
+				name=validated_data['name'],
+				difficultyLevel=validated_data['difficultyLevel'],
+				pointsPerGame=validated_data['pointsPerGame'],
+				power_ups=validated_data['power_ups'],
+				player1=player1,
+				creator=player1,
+			)
+			return Response({
+				lobby.linkToJoin,
+			}, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class JoinLobbyView(APIView):
 	def post(self, request):
-			data = request.data
-			try:
-				user = UserAccount.objects.get(id=data['user_id'])
-				new_lobby = LobbyData.objects.create(
-					name=data['name'],
-					# isPrivate=data['isPrivate'],
-					# difficultyLevel=data['difficultyLevel'],
-					# pointsPerGame=data['pointsPerGame'],
-					# timer=data['timer'],
-					# power_ups=data['power_ups'],
-					player1=user
-				)
-				serializer = LobbySerializer(new_lobby)
-				return Response({'lobby': serializer.data}, status=status.HTTP_201_CREATED)	
-			except ObjectDoesNotExist:
-				return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+		lobby_id = request.data.get('lobby_id')
+		try:
+			user = UserAccount.objects.get(id=request.data.get('user_id'))
+			lobby = LobbyData.objects.get(id=lobby_id)
+		except ObjectDoesNotExist:
+			return Response({'message': 'This Lobby does not exists'}, status=status.HTTP_404_NOT_FOUND)
+		if lobby.player1 is not None and lobby.player2 is not None:
+			return Response({'message': 'Lobby is full'}, status=status.HTTP_400_BAD_REQUEST)
+		if lobby.player1 is None:
+			lobby.player1 = user
+		if lobby.player2 is None:
+			lobby.player2 = user
+		lobby.save()
+		return Response({'message': 'You have joined the lobby successfully'}, status=status.HTTP_200_OK)
 
-class LobbyGameView(APIView):
-	def get(self, request):
-		lobby = LobbyData.objects.filter(Q(isActiveLobby=True))
-		serializer = LobbySerializer(lobby, many=True)
+@method_decorator(csrf_exempt, name='dispatch') # TO DO: remove this line
+class LobbyDataView(APIView):
+	permission_classes = [AllowAny]
+	def get(self, request, linkToJoin):
+		try:
+			uuid.UUID(linkToJoin, version=4)
+		except ValueError:
+			return Response({'message': 'Invalid link'}, status=status.HTTP_400_BAD_REQUEST)
+		try:
+			lobby = LobbyData.objects.get(linkToJoin=linkToJoin)
+		except ObjectDoesNotExist:
+			return Response({'message': 'Lobby not found'}, status=status.HTTP_404_NOT_FOUND)
+		serializer = LobbySerializer(lobby)
 		return Response(serializer.data)
 
-class LobbyUpdateView(APIView):
-	def put(self,request, lobby_id, user_id):
-		lobbyData = LobbyData.objects.filter(id=lobby_id)
-		serializerLobby = LobbySerializer(lobbyData, many=True)
+	def put(self, request, linkToJoin):
+		try:
+			uuid.UUID(linkToJoin, version=4)
+		except ValueError:
+			return Response({'message': 'Invalid link'}, status=status.HTTP_400_BAD_REQUEST)
+		try:
+			user = UserAccount.objects.get(id=request.data['userId'])
+			lobby = LobbyData.objects.get(linkToJoin=linkToJoin)
+		except ObjectDoesNotExist:
+			return Response({'message': 'Lobby or User Account not found'}, status=status.HTTP_404_NOT_FOUND)
+		if lobby.player1.id == user.id:
+			lobby.player1 = None
+		elif lobby.player2.id == user.id:
+			lobby.player2 = None
+		lobby.save()
+		return Response({'message': 'Lobby Saved Successfully'}, status=status.HTTP_200_OK)
 
-		if(serializerLobby.data[0]['isActiveLobby'] == True):
-			try:
-				user = UserAccount.objects.get(id=user_id)
-				lobbyData.update(player2=user)
-				lobbyData.update(isActiveLobby=False)
-				return Response({'message':'You have updated player2 successfully'}, status=status.HTTP_201_CREATED)	
-			except ObjectDoesNotExist:
-				return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
-		else:		
-			return Response({'message': 'Lobby has already 2 players'}, status=status.HTTP_404_NOT_FOUND)
 
-
-
+	def delete(self, request, linkToJoin):
+		try:
+			uuid.UUID(linkToJoin, version=4)
+		except ValueError:
+			return Response({'message': 'Invalid link'}, status=status.HTTP_400_BAD_REQUEST)
+		try:
+			lobby = LobbyData.objects.get(linkToJoin=linkToJoin)
+		except ObjectDoesNotExist:
+			return Response({'message': 'Lobby not found'}, status=status.HTTP_404_NOT_FOUND)
+		lobby.delete()
+		return Response({'message': 'Lobby deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 
 

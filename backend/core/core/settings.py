@@ -12,7 +12,7 @@ BACKEND_PORT = os.getenv('BACKEND_PORT')
 
 DEBUG = True
 
-ALLOWED_HOSTS = [DOMAIN_NAME, "django"]
+ALLOWED_HOSTS = [DOMAIN_NAME, "django", "ws-server", "proxy"]
 
 # Application definition
 
@@ -146,6 +146,10 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     f"https://{DOMAIN_NAME}:{FRONTEND_PORT}",
     "https://frontend:{FRONTEND_PORT}",
+    "https://ws-server:6500",
+    "http://ws-server:6500",
+    "http://localhost:6500",
+    "https://localhost:6500",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -167,12 +171,20 @@ CORS_ALLOW_HEADERS = [
 CORS_ORIGIN_WHITELIST = [
     f'https://{DOMAIN_NAME}:{FRONTEND_PORT}', 
     "https://frontend:{FRONTEND_PORT}",
+    "https://ws-server:6500",
+    "http://ws-server:6500",
+    "http://localhost:6500",
+    "https://localhost:6500",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     f"https://{DOMAIN_NAME}:{BACKEND_PORT}",
     f"https://{DOMAIN_NAME}:{FRONTEND_PORT}",
     "https://frontend:${FRONTEND_PORT}",
+    "https://ws-server:6500",
+    "http://ws-server:6500",
+    "http://localhost:6500",
+    "https://localhost:6500",
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

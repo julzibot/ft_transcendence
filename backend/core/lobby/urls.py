@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import LobbyView,LobbyGameView, LobbyUpdateView
+from .views import LobbyView,  JoinLobbyView, LobbyDataView
 
 
 urlpatterns = [
   path('', LobbyView.as_view(), name='lobby'),
-  path('<int:lobby_id>/userId/<int:user_id>', LobbyUpdateView.as_view(), name='lobby-update')
+  path('join/', JoinLobbyView.as_view(), name='join-lobby'),
+	path('<str:linkToJoin>/', LobbyDataView.as_view(), name='lobby-data'),
 ]

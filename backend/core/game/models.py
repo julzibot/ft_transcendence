@@ -18,3 +18,7 @@ class GameMatch(models.Model):
   score1 = models.PositiveIntegerField(default=0)
   score2 = models.PositiveIntegerField(default=0)
   date = models.DateField(auto_now_add=True)
+
+  class Meta:
+    verbose_name = 'Game Match'
+    verbose_name_plural = 'Game Matches'

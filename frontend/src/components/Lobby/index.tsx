@@ -1,122 +1,94 @@
 import React, { useEffect, useState } from 'react'
-import "bootstrap/dist/css/bootstrap.min.css"
 import { Button, Modal } from 'react-bootstrap'
-import { GetLobbyData, AddLobbyData, HandlePutLobby } from '@/services/tournaments';
+import { AddLobbyData, GetLobbyData, joinLobby } from '@/services/onlineGames'
 import { useAuth } from '@/app/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import DOMPurify from 'dompurify';
-import { GameSettings } from '@/types/GameSettings';
-import { gameCustomSave } from '../game/Customization';
+import { Alphabet, PersonFillUp, TrophyFill, Activity, LightningFill, Toggle2Off, Toggle2On } from 'react-bootstrap-icons';
+import { CustomTooltip } from '../Utils/Tooltip';
+import "./styles.css";
+import { BACKEND_URL } from '@/config';
+import DifficultyLevel from '../Utils/DifficultyLevel';
 
-interface MatchParameters {
-	user: number,
-	points_to_win: number,
-	game_difficulty: number,
-	power_ups: boolean
+interface LobbyProps {
+	setToastShow: Function,
+	setErrorField: Function,
+	errorField: {
+		joinError: string,
+		nameMissing: string,
+		difficultyMissing: string,
+	},
 }
 
-interface GameSettingsProps {
-	setGameSettings: Function,
-	gameSettings: GameSettingsType
+interface User {
+	id: number,
+	username: string,
+	image: string,
 }
 
-export default function Lobby({ setGameSettings, gameSettings }: GameSettingsProps) {
+interface Lobby {
+	id: number,
+	name: string,
+	difficultyLevel: number,
+	lobbyWinner: User,
+	pointsPerGame: number,
+	power_ups: boolean,
+	player1: User,
+	player2: User,
+	isFull: boolean,
+	isStarted: boolean,
+	linkToJoin: string,
+	creator: User,
+}
+
+export default function Lobby({ setToastShow, setErrorField, errorField }: LobbyProps) {
 	const { session } = useAuth()
 	const router = useRouter()
-	const [lobbyData, setLobbyData] = useState([])
+
+	const [lobbyData, setLobbyData] = useState<Lobby[]>([])
 	const [modalShow, setModalShow] = useState(false);
-	const [errorfield, setErrorfield] = useState({
-		name: '',
-	})
-	const [errshow, setErrShow] = useState(false)
 	const [lobbyForm, setLobbyForm] = useState({
 		name: '',
-		numberOfPlayer: '2',
-		isActiveLobby: false,
+		pointsPerGame: 10,
+		difficultyLevel: "",
+		power_ups: false,
 	})
-	const handleShow = () => {
-		setLobbyForm({
-			name: '',
-			numberOfPlayer: '',
-			isActiveLobby: false,
-		})
-		setErrorfield(
-			{
-				name: '',
-			}
-		)
-		setModalShow(true)
+
+	const handleJoin = async (lobby: any, linkToJoin: string) => {
+		try {
+			await joinLobby(lobby.id, session?.user?.id)
+			router.push(`/game/online/lobby/${linkToJoin}`)
+		}
+		catch (error: any) {
+			setErrorField({ ...errorField, joinError: error.message })
+			setToastShow(true)
+		}
 	}
 
-	const handleFormData = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
-		setLobbyForm(
-			{
-				...lobbyForm,
-				[key]: (key === "isActiveLobby" || key === "power_ups") ? (e.target.checked) : (DOMPurify.sanitize(e.target.value))
-			}
-		)
-	}
 
-	const handleSubmitData = async () => {
-		let errors = {};
-
-		if (lobbyForm?.name === '') {
-			setErrorfield({name: 'Name field Required'})
-		}
-
-		if (Object.keys(errors).length > 0) {
-			// There are errors, set them and show error message
-			setErrorfield(errors);
-			setErrShow(true);
-		} else {
-			setErrShow(false);
-
-			const payload = {
-				"name": lobbyForm?.name,
-				"user_id": session?.user?.id
-			}
-			try {
-				const data = await AddLobbyData(payload);
-				setModalShow(false);
-				fetchLobbyData();
-				gameCustomSave('parameters/', JSON.stringify(gameSettings));
-
-				localStorage.setItem('gameSettings', JSON.stringify(gameSettings));
-				router.push(`/game/online/lobby/${data?.lobby?.linkToJoin}`);
-			} catch (error) {
-				console.error('Error:', error);
-				// Handle error from API call
-			}
-		}
-	};
-
-	const handlePutLobbyApi = async (element) => {
+	const handleSubmitData = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		// if (lobbyForm.difficultyLevel === 0) {
+		// 	setErrorField({ ...errorField, difficultyMissing: 'Select a difficulty' })
+		// 	return
+		// }
 		const payload = {
-			"lobby_id": element?.id.toString(),
-			"user_id": session?.user?.id.toString()
+			'name': lobbyForm.name,
+			'difficultyLevel': lobbyForm.difficultyLevel,
+			'pointsPerGame': lobbyForm.pointsPerGame,
+			'power_ups': lobbyForm.power_ups,
+			'player1': session?.user?.id
 		}
-		const response = await HandlePutLobby(payload)
-		if (response) {
-			fetchLobbyData()
-		}
-	}
-	const handleUser = async (item) => {
-		if ((item?.player1 && item?.player1 !== session?.user?.id) && item?.player2 === null) {
-			handlePutLobbyApi(item);
-			localStorage.setItem('gameSettings', JSON.stringify(gameSettings));
-
-			router.push(`/game/online/lobby/${item?.linkToJoin}?`)
-		} else {
-			alert('Waiting For Other Player to join')
-		}
+		const linkToJoin = await AddLobbyData(payload)
+		router.push(`/game/online/lobby/${linkToJoin}`)
 	}
 
 	const fetchLobbyData = async () => {
 		try {
-			const lobbydata = await GetLobbyData()
-			if (lobbydata) {
-				setLobbyData(lobbydata)
-			}
+			const lobbies = await GetLobbyData()
+			setLobbyData([...lobbies].sort((a, b) => {
+				return (a.isStarted === b.isStarted) ? 0 : ((a.isStarted ? 1 : -1))
+			}))
 		} catch (error) {
 			console.error('Error :', error)
 		}
@@ -126,31 +98,94 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 		fetchLobbyData()
 	}, [])
 
+
 	return (
-		<div className='d-flex justify-content-center'>
-			<div className='w-100 border rounded p-4' style={{ maxWidth: '800px' }}>
-				<div className='d-flex align-items-center justify-content-between border-bottom pb-3'>
-					<h3 className='mb-0 me-4'>Lobby</h3>
-					<Button className="btn btn-outline-light me-md-2" type='button' onClick={handleShow}>Create</Button>
+		<>
+			<div className='d-flex flex-row align-items-center justify-content-between p-4'>
+				<h3 className='mb-0 me-4'> Game Lobbies</h3>
+				<Button className="btn btn-outline-light" type='button' onClick={() => setModalShow(true)}>Create</Button>
+			</div>
+			<div className='d-flex flex-row align-items-center justify-content-evenly fw-bold border'>
+				<div className="border-end col d-flex justify-content-center align-items-center">
+					<CustomTooltip text="Tournament Name" position="top">
+						<Alphabet size={24} />
+					</CustomTooltip>
+				</div >
+				<div className="border-end col d-flex justify-content-center align-items-center" >
+					<CustomTooltip text="Created by" position="top">
+						<PersonFillUp size={15} />
+					</CustomTooltip>
 				</div>
-				<div className='w-100 pt-2' >
-					<div className='d-flex flex-column'>
-						{
-							lobbyData.length > 0 && lobbyData?.map((item: any, i: number) => {
-								return (
-									<h6 style={{ cursor: 'pointer', borderBottom: '1px solid #f0f0f0' }} className='d-flex align-items-center justify-content-between fw-medium py-2 w-auto text-primary' key={item.id}>
-										<span>{i + 1}. {item.name}</span>
-										{
-											item?.player1 && item?.player1 !== session?.user?.id && <button className='btn btn-warning' onClick={() => handleUser(item)}>Join</button>
-										}
-									</h6>
-								)
-							})
-						}
-					</div>
+				<div className="border-end col-1 d-flex justify-content-center align-items-center">
+					<CustomTooltip text="Points Per Game" position="top">
+						<TrophyFill size={15} />
+					</CustomTooltip>
+				</div>
+				<div className="border-end col-1 d-flex justify-content-center align-items-center">
+					<CustomTooltip text="Difficulty Level" position="top">
+						<Activity size={15} />
+					</CustomTooltip>
+				</div>
+				<div className="col-1 d-flex justify-content-center align-items-center">
+					<CustomTooltip text="Power Ups" position="top">
+						<LightningFill className="me-1" size={15} />
+					</CustomTooltip>
 				</div>
 			</div>
-
+			<div className="mt-2 border scrollbar overflow-y-auto" style={{ height: '520px' }}>
+				{
+					lobbyData && lobbyData.length === 0 && <h2 className="text-center mt-5 pt-5">No Games Available</h2>
+				}
+				{
+					lobbyData && lobbyData.map((lobby: Lobby, index: number) => {
+						return (
+							<div
+								key={index}
+								onClick={() => handleJoin(lobby, lobby.linkToJoin)}
+								className={`${lobby.isFull ? 'disabled' : ''} ${lobbyData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} lobby-entry d-flex flex-row align-items-center justify-content-evenly fw-bold fs-5`}
+							>
+								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">
+									{lobby.name}
+								</div>
+								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">
+									<div className="d-flex flex-row align-items-center">
+										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{lobby.creator.username}</span>
+										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '40px', height: '40px', overflow: 'hidden' }}>
+											<img
+												style={{
+													objectFit: 'cover',
+													width: '100%',
+													height: '100%',
+													position: 'absolute',
+													top: '50%',
+													left: '50%',
+													transform: 'translate(-50%, -50%)'
+												}}
+												fetchPriority="high"
+												alt="profile picture"
+												src={`${BACKEND_URL}${lobby.creator.image}`}
+											/>
+										</div>
+									</div>
+								</div>
+								<div className="border-end col-1 d-flex justify-content-center align-items-center">
+									<span className="fw-bold">{lobby.pointsPerGame}</span>
+								</div>
+								<div className="border-end col-1 d-flex justify-content-center align-items-center">
+									{DifficultyLevel(lobby.difficultyLevel)}
+								</div>
+								<div className="col-1 d-flex justify-content-center align-items-center">
+									<span>
+										{
+											lobby.power_ups ? (<Toggle2On size={20} color={'green'} />) : (<Toggle2Off size={20} color={'red'} />)
+										}
+									</span>
+								</div>
+							</div>
+						)
+					})
+				}
+			</div>
 
 			<Modal
 				show={modalShow}
@@ -161,24 +196,21 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 			>
 				<Modal.Header closeButton>
 					<Modal.Title id="contained-modal-title-vcenter">
-						Select Game Customizations
+						Select Game Settings
 					</Modal.Title>
 				</Modal.Header>
 				<Modal.Body>
-					<form>
-						<div className="mb-3">
-							<label className="form-label">Name</label>
-							<span className='text-danger'>*</span>
-							<input type="text" className="form-control" value={lobbyForm.name} onChange={(e) => handleFormData(e, 'name')} />
-							{errorfield && lobbyForm.name === '' ? <div className="form-text text-danger">{errorfield.name}</div> : null}
-						</div>
-						<div className="mb-3 align-items-center text-center">
-							<label className="form-label">Points Per Game
-								<span className='text-danger'>*</span>
+					<form autoComplete='off' onSubmit={handleSubmitData}>
+						<div className="form-floating mb-5">
+							<input required type="text" className="form-control form-control-sm" id="floatingName" placeholder="Lobby Name" value={lobbyForm.name} onChange={(e) => setLobbyForm({ ...lobbyForm, name: (DOMPurify.sanitize(e.target.value)) })} />
+							<label htmlFor="floatingName">Lobby Name
+								<span className="text-danger">*</span>
 							</label>
-							<div className='text-primary m-2 d-flex text-center align-items-center justify-content-center'>
-								{gameSettings.points_to_win}
-							</div>
+							<div className="text-danger">{errorField.nameMissing}</div>
+						</div>
+						<div className="text-center mb-3">
+							<label className="form-label" htmlFor="pointsRange">Points Per Game</label>
+							<p className="form-label text-primary">{lobbyForm.pointsPerGame}</p>
 							<input
 								type="range"
 								className="form-range"
@@ -186,52 +218,57 @@ export default function Lobby({ setGameSettings, gameSettings }: GameSettingsPro
 								max="21"
 								step="1"
 								id="pointsRange"
-								value={gameSettings.points_to_win}
-								onChange={(e) => setGameSettings({ ...gameSettings, points_to_win: parseInt(e.target.value) })}
+								value={lobbyForm.pointsPerGame}
+								onChange={(e) => setLobbyForm({ ...lobbyForm, pointsPerGame: parseInt(e.target.value) })}
 							/>
 						</div>
 						<div className="mb-3">
-							<label className="form-label">Difficulty Level*</label>
+							<label className="form-label">Difficulty Level
+								<Activity className="ms-2" size={15} />
+							</label>
 							<select
+								required
 								className="form-select"
 								aria-label="Game Difficulty"
-								value={gameSettings.game_difficulty}
+								id="difficultyLevel"
+								value={lobbyForm.difficultyLevel}
 								onChange={(e) =>
-									setGameSettings({ ...gameSettings, game_difficulty: parseInt(e.target.value) })
+									setLobbyForm({ ...lobbyForm, difficultyLevel: parseInt(e.target.value) })
 								}
 							>
-								<option value="">Select Game Difficulty</option>
+								<option value="" disabled>
+									Select Game Difficulty
+								</option>
 								<option value={1}>Granny</option>
 								<option value={2}>Boring</option>
 								<option value={3}>Still Slow</option>
 								<option value={4}>Kinda OK</option>
-								<option value={5}>Now We're Talking</option>
+								<option value={5}>Now We are Talking</option>
 								<option value={6}>Madman</option>
 								<option value={7}>Legend</option>
 							</select>
+							<label className="text-danger form-label" htmlFor="difficultyLevel">{errorField.difficultyMissing}</label>
 						</div>
-						<div className='d-flex items-center flex-wrap'>
-							<div className="mb-3 form-check form-switch">
-								<input
-									className="form-check-input"
-									type="checkbox"
-									role="switch"
-									id="flexSwitchCheckChecked"
-									checked={gameSettings.power_ups}
-									onChange={() =>
-										setGameSettings({ ...gameSettings, power_ups: !gameSettings.power_ups })
-									}
-								/>
-								<label className="form-check-label">Power ups</label>
-							</div>
+						<div className="mb-4 form-check form-switch">
+							<input
+								className="form-check-input"
+								type="checkbox"
+								role="switch"
+								id="flexSwitchCheckChecked"
+								checked={lobbyForm.power_ups}
+								onChange={(e) => setLobbyForm({ ...lobbyForm, power_ups: e.target.checked })}
+							/>
+							<label className="form-check-label">Power ups
+								<LightningFill className="ms-1" size={15} />
+							</label>
+						</div>
+						<div className="d-flex justify-content-end">
+							<Button variant="secondary" onClick={() => setModalShow(false)}>Close</Button>
+							<Button variant="primary" type="submit">Enter</Button>
 						</div>
 					</form>
 				</Modal.Body>
-				<Modal.Footer>
-					<Button variant="secondary" onClick={() => setModalShow(false)}>Close</Button>
-					<Button variant="primary" onClick={handleSubmitData}>Add</Button>
-				</Modal.Footer>
 			</Modal>
-		</div>
+		</>
 	)
 }
