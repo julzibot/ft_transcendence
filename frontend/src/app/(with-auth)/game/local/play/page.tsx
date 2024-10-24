@@ -124,18 +124,18 @@ export default function Play() {
 	}
 
 	return (
-		<>	
-			{ isClient && typeof window !== 'undefined' && (
-			<ThreeScene
-				gameInfos={gameInfos}
-				gameSettings={finalSettings}
-				room_id={-1}
-				user_id={session?.user?.id}
-				isHost={true}
-				gamemode={gameMode}
-				handleGameEnded={handleGameEnded}
-			/> )}
-			{gameEnded && <EndGameCard />}
+		<>
+			{isClient && typeof window !== 'undefined' && (
+				<ThreeScene
+					gameInfos={gameInfos}
+					gameSettings={finalSettings}
+					room_id={-1}
+					user_id={session?.user?.id}
+					isHost={true}
+					gamemode={gameMode}
+					handleGameEnded={handleGameEnded}
+				/>)}
+			{gameEnded && <EndGameCard callbackUrl={'/game/local'} />}
 		</>
 	);
 }

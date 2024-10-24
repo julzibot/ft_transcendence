@@ -18,6 +18,7 @@ export interface GameInfos {
 	p2Name: string;
 	p1p: string | undefined;
 	p2p: string;
+	game_mode: number
 }
 
 export interface FinalSettings {

@@ -7,6 +7,9 @@ from users.models import UserAccount
 from .models import GameMatch
 from .serializers import GameMatchSerializer
 from dashboard.models import DashboardData
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework.permissions import AllowAny
 
 class GameHistory(APIView):
 	def get(self, request, id=None):
@@ -38,7 +41,9 @@ class UserGameHistory(APIView):
 		serializer = GameMatchSerializer(history, many=True)
 		return Response({'data': serializer.data}, status=status.HTTP_200_OK)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class	GameDataView(APIView):
+	permission_classes = [AllowAny]
 	def post(self, request):
 		data = request.data
 		user1_id = data.get('player1')
@@ -49,16 +54,30 @@ class	GameDataView(APIView):
 			try:
 				user1 = UserAccount.objects.get(id=user1_id)
 			except UserAccount.DoesNotExist:
-				return Response({'message': f'[{user1_id}] Player 1: Unknown User'}, status=status.HTTP_404_NOT_FOUND)
+				return Response({'message': 'Player 1: Unknown User'}, status=status.HTTP_404_NOT_FOUND)
 			if game_mode >= 2:
 				try:
 					user2 = UserAccount.objects.get(id=user2_id)
 				except UserAccount.DoesNotExist:
-					return Response({'message': f'[{user2_id}] Player 2: Unknown User'}, status=status.HTTP_404_NOT_FOUND)
+					return Response({'message': 'Player 2: Unknown User'}, status=status.HTTP_404_NOT_FOUND)
 				new_game = GameMatch.objects.create(player1=user1, player2=user2, game_mode=game_mode)
+				game_data = {
+				'game_id': new_game.id,
+				'p1Name': new_game.player1.username,
+				'p2Name': new_game.player2.username,
+				'p1p': new_game.player1.image.url,
+				'p2p': new_game.player2.image.url,
+				'game_mode': new_game.game_mode
+			}
 			else:
 				new_game = GameMatch.objects.create(player1=user1, player2=None, game_mode=game_mode)
-			return Response({'id': new_game.id}, status=status.HTTP_201_CREATED)
+				game_data = {
+				'game_id': new_game.id,
+				'p1Name': new_game.player1.username,
+				'p1p': new_game.player1.image.url,
+				'game_mode': new_game.game_mode
+			}
+			return Response(game_data, status=status.HTTP_201_CREATED)
 		return Response({'message': '[POST] Invalid Game Match Creation Request'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdateLocalGame(APIView):
