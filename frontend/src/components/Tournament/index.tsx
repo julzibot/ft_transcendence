@@ -55,7 +55,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		maxPlayerNumber: 4,
 		timer: 15,
 		pointsPerGame: 10,
-		difficultyLevel: 0,
+		difficultyLevel: "",
 		power_ups: true,
 		isStarted: false,
 		numberOfPlayers: 0,
@@ -238,7 +238,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 						</Modal.Title>
 					</Modal.Header>
 					<Modal.Body>
-						<form autoComplete='off'>
+						<form autoComplete='off' onSubmit={submitTournament}>
 							<div className="form-floating mb-5">
 								<input required type="text" className="form-control form-control-sm" id="floatingName" placeholder="Tournament Name" value={tournamentForm.name} onChange={(e) => setTournamentForm({ ...tournamentForm, name: (DOMPurify.sanitize(e.target.value)) })} />
 								<label htmlFor="floatingName">Tournament Name
@@ -296,6 +296,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 								</label>
 								<select
 									className="form-select"
+									required
 									aria-label="Game Difficulty"
 									id="difficultyLevel"
 									value={tournamentForm.difficultyLevel}
@@ -303,7 +304,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 										setTournamentForm({ ...tournamentForm, difficultyLevel: parseInt(e.target.value) })
 									}
 								>
-									<option value={0}>Select Game Difficulty</option>
+									<option disabled value={""}>Select Game Difficulty</option>
 									<option value={1}>Granny</option>
 									<option value={2}>Boring</option>
 									<option value={3}>Still Slow</option>
@@ -327,12 +328,12 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 									<LightningFill className="ms-1" size={15} />
 								</label>
 							</div>
+							<div className="d-flex justify-content-end">
+								<Button variant="secondary" onClick={() => setModalShow(false)}>Close</Button>
+								<Button variant="primary" type="submit">Enter</Button>
+							</div>
 						</form>
 					</Modal.Body>
-					<Modal.Footer>
-						<Button variant="secondary" onClick={() => setModalShow(false)}>Close</Button>
-						<Button variant="primary" onClick={submitTournament}>Add</Button>
-					</Modal.Footer>
 				</Modal>
 
 			</div >
