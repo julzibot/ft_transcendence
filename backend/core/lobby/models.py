@@ -12,6 +12,7 @@ class LobbyData(models.Model):
     pointsPerGame = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(21)], default=10)
     power_ups = models.BooleanField(default=False)
     linkToJoin = models.UUIDField(default=uuid4, editable=False)
+    creator = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, related_name='lobby_creator')
     player1 = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, related_name='lobby_player1')
     player2 = models.ForeignKey(UserAccount, on_delete=models.CASCADE, null=True, related_name='lobby_player2')
 

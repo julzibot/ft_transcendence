@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { BACKEND_URL } from "@/config";
-import { get } from "http";
 
 export default function CSRFToken() {
   const [csrftoken, setcsrftoken] = useState<string>('');
@@ -8,11 +7,11 @@ export default function CSRFToken() {
   const getCookie = (name: string) => {
     let cookieValue = '';
 
-    if(document.cookie && document.cookie !== '') {
+    if (document.cookie && document.cookie !== '') {
       let cookies = document.cookie.split(';');
-      for(let i = 0; i < cookies.length; i++) {
+      for (let i = 0; i < cookies.length; i++) {
         let cookie = cookies[i].trim();
-        if(cookie.substring(0, name.length + 1) === (name + '=')) {
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
           cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
           break;
         }
@@ -23,15 +22,15 @@ export default function CSRFToken() {
 
   useEffect(() => {
     const fetchCSRFToken = async () => {
-        await fetch(`${BACKEND_URL}/api/csrf-cookie/`,{
-          method: 'GET',
-          credentials: 'include',
-        });
+      await fetch(`${BACKEND_URL}/api/csrf-cookie/`, {
+        method: 'GET',
+        credentials: 'include',
+      });
     }
     fetchCSRFToken()
     setcsrftoken(getCookie('csrftoken'));
   }, []);
-  return(
+  return (
     <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
   )
 }
