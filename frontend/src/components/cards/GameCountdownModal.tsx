@@ -3,7 +3,7 @@ import { User } from '@/types/Auth';
 import { useState, useEffect } from 'react'
 import { BACKEND_URL } from '@/config';
 
-export default function GameCountdownModal({ show, players }: { show: boolean, players: {} }) {
+export default function GameCountdownModal({ players }) {
 
 	const [countdown, setCountdown] = useState<number>(3)
 
@@ -24,7 +24,7 @@ export default function GameCountdownModal({ show, players }: { show: boolean, p
 
 	return (
 		<>
-			<div className={`modal fade ${show ? 'show' : ''} d-block`} id="staticBackDrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1}>
+			<div className={`modal fade show d-block`} id="staticBackDrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1}>
 				<div className={`modal-dialog modal-lg modal-dialog-centered`}>
 					<div className={`modal-content`}>
 						<div className="modal-body">
