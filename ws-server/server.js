@@ -164,7 +164,8 @@ io.on("connection", async (socket) => {
 		p = tournament.participants.find(participant => participant.user.id === userId);
 		p.return_time = performance.now();
 		tournament.inLobby.push(p);
-		if ((p.return_time - tournament.startTime) / 1000 < tournament.duration)
+		const tournament_elapsed = (p.return_time - tournament.startTime) / 1000;
+		if (tournament_elapsed < tournament.duration)
 		{
 			const pairs = computeMatches(tournament);
 			if (pairs.length > 0)
@@ -175,6 +176,8 @@ io.on("connection", async (socket) => {
 				})
 			}
 		}
+		else if (tournament.inLobby.length === tournament.participants.length)
+			io.in(data.tournamentId).emit('annouceTournamentEnd');
 	})
 
 	socket.on('TournamentGameEntered', (data) => {
