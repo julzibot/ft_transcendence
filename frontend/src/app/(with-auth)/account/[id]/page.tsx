@@ -17,17 +17,18 @@ interface User {
 }
 
 export default function ProfilePage() {
-	const [isEditing, setIsEditing] = useState(false)
+	const [isEditing, setIsEditing] = useState<boolean>(false)
 	const { session, update } = useAuth();
 	const { id } = useParams()
 	const router = useRouter()
-	const [user, setUser] = useState<any>({
+	const [user, setUser] = useState<User>({
 		id: 0,
 		username: '',
 		image: '',
 	})
 	const [showModal, setShowModal] = useState<boolean>(false)
-	const [isEditPw, setIsEditPw] = useState(false)
+	const [loading, setLoading] = useState<boolean>(false)
+	const [isEditPw, setIsEditPw] = useState<boolean>(false)
 	const initialState = {
 		username: '',
 		oldPassword: '',
@@ -46,6 +47,7 @@ export default function ProfilePage() {
 	})
 
 	const [gameSettings, setGameSettings] = useState({
+		user: session?.user?.id || 0,
 		background: 0, // 0 - 3 animated, 4 - 5 static
 		palette: 0, // palette: 4 choices
 		bgColor: '#ff0000',
@@ -66,13 +68,13 @@ export default function ProfilePage() {
 	};
 
 	async function getUserInfo() {
-		if (!id || !/^\d+$/.test(id)) {
+		if (!id || !/^\d+$/.test(id as string)) {
 			router.push(`/error?code=400`)
 			return
 		}
 		const response = await fetch(`${BACKEND_URL}/api/user/get-user-info/?id=${id}`, {
 			method: 'GET',
-      credentials: 'include',
+			credentials: 'include',
 			headers: { 'Content-Type': 'application/json' }
 		})
 		if (!response.ok) {
@@ -88,15 +90,16 @@ export default function ProfilePage() {
 	}
 
 	async function changePassword(event: FormEvent<HTMLFormElement>) {
+		setLoading(true)
 		event.preventDefault()
 
 		const response = await fetch(`${BACKEND_URL}/api/update/password/`, {
 			method: 'PUT',
-      credentials : 'include',
-			headers: { 
-        'Content-type': 'application/json',
-        'X-CSRFToken': Cookies.get('csrftoken') as string
-      },
+			credentials: 'include',
+			headers: {
+				'Content-type': 'application/json',
+				'X-CSRFToken': Cookies.get('csrftoken') as string
+			},
 			body: JSON.stringify({
 				'user_id': session?.user?.id,
 				'old_password': data.oldPassword,
@@ -112,6 +115,7 @@ export default function ProfilePage() {
 			handleShow()
 			setData(initialState)
 		}
+		setLoading(false)
 	}
 
 	async function updateUsername(event: FormEvent<HTMLFormElement>) {
@@ -123,11 +127,11 @@ export default function ProfilePage() {
 
 		const response = await fetch(`${BACKEND_URL}/api/update/name/`, {
 			method: 'PUT',
-      credentials: 'include',
-			headers: { 
-        'X-CSRFToken': Cookies.get('csrftoken') as string,
-        'Content-type': 'application/json' 
-      },
+			credentials: 'include',
+			headers: {
+				'X-CSRFToken': Cookies.get('csrftoken') as string,
+				'Content-type': 'application/json'
+			},
 			body: JSON.stringify({
 				'username': session?.user?.username,
 				'name': data.username
@@ -135,7 +139,7 @@ export default function ProfilePage() {
 		})
 		if (response.ok) {
 			setIsEditing(false);
-      update()
+			update()
 		}
 		else {
 			const res = await response.json()
@@ -148,17 +152,17 @@ export default function ProfilePage() {
 	async function deleteAccount() {
 		const response = await fetch(`${BACKEND_URL}/api/auth/user/delete/`, {
 			method: 'DELETE',
-      credentials: 'include',
-			headers: { 
-        'Content-Type': 'application/json', 
-        'X-CSRFToken': Cookies.get('csrftoken') as string
-      },
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': Cookies.get('csrftoken') as string
+			},
 			body: JSON.stringify({
 				'user_id': session?.user?.id,
 			})
 		})
 		if (response.status === 204) {
-      router.push('/auth/signin')
+			router.push('/auth/signin')
 		}
 		else {
 			const res = await response.json()
@@ -180,19 +184,19 @@ export default function ProfilePage() {
 							{
 								user.image ? (
 									<img
-                    style={{
-                      objectFit: 'cover',
-                      width: '100%',
-                      height: '100%',
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)'
-                    }}
-                    fetchPriority="high"
-                    alt="profile picture"
-                    src={`${BACKEND_URL}${user.image}`}
-                  />
+										style={{
+											objectFit: 'cover',
+											width: '100%',
+											height: '100%',
+											position: 'absolute',
+											top: '50%',
+											left: '50%',
+											transform: 'translate(-50%, -50%)'
+										}}
+										fetchPriority="high"
+										alt="profile picture"
+										src={`${BACKEND_URL}${user.image}`}
+									/>
 								) : (
 									<div className="placeholder-glow w-100 h-100">
 										<div className="placeholder bg-secondary w-100 h-100"></div>
@@ -258,11 +262,7 @@ export default function ProfilePage() {
 						{
 							session?.user?.id == Number(id) ? (
 								<>
-									{
-										session?.user.id ? <Customization updateSettings={setGameSettings} gameSettings={gameSettings} userId={session.user.id} /> : (
-											<a className="btn btn-primary rounded-pill disabled placeholder" aria-disabled="true">Game Customization</a>
-										)
-									}
+									<Customization />
 									{
 										session?.provider !== '42-school' && (
 											<>
@@ -275,8 +275,8 @@ export default function ProfilePage() {
 																	<input placeholder="Current Password" className="form-control form-control-sm" type="password" value={data.oldPassword} onChange={(e) => setData({ ...data, oldPassword: DOMPurify.sanitize(e.target.value) })} />
 																	<input placeholder="New Password" className="form-control form-control-sm" type="password" value={data.newPassword} onChange={(e) => setData({ ...data, newPassword: DOMPurify.sanitize(e.target.value) })} />
 																	<input placeholder="Confirm Password" className="form-control form-control-sm" type="password" value={data.rePassword} onChange={(e) => setData({ ...data, rePassword: DOMPurify.sanitize(e.target.value) })} />
-																	<button type="submit" className="btn btn-primary btn-sm rounded-pill">Submit</button>
-																	<button type="button" onClick={() => setIsEditPw(false)} className="btn btn-secondary rounded-pill btn-sm">Cancel</button>
+																	<button type="submit" disabled={loading} className="btn btn-primary btn-sm rounded-pill">Submit</button>
+																	<button type="button" disabled={loading} onClick={() => setIsEditPw(false)} className="btn btn-secondary rounded-pill btn-sm">Cancel</button>
 																	<div className="form-text text-danger">{data.error}</div>
 																</form>
 															</>

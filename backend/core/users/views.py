@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import update_session_auth_hash
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import HttpResponse
@@ -66,13 +67,15 @@ class SigninView(APIView):
       user = {
           'id': user.id,
           'username': user.username,
-          'image': user.image.url if user.image else None
+          'image': user.image.url if user.image else None,
+          'provider': user.provider,
       }
       return Response({'user': user}, status=status.HTTP_200_OK)
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class OauthView(APIView):
   permission_classes = [AllowAny]
+
   def post(self, request):
     access_token = request.data.get('access_token')
     if access_token is None:
@@ -80,6 +83,8 @@ class OauthView(APIView):
 
     user = auth.authenticate(request, access_token=access_token)
     if user is not None:
+      user.is_online = True
+      user.save()
       request.session.save()
       auth.login(request, user)
       return Response({
@@ -153,10 +158,13 @@ class UpdatePasswordView(APIView):
       return Response({'message': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
     if data['new_password'] != data['rePass']:
       return Response({'message': 'Passwords does not match'}, status=status.HTTP_400_BAD_REQUEST)
+    if data['new_password'] == data['old_password']:
+      return Response({'message': 'Password must be different than previous'}, status=status.HTTP_400_BAD_REQUEST)
     if not check_password(data['old_password'], user.password):
-      return Response({'message': 'Password does not match are records, try again'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'message': 'Password does not match are records, try again'}, status=status.HTTP_403_FORBIDDEN)
     user.password = make_password(data['new_password'])
     user.save()
+    update_session_auth_hash(request, user)
     return Response({'message:' 'Password updated successfully'}, status=status.HTTP_200_OK)
 
 
@@ -172,18 +180,13 @@ class DeleteAccountView(APIView):
     user.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
-    
-class SignOutView(APIView):
-  def put(self, request):
-    data = request.data['id']
-    user = UserAccount.objects.get(id=data)
-    user.is_online = False
-    user.save()
-    return Response(status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
   def post(self, request, format=None):
     try:
+      user = request.user
+      user.is_online = False
+      user.save()
       auth.logout(request)
       return Response({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
     except:

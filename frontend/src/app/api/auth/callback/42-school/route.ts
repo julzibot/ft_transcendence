@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const state = searchParams.get('state')
 
-  console.log('here', DOMAIN_NAME, FRONTEND_PORT)
   if (!code || !state) {
     return NextResponse.json({ error: 'Missing code or state' }, { status: 400 });
   }
@@ -55,7 +54,7 @@ export async function GET(request: NextRequest) {
     if (backendResponse.ok) {
       const data = await backendResponse.json();
       cookies().set('sessionid', data.session_id);
-      return NextResponse.redirect(new URL('/', request.url))
+      return NextResponse.redirect(new URL('/', `https://${DOMAIN_NAME}:${FRONTEND_PORT}/api/auth/callback/42-school`))
     }
     else {
       console.error('Error signing in with 42:', backendResponse);

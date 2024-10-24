@@ -5,7 +5,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import * as CONST from '../../utils/constants';
 import { initVars } from '../../utils/init';
-import { useSocketContext } from '../../context/socket';
+import useSocketContext from '../../context/socket';
+import useSocketContext from '../../context/socket';
 import { BACKEND_URL } from '@/config';
 import Cookies from 'js-cookie';
 
@@ -40,7 +41,6 @@ const sparkFs = `
 `;
 
 function printGameInfo(textMesh, string, mode, id, fontsize, p) {
-	console.log("TESTING " + p.csts.loader);
 	p.csts.loader.load(CONST.FONTPATH + CONST.FONTNAME, function (font) {
 		let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, depth: 0.5 });
 		if (mode === 0 && ((p.vars.scorePlaceAdjust[id] === 0 && parseInt(string, 10) > 9) || (id === 0 && p.vars.scorePlaceAdjust[id] === 1 && parseInt(string, 10) > 19))) {
@@ -334,7 +334,7 @@ const collisionLogic = (room_id, socket, gamemode, p, arr) => {
 		if (gamemode === 2)
 			socket.emit('sendWallCollision', { room_id: room_id });
 		if (p.custom.sparks === true && arr.particleEffects.length < 4)
-			createSparks();
+			createSparks(p, arr);
 	}
 
 	if (p.custom.power_ups === true) {
@@ -528,14 +528,14 @@ let remoteKeyPressHandle = (keyUp, keyDown, player_id, player_y, invert_controls
 	return player_y;
 }
 
-const remote_update = (socket, room_id, isHost, p, arr) => {
+const remote_update = (socket, room_id, isHost, p, arr, g) => {
 	let invert_controls = [1, 1];
 	invert_controls[0] = arr.activated_powers[1][3] === 2 ? -1 : 1;
 	invert_controls[1] = arr.activated_powers[0][3] === 2 ? -1 : 1;
 
 	if (isHost) {
 		p.objs.player1.position.y = remoteKeyPressHandle('KeyW', 'KeyS', 0, p.objs.player1.position.y, invert_controls[0], socket, room_id, p);
-		p.objs.player2.position.y = opponentPos;
+		p.objs.player2.position.y = g.opponentPos;
 
 		if (p.keys['Space'] && p.custom.power_ups === true && arr.player_power_ups[0] > -1) {
 			socket.emit('sendActivatePU1', { room_id: room_id, powerType: arr.player_power_ups[0] });
@@ -544,7 +544,7 @@ const remote_update = (socket, room_id, isHost, p, arr) => {
 	}
 	else {
 		p.objs.player2.position.y = remoteKeyPressHandle('ArrowUp', 'ArrowDown', 1, p.objs.player2.position.y, invert_controls[1], socket, room_id, p);
-		p.objs.player1.position.y = opponentPos;
+		p.objs.player1.position.y = g.opponentPos;
 
 		if (p.keys['ArrowRight'] && p.custom.power_ups === true && arr.player_power_ups[1] > -1) {
 			socket.emit('sendActivatePU2', { room_id: room_id, powerType: arr.player_power_ups[1] });
@@ -571,7 +571,7 @@ let display_img = (image, mode, p) => {
 	const imgGeo = new THREE.CircleGeometry(1.7, 30);
 	let path = image;
 	if (mode >= 2)
-		path = `${BACKEND_URL} + ${image}`;
+		path = `${BACKEND_URL}${image}`;
 	const pp = new THREE.TextureLoader().load(path);
 	let op = 0.8;
 	if (mode > 1) {
@@ -843,9 +843,7 @@ const create_delete_pu = (isHost, gamemode, socket, room_id, p, arr, g) => {
 
 // CUT
 const animate = (socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool) => {
-	if (stopAnim.current === true)
-	{
-		console.log("IT'S OVER");
+	if (stopAnim.current === true) {
 		return;
 	}
 	if (isHost)
@@ -892,7 +890,7 @@ const animate = (socket, room_id, isHost, gamemode, handleGameEnded, animationFr
 		create_delete_pu(isHost, gamemode, socket, room_id, p, arr, g);
 
 	if (gamemode === 2)
-		remote_update(socket, room_id, isHost, p, arr);
+		remote_update(socket, room_id, isHost, p, arr, g);
 	else
 		local_update(gamemode, p, arr);
 	// p.tools.controls.update();
@@ -909,7 +907,7 @@ const animate = (socket, room_id, isHost, gamemode, handleGameEnded, animationFr
 const init_socket = (socket, isHost, p, arr, g) => {
 	if (isHost) {
 		socket.on('updatePlayer2Pos', position => {
-			opponentPos = position.player2pos;
+			g.opponentPos = position.player2pos;
 		})
 		socket.on('updateActivatePU2', data => {
 			if (data.powerType === arr.player_power_ups[1])
@@ -925,7 +923,7 @@ const init_socket = (socket, isHost, p, arr, g) => {
 			game_id = data.game_id;
 		})
 		socket.on('updatePlayer1Pos', position => {
-			opponentPos = position.player1pos;
+			g.opponentPos = position.player1pos;
 		});
 		socket.on('updateBallPos', data => {
 			p.objs.ball.position.x = data.x;
@@ -1059,10 +1057,9 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	};
 
 	let socket = -1;
-	if (gamemode === 2)
-		socket = useSocketContext();
+	// if (gamemode === 2)
+	socket = useSocketContext();
 	initVars(p.objs, p.csts, p.vars, p.custom);
-	console.log("PARAMETERS: " + p);
 
 
 	useEffect(() => {
@@ -1074,7 +1071,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		p.tools.controls = new OrbitControls(p.tools.camera, p.tools.renderer.domElement);
 		p.tools.stats = Stats()
 		// document.body.appendChild(p.tools.renderer.domElement);
-		document.body.appendChild(p.tools.stats.dom);
+		document?.body.appendChild(p.tools.stats.dom);
 
 		p.tools.scene.add(p.objs.ball);
 		p.tools.scene.add(p.objs.ballWrap);
@@ -1177,11 +1174,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		// document.addEventListener('keydown', handleKeyDown);
 		// document.addEventListener('keyup', handleKeyUp);
 
-		if (gamemode === 2)
-			init_socket(socket, isHost, p, arr, g);
-		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
-			animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool);
-
 		const handleKeyDown = (event) => {
 			p.keys[event.code] = true;
 		}
@@ -1189,21 +1181,24 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		const handleKeyUp = (event) => {
 			p.keys[event.code] = false;
 		}
-		document.addEventListener('keydown', handleKeyDown);
-		document.addEventListener('keyup', handleKeyUp);
 
+		if (gamemode === 2)
+			init_socket(socket, isHost, p, arr, g);
+		if (gamemode < 2 || (gamemode === 2 && socket && user_id))
+			animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool);
+
+		document?.addEventListener('keydown', handleKeyDown);
+		document?.addEventListener('keyup', handleKeyUp);
 		// console.log('Renderer DOM Element:', p.tools.renderer.domElement);
 		// console.log('ContainerRef Current:', containerRef.current);
 		// console.log('Elements are equal:', p.tools.renderer.domElement === containerRef.current);
 
-		console.log(testbool + "     OUTSIDE THE RETURN")
 		return (() => {
-			console.log("INSIDE THE RETURN")
 			// notanimating = true
 
 			cancelAnimationFrame(animationFrameIdRef.current);
-			document.removeEventListener('keydown', handleKeyDown);
-			document.removeEventListener('keyup', handleKeyUp);
+			document?.removeEventListener('keydown', handleKeyDown);
+			document?.removeEventListener('keyup', handleKeyUp);
 			p.tools.renderer.dispose();
 			// p.tools.camera.dispose();
 			// p.tools.scene.dispose();
@@ -1211,8 +1206,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			const objectsToRemove = [];
 			p.tools.scene.traverse((object) => {
 				// console.log(object);
-				if (object.isMesh)
-				{
+				if (object.isMesh) {
 					if (object.geometry) {
 						object.geometry.dispose();
 					}
@@ -1223,7 +1217,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				objectsToRemove.push(object);
 			});
 
-			objectsToRemove.forEach((object) => { p.tools.scene.remove(object);})
+			objectsToRemove.forEach((object) => { p.tools.scene.remove(object); })
 			if (p.tools.stats && p.tools.stats.dom && p.tools.stats.dom.parentNode) {
 				p.tools.stats.dom.parentNode.removeChild(p.tools.stats.dom);
 			}

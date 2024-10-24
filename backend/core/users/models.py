@@ -43,10 +43,16 @@ def upload_image_to(instance, filename):
     return os.path.join('images/', new_filename)
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
+    PROVIDER_CHOICES = [
+        ('credentials', 'credentials'),
+        ('42-school', '42-school'),
+    ]
+
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=20, unique=True)
     image = models.ImageField(upload_to=upload_image_to, blank=True, null=True)
     image_url = models.URLField(max_length=512, default="https://t4.ftcdn.net/jpg/02/15/84/43/240_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg")
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='credentials')
 
     password = models.CharField(max_length=255)
 
@@ -62,6 +68,9 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []
+    class Meta:
+     verbose_name = 'User Account'
+     verbose_name_plural = 'User Accounts'
 
     def __str__(self):
         return self.username
@@ -88,6 +97,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
                 return True
         else:
             return False
+        
 
 @receiver(post_delete, sender=UserAccount)
 def delete_image_on_model_delete(sender, instance, **kwargs):

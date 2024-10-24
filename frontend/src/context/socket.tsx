@@ -1,24 +1,30 @@
-'use client';
+'use client'
 
-import io from "socket.io-client"
-import { createContext, useContext, useEffect, React } from "react"
+import io, { Socket } from "socket.io-client"
+import { createContext, useContext, useEffect, useState } from "react";
 import { DOMAIN_NAME, SOCKET_PORT } from "@/config";
 
-const socket = io(`http://${DOMAIN_NAME}:${SOCKET_PORT}`);
-const SocketContext = createContext(socket);
+const SocketContext = createContext<Socket | null>(null);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-
+	const [socket, setSocket] = useState<Socket | null>(null);
 
 	useEffect(() => {
+		const newSocket = io(`https://${DOMAIN_NAME}:${SOCKET_PORT}`, {
+			transports: ['websocket'],
+			secure: true
+		});
 
-		socket.on('connect', () => { });
+		setSocket(newSocket)
+		newSocket.on('connect', () => { });
 
-		// return (() => {
-		// 	socket.disconnect()
-		// })
+		return (() => {
 
-	}, [socket]);
+			console.log(`[SocketProvider] disconnect()`);
+			newSocket.disconnect();
+		})
+
+	}, []);
 
 	return (
 		<SocketContext.Provider value={socket}>
@@ -27,6 +33,4 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 	)
 }
 
-export function useSocketContext() {
-	return useContext(SocketContext);
-}
+export default function useSocketContext() { return useContext(SocketContext) };
