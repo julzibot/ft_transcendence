@@ -25,6 +25,10 @@ export default function Play() {
 		power_ups: false
 	});
 	const [loading, setLoading] = useState<boolean>(true);
+	const [isClient, setIsClient] = useState<boolean>(false);
+	useEffect(() => {
+		setIsClient(true);
+	}, []);
 
 	async function fetchGameCustoms(id: number | undefined) {
 		const response = await fetch(`${BACKEND_URL}/api/gameCustomization/${id}`, {
@@ -120,7 +124,8 @@ export default function Play() {
 	}
 
 	return (
-		<>
+		<>	
+			{ isClient && typeof window !== 'undefined' && (
 			<ThreeScene
 				gameInfos={gameInfos}
 				gameSettings={finalSettings}
@@ -129,7 +134,7 @@ export default function Play() {
 				isHost={true}
 				gamemode={gameMode}
 				handleGameEnded={handleGameEnded}
-			/>
+			/> )}
 			{gameEnded && <EndGameCard />}
 		</>
 	);
