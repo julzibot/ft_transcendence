@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react'
 export default function EndGameCard() {
     const router = useRouter()
     const [show, setShow] = useState<Boolean>(false)
-    const [isMounted, setIsMounted] = useState<Boolean>(false)
+    // const [isMounted, setIsMounted] = useState<Boolean>(false)
 
     useEffect(() => {
         setTimeout(() => {
