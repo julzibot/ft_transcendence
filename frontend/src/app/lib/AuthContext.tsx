@@ -68,7 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		if (!response.ok)
 			return ('Invalid Username or Password');
 		setLoading(false);
-		window.location.reload();
+		if(typeof window !== 'undefined')
+			window.location.reload();
 	}
 
 	async function logout() {
