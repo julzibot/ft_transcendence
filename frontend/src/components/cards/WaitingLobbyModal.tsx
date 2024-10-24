@@ -69,11 +69,13 @@ export default function WaitingLobbyModal({ players }) {
 									</div>
 								) : (
 									<>
-										<div className="justify-content-center border col d-flex align-items-center">
+										<div className="justify-content-center border col-6 d-flex align-items-center" style={{
+											height: '100px'
+										}}>
 											<div className="d-flex flex-row align-items-center">
 												<span className="ms-2 text-truncate fs-2" style={{ maxWidth: 'calc(80%)' }}>[player]</span>
 												<div className="ms-5 ps-5">
-													<Spinner className="mb-1" animation="border border-dark-subtle" style={{ width: '100px', height: '100px', borderWidth: "4px", borderRight: "none", borderLeft: "none", borderTopColor: 'white', borderBottom: "none", animationDuration: "0.8s" }} />
+													<Spinner animation="border border-dark-subtle" style={{ width: '100px', height: '100px', borderWidth: "4px", borderRight: "none", borderLeft: "none", borderTopColor: 'white', borderBottom: "none", animationDuration: "0.8s" }} />
 												</div>
 											</div>
 										</div>
