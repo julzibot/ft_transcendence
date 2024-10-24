@@ -469,9 +469,9 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 							p.vars.ai_offset = THREE.MathUtils.randFloatSpread(randFactor);
 						}
 						else if (p.custom.difficulty === 1.3)
-							p.vars.ai_offset = THREE.MathUtils.randFloatSpread(5);
+							p.vars.ai_offset = THREE.MathUtils.randFloatSpread(4);
 						else if (p.custom.difficulty > 1.3)
-							p.vars.ai_offset = THREE.MathUtils.randFloatSpread(3);
+							p.vars.ai_offset = THREE.MathUtils.randFloatSpread(1);
 						if (arr.activated_powers[0][4] === 2)
 							p.vars.ai_offset *= 2;
 					}
@@ -719,7 +719,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				const speedFactor = (p.vars.adjustedBallSpeed - CONST.BASE_BALLSPEED) / (CONST.BALLSPEED_MAX - CONST.BASE_BALLSPEED) / 2.5;
 		
 				if (ballFloor != p.vars.ballFloorPos) {
-					// let segment = trail.ballTrail.clone();
 					let segment = new THREE.Mesh(trail.trailGeo.clone(), trail.trailMaterial.clone());
 					let direction = 1;
 					if (p.vars.ballVect.x > 0) direction = -1;
@@ -727,7 +726,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 					segment.position.y = p.objs.ball.position.y - p.vars.ballVect.y * (1. + segment.geometry.parameters.height / 2.);
 					segment.rotation.set(0, 0, Math.atan(p.vars.ballVect.y / p.vars.ballVect.x) + Math.PI / 2 * direction);
 					segment.scale.y = Math.sqrt(1 + Math.pow(Math.abs(p.vars.ballVect.y / p.vars.ballVect.x), 2.))
-						* (1.1 + speedFactor * 0.6);
+						* (1.3 + 2 * speedFactor);
 					p.tools.scene.add(segment);
 					arr.trailSegments.push([segment, performance.now()]);
 					p.vars.ballFloorPos = ballFloor;
