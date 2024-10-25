@@ -172,7 +172,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 								</div>
 								<div className="border-end col-3 d-flex justify-content-center align-items-center text-truncate">
 									<div className="d-flex flex-row align-items-center">
-										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{tournament.creator.username}</span>
+										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(70%)' }}>{tournament.creator.username}</span>
 										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '45px', height: '45px', overflow: 'hidden' }}>
 											<img
 												style={{
