@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { BACKEND_URL } from '@/config';
 import { Spinner } from 'react-bootstrap';
 
-export default function WaitingLobbyModal({ players }) {
+export default function WaitingLobbyModal({ players }: { players: any }) {
 
 	return (
 		<>
@@ -13,7 +13,7 @@ export default function WaitingLobbyModal({ players }) {
 					<div className={`modal-content`}>
 						<div className="modal-body">
 							<div className="d-flex justify-content-center align-items-center">
-								{players.player1 ? (
+								{players?.player1 ? (
 									<div className="justify-content-center border col-6 d-flex align-items-center" style={{
 										height: '100px'
 									}}>
@@ -45,7 +45,7 @@ export default function WaitingLobbyModal({ players }) {
 									</div>
 								)}
 								<h2 className="pt-2">vs</h2>
-								{players.player2 ? (
+								{players?.player2 ? (
 									<div className="justify-content-center col-6 d-flex align-items-center">
 										<div className="d-flex flex-row align-items-center">
 											<span className="me-2 text-truncate fs-2" style={{ maxWidth: 'calc(80%)' }}>{players.player2.username}</span>
@@ -73,7 +73,7 @@ export default function WaitingLobbyModal({ players }) {
 											<div className="d-flex flex-row align-items-center">
 												<span className="ms-2 text-truncate fs-2" style={{ maxWidth: 'calc(80%)' }}>[player]</span>
 												<div className="ms-5 ps-5">
-													<Spinner className="mb-1" animation="border border-dark-subtle" style={{ width: '100px', height: '100px', borderWidth: "4px", borderRight: "none", borderLeft: "none", borderTopColor: 'white', borderBottom: "none", animationDuration: "0.8s" }} />
+													<Spinner className="mb-1 border-dark-subtle" animation="border" style={{ width: '100px', height: '100px', borderWidth: "4px", borderRight: "none", borderLeft: "none", borderTopColor: 'white', borderBottom: "none", animationDuration: "0.8s" }} />
 												</div>
 											</div>
 										</div>

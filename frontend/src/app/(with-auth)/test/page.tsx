@@ -1,3 +1,4 @@
+"use client";
 import GameCountdownModal from "@/components/cards/GameCountdownModal";
 
 
