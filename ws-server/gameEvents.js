@@ -1,7 +1,31 @@
 export default function gameEvents(io, socket) {
 	// Game match communication
-	socket.on('sendGameId', (data) => {
-		socket.to(data.room_id).emit('receiveGameId', { game_id: data.game_id });
+	// socket.on('sendGameId', (data) => {
+	// 	socket.to(data.room_id).emit('receiveGameId', { game_id: data.game_id });
+	// });
+
+	socket.on('joinGame', (data) => {
+		console.log(`[joinGame] ${socket.id} has joined -> ${data.gameId}`);
+		socket.join(data.gameId);
+		// if (io.sockets.adapter.rooms.get(data.gameId).size === 2) {
+		//     const user = connectedUsers.get(socket.id);
+		//     if (user) {
+		//         gameLobbies.forEach(async (lobby, lobbyId) => {
+		//             if (lobby.player1.id === user.userId || lobby.player2.id === user.userId) {
+		//                 await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
+		//                     method: 'DELETE',
+		//                     headers: { 'Content-Type': 'application/json' },
+		//                     credentials: 'include',
+		//                 });
+		//                 gameLobbies.delete(lobbyId);
+		//             }
+		//         })
+		//     }
+		// }
+	})
+
+	socket.on('playerDisconnected', () => {
+		console.log(`[gameEvents] Player - ${socket.id} - has disconnected`);
 	});
 
 	socket.on('sendPlayerInfos', (data) => {

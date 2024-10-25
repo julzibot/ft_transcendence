@@ -6,21 +6,23 @@ import { DOMAIN_NAME, SOCKET_PORT } from "@/config";
 
 const SocketContext = createContext<Socket | null>(null);
 
-export function SocketProvider({ children }: { children: React.ReactNode }) {
+export function SocketProvider({ children, nsp }: { children: React.ReactNode, nsp: string }) {
 	const [socket, setSocket] = useState<Socket | null>(null);
 
 	useEffect(() => {
-		const newSocket = io(`https://${DOMAIN_NAME}:${SOCKET_PORT}`, {
+		const newSocket = io(`https://${DOMAIN_NAME}:${SOCKET_PORT}${nsp}`, {
 			transports: ['websocket'],
 			secure: true
 		});
 
-		setSocket(newSocket)
-		newSocket.on('connect', () => { });
+		setSocket(newSocket);
+		newSocket.on('connect', () => {
+			console.log(`[SocketProvider] Entering namespace: ${nsp}`);
+		});
 
 		return (() => {
 
-			console.log(`[SocketProvider] disconnect()`);
+			console.log(`[SocketProvider] Leaving namespace: ${nsp}`);
 			newSocket.disconnect();
 		})
 

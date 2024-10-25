@@ -3,19 +3,20 @@ import { Server } from "socket.io";
 import { readFileSync } from "fs";
 
 import gameEvents from './gameEvents.js';
+import tournamentEvents from './tournamentEvents.js';
+import lobbyEvents from './lobbyEvents.js';
 
 const port = process.env.SOCKET_PORT;
 const domain = process.env.DOMAIN_NAME;
 const frontendPort = process.env.FRONTEND_PORT;
 const backendPort = process.env.BACKEND_PORT;
 
-const gameLobbies = new Map(); // lobbyId -> {player1, player2}
-const gameRooms = new Map(); // roomId -> {player1,}
-const connectedUsers = new Map(); // socket.id -> {user.id, 0 || 1}
+export const connectedUsers = new Map(); // socket.id -> {user.id, 0 || 1}
+export const gameLobbies = new Map(); // lobbyId -> {player1, player2}
+export const gameRooms = new Map(); // roomId -> {player1, player2}
 
 let tournamentsArray = [];
 
-const socketRooms = new Map();
 // const tournament = {
 // 	tournamentId: 0,
 //	startTime: performance.now(),
@@ -37,6 +38,17 @@ const socketRooms = new Map();
 // 	gamesPlayed
 // }
 
+const deleteParticipant = async (tournamentId, userId) => {
+	// Inform other participants about the disconnected participant
+	await fetch(`http://django:${backendPort}/api/tournament/${tournamentId}/delete-participant/`, {
+		method: 'DELETE',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ userId })
+	})
+};
+
 const server = createServer({
 	key: readFileSync('/etc/ssl/certs/key.pem'),
 	cert: readFileSync('/etc/ssl/certs/cert.pem')
@@ -50,334 +62,138 @@ const io = new Server(server, {
 	}
 });
 
-const computeMatches = (tournament) => {
+const lobby = io.of('/lobby');
+const game = io.of('/game');
+const tournament = io.of('/tournament');
 
-	let pairs = [];
-	let time_elapsed = 0;
-	let prio = 0;
-	let maxMatchesNumber = 0;
-	let filtered_lobby = new Map();
-	let priosMap = new Map();
+// io.on("connection", async (socket) => {
+// 	console.log("User connected through socket: " + socket.id);
 
-	// FIRST, check which opponents in lobby are viable for pairing
-	tournament.inLobby.folobbyIdrEach(participant => {
-		time_elapsed = performance.now() - participant.return_time;
-		prio = 0;
-		if (time_elapsed > 60000)
-			prio += 1 + Math.floor((time_elapsed - 60000) / 30000)
-		maxMatchesNumber = Math.min(...participant.opponents.values()) + prio;
+// 	socket.on('disconnect', async () => {
+// 		const disconnectedUser = connectedUsers.get(socket.id);
+// 		if (!disconnectedUser) {
+// 			console.log(`[disconnect] Player not found`);
+// 			return;
+// 		}
+// 		else
+// 			console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
 
-		const inLobbyOpps = [...participant.opponents].filter(([key]) => tournament.inLobby.map(participant => participant.user.id).indexOf(key) !== -1);
-		const possibleOpps = inLobbyOpps.filter(([, value]) => value <= maxMatchesNumber).map(sub => sub[0]);
-		// HERE, possibleOpps is an array of all viable opponents' IDs for the participant
-		if (possibleOpps.length > 0) {
-			priosMap.set(participant.user.id, prio);
-			filtered_lobby.set(participant.user.id, possibleOpps);
-		}
-	})
-
-	if (filtered_lobby.size > 0) {
-		// REARRANGE indexes according to priority (highest first)
-		let priosArray = [...priosMap];
-		const OppsArray = [...filtered_lobby];
-		priosArray.sort((a, b) => b[1] - a[1]);
-		const sortedOppsArray = priosArray.map(([key]) => OppsArray.find(([k]) => k === key));
-		const sortedOppsMap = new Map(sortedOppsArray);
-
-		// NEXT, check reciprocity for each opponent in the sorted opponents map, for each participant
-		let finalOppsArray = [];
-		let index = 0;
-		sortedOppsMap.forEach((opps, participant) => {
-			opps.forEach((opp) => {
-				if (sortedOppsMap.has(opp) && sortedOppsMap.get(opp).includes(participant))
-					finalOppsArray.push(opp);
-			})
-			// FINALLY, if reciprocity check still leaves viable opponents, one of them is randomly selected for pairing
-			if (finalOppsArray.length > 0) {
-				index = Math.floor(Math.random() * finalOppsArray.length);
-				pairs.push([participant, finalOppsArray[index]]);
-
-				// TO DO: INCREMENT GAME COUNT IN .opponents FOR EACH PAIRED PLAYER
-				sortedOppsMap.delete(participant);
-				sortedOppsMap.delete(finalOppsArray[index]);
-				finalOppsArray.length = 0;
-			}
-		})
-	}
-	return pairs
-}
-
-io.on("connection", async (socket) => {
-	console.log("User connected through socket: " + socket.id);
-
-	if (!socketRooms.get(socket.id))
-		socketRooms.set(socket.id, new Set());
-
-	socket.on('startTournament', (data) => {
-		// INITIALIZE TOURNAMENT INFOS + SEND FIRST MATCHMAKING
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
-		if (tournament) {
-
-			// TEST
-			// const partNum = 35;
-			// for (let i = 0; i < partNum; i++)
-			// {
-			// 	const p = {
-			// 		user: {
-			// 			id: 10 * i
-			// 		},
-			// 		return_time:0,
-			// 		opponents: new Map(),
-			// 	}
-			// 	tournament.participants.push(p)
-			// }
-
-			tournament.participants.forEach(participant1 => {
-				tournament.participants.forEach(participant2 => {
-					if (participant1.user.id != participant2.user.id) {
-						participant1.opponents.set(participant2.user.id, 0);
-						// console.log(`[startTournament] Participant: ${participant1.user.id} || opponents: ${JSON.stringify(Array.from(participant1.opponents))}`);
-					}
-				})
-				participant1.return_time = performance.now();
-			});
-			tournament.startTime = performance.now();
-			tournament.duration = data.tournamentDuration;
-			tournament.inLobby = tournament.participants;
-
-			console.log(tournament);
-			const pairs = computeMatches(tournament);
-			console.log(pairs);
-			if (pairs.length > 0) {
-				console.log("EMITTING PAIRS");
-				pairs.forEach(pair => {
-					io.in(data.tournamentId).emit('getMatchPair', { pair: pair });
-				})
-			}
-			// console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
-		}
-	})
-
-	socket.on('returnToLobby', (data) => {
-		const userId = connectedUsers.get(socket.id);
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
-		if (tournament && performance.now() - tournament.startTime)
-			p = tournament.participants.find(participant => participant.user.id === userId);
-		p.return_time = performance.now();
-		tournament.inLobby.push(p);
-		const tournament_elapsed = (p.return_time - tournament.startTime) / 1000;
-		if (tournament_elapsed < tournament.duration) {
-			const pairs = computeMatches(tournament);
-			if (pairs.length > 0) {
-				console.log("EMITTING PAIRS");
-				pairs.forEach(pair => {
-					io.in(data.tournamentId).emit('getMatchPair', { pair: pair });
-				})
-			}
-		}
-		else if (tournament.inLobby.length === tournament.participants.length)
-			io.in(data.tournamentId).emit('annouceTournamentEnd');
-	})
-
-	socket.on('TournamentGameEntered', (data) => {
-		const userId = connectedUsers.get(socket.id);
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
-		const i = tournament.inLobby.findIndex(participant => participant.user.id === userId);
-		tournament.participants.find(participant => participant.user.id === userId).opponents.get(data.oppId) += 1;
-		tournament.inLobby.splice(i);
-	})
-
-	socket.on('joinRoom', async (data) => {
-		const { lobbyId, user } = data;
-		connectedUsers.set(socket.id, { userId: user.id, mode: 0 });
-
-		let lobby = gameLobbies.get(lobbyId);
-		if (!lobby) {
-			gameLobbies.set(lobbyId, {
-				player1: user,
-				player2: null
-			});
-			lobby = gameLobbies.get(lobbyId);
-			socket.emit('isHost');
-		}
-		else {
-			if (!lobby.player1) {
-				if (lobby.player2 && lobby.player2.id != user.id)
-					lobby.player1 = user;
-			}
-			else if (!lobby.player2) {
-				if (lobby.player1.id != user.id)
-					lobby.player2 = user;
-			}
-		}
-		socket.join(lobbyId);
-		io.in(lobbyId).emit('updatedPlayers', lobby);
+// 		const userId = disconnectedUser.userId;
+// 		connectedUsers.delete(socket.id);
+// 	})
+// });
 
 
-		const createGame = async (lobby) => {
-			const response = await fetch(`http://django:${backendPort}/api/game/create`, {
-				method: 'POST',
-				credentials: 'include',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					'player1': lobby.player1.id,
-					'player2': lobby.player2.id,
-					'game_mode': 2
-				})
-			});
-			if (response.status === 201) {
-				const data = await response.json()
-				return data
-			}
-		}
-		if (lobby.player1 && lobby.player2) {
-			const gameInfos = await createGame(lobby);
-			io.in(lobbyId).emit('startGame', gameInfos);
-		}
-	});
+lobby.on('connection', async (socket) => {
+	console.log('[lobby] new connection');
 
-	socket.on('joinGame', (data) => {
-		console.log(`[joinGame] ${socket.id} has joined -> ${data.gameId}`);
-		socket.join(data.gameId);
-	})
+	lobbyEvents(lobby, socket);
 
-	// Tournament sockets
-	socket.on('joinTournament', (data) => {
+	// socket.on('disconnect', async () => {
+	// 	const disconnectedUser = connectedUsers.get(socket.id);
+	// 	if (!disconnectedUser) {
+	// 		console.log(`[lobby] [disconnect] Player not found`);
+	// 		return;
+	// 	}
+	// 	else
+	// 		console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
 
-		// connectedUsers.set(socket.id, data.user.id);
-		console.log(`[server.js] connected users: ${JSON.stringify(Array.from(connectedUsers.entries()))}`);
+	// 	const userId = disconnectedUser.userId;
+	// 	connectedUsers.delete(socket.id);
 
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
-		let updatedParticipants = [];
-		if (tournament) {
-			const participant = tournament.participants.find(participant => participant.user.id === data.user.id)
-			if (!participant)
-				tournament.participants.push({ user: data.user, return_time: 0, opponents: new Map() });
-			if (tournament.participants.length === 3)
-				io.in(tournament.tournamentId).emit('tournamentCanStart');
-			updatedParticipants = tournament.participants;
-		}
-		else {
-			const newTournament = {
-				tournamentId: data.tournamentId,
-				startTime: 0,
-				duration: 0,
-				participants: [{ user: data.user, return_time: 0, opponents: new Map() }],
-				gameRooms: []
-			}
-			tournamentsArray.push(newTournament);
-			updatedParticipants = newTournament.participants;
-		}
-		// Inform other participants about the new participant
-		socket.in(data.tournamentId).emit('updateParticipants', updatedParticipants);
-
-		socket.join(data.tournamentId);
-	});
-
-	gameEvents(io, socket);
-
-	socket.on('leaveLobby', data => {
-		// userId
-		// lobbyId
-		const { userId, lobbyId } = data;
-
-		const lobby = gameLobbies.get(lobbyId);
-
-		if (lobby) {
-			if (lobby.player1 && lobby.player1.id === userId)
-				lobby.player1 = null;
-			if (lobby.player2 && lobby.player2.id === userId)
-				lobby.player2 = null;
-			console.log(`[leaveLobby] ${{ lobby }}`);
-			socket.to(lobbyId).emit('updatedPlayers', lobby);
-		}
-	});
-
-	socket.on('disconnect', async () => {
-
-		const disconnectedUser = connectedUsers.get(socket.id);
-		if (!disconnectedUser) {
-			console.log(`[disconnect] Player not found`);
-			return;
-		}
-		const userId = disconnectedUser.userId;
-		connectedUsers.delete(socket.id);
-
-		if (disconnectedUser.mode === 0) {
-			gameLobbies.forEach(async (lobby, lobbyId) => {
-				if (lobby.player1 || lobby.player2) {
-					if (lobby.player1 && lobby.player1.id === userId)
-						lobby.player1 = null;
-					else if (lobby.player2 && lobby.player2.id === userId)
-						lobby.player2 = null;
-					if (!lobby.player1 && !lobby.player2) {
-						await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
-							method: 'DELETE',
-							headers: { 'Content-Type': 'application/json' },
-							credentials: 'include',
-						});
-						gameLobbies.delete(lobbyId);
-					}
-					else {
-						await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
-							method: 'PUT',
-							headers: { 'Content-Type': 'application/json' },
-							credentials: 'include',
-							body: JSON.stringify({ userId })
-						});
-						io.in(lobbyId).emit('updatedPlayers', lobby);
-					}
-				}
-			})
-		}
-
-		const deleteParticipant = async (tournamentId, userId) => {
-			// Inform other participants about the disconnected participant
-			await fetch(`http://django:${backendPort}/api/tournament/${tournamentId}/delete-participant/`, {
-				method: 'DELETE',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ userId })
-			})
-		};
-
-		if (userId)
-			console.log(socket.id + ' -> ' + userId + " has disconnected");
-		else
-			console.log('No user to disconnect');
-
-		if (disconnectedUser.mode === 1) {
-
-			// Tournament
-			// Deleting the participant
-			let emptyTournamentId = '';
-			let updatedParticipants = [];
-			tournamentsArray = tournamentsArray.map(tournament => {
-				updatedParticipants = tournament.participants.filter(participant => participant.user.id !== disconnectedUserId);
-				updatedParticipants.forEach(participant => {
-					for (const key of participant.opponents.keys()) {
-						participant.opponents.delete(key);
-					}
-					console.log(`[disconnect] Opponents for: ${participant.user.id} - ${Array.from(participant.opponents.entries())}`)
-				})
-				if (tournament.isStarted && updatedParticipants.length === 0)
-					emptyTournamentId = tournament.tournamentId;
-				else {
-					socket.in(tournament.tournamentId).emit('updateParticipants', updatedParticiuserIdpants);
-				}
-				deleteParticipant(tournament.tournamentId, disconnectedUserId)
-				return { ...tournament, participants: updatedParticipants }
-			});
-
-			// if tournament has no participants left, delete tournament
-			if (emptyTournamentId.length !== 0) {
-				const tournamentIndex = tournamentsArray.findIndex(tournament => tournament.tournamentId === emptyTournamentId);
-				tournamentsArray.splice(tournamentIndex, 1);
-			}
-		}
-	});
+	// 	gameLobbies.forEach(async (lobby, lobbyId) => {
+	// 		if (lobby.player1 || lobby.player2) {
+	// 			if (lobby.player1 && lobby.player1.id === userId)
+	// 				lobby.player1 = null;
+	// 			else if (lobby.player2 && lobby.player2.id === userId)
+	// 				lobby.player2 = null;
+	// 			if (!lobby.player1 && !lobby.player2) {
+	// 				await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
+	// 					method: 'DELETE',
+	// 					headers: { 'Content-Type': 'application/json' },
+	// 					credentials: 'include',
+	// 				});
+	// 				gameLobbies.delete(lobbyId);
+	// 			}
+	// 			else {
+	// 				await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
+	// 					method: 'PUT',
+	// 					headers: { 'Content-Type': 'application/json' },
+	// 					credentials: 'include',
+	// 					body: JSON.stringify({ userId })
+	// 				});
+	// 				io.in(lobbyId).emit('updatedPlayers', lobby);
+	// 			}
+	// 		}
+	// 	})
+	// });
 });
+
+game.on('connection', (socket) => {
+
+	console.log('[game] New connection');
+
+	gameEvents(game, socket);
+
+	socket.on('hello', (data) => console.log(data));
+
+	socket.on('disconnect', () => {
+		console.log('[game] User disconnected');
+		console.log('[game] User rooms: ' + JSON.stringify(socket.rooms));
+		for (const room of socket.rooms) {
+			console.log('[game] room: ' + room);
+			if (room != socket.id) {
+				game.in(room).emit('playerDisconnected');
+			}
+		}
+	});
+})
+
+tournament.on('connection', (socket) => {
+	tournamentEvents(tournament, socket);
+
+	// socket.on('disconnect', async () => {
+	// 	const disconnectedUser = connectedUsers.get(socket.id);
+	// 	if (!disconnectedUser) {
+	// 		console.log(`[tournament] [disconnect] Player not found`);
+	// 		return;
+	// 	}
+	// 	else
+	// 		console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
+
+	// 	const userId = disconnectedUser.userId;
+	// 	connectedUsers.delete(socket.id);
+
+	// 	if (disconnectedUser.mode === 1) {
+	// 		// Tournament
+	// 		// Deleting the participant
+	// 		let emptyTournamentId = '';
+	// 		let updatedParticipants = [];
+	// 		tournamentsArray = tournamentsArray.map(tournament => {
+	// 			updatedParticipants = tournament.participants.filter(participant => participant.user.id !== disconnectedUserId);
+	// 			updatedParticipants.forEach(participant => {
+	// 				for (const key of participant.opponents.keys()) {
+	// 					participant.opponents.delete(key);
+	// 				}
+	// 				console.log(`[disconnect] Opponents for: ${participant.user.id} - ${Array.from(participant.opponents.entries())}`)
+	// 			})
+	// 			if (tournament.isStarted && updatedParticipants.length === 0)
+	// 				emptyTournamentId = tournament.tournamentId;
+	// 			else {
+	// 				socket.in(tournament.tournamentId).emit('updateParticipants', updatedParticiuserIdpants);
+	// 			}
+	// 			deleteParticipant(tournament.tournamentId, disconnectedUserId)
+	// 			return { ...tournament, participants: updatedParticipants }
+	// 		});
+
+	// 		// if tournament has no participants left, delete tournament
+	// 		if (emptyTournamentId.length !== 0) {
+	// 			const tournamentIndex = tournamentsArray.findIndex(tournament => tournament.tournamentId === emptyTournamentId);
+	// 			tournamentsArray.splice(tournamentIndex, 1);
+	// 		}
+	// 	}
+	// });
+})
 
 server.listen(port, () => {
 	console.log(`Socket server is now listening on https://${domain}:` + port);
