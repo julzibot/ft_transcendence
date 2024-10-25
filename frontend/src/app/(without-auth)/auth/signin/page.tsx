@@ -45,24 +45,24 @@ export default function SignIn() {
               <div className="mb-3">
                 <label htmlFor="username" className="form-label fw-bold" >Username*</label>
                 <input
+                  required
                   disabled={!loading}
                   type="text"
                   name="username"
                   id="username"
                   className="form-control"
                 />
-                {formState?.errors?.username && <p className="mt-2 text-danger">{formState.errors.username}</p>}
               </div>
               <div className="mb-3">
                 <label htmlFor="password" className="form-label fw-bold">Password*</label>
                 <input
+                  required
                   disabled={!loading}
                   type="password"
                   className="form-control"
                   id="password"
                   name="password"
                 />
-                {formState?.errors?.password && <p className="mt-2 text-danger">{formState.errors.password}</p>}
               </div>
               <button disabled={!loading} type="submit" className="btn btn-dark fw-bold mt-2">
                 <span>Sign In</span>

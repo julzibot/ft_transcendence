@@ -10,14 +10,14 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('dashboard', '0001_initial'),
+        ('gameCustomization', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dashboarddata',
+            model_name='gamecustomizationdata',
             name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='user_dashboard', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='player_settings', to=settings.AUTH_USER_MODEL),
         ),
     ]
