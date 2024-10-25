@@ -1,9 +1,9 @@
 "use client"
-import { User } from '@/types/Auth';
+
 import { useState, useEffect } from 'react'
 import { BACKEND_URL } from '@/config';
 
-export default function GameCountdownModal({ players }) {
+export default function GameCountdownModal({ players }: { players: any }) {
 
 	const [countdown, setCountdown] = useState<number>(3)
 

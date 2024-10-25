@@ -134,7 +134,7 @@ export default function Lobby() {
 					</div>
 				</div>
 			</div> */}
-			{(players.player1 && players.player2) ? <GameCountdownModal players={players} /> : <WaitingLobbyModal players={players} />}
+			{(players?.player1 && players?.player2) ? <GameCountdownModal players={players} /> : <WaitingLobbyModal players={players} />}
 		</>
 	)
 }

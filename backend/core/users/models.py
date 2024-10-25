@@ -27,11 +27,9 @@ class UserAccountManager(BaseUserManager):
 
         from dashboard.models import DashboardData
         from gameCustomization.models import GameCustomizationData
-        from matchParameters.models import MatchParametersData
         
         DashboardData.objects.create(user=user)
         GameCustomizationData.objects.create(user=user)
-        MatchParametersData.objects.create(user=user)
 
         user.save(using=self._db)
         return user

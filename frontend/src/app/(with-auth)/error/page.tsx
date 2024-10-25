@@ -3,7 +3,6 @@
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ConeStriped } from 'react-bootstrap-icons'
-import React, { Suspense } from 'react'
 
 function ErrorContent() {
   const searchParams = useSearchParams()
@@ -32,9 +31,7 @@ export default function ErrorPage() {
   return (
     <div className="d-flex flex-column justify-content-center align-items-center mt-5 pt-5">
       <ConeStriped size={100} className="text-danger" />
-      <Suspense fallback={<div>Loading...</div>}>
-        <ErrorContent />
-      </Suspense>
+      <ErrorContent />
       <Link href="/">
         <button className="btn btn-danger btn-sm">
           Bring me back to safety
