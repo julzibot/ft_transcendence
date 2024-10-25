@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/app/lib/AuthContext";
-import useSocketContext from "@/context/socket";
+import useSocketContext, { SocketProvider } from "@/context/socket";
 import { BACKEND_URL } from "@/config";
 import { User } from "@/types/Auth";
+import { FinalSettings } from "@/types/Game";
 import GameCountdownModal from "@/components/cards/GameCountdownModal";
 import WaitingLobbyModal from "@/components/cards/WaitingLobbyModal";
 import ThreeScene from "@/components/game/Game";
-import { FinalSettings } from "@/types/Game";
 import EndGameCard from "@/components/cards/EndGameCard";
 
 interface GameInfos {
@@ -121,17 +121,28 @@ export default function Lobby() {
 	}
 
 	return (
-
 		<>
-			{countdown !== 0 ? ((players && players.player1 && players.player2 && gameInfos && gameInfos.game_id) ? (<GameCountdownModal game_id={gameInfos.game_id} players={players} countdown={countdown} setCountdown={setCountdown} />
-			) : (<WaitingLobbyModal players={players} />)
-			) : (session && gameSettings && <ThreeScene
-				gameInfos={gameInfos}
-				gameSettings={gameSettings}
-				room_id={gameInfos.game_id} user_id={session.user.id}
-				isHost={(players?.player1?.id === session.user.id) ? true : false}
-				gamemode={gameInfos.game_mode} handleGameEnded={handleGameEnded} />)}
-			{gameEnded && <EndGameCard callbackUrl={'/game/online/'} />}
+			<SocketProvider nsp="/game">
+				{countdown !== 0 ? (
+					(players
+						&& players.player1
+						&& players.player2
+						&& gameInfos
+						&& gameInfos.game_id) ? (
+						<GameCountdownModal game_id={gameInfos.game_id} players={players} countdown={countdown} setCountdown={setCountdown} />
+					) : (<WaitingLobbyModal players={players} />)
+				) : (session && gameSettings &&
+					(
+						<ThreeScene
+							gameInfos={gameInfos}
+							gameSettings={gameSettings}
+							room_id={gameInfos.game_id} user_id={session.user.id}
+							isHost={(players?.player1?.id === session.user.id) ? true : false}
+							gamemode={gameInfos.game_mode} handleGameEnded={handleGameEnded} />
+					)
+				)}
+				{gameEnded && <EndGameCard callbackUrl={'/game/online/'} />}
+			</SocketProvider>
 		</>
 	)
 }

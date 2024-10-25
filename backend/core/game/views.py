@@ -150,11 +150,11 @@ class UpdateOnlineGame(APIView):
 				loser = dashboard1
 				winner = dashboard2
 
-			winner.games_played += 1
+			# winner.games_played += 1
 			winner.prev_result = True
 			winner.save()
 
-			loser.games_played += 1
+			# loser.games_played += 1
 			loser.prev_result = False
 			loser.save()
 
