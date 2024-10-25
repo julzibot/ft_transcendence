@@ -1,34 +1,24 @@
-"use client"
+"use client";
 
-import React from "react"
-import Link from "next/link"
-import { useState } from "react"
-import { useAuth } from "@/app/lib/AuthContext"
-import { SignInFormState, SignInFormSchema } from "@/app/lib/definitions"
-import CSRFToken from "@/components/Utils/CSRFToken"
-import FortyTwoSigninButton from "@/components/buttons/FortyTwoSigninButton"
-
+import React, { useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/app/lib/AuthContext";
+import { SignInFormState } from "@/app/lib/definitions";
+import CSRFToken from "@/components/Utils/CSRFToken";
+import FortyTwoSigninButton from "@/components/buttons/FortyTwoSigninButton";
 
 export default function SignIn() {
   const [formState, setFormState] = useState<SignInFormState | undefined>(undefined);
-  const { signIn, loading } = useAuth()
-
+  const { signIn, loading } = useAuth();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    const validatedFields = SignInFormSchema.safeParse({
-      username: formData.get('username'),
-      password: formData.get('password'),
-    })
-    if (!validatedFields.success)
-      setFormState({ errors: validatedFields.error.flatten().fieldErrors })
-    else {
-      const { username, password } = validatedFields.data;
-      signIn(username, password).then((message) => {
-        setFormState({ message: [message || ""] });
-      });
-    }
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const username = formData.get("username");
+    const password = formData.get("password");
+    signIn(username, password).then((message: any) => {
+      setFormState({ message: [message || ""] });
+    });
   }
 
   return (
@@ -39,11 +29,13 @@ export default function SignIn() {
           <div className="card-body">
             <FortyTwoSigninButton />
             <hr />
-            <p className="fw-3 fw-bold ">Or</p>
+            <p className="fw-3 fw-bold">Or</p>
             <form onSubmit={handleSubmit}>
               <CSRFToken />
               <div className="mb-3">
-                <label htmlFor="username" className="form-label fw-bold" >Username*</label>
+                <label htmlFor="username" className="form-label fw-bold">
+                  Username*
+                </label>
                 <input
                   required
                   disabled={!loading}
@@ -54,7 +46,9 @@ export default function SignIn() {
                 />
               </div>
               <div className="mb-3">
-                <label htmlFor="password" className="form-label fw-bold">Password*</label>
+                <label htmlFor="password" className="form-label fw-bold">
+                  Password*
+                </label>
                 <input
                   required
                   disabled={!loading}
@@ -71,7 +65,7 @@ export default function SignIn() {
             </form>
           </div>
           <div className="card-footer">
-            <span>Not Registered Yet ? </span>
+            <span>Not Registered Yet? </span>
             <Link href="/auth/register">
               <button disabled={!loading} className="ms-2 btn btn-primary btn-sm">Register</button>
             </Link>
@@ -79,7 +73,5 @@ export default function SignIn() {
         </div>
       </div>
     </>
-  )
+  );
 }
-
-

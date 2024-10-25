@@ -14,9 +14,9 @@ export const RegisterFormSchema = z.object({
     .trim(),
   password: z
     .string()
-    .min(8, { message: "*Must contain at leat 8 characters" })
-    .regex(/[A-Z]/, { message: "*Password must contain at least one uppercase letter." })
-    .regex(/[0-9]/, { message: "*Password must contain at least one digit." })
+    .min(8, { message: "*Must contain at least 8 characters" })
+    .regex(/[A-Z]/, { message: "*Must contain at least one uppercase letter." })
+    .regex(/[0-9]/, { message: "*Must contain at least one digit." })
     .trim(),
   rePass: z
     .string()
@@ -39,10 +39,6 @@ export const SignInFormSchema = z.object({
 
 export type SignInFormState =
   | {
-    errors?: {
-      username?: string[];
-      password?: string[];
-    }
     message?: string[]
   }
   | undefined
