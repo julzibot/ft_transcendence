@@ -79,7 +79,8 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		}
 	}
 
-	const submitTournament = async () => {
+	const submitTournament = async (e) => {
+		e.preventDefault()
 		const payload = {
 			'name': tournamentForm.name,
 			'maxPlayerNumber': tournamentForm.maxPlayerNumber,
