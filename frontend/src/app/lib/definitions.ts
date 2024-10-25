@@ -9,7 +9,7 @@ interface FormSchema {
 export const RegisterFormSchema = z.object({
   username: z
     .string()
-    .max(8, { message: "*Username must be less then 8 characters." })
+    .max(9, { message: "*Username must be less then 9 characters." })
     .regex(/^[a-zA-Z0-9]*$/, { message: "*Username contains forbidden characters." })
     .trim(),
   password: z
