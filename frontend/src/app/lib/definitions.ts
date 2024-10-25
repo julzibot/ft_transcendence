@@ -9,18 +9,20 @@ interface FormSchema {
 export const RegisterFormSchema = z.object({
   username: z
     .string()
-    .min(1, { message: "*Username is required." })
     .max(9, { message: "*Username must be less then 9 characters." })
+    .regex(/^[a-zA-Z0-9]*$/, { message: "*Username contains forbidden characters." })
     .trim(),
   password: z
     .string()
-    .min(1, { message: '*Password is required.' })
+    .min(8, { message: "*Must contain at leat 8 characters" })
+    .regex(/[A-Z]/, { message: "*Password must contain at least one uppercase letter." })
+    .regex(/[0-9]/, { message: "*Password must contain at least one digit." })
     .trim(),
   rePass: z
     .string()
     .trim()
 }).refine((data: FormSchema) => data.password === data.rePass, {
-  message: "*Passwords don't match",
+  message: "*Password do not match",
   path: ["rePass"],
 });
 
@@ -51,7 +53,7 @@ export type RegisterFormState =
     errors?: {
       username?: string[];
       password?: string[];
-      rePass?: string[];
+      rePass?: string;
     }
     message?: string[]
   }
