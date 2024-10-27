@@ -69,7 +69,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	// if (gamemode === 2)
 	socket = useSocketContext();
 
-	socket.emit('hello', { 'message': 'hello from ThreeScene' });
 	initVars(p.objs, p.csts, p.vars, p.custom);
 
 

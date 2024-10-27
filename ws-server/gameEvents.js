@@ -1,12 +1,37 @@
-export default function gameEvents(io, socket) {
-	// Game match communication
-	// socket.on('sendGameId', (data) => {
-	// 	socket.to(data.room_id).emit('receiveGameId', { game_id: data.game_id });
-	// });
+import { gameRooms } from "./server.js";
+import { lobby } from "./server.js";
+
+export default function gameEvents(io, lobby, socket) {
 
 	socket.on('joinGame', (data) => {
-		console.log(`[joinGame] ${socket.id} has joined -> ${data.gameId}`);
-		socket.join(data.gameId);
+		const { gameId, lobbyId } = data;
+		socket.join(gameId);
+		console.log(`[gameEvents] [joinGame] ${socket.id} has joined -> ${gameId}`);
+		const room = gameRooms.get(gameId);
+		if (room) {
+			room.player2 = socket.id;
+			console.log(`[gameEvents] Assigning player2 room: ${JSON.stringify(room)}`);
+		}
+		else {
+			gameRooms.set(gameId, { player1: socket.id, player2: null });
+			console.log(`[gameEvents] Assigning player1 room: ${JSON.stringify(gameRooms.get(gameId))}`)
+		}
+
+		if (room && room.player1 && room.player2) {
+			lobby.in(lobbyId).emit('startGame');
+		}
+		else {
+			// return to lobby
+		}
+
+		// lobby.sockets.forEach((socket) => {
+		// 	console.log(`[game] Before leaving: Socket ID: ${socket.id}, Rooms: ${Array.from(socket.rooms)}`);
+		// });
+		// lobby.socketsLeave(data.lobbyId);
+		// lobby.sockets.forEach((socket) => {
+		// 	console.log(`[game] After leaving: Socket ID: ${socket.id}, Rooms: ${Array.from(socket.rooms)}`);
+		// });
+
 		// if (io.sockets.adapter.rooms.get(data.gameId).size === 2) {
 		//     const user = connectedUsers.get(socket.id);
 		//     if (user) {
