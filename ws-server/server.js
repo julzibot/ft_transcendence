@@ -62,94 +62,102 @@ const io = new Server(server, {
 	}
 });
 
-const lobby = io.of('/lobby');
+export const lobby = io.of('/lobby');
 const game = io.of('/game');
 const tournament = io.of('/tournament');
 
-// io.on("connection", async (socket) => {
-// 	console.log("User connected through socket: " + socket.id);
-
-// 	socket.on('disconnect', async () => {
-// 		const disconnectedUser = connectedUsers.get(socket.id);
-// 		if (!disconnectedUser) {
-// 			console.log(`[disconnect] Player not found`);
-// 			return;
-// 		}
-// 		else
-// 			console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
-
-// 		const userId = disconnectedUser.userId;
-// 		connectedUsers.delete(socket.id);
-// 	})
-// });
-
-
+// LOBBY
 lobby.on('connection', async (socket) => {
-	console.log('[lobby] new connection');
+	console.log('[lobby] New connection: ' + socket.id);
 
 	lobbyEvents(lobby, socket);
 
-	// socket.on('disconnect', async () => {
-	// 	const disconnectedUser = connectedUsers.get(socket.id);
-	// 	if (!disconnectedUser) {
-	// 		console.log(`[lobby] [disconnect] Player not found`);
-	// 		return;
-	// 	}
-	// 	else
-	// 		console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
+	socket.on('disconnect', async () => {
+		console.log('[lobby] User disconnected => ' + socket.id);
+		const disconnectedUser = connectedUsers.get(socket.id);
+		if (!disconnectedUser) {
+			console.log(`[lobby] [disconnect] Player not found`);
+			return;
+		}
+		else
+			console.log('[lobby]' + socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
 
-	// 	const userId = disconnectedUser.userId;
-	// 	connectedUsers.delete(socket.id);
+		const userId = disconnectedUser.userId;
+		connectedUsers.delete(socket.id);
 
-	// 	gameLobbies.forEach(async (lobby, lobbyId) => {
-	// 		if (lobby.player1 || lobby.player2) {
-	// 			if (lobby.player1 && lobby.player1.id === userId)
-	// 				lobby.player1 = null;
-	// 			else if (lobby.player2 && lobby.player2.id === userId)
-	// 				lobby.player2 = null;
-	// 			if (!lobby.player1 && !lobby.player2) {
-	// 				await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
-	// 					method: 'DELETE',
-	// 					headers: { 'Content-Type': 'application/json' },
-	// 					credentials: 'include',
-	// 				});
-	// 				gameLobbies.delete(lobbyId);
-	// 			}
-	// 			else {
-	// 				await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
-	// 					method: 'PUT',
-	// 					headers: { 'Content-Type': 'application/json' },
-	// 					credentials: 'include',
-	// 					body: JSON.stringify({ userId })
-	// 				});
-	// 				io.in(lobbyId).emit('updatedPlayers', lobby);
-	// 			}
-	// 		}
-	// 	})
-	// });
+		gameLobbies.forEach(async (lobby, lobbyId) => {
+			if (lobby.player1 || lobby.player2) {
+				if (lobby.player1 && lobby.player1.id === userId)
+					lobby.player1 = null;
+				else if (lobby.player2 && lobby.player2.id === userId)
+					lobby.player2 = null;
+				if (!lobby.player1 && !lobby.player2) {
+					await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
+						method: 'DELETE',
+						headers: { 'Content-Type': 'application/json' },
+						credentials: 'include',
+					});
+					gameLobbies.delete(lobbyId);
+				}
+				else {
+					await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
+						method: 'PUT',
+						headers: { 'Content-Type': 'application/json' },
+						credentials: 'include',
+						body: JSON.stringify({ userId })
+					});
+					io.in(lobbyId).emit('updatedPlayers', lobby);
+				}
+			}
+		})
+	});
 });
 
+// GAME
 game.on('connection', (socket) => {
 
-	console.log('[game] New connection');
+	console.log('[game] New connection: ' + socket.id);
 
-	gameEvents(game, socket);
+	gameEvents(game, lobby, socket);
 
-	socket.on('hello', (data) => console.log(data));
+	// socket.on('leaveGameRoom', (data) => {
 
-	socket.on('disconnect', () => {
-		console.log('[game] User disconnected');
-		console.log('[game] User rooms: ' + JSON.stringify(socket.rooms));
-		for (const room of socket.rooms) {
-			console.log('[game] room: ' + room);
-			if (room != socket.id) {
-				game.in(room).emit('playerDisconnected');
+	// });
+
+	socket.on('disconnecting', () => {
+		console.log(`[game] [${socket.id}] Disconnecting...`);
+
+		for (const [roomId, room] of gameRooms.entries()) {
+			if (room.player1 === socket.id || room.player2 === socket.id) {
+				console.log(`[game] [disconnect] Informing room: ${JSON.stringify(room)}`);
+				socket.to(roomId).emit('playerDisconnected');
+				break;
 			}
 		}
-	});
-})
+	})
 
+	socket.on('disconnect', () => {
+		console.log('[game] User disconnected => ' + socket.id);
+
+		for (const [roomId, room] of gameRooms.entries()) {
+			if (room.player1 === socket.id || room.player2 === socket.id) {
+				if (room.player1 === socket.id)
+					room.player1 = null;
+				else if (room.player2 === socket.id)
+					room.player2 = null;
+				if (room.player1 === null && room.player2 === null) {
+					console.log(`[game] Room deleted`);
+					gameRooms.delete(roomId);
+				}
+				break;
+			}
+		}
+	})
+});
+
+// TOURNAMENT
 tournament.on('connection', (socket) => {
+	console.log('[tournament] New connection: ' + socket.id);
 	tournamentEvents(tournament, socket);
 
 	// socket.on('disconnect', async () => {

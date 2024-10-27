@@ -42,7 +42,8 @@ export default function Lobby() {
 	const [gameInfos, setGameInfos] = useState<GameInfos>()
 	const [countdown, setCountdown] = useState<number>(3);
 	const [gameSettings, setGameSettings] = useState<FinalSettings>();
-	const [gameEnded, setGameEnded] = useState<boolean>(false)
+	const [gameEnded, setGameEnded] = useState<boolean>(false);
+	const [start, setStart] = useState<boolean>(false);
 	const socket = useSocketContext();
 
 	useEffect(() => {
@@ -85,12 +86,15 @@ export default function Lobby() {
 				}
 			})
 
-			socket.on('startGame', (data: any) => {
+			socket.on('initGame', (data: any) => {
 				setGameInfos(data)
 			})
 			socket.on('updatedPlayers', (data: Players) => {
 				setPlayers(data)
 			})
+			socket.on('startGame', () => {
+				setStart(true);
+			});
 			return () => {
 				socket.emit('leaveLobby', { userId: session?.user?.id, lobbyId: linkToJoin })
 			};
@@ -122,27 +126,29 @@ export default function Lobby() {
 
 	return (
 		<>
-			<SocketProvider nsp="/game">
-				{countdown !== 0 ? (
-					(players
-						&& players.player1
-						&& players.player2
-						&& gameInfos
-						&& gameInfos.game_id) ? (
-						<GameCountdownModal game_id={gameInfos.game_id} players={players} countdown={countdown} setCountdown={setCountdown} />
-					) : (<WaitingLobbyModal players={players} />)
-				) : (session && gameSettings &&
-					(
-						<ThreeScene
-							gameInfos={gameInfos}
-							gameSettings={gameSettings}
-							room_id={gameInfos.game_id} user_id={session.user.id}
-							isHost={(players?.player1?.id === session.user.id) ? true : false}
-							gamemode={gameInfos.game_mode} handleGameEnded={handleGameEnded} />
-					)
-				)}
-				{gameEnded && <EndGameCard callbackUrl={'/game/online/'} />}
-			</SocketProvider>
+			{socket &&
+				<SocketProvider nsp="/game">
+					{countdown !== 0 ? (
+						(players
+							&& players.player1
+							&& players.player2
+							&& gameInfos
+							&& gameInfos.game_id) ? (
+							<GameCountdownModal lobby_id={linkToJoin} game_id={gameInfos.game_id} players={players} countdown={countdown} setCountdown={setCountdown} />
+						) : (<WaitingLobbyModal players={players} />)
+					) : (start && session && gameSettings &&
+						(
+							<ThreeScene
+								gameInfos={gameInfos}
+								gameSettings={gameSettings}
+								room_id={gameInfos?.game_id} user_id={session?.user?.id}
+								isHost={(players?.player1?.id === session?.user?.id) ? true : false}
+								gamemode={gameInfos?.game_mode} handleGameEnded={handleGameEnded} />
+						)
+					)}
+					{gameEnded && <EndGameCard callbackUrl={'/game/online/'} />}
+				</SocketProvider>
+			}
 		</>
 	)
 }
