@@ -18,7 +18,15 @@ export const GetLobbyData = async () => {
 	}
 }
 
-export const AddLobbyData = async (payload: any) => {
+
+
+export const AddLobbyData = async (payload: {
+	name: string,
+	difficultyLevel: number,
+	pointsPerGame: number,
+	power_ups: boolean,
+	player1: number
+} | undefined) => {
 	try {
 		const response = await fetch(`${BACKEND_URL}/api/lobby/`, {
 			method: "POST",
@@ -40,7 +48,7 @@ export const AddLobbyData = async (payload: any) => {
 	}
 }
 
-export const joinLobby = async (lobbyId: number, userId: number | undefined) => {
+export const JoinLobby = async (lobbyId: string, userId: number | undefined) => {
 	try {
 
 		const response = await fetch(BACKEND_URL + '/api/lobby/join/', {

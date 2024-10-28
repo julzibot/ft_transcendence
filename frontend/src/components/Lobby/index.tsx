@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Modal } from 'react-bootstrap'
-import { AddLobbyData, GetLobbyData, joinLobby } from '@/services/onlineGames'
+import { AddLobbyData, GetLobbyData, JoinLobby } from '@/services/onlineGames'
 import { useAuth } from '@/app/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import DOMPurify from 'dompurify';
@@ -54,9 +54,9 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 		power_ups: false,
 	})
 
-	const handleJoin = async (lobby: any, linkToJoin: string) => {
+	const handleJoin = async (linkToJoin: string) => {
 		try {
-			await joinLobby(lobby.id, session?.user?.id)
+			await JoinLobby(linkToJoin, session?.user?.id)
 			router.push(`/game/online/lobby/${linkToJoin}`)
 		}
 		catch (error: any) {
@@ -68,10 +68,6 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 
 	const handleSubmitData = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		// if (lobbyForm.difficultyLevel === 0) {
-		// 	setErrorField({ ...errorField, difficultyMissing: 'Select a difficulty' })
-		// 	return
-		// }
 		const payload = {
 			'name': lobbyForm.name,
 			'difficultyLevel': lobbyForm.difficultyLevel,
@@ -141,7 +137,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 						return (
 							<div
 								key={index}
-								onClick={() => handleJoin(lobby, lobby.linkToJoin)}
+								onClick={() => handleJoin(lobby.linkToJoin, lobby.linkToJoin)}
 								className={`${lobby.isFull ? 'disabled' : ''} ${lobbyData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} lobby-entry d-flex flex-row align-items-center justify-content-evenly fw-bold fs-5`}
 							>
 								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">

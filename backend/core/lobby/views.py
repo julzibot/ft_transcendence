@@ -52,7 +52,7 @@ class JoinLobbyView(APIView):
 		lobby_id = request.data.get('lobby_id')
 		try:
 			user = UserAccount.objects.get(id=request.data.get('user_id'))
-			lobby = LobbyData.objects.get(id=lobby_id)
+			lobby = LobbyData.objects.get(linkToJoin=lobby_id)
 		except ObjectDoesNotExist:
 			return Response({'message': 'This Lobby does not exists'}, status=status.HTTP_404_NOT_FOUND)
 		if lobby.player1 is not None and lobby.player2 is not None:

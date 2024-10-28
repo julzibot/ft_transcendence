@@ -8,13 +8,20 @@ import { ParticipantType, TournamentType } from '@/types/TournamentSettings';
 import styles from '../GameSettingsStyles.module.css'
 import { Controller, TrophyFill } from 'react-bootstrap-icons'
 import useSocketContext from '@/context/socket';
+import { User } from '@/types/Auth';
+import { AddLobbyData, JoinLobby } from '@/services/onlineGames';
 
+interface Pair {
+	player1: User;
+	player2: User;
+}
 
 export default function TournamentLobby() {
 	const { id } = useParams();
 	const { session } = useAuth();
 	const router = useRouter();
 	const [participantsList, setParticipantsList] = useState<ParticipantType[]>([]);
+	const [pairs, setPairs] = useState<Pair[]>()
 	const [tournamentData, setTournamentData] = useState<TournamentType>();
 	const [isMounted, setIsMounted] = useState(false);
 	const [isTranslated, setIsTranslated] = useState(false);
@@ -52,10 +59,6 @@ export default function TournamentLobby() {
 	useEffect(() => {
 		if (session && socket) {
 			socket.emit('joinTournament', { tournamentId: id, user: session?.user });
-
-			// setTimeout(() => {
-			// 	socket?.emit('startTournament', { tournamentId: id });
-			// }, 10000);
 		}
 	}, [session, socket, id]);
 
@@ -64,9 +67,35 @@ export default function TournamentLobby() {
 			socket.on('updateParticipants', (data: ParticipantType[]) => {
 				setParticipantsList(data);
 			})
-			socket.on('getMatchPair', (data) => {
-				console.log("PAIR RECEIVED: " + data.pair);
-			});
+			socket.on('getMatchPair', async (data: Pair[]) => {
+				console.log("PAIR RECEIVED: " + data);
+				setPairs(data);
+				const pair = data.find(pair => pair.player1.id === session?.user?.id || pair.player2.id === session?.user?.id);
+				if (pair?.player1.id === session?.user?.id) {
+					//Set A proper payload
+					const payload = {
+						// name: tournamentData?.name,
+						// difficultyLevel: tournamentData?.difficultyLevel,
+						// pointsPerGame: tournamentData?.pointsPerGame,
+						// power_ups: tournamentData?.power_ups,
+						// player1: session?.user?.id,
+					}
+					
+					//Create a lobby with payload
+					const linkToJoin = await AddLobbyData(payload);
+					//Send the link to the other player
+					socket.emit('sendLink', { linkToJoin: linkToJoin, player: pair?.player2 });
+					//Push to the lobby
+					router.push('/game/online/lobby/' + linkToJoin);
+				}
+				else if (pair?.player2.id === session?.user?.id) {
+					socket.on('linkReceived', async (data: string ) => {
+						//do Not simply push to the lobby, but join using JoinLobbyView API in the backend ()
+						await JoinLobby(data, pair?.player2.id);
+						router.push('/game/online/lobby/' + data);
+					})
+				}
+			})
 		}
 	}, [socket]);
 
