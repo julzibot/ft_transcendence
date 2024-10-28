@@ -3,15 +3,20 @@ import { useState, useEffect } from 'react'
 import { BACKEND_URL } from '@/config';
 import useSocketContext from '@/context/socket';
 import { NumberKeyframeTrack } from 'three';
+import { useAuth } from '@/app/lib/AuthContext';
 
 export default function GameCountdownModal({ lobby_id, game_id, players, countdown, setCountdown }: { lobby_id: string | string[], game_id: number, players: {}, countdown: number, setCountdown: Function }) {
 
 	const socket = useSocketContext();
+	const { session } = useAuth();
+
+	if (!session)
+		return;
 
 	useEffect(() => {
 		const interval = setInterval(() => {
 			if (countdown === 1)
-				socket?.emit('joinGame', { gameId: game_id, lobbyId: lobby_id })
+				socket?.emit('joinGame', { userId: session?.user?.id, gameId: game_id, lobbyId: lobby_id })
 			if (countdown > 0)
 				setCountdown(countdown - 1);
 			else

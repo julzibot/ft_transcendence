@@ -1,11 +1,11 @@
 const backendPort = process.env.BACKEND_PORT;
 
-import { connectedUsers, gameLobbies, gameRooms } from "./server.js";
+import { lobbyUsers, gameLobbies, gameRooms } from "./server.js";
 
 export default function gameLobbyEvents(io, socket) {
 	socket.on('joinRoom', async (data) => {
 		const { lobbyId, user } = data;
-		connectedUsers.set(socket.id, { userId: user.id, mode: 0 });
+		lobbyUsers.set(socket.id, { userId: user.id, mode: 0 });
 
 		let lobby = gameLobbies.get(lobbyId);
 		if (!lobby) {
@@ -46,6 +46,7 @@ export default function gameLobbyEvents(io, socket) {
 			}
 		}
 		if (lobby.player1 && lobby.player2) {
+			console.log('[lobby] Creating GAME -> backend');
 			const gameInfos = await createGame(lobby);
 			io.in(lobbyId).emit('initGame', gameInfos);
 			// socket.leave(lobbyId);

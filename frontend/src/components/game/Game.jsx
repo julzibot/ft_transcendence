@@ -230,8 +230,8 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						p.vars.endString = `GAME ENDED\n${g.p2Name} WINS`;
 
 					printGameInfo(p.vars.endMsgMesh, p.vars.endString, 5, -1, 3, p);
-
-					if (isHost || p.g.lastConnected) {
+					console.log(`[ThreeScene] [Scoring Logic] p1: ${p.vars.p1score} p2: ${p.vars.p2score}`);
+					if (isHost || g.lastConnected) {
 						const put_response = PutScores(gamemode, g.game_id, p);
 						if (put_response == false)
 							console.log("Ouch ! Scores not updated !")
@@ -657,6 +657,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				let putPath = 'local';
 				if (gameMode >= 2)
 					putPath = 'online';
+				console.log(`[ThreeScene] [PutScores] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`)
 				const response = await fetch(BACKEND_URL + `/api/game/${putPath}/update/${game_id}`,
 					{
 						method: 'PUT',
@@ -965,105 +966,106 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			}
 
 			// CUT
-			const init_socket = (gameMode, game_id, socket, isHost, p, arr, g) => {
-				if (socket) {
-
+			const init_socket = (socket, isHost, p, arr, g) => {
+				if (isHost) {
+					socket.on('updatePlayer2Pos', position => {
+						g.opponentPos = position.player2pos;
+					})
+					socket.on('updateActivatePU2', data => {
+						if (data.powerType === arr.player_power_ups[1])
+							activate_power(1, 0, p, arr);
+					})
+				}
+				else {
+					socket.on('setPlayerInfos', data => {
+						g.p1Name = data.g.p1Name;
+						g.p2Name = data.g.p2Name;
+						display_img(data.p1p, 2);
+						display_img(data.p2p, 3);
+						game_id = data.game_id;
+					})
+					socket.on('updatePlayer1Pos', position => {
+						g.opponentPos = position.player1pos;
+					});
+					socket.on('updateBallPos', data => {
+						p.objs.ball.position.x = data.x;
+						p.objs.ball.position.y = data.y;
+						p.vars.ballVect.x = data.vectx;
+						p.vars.ballVect.y = data.vecty;
+						if (p.vars.adjustedBallSpeed != data.speed) {
+							p.vars.adjustedBallSpeed = data.speed;
+							setBallColor(p);
+						}
+					});
+					socket.on('startBounceGlow', () => {
+						p.vars.glowStartTime = performance.now();
+					});
+					socket.on('newWallCollision', () => {
+						if (p.custom.sparks === true && arr.particleEffects.length < 4)
+							createSparks(p, arr);
+					});
+					socket.on('updateScore', data => {
+						if (data.score1 > p.vars.p1Score) {
+							p.vars.p1Score = data.score1;
+							printGameInfo(p.vars.p1textMesh, p.vars.p1Score.toString(), 0, 0, 2.75, p);
+						}
+						else {
+							p.vars.p2Score = data.score2;
+							printGameInfo(p.vars.p2textMesh, p.vars.p2Score.toString(), 0, 1, 2.75, p);
+						}
+						setBallColor(p);
+						p.vars.stopGame = data.stopGame;
+					});
+					socket.on('updateCreatePU', data => {
+						if (data.pu_id === p.vars.puIdCount)
+							createPUObject(data.powerType, data.radius, data.spawnx, data.spawny, p, arr, g);
+					})
+					socket.on('updateCollectPU', data => {
+						const pl = data.player_id;
+						arr.player_power_ups[pl] = data.powerType;
+						printGameInfo(p.vars.latentMesh[pl], p.custom.powerUp_names[data.powerType], arr.player_power_ups[pl] + 6, pl, 0.85, p);
+					})
+					socket.on('updateActivatePU1', data => {
+						// if (data.powerType === player_powerUps[0])
+						activate_power(0, 1, p, arr);
+					})
+					socket.on('updateInvisiball', data => {
+						p.objs.ball.visible = false;
+						p.objs.ballWrap.visible = false;
+						p.csts.ballLight.intensity = 5;
+						arr.power_timers[data.id][4] = performance.now();
+						arr.activated_powers[data.id][4] = 2;
+					})
+					socket.on('updateInvert', () => {
+						arr.activated_powers[0][3] = 2;
+					})
+					socket.on('updateDeactivatePU', data => {
+						deactivate_power(data.player_id, data.type, 2, p, arr);
+					})
+					socket.on('updateDeletePU', data => {
+						for (let j = 0; j < arr.power_ups.length; j++) {
+							if (arr.power_ups[j][6] === data.pu_id) {
+								p.tools.scene.remove(arr.power_ups[j][0]);
+								arr.power_ups.splice(j, 1);
+								break;
+							}
+						}
+					})
+				}
+				socket.on('playerDisconnected', () => {
+					console.log(`[ThreeScene] The other player has disconnected`);
 					if (isHost) {
-						socket.on('updatePlayer2Pos', position => {
-							g.opponentPos = position.player2pos;
-						})
-						socket.on('updateActivatePU2', data => {
-							if (data.powerType === arr.player_power_ups[1])
-								activate_power(1, 0, p, arr);
-						})
+						p.vars.p1Score = p.custom.win_score;
+						p.vars.p2Score = 0;
 					}
 					else {
-						socket.on('setPlayerInfos', data => {
-							g.p1Name = data.g.p1Name;
-							g.p2Name = data.g.p2Name;
-							display_img(data.p1p, 2);
-							display_img(data.p2p, 3);
-							game_id = data.game_id;
-						})
-						socket.on('updatePlayer1Pos', position => {
-							g.opponentPos = position.player1pos;
-						});
-						socket.on('updateBallPos', data => {
-							p.objs.ball.position.x = data.x;
-							p.objs.ball.position.y = data.y;
-							p.vars.ballVect.x = data.vectx;
-							p.vars.ballVect.y = data.vecty;
-							if (p.vars.adjustedBallSpeed != data.speed) {
-								p.vars.adjustedBallSpeed = data.speed;
-								setBallColor(p);
-							}
-						});
-						socket.on('startBounceGlow', () => {
-							p.vars.glowStartTime = performance.now();
-						});
-						socket.on('newWallCollision', () => {
-							if (p.custom.sparks === true && arr.particleEffects.length < 4)
-								createSparks(p, arr);
-						});
-						socket.on('updateScore', data => {
-							if (data.score1 > p.vars.p1Score) {
-								p.vars.p1Score = data.score1;
-								printGameInfo(p.vars.p1textMesh, p.vars.p1Score.toString(), 0, 0, 2.75, p);
-							}
-							else {
-								p.vars.p2Score = data.score2;
-								printGameInfo(p.vars.p2textMesh, p.vars.p2Score.toString(), 0, 1, 2.75, p);
-							}
-							setBallColor(p);
-							p.vars.stopGame = data.stopGame;
-						});
-						socket.on('updateCreatePU', data => {
-							if (data.pu_id === p.vars.puIdCount)
-								createPUObject(data.powerType, data.radius, data.spawnx, data.spawny, p, arr, g);
-						})
-						socket.on('updateCollectPU', data => {
-							const pl = data.player_id;
-							arr.player_power_ups[pl] = data.powerType;
-							printGameInfo(p.vars.latentMesh[pl], p.custom.powerUp_names[data.powerType], arr.player_power_ups[pl] + 6, pl, 0.85, p);
-						})
-						socket.on('updateActivatePU1', data => {
-							// if (data.powerType === player_powerUps[0])
-							activate_power(0, 1, p, arr);
-						})
-						socket.on('updateInvisiball', data => {
-							p.objs.ball.visible = false;
-							p.objs.ballWrap.visible = false;
-							p.csts.ballLight.intensity = 5;
-							arr.power_timers[data.id][4] = performance.now();
-							arr.activated_powers[data.id][4] = 2;
-						})
-						socket.on('updateInvert', () => {
-							arr.activated_powers[0][3] = 2;
-						})
-						socket.on('updateDeactivatePU', data => {
-							deactivate_power(data.player_id, data.type, 2, p, arr);
-						})
-						socket.on('updateDeletePU', data => {
-							for (let j = 0; j < arr.power_ups.length; j++) {
-								if (arr.power_ups[j][6] === data.pu_id) {
-									p.tools.scene.remove(arr.power_ups[j][0]);
-									arr.power_ups.splice(j, 1);
-									break;
-								}
-							}
-						})
+						p.vars.p2Score = p.custom.win_score;
+						p.vars.p1Score = 0;
+						g.lastConnected = true;
 					}
-					socket.on('playerDisconnected', () => {
-						// PUT remaining player as winner
-						if (isHost)
-							p.vars.p1score = p.custom.win_score;
-						else {
-							p.vars.p2score = p.custom.win_score;
-							p.g.lastConnected = true;
-						}
-						p.vars.stopGame = 1;
-					});
-				}
+					p.vars.stopGame = 1;
+					console.log(`[ThreeScene] [playerDisconnected] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`);
+				});
 			}
 
 			const getColorVector3 = (bgColor) => {
@@ -1150,6 +1152,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			p.objs.backB.material.opacity = gameSettings.opacity / 100;
 			p.custom.difficulty = 0.3 + gameSettings.game_difficulty / 6;
 			p.custom.win_score = gameSettings.points_to_win;
+			console.log(`[ThreeScene] p.custom.win_score: ${p.custom.win_score}`);
 			p.custom.power_ups = gameSettings.power_ups;
 			p.custom.sparks = gameSettings.sparks;
 
@@ -1191,10 +1194,8 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				p.keys[event.code] = false;
 			}
 
-			if (gamemode === 2) {
-				console.log(`[ThreeScene] socket: ${socket}`);
+			if (gamemode === 2)
 				init_socket(socket, isHost, p, arr, g);
-			}
 			if (gamemode < 2 || (gamemode === 2 && socket && user_id)) {
 				animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool);
 			}

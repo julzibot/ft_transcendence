@@ -1,20 +1,37 @@
-import { gameRooms } from "./server.js";
-import { lobby } from "./server.js";
+import { gameRooms, gameUsers } from "./server.js";
+import { gameLobbies } from "./server.js";
+import { lobbyUsers } from "./server.js";
 
 export default function gameEvents(io, lobby, socket) {
 
 	socket.on('joinGame', (data) => {
-		const { gameId, lobbyId } = data;
+		const { userId, gameId, lobbyId } = data;
+		gameUsers.set(socket.id, { userId: userId, mode: 0 });
 		socket.join(gameId);
 		console.log(`[gameEvents] [joinGame] ${socket.id} has joined -> ${gameId}`);
 		const room = gameRooms.get(gameId);
+		const gameLobby = gameLobbies.get(lobbyId);
+		// if ( not found )
+		// 	handle error
 		if (room) {
-			room.player2 = socket.id;
-			console.log(`[gameEvents] Assigning player2 room: ${JSON.stringify(room)}`);
+			if (gameLobby.player1.id === userId) {
+				room.player1 = socket.id;
+				console.log(`[gameEvents] Assigning player1 [${userId}] room: ${JSON.stringify(room)}`);
+			}
+			else {
+				room.player2 = socket.id;
+				console.log(`[gameEvents] Assigning player2 [${userId}] room: ${JSON.stringify(room)}`);
+			}
 		}
 		else {
-			gameRooms.set(gameId, { player1: socket.id, player2: null });
-			console.log(`[gameEvents] Assigning player1 room: ${JSON.stringify(gameRooms.get(gameId))}`)
+			if (gameLobby.player1.id === userId) {
+				gameRooms.set(gameId, { player1: socket.id, player2: null });
+				console.log(`[gameEvents] Assigning player1 [${userId}] room: ${JSON.stringify(gameRooms.get(gameId))}`)
+			}
+			else {
+				gameRooms.set(gameId, { player1: null, player2: socket.id });
+				console.log(`[gameEvents] Assigning player2 [${userId}] room: ${JSON.stringify(gameRooms.get(gameId))}`);
+			}
 		}
 
 		if (room && room.player1 && room.player2) {
@@ -33,7 +50,7 @@ export default function gameEvents(io, lobby, socket) {
 		// });
 
 		// if (io.sockets.adapter.rooms.get(data.gameId).size === 2) {
-		//     const user = connectedUsers.get(socket.id);
+		//     const user = gameUsers.get(socket.id);
 		//     if (user) {
 		//         gameLobbies.forEach(async (lobby, lobbyId) => {
 		//             if (lobby.player1.id === user.userId || lobby.player2.id === user.userId) {
@@ -48,10 +65,6 @@ export default function gameEvents(io, lobby, socket) {
 		//     }
 		// }
 	})
-
-	socket.on('playerDisconnected', () => {
-		console.log(`[gameEvents] Player - ${socket.id} - has disconnected`);
-	});
 
 	socket.on('sendPlayerInfos', (data) => {
 		socket.to(data.room_id).emit('setPlayerInfos', { p1Name: data.p1Name, p2Name: data.p2Name, p1p: data.p1p, p2p: data.p2p, game_id: data.game_id });
