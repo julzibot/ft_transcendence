@@ -3,7 +3,7 @@ import React from 'react'
 
 export default function TournamentLobbyLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<SocketProvider>
+		<SocketProvider nsp="/tournament">
 			{children}
 		</SocketProvider>
 	)

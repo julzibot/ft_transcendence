@@ -151,11 +151,11 @@ class UpdateOnlineGame(APIView):
 				winner = dashboard2
 
 			# winner.games_played += 1
-			# winner.prev_result = True
+			winner.prev_result = True
 			winner.save()
 
 			# loser.games_played += 1
-			# loser.prev_result = False
+			loser.prev_result = False
 			loser.save()
 
 			return Response({'message': f'[PUT] [{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
