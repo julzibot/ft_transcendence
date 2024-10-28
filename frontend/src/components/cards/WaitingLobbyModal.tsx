@@ -1,11 +1,11 @@
-import { BACKEND_URL } from '@/config';
 import { Spinner } from 'react-bootstrap';
+import Image from '../Utils/Image';
 
 export default function WaitingLobbyModal({ players }: { players: any }) {
 
 	return (
 		<>
-			<div className={`modal fade show d-block`} id="staticBackDrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1}>
+			<div className={`modal fade show d-block`}>
 				<div className={`modal-dialog modal-lg modal-dialog-centered`}>
 					<div className={`modal-content`}>
 						<div className="modal-body">
@@ -15,22 +15,7 @@ export default function WaitingLobbyModal({ players }: { players: any }) {
 										height: '100px'
 									}}>
 										<div className="d-flex flex-row align-items-center">
-											< div className="me-3 position-relative border border-3 border-dark-subtle rounded-circle" style={{ width: '100px', height: '100px', overflow: 'hidden' }}>
-												<img
-													style={{
-														objectFit: 'cover',
-														width: '100%',
-														height: '100%',
-														position: 'absolute',
-														top: '50%',
-														left: '50%',
-														transform: 'translate(-50%, -50%)'
-													}}
-													fetchPriority="high"
-													alt="profile picture"
-													src={`${BACKEND_URL}${players.player1.image}`}
-												/>
-											</div>
+											<Image className="me-3" src={players.player1.image} alt="profile picture" whRatio="100px" />
 											<span className="me-2 text-truncate fs-2" style={{ maxWidth: 'calc(80%)' }}>{players.player1.username}</span>
 										</div>
 									</div>
@@ -46,22 +31,7 @@ export default function WaitingLobbyModal({ players }: { players: any }) {
 									<div className="justify-content-center col-6 d-flex align-items-center">
 										<div className="d-flex flex-row align-items-center">
 											<span className="me-2 text-truncate fs-2" style={{ maxWidth: 'calc(80%)' }}>{players.player2.username}</span>
-											< div className="ms-2 position-relative border border-3 border-dark-subtle rounded-circle" style={{ width: '70px', height: '70px', overflow: 'hidden' }}>
-												<img
-													style={{
-														objectFit: 'cover',
-														width: '100%',
-														height: '100%',
-														position: 'absolute',
-														top: '50%',
-														left: '50%',
-														transform: 'translate(-50%, -50%)'
-													}}
-													fetchPriority="high"
-													alt="profile picture"
-													src={`${BACKEND_URL}${players.player2.image}`}
-												/>
-											</div>
+											<Image className="ms-2" src={players.player2.image} alt="profile picture" whRatio="70px" />
 										</div>
 									</div>
 								) : (

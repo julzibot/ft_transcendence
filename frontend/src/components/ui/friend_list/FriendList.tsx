@@ -10,13 +10,16 @@ import { Friendship, Friend } from '@/types/Friend';
 import Link from 'next/link';
 import { BACKEND_URL } from '@/config';
 import Cookies from 'js-cookie';
+import Image from '@/components/Utils/Image';
 
 export default function FriendList() {
 	const { session } = useAuth()
 	const [friendships, setFriendships] = useState<Friendship[]>([])
 
 
+
 	useEffect(() => {
+		require("bootstrap/dist/js/bootstrap.bundle.min.js")
 		fetchFriends()
 	}, [])
 
@@ -93,22 +96,7 @@ export default function FriendList() {
 									}
 								</div>
 								<Link href={`/account/${friendship.user.id}`}>
-									<div className="position-relative border border-1 border-dark-subtle rounded-circle me-3" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-										<img
-											style={{
-												objectFit: 'cover',
-												width: '100%',
-												height: '100%',
-												position: 'absolute',
-												top: '50%',
-												left: '50%',
-												transform: 'translate(-50%, -50%)'
-											}}
-											fetchPriority="high"
-											alt="profile picture"
-											src={`${BACKEND_URL}${friendship.user.image}`}
-										/>
-									</div>
+									<Image src={friendship.user.image} alt="profile picture" whRatio="30px" />
 								</Link>
 								<span className="flex-grow-1 overflow-hidden  fs-4 fw-semibold text-truncate">
 									{friendship.user.username}
@@ -143,22 +131,7 @@ export default function FriendList() {
 									}
 								</div>
 								<Link href={`/account/${friendship.user.id}`}>
-									<div className="me-3 position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-										<img
-											style={{
-												objectFit: 'cover',
-												width: '100%',
-												height: '100%',
-												position: 'absolute',
-												top: '50%',
-												left: '50%',
-												transform: 'translate(-50%, -50%)'
-											}}
-											fetchPriority="high"
-											alt="profile picture"
-											src={`${BACKEND_URL}${friendship.user.image}`}
-										/>
-									</div>
+									<Image className="me-2 " src={friendship.user.image} alt="friend image" whRatio='30px'/>
 								</Link>
 								<div className='flex-grow-1 overflow-hidden'>
 

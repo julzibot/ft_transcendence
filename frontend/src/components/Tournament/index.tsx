@@ -12,6 +12,7 @@ import { CustomTooltip } from '../Utils/Tooltip';
 import { useRouter } from 'next/navigation'
 import './styles.css'
 import DifficultyLevel from '../Utils/DifficultyLevel';
+import Image from '../Utils/Image';
 
 interface Tournament {
 	id: number;
@@ -79,7 +80,8 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		}
 	}
 
-	const submitTournament = async () => {
+	const submitTournament = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
 		const payload = {
 			'name': tournamentForm.name,
 			'maxPlayerNumber': tournamentForm.maxPlayerNumber,
@@ -172,23 +174,8 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 								</div>
 								<div className="border-end col-3 d-flex justify-content-center align-items-center text-truncate">
 									<div className="d-flex flex-row align-items-center">
-										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(70%)' }}>{tournament.creator.username}</span>
-										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '45px', height: '45px', overflow: 'hidden' }}>
-											<img
-												style={{
-													objectFit: 'cover',
-													width: '100%',
-													height: '100%',
-													position: 'absolute',
-													top: '50%',
-													left: '50%',
-													transform: 'translate(-50%, -50%)'
-												}}
-												fetchPriority="high"
-												alt="profile picture"
-												src={`${BACKEND_URL}${tournament.creator.image}`}
-											/>
-										</div>
+										<Image src={tournament.creator.image} alt="profile picture" whRatio="45px" />
+										<span className="ms-2 text-truncate" style={{ maxWidth: 'calc(70%)' }}>{tournament.creator.username}</span>
 									</div>
 								</div>
 								<div className="border-end col-1 d-flex justify-content-center align-items-center">

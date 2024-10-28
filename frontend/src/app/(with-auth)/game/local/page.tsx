@@ -14,15 +14,21 @@ export default function LocalGame() {
 
 	const [isTranslated, setIsTranslated] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
-	const [localData, setLocalData] = useState(null)
 
 	const [gameSettings, setGameSettings] = useState({
-		game_difficulty: 4,
-		points_to_win: 5,
+		game_difficulty: 3,
+		points_to_win: 11,
 		power_ups: true
 	});
 
 	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const settings = localStorage.getItem("gameSettings");
+			if (settings) {
+				const parsedSettings = JSON.parse(settings);
+				setGameSettings(parsedSettings.gameSettings);
+			}
+		}
 		const timer = setTimeout(() => {
 			setIsMounted(true);
 			setIsTranslated(true);

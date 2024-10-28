@@ -8,6 +8,7 @@ import { ParticipantType, TournamentType } from '@/types/TournamentSettings';
 import styles from '../GameSettingsStyles.module.css'
 import { Controller, TrophyFill } from 'react-bootstrap-icons'
 import useSocketContext from '@/context/socket';
+import Image from '@/components/Utils/Image';
 
 
 export default function TournamentLobby() {
@@ -52,10 +53,6 @@ export default function TournamentLobby() {
 	useEffect(() => {
 		if (session && socket) {
 			socket.emit('joinTournament', { tournamentId: id, user: session?.user });
-
-			// setTimeout(() => {
-			// 	socket?.emit('startTournament', { tournamentId: id });
-			// }, 10000);
 		}
 	}, [session, socket, id]);
 
@@ -95,22 +92,7 @@ export default function TournamentLobby() {
 										<div className="border-end justify-content-center col-5 d-flex align-items-center">
 											<div className="d-flex flex-row align-items-center">
 												<span className="me-2 text-truncate" style={{ maxWidth: 'calc(80%)' }}>{participant.user.username}</span>
-												< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-													<img
-														style={{
-															objectFit: 'cover',
-															width: '100%',
-															height: '100%',
-															position: 'absolute',
-															top: '50%',
-															left: '50%',
-															transform: 'translate(-50%, -50%)'
-														}}
-														fetchPriority="high"
-														alt="profile picture"
-														src={`${BACKEND_URL}${participant.user.image}`}
-													/>
-												</div>
+												<Image className="ms-2" src={participant.user.image} alt="profile picture" whRatio="30px" />
 											</div>
 										</div>
 										<div className="border-end col-1 d-flex justify-content-center align-items-center">

@@ -7,8 +7,8 @@ import DOMPurify from 'dompurify';
 import { Alphabet, PersonFillUp, TrophyFill, Activity, LightningFill, Toggle2Off, Toggle2On } from 'react-bootstrap-icons';
 import { CustomTooltip } from '../Utils/Tooltip';
 import "./styles.css";
-import { BACKEND_URL } from '@/config';
 import DifficultyLevel from '../Utils/DifficultyLevel';
+import Image from '../Utils/Image';
 
 interface LobbyProps {
 	setToastShow: Function,
@@ -68,10 +68,6 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 
 	const handleSubmitData = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		// if (lobbyForm.difficultyLevel === 0) {
-		// 	setErrorField({ ...errorField, difficultyMissing: 'Select a difficulty' })
-		// 	return
-		// }
 		const payload = {
 			'name': lobbyForm.name,
 			'difficultyLevel': Number(lobbyForm.difficultyLevel),
@@ -98,9 +94,6 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 		fetchLobbyData()
 	}, [])
 
-	useEffect(() => {
-		console.log(lobbyForm)
-	}, [lobbyForm])
 
 
 	return (
@@ -136,7 +129,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 					</CustomTooltip>
 				</div>
 			</div>
-			<div className="mt-2 border scrollbar overflow-y-auto" style={{ height: '520px' }}>
+			<div className="mt-2 border scrollbar overflow-y-auto" style={{ height: '500px' }}>
 				{
 					lobbyData && lobbyData.length === 0 && <h2 className="text-center mt-5 pt-5">No Games Available</h2>
 				}
@@ -153,23 +146,8 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 								</div>
 								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">
 									<div className="d-flex flex-row align-items-center">
-										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(70%)' }}>{lobby.creator.username}</span>
-										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '40px', height: '40px', overflow: 'hidden' }}>
-											<img
-												style={{
-													objectFit: 'cover',
-													width: '100%',
-													height: '100%',
-													position: 'absolute',
-													top: '50%',
-													left: '50%',
-													transform: 'translate(-50%, -50%)'
-												}}
-												fetchPriority="high"
-												alt="profile picture"
-												src={`${BACKEND_URL}${lobby.creator.image}`}
-											/>
-										</div>
+										<Image src={lobby.creator.image} alt="profile picture" whRatio="30px" />
+										<span className="ms-2 text-truncate" style={{ maxWidth: 'calc(100%)' }}>{lobby.creator.username}</span>
 									</div>
 								</div>
 								<div className="border-end col-1 d-flex justify-content-center align-items-center">

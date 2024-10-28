@@ -23,6 +23,7 @@ export default function Customization() {
 	const [gameCustoms, setGameCustoms] = useState(defaultSettings);
 
 	useEffect(() => {
+		require("bootstrap/dist/js/bootstrap.bundle.min.js")
 		async function fetchGameCustoms(id: number | undefined) {
 			const response = await fetch(`${BACKEND_URL}/api/gameCustomization/${id}`, {
 				method: 'GET',

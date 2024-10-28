@@ -8,7 +8,7 @@ import 'chartjs-adapter-luxon';
 import ScoreChart from './ScoreChart';
 import ActivityChart from "./ActivityChart";
 import GameModesChart from "./GameModesChart";
-import Image from 'next/image';
+import Image from "@/components/Utils/Image";
 
 import createScoreData from "./ChartDataUtils";
 import { GameMatch, Player } from "./DashboardInterfaces";
@@ -31,11 +31,8 @@ interface User {
 	image: string;
 }
 
-interface UserDashboardCardProps {
-	user: Player;
-}
 
-const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
+const UserDashboardCard = ({ user } : {user: User}) => {
 
 	const [DashboardData, setDashboardData] = useState<DashboardItems | null>(null);
 
@@ -109,10 +106,6 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 				setDataCreated(true);
 				return;
 			}
-
-			setWinData([]);
-			setLossData([]);
-			setActivityData([]);
 
 			createScoreData(
 				user.id, userHistory.data,
@@ -285,22 +278,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 																							<div className="d-flex flex-row align-items-center justify-content-evenly">
 
 																								<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>{player2.username}</span>
-																								<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
-																								<img
-                    style={{
-                      objectFit: 'cover',
-                      width: '100%',
-                      height: '100%',
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)'
-                    }}
-                    fetchPriority="high"
-                    alt="profile picture"
-                    src={`${BACKEND_URL}${player2.image}`}
-                  />
-																								</div>
+																								<Image className="ms-2" src={player2.image} alt="profile picture" whRatio="50px"/>
 																							</div>
 																						</th>
 																						:
@@ -309,15 +287,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 																								<div className="d-flex flex-row align-items-center">
 
 																										<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>Guest</span>
-																										<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
-																											<Image style={{ objectFit: 'cover' }}
-																												fill
-																												src={'/static/images/default.jpg'}
-																												alt="Guest"
-																												priority={true}
-																												sizes="25vw"
-																											/>
-																										</div>
+																										<Image className="ms-2" src="/static/images/default.jpg" alt="Guest" whRatio="50px"/>
 																									</div>
 																								</th>
 																							)
