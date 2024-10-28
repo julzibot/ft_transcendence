@@ -11,9 +11,12 @@ const domain = process.env.DOMAIN_NAME;
 const frontendPort = process.env.FRONTEND_PORT;
 const backendPort = process.env.BACKEND_PORT;
 
-export const connectedUsers = new Map(); // socket.id -> {user.id, 0 || 1}
-export const gameLobbies = new Map(); // lobbyId -> {player1, player2}
-export const gameRooms = new Map(); // roomId -> {player1, player2}
+export const lobbyUsers = new Map(); // socket.id -> {user.id, 0 || 1}
+export const gameUsers = new Map(); // socket.id -> {user.id, 0 || 1}
+export const tournamentUsers = new Map(); // socket.id -> {user.id, 0 || 1}
+
+export const gameLobbies = new Map(); // lobbyId -> {player1 (userId), player2 (userId)}
+export const gameRooms = new Map(); // roomId -> {player1 (socket.id), player2 (socket.id)}
 
 let tournamentsArray = [];
 
@@ -74,7 +77,7 @@ lobby.on('connection', async (socket) => {
 
 	socket.on('disconnect', async () => {
 		console.log('[lobby] User disconnected => ' + socket.id);
-		const disconnectedUser = connectedUsers.get(socket.id);
+		const disconnectedUser = lobbyUsers.get(socket.id);
 		if (!disconnectedUser) {
 			console.log(`[lobby] [disconnect] Player not found`);
 			return;
@@ -83,7 +86,7 @@ lobby.on('connection', async (socket) => {
 			console.log('[lobby]' + socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
 
 		const userId = disconnectedUser.userId;
-		connectedUsers.delete(socket.id);
+		lobbyUsers.delete(socket.id);
 
 		gameLobbies.forEach(async (lobby, lobbyId) => {
 			if (lobby.player1 || lobby.player2) {
@@ -126,13 +129,16 @@ game.on('connection', (socket) => {
 	socket.on('disconnecting', () => {
 		console.log(`[game] [${socket.id}] Disconnecting...`);
 
-		for (const [roomId, room] of gameRooms.entries()) {
-			if (room.player1 === socket.id || room.player2 === socket.id) {
-				console.log(`[game] [disconnect] Informing room: ${JSON.stringify(room)}`);
-				socket.to(roomId).emit('playerDisconnected');
-				break;
-			}
-		}
+		// for (const [roomId, room] of gameRooms.entries()) {
+		// 	if (room.player1 === socket.id || room.player2 === socket.id) {
+		// 		if (room.player1 === socket.id)
+		// 			console.log(`[game] [disconnecting] Player1 disconnected. Informing room: ${JSON.stringify(room)}`);
+		// 		else
+		// 			console.log(`[game] [disconnecting] Player2 disconnected. Informing room: ${JSON.stringify(room)}`);
+		// 		socket.to(roomId).emit('playerDisconnected');
+		// 		break;
+		// 	}
+		// }
 	})
 
 	socket.on('disconnect', () => {
@@ -140,10 +146,16 @@ game.on('connection', (socket) => {
 
 		for (const [roomId, room] of gameRooms.entries()) {
 			if (room.player1 === socket.id || room.player2 === socket.id) {
-				if (room.player1 === socket.id)
+				if (room.player1 === socket.id) {
 					room.player1 = null;
-				else if (room.player2 === socket.id)
+					console.log(`[game] [disconnecting] Player1 disconnected. Informing room: ${JSON.stringify(room)}`);
+				}
+				else if (room.player2 === socket.id) {
 					room.player2 = null;
+					console.log(`[game] [disconnecting] Player2 disconnected. Informing room: ${JSON.stringify(room)}`);
+				}
+				socket.to(roomId).emit('playerDisconnected');
+				gameUsers.delete(socket.id);
 				if (room.player1 === null && room.player2 === null) {
 					console.log(`[game] Room deleted`);
 					gameRooms.delete(roomId);

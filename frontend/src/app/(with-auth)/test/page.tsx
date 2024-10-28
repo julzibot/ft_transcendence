@@ -6,17 +6,13 @@ import { useEffect } from 'react'
 
 export default function Test() {
 
-    const socket = useSocketContext();
+	const socket = useSocketContext();
 
-    useEffect(() => {
-        if (socket) {
-            socket.on('hi', data => {
-                console.log(data);
-            })
-        }
-    }, [socket]);
-    return (
-        <>
-            <p>HELLO</p>
-        </>)
+	useEffect(() => {
+		console.log('Hello');
+	}, []);
+	return (
+		<>
+			<p>HELLO</p>
+		</>)
 }
