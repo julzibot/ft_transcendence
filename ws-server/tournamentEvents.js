@@ -1,3 +1,5 @@
+import { tournamentUsers, tournamentsArray } from "./server.js";
+
 const computeMatches = (tournament) => {
 
 	let pairs = [];
@@ -8,7 +10,7 @@ const computeMatches = (tournament) => {
 	let priosMap = new Map();
 
 	// FIRST, check which opponents in lobby are viable for pairing
-	tournament.inLobby.folobbyIdrEach(participant => {
+	tournament.inLobby.forEach(participant => {
 		time_elapsed = performance.now() - participant.return_time;
 		prio = 0;
 		if (time_elapsed > 60000)
@@ -59,8 +61,8 @@ export default function tournamentEvents(io, socket) {
 	// Tournament sockets
 	socket.on('joinTournament', (data) => {
 
-		// connectedUsers.set(socket.id, data.user.id);
-		console.log(`[server.js] connected users: ${JSON.stringify(Array.from(tournamentsUsers.entries()))}`);
+		tournamentUsers.set(socket.id, data.user.id);
+		// console.log(`[server.js] connected users: ${JSON.stringify(Array.from(tournamentsUsers.entries()))}`);
 
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
 		let updatedParticipants = [];
@@ -100,35 +102,33 @@ export default function tournamentEvents(io, socket) {
 		if (tournament_elapsed < tournament.duration) {
 			const pairs = computeMatches(tournament);
 			if (pairs.length > 0) {
-				console.log("EMITTING PAIRS");
-				pairs.forEach(pair => {
-					io.in(data.tournamentId).emit('getMatchPair', { pair: pair });
-				})
+				console.log("[tournament] [returnToLobby] EMITTING PAIRS");
+				io.in(data.tournamentId).emit('getMatchPair', { pairs: pairs });
 			}
 		}
 		else if (tournament.inLobby.length === tournament.participants.length)
-			io.in(data.tournamentId).emit('annouceTournamentEnd');
+			io.in(data.tournamentId).emit('announceTournamentEnd');
 	})
 
 
 	socket.on('startTournament', (data) => {
+
 		// INITIALIZE TOURNAMENT INFOS + SEND FIRST MATCHMAKING
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
 		if (tournament) {
 
 			// TEST
-			// const partNum = 35;
-			// for (let i = 0; i < partNum; i++)
-			// {
-			// 	const p = {
-			// 		user: {
-			// 			id: 10 * i
-			// 		},
-			// 		return_time:0,
-			// 		opponents: new Map(),
-			// 	}
-			// 	tournament.participants.push(p)
-			// }
+			const partNum = 35;
+			for (let i = 0; i < partNum; i++) {
+				const p = {
+					user: {
+						id: 10 * i
+					},
+					return_time: 0,
+					opponents: new Map(),
+				}
+				tournament.participants.push(p)
+			}
 
 			tournament.participants.forEach(participant1 => {
 				tournament.participants.forEach(participant2 => {
@@ -147,16 +147,14 @@ export default function tournamentEvents(io, socket) {
 			const pairs = computeMatches(tournament);
 			console.log(pairs);
 			if (pairs.length > 0) {
-				console.log("EMITTING PAIRS");
-				pairs.forEach(pair => {
-					io.in(data.tournamentId).emit('getMatchPair', { pair: pair });
-				})
+				console.log("[tournament] [startTournament] EMITTING PAIRS");
+				io.in(data.tournamentId).emit('getMatchPair', { pairs: pairs });
 			}
 			// console.log(`[activeTournament] ${JSON.stringify(tournament)}`);
 		}
 	})
 
-	socket.on('TournamentGameEntered', (data) => {
+	socket.on('tournamentGameEntered', (data) => {
 		const userId = tournamentUsers.get(socket.id);
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
 		const i = tournament.inLobby.findIndex(participant => participant.user.id === userId);
