@@ -18,7 +18,7 @@ export const tournamentUsers = new Map(); // socket.id -> {user.id, 0 || 1}
 export const gameLobbies = new Map(); // lobbyId -> {player1 (userId), player2 (userId)}
 export const gameRooms = new Map(); // roomId -> {player1 (socket.id), player2 (socket.id)}
 
-let tournamentsArray = [];
+export let tournamentsArray = [];
 
 // const tournament = {
 // 	tournamentId: 0,
