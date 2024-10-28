@@ -121,7 +121,6 @@ game.on('connection', (socket) => {
 	gameEvents(game, lobby, socket);
 
 	// socket.on('leaveGameRoom', (data) => {
-
 	// });
 
 	socket.on('disconnecting', () => {
