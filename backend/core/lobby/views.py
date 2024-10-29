@@ -41,18 +41,21 @@ class LobbyView(APIView):
 				player1=player1,
 				creator=player1,
 			)
+			print(lobby.linkToJoin)
 			return Response({
-				lobby.linkToJoin,
+				'lobbyId': lobby.linkToJoin,
 			}, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class JoinLobbyView(APIView):
 	def post(self, request):
-		lobby_id = request.data.get('lobby_id')
+		print(request.data)
+		lobbyId = request.data['lobbyId']
+		userId = request.data['userId']
 		try:
-			user = UserAccount.objects.get(id=request.data.get('user_id'))
-			lobby = LobbyData.objects.get(linkToJoin=lobby_id)
+			user = UserAccount.objects.get(id=userId)
+			lobby = LobbyData.objects.get(linkToJoin=lobbyId)
 		except ObjectDoesNotExist:
 			return Response({'message': 'This Lobby does not exists'}, status=status.HTTP_404_NOT_FOUND)
 		if lobby.player1 is not None and lobby.player2 is not None:

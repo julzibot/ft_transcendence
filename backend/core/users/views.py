@@ -16,7 +16,6 @@ from .models import UserAccount
 from friends.models import Friendship
 from .serializers import UserAccountSerializer
 from dashboard.models import DashboardData
-from matchParameters.models import MatchParametersData
 from gameCustomization.models import GameCustomizationData
 
 
@@ -37,12 +36,11 @@ class RegisterView(APIView):
       )
 
       user.save_image_from_url()
-      MatchParametersData.objects.create(user=user)
       DashboardData.objects.create(user=user)
       GameCustomizationData.objects.create(user=user)
       return Response({'success': 'User account successfully created'}, status=status.HTTP_201_CREATED)
     except:
-      return Response({'error': 'An internal error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+      return Response({'error': 'An internal has error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class GetSCRFTokenView(APIView):
