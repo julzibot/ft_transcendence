@@ -705,10 +705,9 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						let velocities = arr.particleEffects[i][0].geometry.attributes.velocity.array;
 						let initialSpeedBoost = 1.;
 						if (particleElapsed < 350)
-						{
-							initialSpeedBoost += 10 - particleElapsed / 400 * 10;
-							arr.particleEffects[i][2].intensity = 3 - (particleElapsed - 400) / 600 * 3;
-						}
+							initialSpeedBoost += 10 - particleElapsed / 350 * 10;
+						else
+							arr.particleEffects[i][2].intensity = 3 - (particleElapsed - 350) / 650 * 3;
 						for (let j = 0; j < positions.length; j += 3) {
 							positions[j] += velocities[j] * initialSpeedBoost * (particleElapsed / 1000);
 							positions[j + 1] += velocities[j + 1] * initialSpeedBoost * (particleElapsed / 1000);
