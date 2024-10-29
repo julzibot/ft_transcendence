@@ -101,7 +101,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				void main()
 				{
 					vec4 color = texture(u_texture, gl_PointCoord);
-					vec4 decay = vec4(1., 1., 1., 1. - u_time / 800.);
+					vec4 decay = vec4(1., 1., 1., 1. - u_time / 600.);
 					gl_FragColor = color * decay;
 				}
 			`;
@@ -336,6 +336,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 					deactivate_power(id, 4, gamemode, p, arr);
 				}
 			}
+			
 			const collisionLogic = (room_id, socket, gamemode, p, arr) => {
 				let p1HB = new THREE.Box3().setFromObject(p.objs.player1);
 				let p2HB = new THREE.Box3().setFromObject(p.objs.player2);
@@ -704,9 +705,9 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						let positions = arr.particleEffects[i][0].geometry.attributes.position.array;
 						let velocities = arr.particleEffects[i][0].geometry.attributes.velocity.array;
 						let initialSpeedBoost = 1.;
-						if (particleElapsed < 350)
-							initialSpeedBoost += 10 - particleElapsed / 350 * 10;
-						else
+						if (particleElapsed < 450)
+							initialSpeedBoost += 10 - particleElapsed / 450 * 10;
+						if (particleElapsed > 350)
 							arr.particleEffects[i][2].intensity = 3 - (particleElapsed - 350) / 650 * 3;
 						for (let j = 0; j < positions.length; j += 3) {
 							positions[j] += velocities[j] * initialSpeedBoost * (particleElapsed / 1000);
