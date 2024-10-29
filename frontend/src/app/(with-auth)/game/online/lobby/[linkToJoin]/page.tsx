@@ -30,6 +30,7 @@ interface Lobby {
 	linkToJoin: string;
 	player1: User;
 	player2: User | null;
+	gameMode: 'TOURNAMENT' | 'ONLINE';
 }
 
 export default function Lobby() {
@@ -94,9 +95,11 @@ export default function Lobby() {
 			})
 			socket.on('startGame', () => {
 				setStart(true);
+
+				socket.disconnect();
 			});
 			return () => {
-				socket.emit('leaveLobby', { userId: session?.user?.id, lobbyId: linkToJoin })
+				socket.disconnect();
 			};
 		}
 		async function fetchGameCustoms(id: number | undefined) {
@@ -146,7 +149,7 @@ export default function Lobby() {
 								gamemode={gameInfos?.game_mode} handleGameEnded={handleGameEnded} />
 						)
 					)}
-					{gameEnded && <EndGameCard callbackUrl={'/game/online/'} />}
+					{gameEnded && <EndGameCard gameMode={lobbyData.gameMode} tournamentLink={lobbyData.tournamentLink ? lobbyData.tournamentLink : null} />}
 				</SocketProvider>
 			}
 		</>

@@ -18,8 +18,15 @@ export const GetTournamentData = async () => {
 	}
 }
 
+interface LobbyForm {
+	name: string,
+	player1: number,
+	difficultyLevel: number,
+	pointsPerGame: number,
+	power_ups: boolean,
+}
 
-export const CreateTournament = async (payload: any) => {
+export const CreateTournament = async (payload: LobbyForm) => {
 	try {
 		const response = await fetch(BACKEND_URL + `/api/tournament/create/`, {
 			method: "POST",
@@ -75,4 +82,16 @@ export const leaveTournament = async (tournamentId: number, userId: number) => {
 	})
 	const data = await response.json()
 	return data
+}
+
+export const startTournament = async (tournamentId: number) => {
+	await fetch(`${BACKEND_URL}/api/tournament/${tournamentId}/start/`, {
+		method: 'PUT',
+		credentials: 'include',
+		headers: {
+			"Content-Type": 'application/json',
+			"X-CSRFToken": Cookies.get('csrftoken') as string
+		}
+	}
+	)
 }

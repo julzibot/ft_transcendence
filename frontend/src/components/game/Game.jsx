@@ -1155,7 +1155,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			p.objs.backB.material.opacity = gameSettings.opacity / 100;
 			p.custom.difficulty = 0.3 + gameSettings.game_difficulty / 6;
 			p.custom.win_score = gameSettings.points_to_win;
-			console.log(`[ThreeScene] p.custom.win_score: ${p.custom.win_score}`);
 			p.custom.power_ups = gameSettings.power_ups;
 			p.custom.sparks = gameSettings.sparks;
 

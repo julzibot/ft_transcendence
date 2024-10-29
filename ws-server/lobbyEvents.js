@@ -54,31 +54,31 @@ export default function gameLobbyEvents(io, socket) {
 		}
 	});
 
-	socket.on('leaveLobby', data => {
-		// userId
-		// lobbyId
-		const { userId, lobbyId } = data;
+	// socket.on('leaveLobby', data => {
+	// 	// userId
+	// 	// lobbyId
+	// 	const { userId, lobbyId } = data;
 
-		const lobby = gameLobbies.get(lobbyId);
+	// 	const lobby = gameLobbies.get(lobbyId);
 
-		if (lobby) {
-			if (lobby.player1 && lobby.player1.id === userId)
-				lobby.player1 = null;
-			if (lobby.player2 && lobby.player2.id === userId)
-				lobby.player2 = null;
-			console.log(`[leaveLobby] ${{ lobby }}`);
-			socket.to(lobbyId).emit('updatedPlayers', lobby);
-		}
-	});
+	// 	if (lobby) {
+	// 		if (lobby.player1 && lobby.player1.id === userId)
+	// 			lobby.player1 = null;
+	// 		if (lobby.player2 && lobby.player2.id === userId)
+	// 			lobby.player2 = null;
+	// 		console.log(`[lobby] [leaveLobby] ${{ lobby }}`);
+	// 		socket.to(lobbyId).emit('updatedPlayers', lobby);
+	// 	}
+	// });
 
-	socket.on('deleteLobby', async (data) => {
-		console.log(`[lobby] [deleteLobby]: ${data}`);
-		io.socketsLeave(data.lobbyId);
-		gameLobbies.delete(data.lobbyId);
-		await fetch(`http://django:${backendPort}/api/lobby/${data.lobbyId}/`, {
-			method: 'DELETE',
-			headers: { 'Content-Type': 'application/json' },
-			credentials: 'include',
-		});
-	});
+	// socket.on('deleteLobby', async (data) => {
+	// 	console.log(`[lobby] [deleteLobby]: ${data}`);
+	// 	io.socketsLeave(data.lobbyId);
+	// 	gameLobbies.delete(data.lobbyId);
+	// 	await fetch(`http://django:${backendPort}/api/lobby/${data.lobbyId}/`, {
+	// 		method: 'DELETE',
+	// 		headers: { 'Content-Type': 'application/json' },
+	// 		credentials: 'include',
+	// 	});
+	// });
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, FormEvent } from 'react'
 import { Button, Modal } from 'react-bootstrap'
 import { GetTournamentData, CreateTournament, joinTournament } from '@/services/tournaments';
 import { useAuth } from '@/app/lib/AuthContext';
@@ -53,7 +53,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		name: '',
 		maxPlayerNumber: 4,
 		timer: 15,
-		pointsPerGame: 10,
+		pointsPerGame: 1,
 		difficultyLevel: "",
 		power_ups: true,
 		isStarted: false,
@@ -79,7 +79,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		}
 	}
 
-	const submitTournament = async (e) => {
+	const submitTournament = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		const payload = {
 			'name': tournamentForm.name,

@@ -1,5 +1,6 @@
 import { BACKEND_URL } from "@/config";
 import Cookies from "js-cookie";
+import { LobbyPayload } from "@/types/Lobby";
 
 export const GetLobbyData = async () => {
 	try {
@@ -18,7 +19,9 @@ export const GetLobbyData = async () => {
 	}
 }
 
-export const AddLobbyData = async (payload: any) => {
+
+
+export const AddLobbyData = async (payload: LobbyPayload | undefined) => {
 	try {
 		const response = await fetch(`${BACKEND_URL}/api/lobby/`, {
 			method: "POST",
@@ -32,17 +35,16 @@ export const AddLobbyData = async (payload: any) => {
 		if (!response.ok) {
 			throw new Error('Network response was not ok')
 		}
-		const data = await response.json()
-		return data
+		const { lobbyId } = await response.json()
+		return lobbyId
 	} catch (error) {
 		console.error('Error adding lobby data:', error)
 		throw error
 	}
 }
 
-export const joinLobby = async (lobbyId: number, userId: number | undefined) => {
+export const JoinLobby = async (lobbyId: string, userId: number) => {
 	try {
-
 		const response = await fetch(BACKEND_URL + '/api/lobby/join/', {
 			method: 'POST',
 			credentials: 'include',
@@ -50,7 +52,7 @@ export const joinLobby = async (lobbyId: number, userId: number | undefined) => 
 				'Content-Type': 'application/json',
 				'X-CSRFToken': Cookies.get('csrftoken') as string
 			},
-			body: JSON.stringify({ lobby_id: lobbyId, user_id: userId }),
+			body: JSON.stringify({ lobbyId: lobbyId, userId: userId }),
 		})
 		const data = await response.json()
 		if (!response.ok)
