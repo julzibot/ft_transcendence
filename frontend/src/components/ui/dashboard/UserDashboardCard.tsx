@@ -14,6 +14,7 @@ import createScoreData from "./ChartDataUtils";
 import { GameMatch, Player } from "./DashboardInterfaces";
 import { DashboardPlaceholder } from "@/components/placeholders/DashboardPlaceholder";
 import { BACKEND_URL } from "@/config";
+import { useAuth } from "@/app/lib/AuthContext";
 
 type UserHistory = {
 	data: Array<GameMatch>
@@ -35,14 +36,17 @@ interface UserDashboardCardProps {
 	user: Player;
 }
 
-const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
+const UserDashboardCard: React.FC<UserDashboardCardProps> = () => {
 
+	const { session } = useAuth();
 	const [DashboardData, setDashboardData] = useState<DashboardItems | null>(null);
+	const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
+	const [userHistoryFetched, setUserHistoryFetched] = useState<Boolean>(false);
 
 	useEffect(() => {
-		if (user.id) {
+		if (session?.user?.id) {
 			const fetchDashboardDetail = async () => {
-				const response = await fetch(`${BACKEND_URL}/api/dashboard/${user.id}`, {
+				const response = await fetch(`${BACKEND_URL}/api/dashboard/${session?.user?.id}`, {
 					method: "GET",
 					credentials: 'include'
 				});
@@ -55,15 +59,8 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 				}
 			};
 			fetchDashboardDetail();
-		}
-	}, [user.id]);
-
-	const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
-	const [userHistoryFetched, setUserHistoryFetched] = useState<Boolean>(false);
-	useEffect(() => {
-		if (user.id) {
 			const fetchUserHistory = async () => {
-				const response = await fetch(`${BACKEND_URL}/api/game/history/user/${user.id}`, {
+				const response = await fetch(`${BACKEND_URL}/api/game/history/user/${session?.user?.id}`, {
 					method: "GET",
 					credentials: 'include'
 				});
@@ -82,7 +79,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 			};
 			fetchUserHistory();
 		}
-	}, [user.id]);
+	}, []);
 
 	// Data
 	const [dataCreated, setDataCreated] = useState(false);
@@ -104,24 +101,28 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 	const [statsToggle, setStatsToggle] = useState(true);
 
 	useEffect(() => {
-		if (user.id && userHistoryFetched && !dataCreated) {
+		if (userHistoryFetched && !dataCreated) {
 			if (!userHistory) {
+				console.log(`[Dashboard] No user history setting dataCreated to true`);
 				setDataCreated(true);
 				return;
 			}
+			console.log(`[UserHistory] ${JSON.stringify(userHistory)}`);
 
 			setWinData([]);
 			setLossData([]);
 			setActivityData([]);
 
-			createScoreData(
-				user.id, userHistory.data,
-				winData, setWinData,
-				lossData, setLossData,
-				activityData, setActivityData,
-				gameModesData, setGameModesData,
-				maxY, setMaxY,
-				minDate, setMinDate);
+			console.log(`[Dashboard post-createScoreData() setting dataCreated to true`);
+			// createScoreData(
+			// session?.user?.id, userHistory.data,
+			// winData, setWinData,
+			// lossData, setLossData,
+			// activityData, setActivityData,
+			// gameModesData, setGameModesData,
+			// maxY, setMaxY,
+			// minDate, setMinDate);
+			console.log(`[Dashboard post-createScoreData() setting dataCreated to true`);
 			setDataCreated(true);
 		}
 	}, [userHistoryFetched, dataCreated]);
@@ -240,73 +241,73 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = ({ user }) => {
 
 														let player2: Player | null = null;
 														if (obj.game_mode === 2 || obj.game_mode === 3) {
-															player2 = obj.player1.id === user.id ? obj.player2 : obj.player1;
+															player2 = obj.player1.id === session?.user?.id ? obj.player2 : obj.player1;
 														}
 
-													return (
-														<div key={index} className={`match_item match_item_link ${cardColor}`}>
-															<div className="match_item_bg"></div>
-															<div className="match_item_game_mode">{cardColor}</div>
-															<div className="match_item_title">
-																{new Date(obj.date).toLocaleDateString()}
-															</div>
-															<div className="match_item_date-box">
-																{
-																	<table className="table match-table">
-																		<thead>
-																			<tr className='match-table'>
-																				<th className='match-table-row' scope='col'>
-																					<div className="d-flex flex-row align-items-center justify-content-evenly">
-																						<div className="flex-column position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
-																						<img
-                    style={{
-                      objectFit: 'cover',
-                      width: '100%',
-                      height: '100%',
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)'
-                    }}
-                    fetchPriority="high"
-                    alt="profile picture"
-                    src={`${BACKEND_URL}${user.image}`}
-                  />
-																						</div>
-																						<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>
-																							{user.username}
-																						</span>
-																					</div>
-																				</th>
-																				<th className='match-table-row' scope='col'>vs</th>
-																				{
-																					player2 ?
-																						<th className='match-table-row' scope='col'>
-																							<div className="d-flex flex-row align-items-center justify-content-evenly">
-
-																								<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>{player2.username}</span>
-																								<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+														return (
+															<div key={index} className={`match_item match_item_link ${cardColor}`}>
+																<div className="match_item_bg"></div>
+																<div className="match_item_game_mode">{cardColor}</div>
+																<div className="match_item_title">
+																	{new Date(obj.date).toLocaleDateString()}
+																</div>
+																<div className="match_item_date-box">
+																	{
+																		<table className="table match-table">
+																			<thead>
+																				<tr className='match-table'>
+																					<th className='match-table-row' scope='col'>
+																						<div className="d-flex flex-row align-items-center justify-content-evenly">
+																							<div className="flex-column position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
 																								<img
-                    style={{
-                      objectFit: 'cover',
-                      width: '100%',
-                      height: '100%',
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)'
-                    }}
-                    fetchPriority="high"
-                    alt="profile picture"
-                    src={`${BACKEND_URL}${player2.image}`}
-                  />
-																								</div>
+																									style={{
+																										objectFit: 'cover',
+																										width: '100%',
+																										height: '100%',
+																										position: 'absolute',
+																										top: '50%',
+																										left: '50%',
+																										transform: 'translate(-50%, -50%)'
+																									}}
+																									fetchPriority="high"
+																									alt="profile picture"
+																									src={`${BACKEND_URL}${session?.user?.image}`}
+																								/>
 																							</div>
-																						</th>
-																						:
-																						(
+																							<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>
+																								{session?.user?.username}
+																							</span>
+																						</div>
+																					</th>
+																					<th className='match-table-row' scope='col'>vs</th>
+																					{
+																						player2 ?
 																							<th className='match-table-row' scope='col'>
-																								<div className="d-flex flex-row align-items-center">
+																								<div className="d-flex flex-row align-items-center justify-content-evenly">
+
+																									<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>{player2.username}</span>
+																									<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+																										<img
+																											style={{
+																												objectFit: 'cover',
+																												width: '100%',
+																												height: '100%',
+																												position: 'absolute',
+																												top: '50%',
+																												left: '50%',
+																												transform: 'translate(-50%, -50%)'
+																											}}
+																											fetchPriority="high"
+																											alt="profile picture"
+																											src={`${BACKEND_URL}${player2.image}`}
+																										/>
+																									</div>
+																								</div>
+																							</th>
+																							:
+																							(
+																								<th className='match-table-row' scope='col'>
+																									<div className="d-flex flex-row align-items-center">
 
 																										<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>Guest</span>
 																										<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
