@@ -40,17 +40,16 @@ export const AddLobbyData = async (payload: {
 		if (!response.ok) {
 			throw new Error('Network response was not ok')
 		}
-		const data = await response.json()
-		return data
+		const { lobbyId } = await response.json()
+		return lobbyId
 	} catch (error) {
 		console.error('Error adding lobby data:', error)
 		throw error
 	}
 }
 
-export const JoinLobby = async (lobbyId: string, userId: number | undefined) => {
+export const JoinLobby = async (lobbyId: string, userId: number) => {
 	try {
-
 		const response = await fetch(BACKEND_URL + '/api/lobby/join/', {
 			method: 'POST',
 			credentials: 'include',
@@ -58,7 +57,7 @@ export const JoinLobby = async (lobbyId: string, userId: number | undefined) => 
 				'Content-Type': 'application/json',
 				'X-CSRFToken': Cookies.get('csrftoken') as string
 			},
-			body: JSON.stringify({ lobby_id: lobbyId, user_id: userId }),
+			body: JSON.stringify({ lobbyId: lobbyId, userId: userId }),
 		})
 		const data = await response.json()
 		if (!response.ok)

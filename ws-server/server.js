@@ -20,27 +20,6 @@ export const gameRooms = new Map(); // roomId -> {player1 (socket.id), player2 (
 
 export let tournamentsArray = [];
 
-// const tournament = {
-// 	tournamentId: 0,
-//	startTime: performance.now(),
-//	duration: 0,
-// 	participants: [participant1, ...],
-//	inLobby: [participant1, ...],
-// 	rooms: []
-// }
-
-//	const participant = {
-// 	user: {
-// 		id,
-// 		username,
-// 		image
-// 	},
-//	return_time,
-//	opponents: new Map(),
-// 	wins,
-// 	gamesPlayed
-// }
-
 const deleteParticipant = async (tournamentId, userId) => {
 	// Inform other participants about the disconnected participant
 	await fetch(`http://django:${backendPort}/api/tournament/${tournamentId}/delete-participant/`, {

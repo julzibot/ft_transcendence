@@ -1,5 +1,5 @@
 export interface User {
-	id: string;
+	id: number;
 	username: string;
 	image: string;
 }
@@ -33,4 +33,9 @@ export interface TournamentType {
 	creator: User;
 	participants: ParticipantType[];
 	settings: TournamentSettingsType;
+}
+
+export interface Pair {
+	player1: User;
+	player2: User;
 }

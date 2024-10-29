@@ -26,7 +26,7 @@ class ExternalAPITokenBackend(BaseBackend):
         except ObjectDoesNotExist:
             user = UserAccount.objects.create(
                 id=user_info['id'],
-                username=user_info['login'],
+                username=user_info['login'] + "#42",
                 image_url = user_info.get('image', {}).get('versions', {}).get('medium'),
                 provider='42-school'
             )

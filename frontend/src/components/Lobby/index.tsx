@@ -70,7 +70,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 		e.preventDefault()
 		const payload = {
 			'name': lobbyForm.name,
-			'difficultyLevel': lobbyForm.difficultyLevel,
+			'difficultyLevel': Number(lobbyForm.difficultyLevel),
 			'pointsPerGame': lobbyForm.pointsPerGame,
 			'power_ups': lobbyForm.power_ups,
 			'player1': session?.user?.id
@@ -93,6 +93,10 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 	useEffect(() => {
 		fetchLobbyData()
 	}, [])
+
+	useEffect(() => {
+		console.log(lobbyForm)
+	}, [lobbyForm])
 
 
 	return (
@@ -145,7 +149,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 								</div>
 								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">
 									<div className="d-flex flex-row align-items-center">
-										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{lobby.creator.username}</span>
+										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(70%)' }}>{lobby.creator.username}</span>
 										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '40px', height: '40px', overflow: 'hidden' }}>
 											<img
 												style={{
@@ -229,19 +233,19 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 								id="difficultyLevel"
 								value={lobbyForm.difficultyLevel}
 								onChange={(e) =>
-									setLobbyForm({ ...lobbyForm, difficultyLevel: parseInt(e.target.value) })
+									setLobbyForm({ ...lobbyForm, difficultyLevel: e.target.value })
 								}
 							>
-								<option value="" disabled>
+								<option value={""} disabled>
 									Select Game Difficulty
 								</option>
-								<option value={1}>Granny</option>
-								<option value={2}>Boring</option>
-								<option value={3}>Still Slow</option>
-								<option value={4}>Kinda OK</option>
-								<option value={5}>Now We are Talking</option>
-								<option value={6}>Madman</option>
-								<option value={7}>Legend</option>
+								<option value={"1"}>Granny</option>
+								<option value={"2"}>Boring</option>
+								<option value={"3"}>Still Slow</option>
+								<option value={"4"}>Kinda OK</option>
+								<option value={"5"}>Now We are Talking</option>
+								<option value={"6"}>Madman</option>
+								<option value={"7"}>Legend</option>
 							</select>
 							<label className="text-danger form-label" htmlFor="difficultyLevel">{errorField.difficultyMissing}</label>
 						</div>

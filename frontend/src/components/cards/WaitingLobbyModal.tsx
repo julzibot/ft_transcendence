@@ -1,7 +1,8 @@
 import { BACKEND_URL } from '@/config';
 import { Spinner } from 'react-bootstrap';
 
-export default function WaitingLobbyModal({ players }) {
+export default function WaitingLobbyModal({ players }: { players: any }) {
+
 	return (
 		<div className={`modal fade show d-block`} id="staticBackDrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1}>
 			<div className={`modal-dialog modal-lg modal-dialog-centered`}>
