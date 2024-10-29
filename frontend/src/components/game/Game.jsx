@@ -101,7 +101,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				void main()
 				{
 					vec4 color = texture(u_texture, gl_PointCoord);
-					vec4 decay = vec4(1., 1., 1., 1. - u_time / 600.);
+					vec4 decay = vec4(1., 1., 1., 1. - u_time / 500.);
 					gl_FragColor = color * decay;
 				}
 			`;
@@ -260,13 +260,13 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				let vecx = 0.0;
 				let vecy = 0.0;
 				let vecz = 0.0;
-				for (let i = 0.0; i < speedFactor * Math.abs(p.vars.dotProduct) * 25; i++) {
+				for (let i = 0.0; i < speedFactor * Math.abs(p.vars.dotProduct) * 20; i++) {
 					vertices.push(x, y, z);
-					vecx = THREE.MathUtils.randFloatSpread(0.8 * speedFactor);
+					vecx = THREE.MathUtils.randFloatSpread(0.9 * speedFactor);
 					vecy = (THREE.MathUtils.randFloatSpread(0.1 * speedFactor) + 0.1 * speedFactor) * -topDownRebound;
-					vecz = THREE.MathUtils.randFloatSpread(0.5 * speedFactor);
+					vecz = THREE.MathUtils.randFloatSpread(0.4 * speedFactor);
 					speedVecs.push(vecx, vecy, vecz);
-					sizes.push(particleSize * Math.max(1.1 - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.25));
+					sizes.push(particleSize * Math.max(1.15 - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.2));
 				}
 				const geometry = new THREE.BufferGeometry();
 				geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
@@ -705,8 +705,8 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						let positions = arr.particleEffects[i][0].geometry.attributes.position.array;
 						let velocities = arr.particleEffects[i][0].geometry.attributes.velocity.array;
 						let initialSpeedBoost = 1.;
-						if (particleElapsed < 450)
-							initialSpeedBoost += 10 - particleElapsed / 450 * 10;
+						if (particleElapsed < 400)
+							initialSpeedBoost += 10 - particleElapsed / 400 * 10;
 						if (particleElapsed > 350)
 							arr.particleEffects[i][2].intensity = 3 - (particleElapsed - 350) / 650 * 3;
 						for (let j = 0; j < positions.length; j += 3) {
