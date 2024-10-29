@@ -19,6 +19,7 @@ import Cookies from 'js-cookie';
 // // 3 -> Tournament (?)
 export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode, handleGameEnded }) {
 
+	console.log(`[ThreeScene] Game Settings: ${JSON.stringify(gameSettings)}`);
 	const containerRef = useRef(null);
 	const animationFrameIdRef = useRef();
 	const stopAnim = useRef(false);
@@ -28,7 +29,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	p.csts = {};
 	p.vars = {};
 	p.custom = {};
-
 	p.keys = {};
 	p.tools = {};
 	const trail = {};
@@ -98,9 +98,9 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		
 				void main()
 				{
-				vec4 color = texture(u_texture, gl_PointCoord);
-				vec4 decay = vec4(1., 1., 1., 1. - u_time / 800.);
-				gl_FragColor = color * decay;
+					vec4 color = texture(u_texture, gl_PointCoord);
+					vec4 decay = vec4(1., 1., 1., 1. - u_time / 800.);
+					gl_FragColor = color * decay;
 				}
 			`;
 
@@ -237,7 +237,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			}
 
 			const createSparks = (p, arr) => {
-				let topDownRebound = p.objs.ball.position.y > 0 ? 1 : 0;
+				let topDownRebound = p.objs.ball.position.y > 0 ? 1 : -1;
 
 				const vertices = [];
 				const speedVecs = [];
@@ -246,12 +246,12 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				p.vars.dotProduct = p.vars.ballVect.dot(p.csts.gameVect);
 				if (speedFactor < 0.3)
 					speedFactor = 0.3;
-				const particleSize = Math.max(1., speedFactor * 3.);
+				const particleSize = Math.max(1., speedFactor * 2.5);
 				let x = p.objs.ball.position.x;
 				let y = p.objs.ball.position.y + topDownRebound * (CONST.BALLRADIUS * 3 / 2);
 				let z = p.objs.ball.position.z;
-				let light = new THREE.PointLight(p.objs.ball.material.color, 15, 42);
-				light.position.set(x, y, z);
+				let light = new THREE.PointLight(p.objs.ball.material.color, 3, 42);
+				light.position.set(x, p.objs.ball.position.y, z);
 				let vecx = 0.0;
 				let vecy = 0.0;
 				let vecz = 0.0;
@@ -261,7 +261,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 					vecy = (THREE.MathUtils.randFloatSpread(0.1 * speedFactor) + 0.1 * speedFactor) * -topDownRebound;
 					vecz = THREE.MathUtils.randFloatSpread(0.5 * speedFactor);
 					speedVecs.push(vecx, vecy, vecz);
-					sizes.push(particleSize * Math.max(1.3 * speedFactor - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.3));
+					sizes.push(particleSize * Math.max(1.1 - 4 * Math.sqrt(vecx * vecx + vecy * vecy + vecz * vecz), 0.25));
 				}
 				const geometry = new THREE.BufferGeometry();
 				geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
@@ -279,7 +279,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				});
 				let points = new THREE.Points(geometry, material);
 				const impactTime = performance.now();
-				arr.particleEffects.push([points, impactTime, light]);
+				arr.particleEffects.push([points, impactTime, light, true]);
 				p.tools.scene.add(points);
 				p.tools.scene.add(light);
 			}
@@ -674,31 +674,35 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				p.vars.glowElapsed = performance.now() - p.vars.glowStartTime;
 				if (p.vars.glowElapsed < 750 && arr.activated_powers[0][4] != 2 && arr.activated_powers[1][4] != 2) {
 					if (p.vars.glowElapsed < 100) {
-						p.objs.ball.material.emissiveIntensity = 0.95;
-						p.csts.ballLight.intensity = 15;
+						p.objs.ball.material.emissiveIntensity = 2.;
+						p.csts.ballLight.intensity = 30;
 					}
 					else {
-						p.objs.ball.material.emissiveIntensity = 0.95 - (p.vars.glowElapsed / 750 * 0.7);
-						p.csts.ballLight.intensity = 15 - (p.vars.glowElapsed / 750 * 10);
+						p.objs.ball.material.emissiveIntensity = 2. - (p.vars.glowElapsed / 750 * 1.7);
+						p.csts.ballLight.intensity = 30 - (p.vars.glowElapsed / 750 * 27);
 					}
 				}
 
 				let particleElapsed = 0;
 				for (let i = 0; i < arr.particleEffects.length; i++) {
 					particleElapsed = performance.now() - arr.particleEffects[i][1];
-					if (particleElapsed > 600) {
-						p.tools.scene.remove(arr.particleEffects[0][0]);
-						if (particleElapsed > 1000) {
-							p.tools.scene.remove(arr.particleEffects[0][2]);
-							arr.particleEffects.shift();
-						}
+					if (particleElapsed > 600 && arr.particleEffects[i][3] === true) {
+						p.tools.scene.remove(arr.particleEffects[i][0]);
+						arr.particleEffects[i][3] = false;
+					}
+					if (particleElapsed > 1000) {
+						p.tools.scene.remove(arr.particleEffects[i][2]);
+						arr.particleEffects.splice(i, 1);
 					}
 					else {
 						let positions = arr.particleEffects[i][0].geometry.attributes.position.array;
 						let velocities = arr.particleEffects[i][0].geometry.attributes.velocity.array;
 						let initialSpeedBoost = 1.;
-						if (particleElapsed < 250)
-							initialSpeedBoost += 1 - particleElapsed / 250;
+						if (particleElapsed < 350)
+						{
+							initialSpeedBoost += 10 - particleElapsed / 400 * 10;
+							arr.particleEffects[i][2].intensity = 3 - (particleElapsed - 400) / 600 * 3;
+						}
 						for (let j = 0; j < positions.length; j += 3) {
 							positions[j] += velocities[j] * initialSpeedBoost * (particleElapsed / 1000);
 							positions[j + 1] += velocities[j + 1] * initialSpeedBoost * (particleElapsed / 1000);
@@ -706,8 +710,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						}
 						arr.particleEffects[i][0].geometry.attributes.position.needsUpdate = true;
 						arr.particleEffects[i][0].geometry.attributes.size.needsUpdate = true;
-						if (particleElapsed > 250)
-							sparkUniform.u_time.value = particleElapsed;
+						sparkUniform.u_time.value = particleElapsed;
 					}
 				}
 			}
