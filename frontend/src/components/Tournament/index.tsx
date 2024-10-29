@@ -8,7 +8,6 @@ import DOMPurify from 'dompurify';
 import { TournamentSettingsType } from '@/types/TournamentSettings'
 import { PersonFillUp, Controller, Toggle2On, Toggle2Off, LightningFill, ClockFill, Activity, TrophyFill, Alphabet, CircleFill } from 'react-bootstrap-icons'
 import { BACKEND_URL } from '@/config';
-import Link from 'next/link'
 import { CustomTooltip } from '../Utils/Tooltip';
 import { useRouter } from 'next/navigation'
 import './styles.css'
@@ -50,7 +49,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 
 	const [tournamentData, setTournamentData] = useState<Tournament[] | null>([])
 	const [modalShow, setModalShow] = useState(false);
-	const [tournamentForm, setTournamentForm] = useState<TournamentSettingsType>({
+	const [tournamentForm, setTournamentForm] = useState({
 		name: '',
 		maxPlayerNumber: 4,
 		timer: 15,
@@ -80,20 +79,13 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		}
 	}
 
-	const submitTournament = async () => {
-		if (tournamentForm.name.trim() === '') {
-			setErrorField({ ...errorField, nameMissing: 'Tournament Name is Required' })
-			return
-		}
-		if (tournamentForm.difficultyLevel === 0) {
-			setErrorField({ ...errorField, difficultyMissing: 'Select a difficulty' })
-			return
-		}
+	const submitTournament = async (e) => {
+		e.preventDefault()
 		const payload = {
 			'name': tournamentForm.name,
 			'maxPlayerNumber': tournamentForm.maxPlayerNumber,
 			'timer': tournamentForm.timer,
-			'difficultyLevel': tournamentForm.difficultyLevel,
+			'difficultyLevel': Number(tournamentForm.difficultyLevel),
 			'pointsPerGame': tournamentForm.pointsPerGame,
 			'power_ups': tournamentForm.power_ups,
 			'creator': session?.user?.id
@@ -181,7 +173,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 								</div>
 								<div className="border-end col-3 d-flex justify-content-center align-items-center text-truncate">
 									<div className="d-flex flex-row align-items-center">
-										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{tournament.creator.username}</span>
+										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(70%)' }}>{tournament.creator.username}</span>
 										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '45px', height: '45px', overflow: 'hidden' }}>
 											<img
 												style={{
@@ -301,17 +293,19 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 									id="difficultyLevel"
 									value={tournamentForm.difficultyLevel}
 									onChange={(e) =>
-										setTournamentForm({ ...tournamentForm, difficultyLevel: parseInt(e.target.value) })
+										setTournamentForm({ ...tournamentForm, difficultyLevel: e.target.value })
 									}
 								>
-									<option disabled value={""}>Select Game Difficulty</option>
-									<option value={1}>Granny</option>
-									<option value={2}>Boring</option>
-									<option value={3}>Still Slow</option>
-									<option value={4}>Kinda OK</option>
-									<option value={5}>Now We are Talking</option>
-									<option value={6}>Madman</option>
-									<option value={7}>Legend</option>
+									<option value={""} disabled>
+										Select Game Difficulty
+									</option>
+									<option value={"1"}>Granny</option>
+									<option value={"2"}>Boring</option>
+									<option value={"3"}>Still Slow</option>
+									<option value={"4"}>Kinda OK</option>
+									<option value={"5"}>Now We are Talking</option>
+									<option value={"6"}>Madman</option>
+									<option value={"7"}>Legend</option>
 								</select>
 								<label className="text-danger form-label" htmlFor="difficultyLevel">{errorField.difficultyMissing}</label>
 							</div>

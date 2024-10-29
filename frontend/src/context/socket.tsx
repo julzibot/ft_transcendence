@@ -10,15 +10,19 @@ export function SocketProvider({ children, nsp }: { children: React.ReactNode, n
 	const [socket, setSocket] = useState<Socket | null>(null);
 
 	useEffect(() => {
-		console.log(nsp)
-		const newSocket = io(`https://${DOMAIN_NAME}:${SOCKET_PORT}/layout`, {
+		const newSocket = io(`https://${DOMAIN_NAME}:${SOCKET_PORT}${nsp}`, {
 			transports: ['websocket'],
 			secure: true
 		});
 
-		setSocket(newSocket)
+		setSocket(newSocket);
+		newSocket.on('connect', () => {
+			console.log(`[SocketProvider] Entering namespace: ${nsp}`);
+		});
 
 		return (() => {
+
+			console.log(`[SocketProvider] Leaving namespace: ${nsp}`);
 			newSocket.disconnect();
 		})
 

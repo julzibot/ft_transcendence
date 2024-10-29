@@ -1,7 +1,8 @@
 import { BACKEND_URL } from '@/config';
 import { Spinner } from 'react-bootstrap';
 
-export default function WaitingLobbyModal({ players }) {
+export default function WaitingLobbyModal({ players }: { players: any }) {
+
 	return (
 		<div className={`modal fade show d-block`} id="staticBackDrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1}>
 			<div className={`modal-dialog modal-lg modal-dialog-centered`}>
@@ -61,7 +62,7 @@ export default function WaitingLobbyModal({ players }) {
 							) : (
 								<div className="d-flex col-6" style={{ height: '100px' }}>
 									<div className="ms-5 ps-3 d-flex flex-row align-items-center">
-										<h3 className="placeholder-wave placeholder col-10 me-4"></h3>
+										<h3 className="placeholder col-9 me-4"></h3>
 										<div className="d-flex justify-content-center">
 											<Spinner className=" border-dark-subtle" animation="border" style={{ width: '99px', height: '99px', borderWidth: "3px", borderRight: "none", borderLeft: "none", borderBottom: "none", animationDuration: "0.8s" }} />
 										</div>

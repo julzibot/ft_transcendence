@@ -47,6 +47,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	g.p1Name = "";
 	g.p2Name = "";
 	g.startTime = performance.now();
+	g.lastConnected = false;
 	if (typeof window !== 'undefined') {
 		p.tools.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -68,6 +69,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	let socket = -1;
 	// if (gamemode === 2)
 	socket = useSocketContext();
+
 	initVars(p.objs, p.csts, p.vars, p.custom);
 
 
@@ -228,9 +230,12 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						p.vars.endString = `GAME ENDED\n${g.p2Name} WINS`;
 
 					printGameInfo(p.vars.endMsgMesh, p.vars.endString, 5, -1, 3, p);
-					const put_response = PutScores(gamemode, g.game_id, p);
-					if (put_response == false)
-						console.log("Ouch ! Scores not updated !")
+					console.log(`[ThreeScene] [Scoring Logic] p1: ${p.vars.p1score} p2: ${p.vars.p2score}`);
+					if (isHost || g.lastConnected) {
+						const put_response = PutScores(gamemode, g.game_id, p);
+						if (put_response == false)
+							console.log("Ouch ! Scores not updated !")
+					}
 					p.vars.stopGame = 2;
 					handleGameEnded();
 				}
@@ -652,6 +657,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				let putPath = 'local';
 				if (gameMode >= 2)
 					putPath = 'online';
+				console.log(`[ThreeScene] [PutScores] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`)
 				const response = await fetch(BACKEND_URL + `/api/game/${putPath}/update/${game_id}`,
 					{
 						method: 'PUT',
@@ -1049,6 +1055,20 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						}
 					})
 				}
+				socket.on('playerDisconnected', () => {
+					console.log(`[ThreeScene] The other player has disconnected`);
+					if (isHost) {
+						p.vars.p1Score = p.custom.win_score;
+						p.vars.p2Score = 0;
+					}
+					else {
+						p.vars.p2Score = p.custom.win_score;
+						p.vars.p1Score = 0;
+						g.lastConnected = true;
+					}
+					p.vars.stopGame = 1;
+					console.log(`[ThreeScene] [playerDisconnected] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`);
+				});
 			}
 
 			const getColorVector3 = (bgColor) => {
@@ -1135,6 +1155,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			p.objs.backB.material.opacity = gameSettings.opacity / 100;
 			p.custom.difficulty = 0.3 + gameSettings.game_difficulty / 6;
 			p.custom.win_score = gameSettings.points_to_win;
+			console.log(`[ThreeScene] p.custom.win_score: ${p.custom.win_score}`);
 			p.custom.power_ups = gameSettings.power_ups;
 			p.custom.sparks = gameSettings.sparks;
 

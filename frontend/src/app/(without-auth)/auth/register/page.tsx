@@ -25,7 +25,7 @@ export default function RegisterForm() {
       rePass: formData.get('rePass'),
     })
     if (!validatedFields.success) {
-      setFormState({errors: validatedFields.error.flatten().fieldErrors})
+      setFormState({ errors: validatedFields.error.flatten().fieldErrors })
     }
     else {
       const { username, password, rePass } = validatedFields.data;
@@ -43,11 +43,11 @@ export default function RegisterForm() {
           rePass,
         }),
       });
-      if(response.status === 201)
+      if (response.status === 201)
         router.push('/auth/signin')
       const data = await response.json()
-      setFormState({message: data.error})
-      }
+      setFormState({ message: data.error })
+    }
     setPending(false)
   }
 
@@ -64,31 +64,38 @@ export default function RegisterForm() {
                   <strong>Username*</strong>
                 </label>
                 <input
+                  required
                   type="text"
                   name="username"
                   id="username"
                   className="form-control"
                 />
                 <p className="form-text fst-italic ">A unique username that will be displayed to other players</p>
-                {formState?.errors?.username && <p className="text-danger">{formState.errors.username}</p>}
+                {formState?.errors?.username && formState?.errors?.username.map((error, index) => (
+                  <div className="form-label" key={index} className="text-danger">{error}</div>)
+                )}
               </div>
               <div className="mb-3 form-group">
                 <label htmlFor="password" className="form-label">
                   <strong>Password*</strong>
                 </label>
                 <input
+                  required
                   type="password"
                   name="password"
                   id="password"
                   className="form-control"
                 />
-                {formState?.errors?.password && <p className="text-danger">{formState.errors.password}</p>}
+                {formState?.errors?.password && formState?.errors?.password.map((error, index) => (
+                  <div key={index} className="text-danger">{error}</div>)
+                )}
               </div>
               <div className="mb-3 form-group">
                 <label htmlFor="re-password" className="form-label">
                   <strong>Confirm Password*</strong>
                 </label>
                 <input
+                  required
                   type="password"
                   name="rePass"
                   id="rePass"
@@ -97,7 +104,7 @@ export default function RegisterForm() {
                 {formState?.errors?.rePass && <p className="text-danger">{formState.errors.rePass}</p>}
               </div>
               {formState?.message && <p className="text-danger">{formState.message}</p>}
-              <SubmitButton pending={pending}/>
+              <SubmitButton pending={pending} />
             </form>
           </div>
           <div className="card-footer">
@@ -106,13 +113,13 @@ export default function RegisterForm() {
               <button className="ms-2 btn btn-primary btn-sm">Sign In</button>
             </Link>
           </div>
-        </div>
-      </div>
+        </div >
+      </div >
     </>
   )
 }
 
-function SubmitButton({pending}: {pending: boolean}) {
+function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <button disabled={pending} type="submit" className="btn btn-dark fw-bold mt-2">
       {
