@@ -94,9 +94,10 @@ export default function Lobby() {
 			})
 			socket.on('startGame', () => {
 				setStart(true);
+				socket.disconnect();
 			});
 			return () => {
-				socket.emit('leaveLobby', { userId: session?.user?.id, lobbyId: linkToJoin })
+				socket.disconnect();
 			};
 		}
 		async function fetchGameCustoms(id: number | undefined) {

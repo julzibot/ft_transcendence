@@ -20,6 +20,48 @@ export const gameRooms = new Map(); // roomId -> {player1 (socket.id), player2 (
 
 export let tournamentsArray = [];
 
+// setInterval(() => {
+
+// 	console.log(`[Interval] Checking lobbies...`);
+// 	lobbyUsers.forEach((user, socketId) => {
+// 		if (!lobby.socket.has(socketId)) {
+
+// 			for (const [lobbyId, lobby] of gameLobbies.entries()) {
+// 				if (lobby.player1 === user.userId || lobby.player2 === user.userId) {
+// 					if (lobby.player1 === user.userId)
+// 						lobby.player1 = null;
+// 					else if (lobby.player2 === user.userId)
+// 						lobby.player2 = null;
+// 					if (lobby.player1 === null && lobby.player2 === null) {
+// 						gameLobbies.delete(lobbyId);
+// 					}
+// 					break;
+// 				}
+// 			}
+// 			lobbyUsers.delete(socketId);
+// 		}
+// 	});
+
+// 	gameUsers.forEach((player, socketId) => {
+// 		if (!game.socket.has(socketId)) {
+
+// 			for (const [gameId, gameRoom] of gameRooms.entries()) {
+// 				if (gameRoom.player1 === socketId || gameRoom.player2 === socketId) {
+// 					if (gameRoom.player1 === socketId)
+// 						gameRoom.player1 = null;
+// 					else if (gameRoom.player2 === socketId)
+// 						gameRoom.player2 = null;
+// 					if (gameRoom.player1 === null && gameRoom.player2 === null) {
+// 						gameRooms.delete(gameId);
+// 					}
+// 					break;
+// 				}
+// 			}
+// 			gameUsers.delete(socketId);
+// 		}
+// 	});
+// }, 300000); // 5 mins
+
 // const tournament = {
 // 	tournamentId: 0,
 //	startTime: performance.now(),
@@ -65,7 +107,7 @@ const io = new Server(server, {
 	}
 });
 
-export const lobby = io.of('/lobby');
+const lobby = io.of('/lobby');
 const game = io.of('/game');
 const tournament = io.of('/tournament');
 
@@ -76,7 +118,6 @@ lobby.on('connection', async (socket) => {
 	lobbyEvents(lobby, socket);
 
 	socket.on('disconnect', async () => {
-		console.log('[lobby] User disconnected => ' + socket.id);
 		const disconnectedUser = lobbyUsers.get(socket.id);
 		if (!disconnectedUser) {
 			console.log(`[lobby] [disconnect] Player not found`);
@@ -118,7 +159,6 @@ lobby.on('connection', async (socket) => {
 
 // GAME
 game.on('connection', (socket) => {
-
 	console.log('[game] New connection: ' + socket.id);
 
 	gameEvents(game, lobby, socket);
@@ -148,11 +188,11 @@ game.on('connection', (socket) => {
 			if (room.player1 === socket.id || room.player2 === socket.id) {
 				if (room.player1 === socket.id) {
 					room.player1 = null;
-					console.log(`[game] [disconnecting] Player1 disconnected. Informing room: ${JSON.stringify(room)}`);
+					console.log(`[game] [disconnection] Player1 disconnected. Informing room: ${JSON.stringify(room)}`);
 				}
 				else if (room.player2 === socket.id) {
 					room.player2 = null;
-					console.log(`[game] [disconnecting] Player2 disconnected. Informing room: ${JSON.stringify(room)}`);
+					console.log(`[game] [disconnection] Player2 disconnected. Informing room: ${JSON.stringify(room)}`);
 				}
 				socket.to(roomId).emit('playerDisconnected');
 				gameUsers.delete(socket.id);
