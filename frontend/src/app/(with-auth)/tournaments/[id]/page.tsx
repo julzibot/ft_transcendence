@@ -103,7 +103,7 @@ export default function TournamentLobby() {
 				setParticipantsList(data);
 			})
 			socket.on('getMatchPair', (data) => {
-				console.log("PAIR RECEIVED: " + data.pair)
+				console.log("PAIR RECEIVED: " + data.pair);
 			});
 		}
 	}, [socket]);
