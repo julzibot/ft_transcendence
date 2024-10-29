@@ -21,7 +21,6 @@ export function SocketProvider({ children, nsp }: { children: React.ReactNode, n
 		});
 
 		return (() => {
-
 			console.log(`[SocketProvider] Leaving namespace: ${nsp}`);
 			newSocket.disconnect();
 		})
