@@ -39,6 +39,7 @@ interface Lobby {
 	isStarted: boolean,
 	linkToJoin: string,
 	creator: User,
+	gameMode: 'TOURNAMENT' | 'ONLINE'
 }
 
 export default function Lobby({ setToastShow, setErrorField, errorField }: LobbyProps) {
@@ -94,9 +95,6 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 		fetchLobbyData()
 	}, [])
 
-	useEffect(() => {
-		console.log(lobbyForm)
-	}, [lobbyForm])
 
 
 	return (
@@ -137,9 +135,9 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 					lobbyData && lobbyData.length === 0 && <h2 className="text-center mt-5 pt-5">No Games Available</h2>
 				}
 				{
-					lobbyData && lobbyData.map((lobby: Lobby, index: number) => {
-						return (
-							<div
+					lobbyData && lobbyData.map((lobby: Lobby, index: number) => (lobby.gameMode === 'ONLINE' &&
+						<>
+							< div
 								key={index}
 								onClick={() => handleJoin(lobby.linkToJoin, lobby.linkToJoin)}
 								className={`${lobby.isFull ? 'disabled' : ''} ${lobbyData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} lobby-entry d-flex flex-row align-items-center justify-content-evenly fw-bold fs-5`}
@@ -182,10 +180,10 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 									</span>
 								</div>
 							</div>
-						)
-					})
+						</>)
+					)
 				}
-			</div>
+			</div >
 
 			<Modal
 				show={modalShow}

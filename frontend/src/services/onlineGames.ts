@@ -1,5 +1,6 @@
 import { BACKEND_URL } from "@/config";
 import Cookies from "js-cookie";
+import { LobbyPayload } from "@/types/Lobby";
 
 export const GetLobbyData = async () => {
 	try {
@@ -20,13 +21,7 @@ export const GetLobbyData = async () => {
 
 
 
-export const AddLobbyData = async (payload: {
-	name: string,
-	difficultyLevel: number,
-	pointsPerGame: number,
-	power_ups: boolean,
-	player1: number
-} | undefined) => {
+export const AddLobbyData = async (payload: LobbyPayload | undefined) => {
 	try {
 		const response = await fetch(`${BACKEND_URL}/api/lobby/`, {
 			method: "POST",

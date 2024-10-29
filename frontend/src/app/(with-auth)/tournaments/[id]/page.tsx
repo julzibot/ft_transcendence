@@ -10,6 +10,9 @@ import { Controller, TrophyFill } from 'react-bootstrap-icons'
 import useSocketContext from '@/context/socket';
 import { Pair } from '@/types/TournamentSettings';
 import { AddLobbyData, JoinLobby } from '@/services/onlineGames';
+import { LobbyPayload } from '@/types/Lobby';
+import { startTournament } from '@/services/tournaments';
+import "./styles.css"
 
 
 export default function TournamentLobby() {
@@ -24,6 +27,15 @@ export default function TournamentLobby() {
 	const [isTranslated, setIsTranslated] = useState(false);
 	const socket = useSocketContext();
 	const [isReady, setIsReady] = useState(false);
+
+	const handleStartTournament = async () => {
+		//update isStarted in DB to prevent user to enter and to continue match making
+		await startTournament(id)
+
+		// send signal to sockets
+		socket.emit('startTournament', { tournamentId: id, tournamentDuration: tournamentData.timer })
+
+	}
 
 	useEffect(() => {
 		if (session && tournamentData) {
@@ -76,8 +88,7 @@ export default function TournamentLobby() {
 					username: session?.user.username,
 					image: session?.user.image
 				}
-			}
-			);
+			})
 		}
 	}, [session, socket, id]);
 
@@ -91,12 +102,14 @@ export default function TournamentLobby() {
 				//find the pair that the user is in
 				const pair = data.find(pair => pair.player1.id === session?.user?.id || pair.player2.id === session?.user?.id);
 				if (pair?.player1.id === session?.user?.id) {
-					const payload = {
+					const payload: LobbyPayload = {
 						name: `${pair?.player1.username} vs ${pair?.player2.username}`,
 						player1: session?.user?.id,
 						difficultyLevel: tournamentData?.difficultyLevel,
 						pointsPerGame: tournamentData?.pointsPerGame,
 						power_ups: tournamentData?.power_ups,
+						gameMode: 'TOURNAMENT',
+						tournamentLink: id
 					}
 					//Create a lobby with payload
 					const linkToJoin = await AddLobbyData(payload);
@@ -107,6 +120,7 @@ export default function TournamentLobby() {
 						receiver: pair?.player2
 					});
 					// Push to the lobby
+					socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player1.id, oppId: pair?.player2.id })
 					router.push('/game/online/lobby/' + linkToJoin);
 				}
 				else {
@@ -114,6 +128,7 @@ export default function TournamentLobby() {
 						// do Not simply push to the lobby, but join using JoinLobbyView API in the backend ()
 						if (data.receiverId === session?.user?.id) {
 							await JoinLobby(data.linkToJoin, session.user.id);
+							socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player2.id, oppId: pair?.player1.id })
 							router.push('/game/online/lobby/' + data.linkToJoin);
 						}
 					})
@@ -127,7 +142,12 @@ export default function TournamentLobby() {
 		}
 	}, [socket, isReady]);
 
-
+	useEffect(() => {
+		if (tournamentData && tournamentData.isStarted) {
+			console.log(tournamentData);
+			socket.emit("returnToLobby", { tournamentId: id, userId: session.user.id })
+		}
+	}, [tournamentData])
 	return (
 		<>
 			<div className="d-flex flex-column align-items-center justify-content-center mt-3">
@@ -183,85 +203,91 @@ export default function TournamentLobby() {
 									)
 								})
 							}
-							<button className="btn btn-primary" onClick={() => socket?.emit('startTournament', { tournamentId: id, tournamentDuration: 10 })}>
-								Start Tournament
-							</button>
 						</div>
 					</div>
 				</div>
-				<div className="card position-relative mt-5 z-1 match-card border-2 rounded-5 col-4 position-absolute translate-middle-x start-50" style={{ height: '500px' }}>
-					{/* <div className="video-container">
-						<video
-							className="background-video rounded-5"
-							autoPlay
-							muted
-							loop
-							ref={videoRef}
-							src="/videos/flame.mp4"
-						>
-							Your browser does not support HTML5 video.
-						</video>
-					</div> */}
-					<div className="card-body">
-						<h1 className="card-title text-center text-light flame-text">Fighting Pit</h1>
-						<div className="mt-5 d-flex position-relative justify-content-between">
-							<div className="d-flex flex-column position-asbolute col-5 top-0 start-0 opacity">
-								{pairs && pairs.map((pair) => (
-									<>
-										<div key={pair.id} className="text-light border bg-transparent mb-1 d-flex rounded-start-4 shadow col-12 align-items-center justify-content-around" style={{ height: '70px' }}>
-											< div className="col-5 position-relative border border-2 border-dark-subtle rounded-circle shadow-lg" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
-												<img
-													style={{
-														objectFit: 'cover',
-														width: '100%',
-														height: '100%',
-														position: 'absolute',
-														top: '50%',
-														left: '50%',
-														transform: 'translate(-50%, -50%)'
-													}}
-													fetchPriority="high"
-													alt="profile picture"
-													src={`${BACKEND_URL}${pair.player1.image}`}
-												/>
+				{
+					pairs &&
+					<div className="card position-relative mt-5 z-1 match-card border-2 rounded-5 col-4 position-absolute translate-middle-x start-50" style={{ height: '500px' }}>
+						<div className="video-container">
+							<video
+								className="background-video rounded-5"
+								autoPlay
+								muted
+								loop
+								ref={videoRef}
+								src="/videos/flame.mp4"
+							>
+								Your browser does not support HTML5 video.
+							</video>
+						</div>
+						<div className="card-body">
+							<h1 className="card-title text-center text-light flame-text">Fighting Pit</h1>
+							<div className="mt-5 d-flex position-relative justify-content-between">
+								<div className="d-flex flex-column position-asbolute col-5 top-0 start-0 opacity">
+									{pairs && pairs.map((pair) => (
+										<>
+											<div key={pair.id} className="text-light border bg-transparent mb-1 d-flex rounded-start-4 shadow col-12 align-items-center justify-content-around" style={{ height: '70px' }}>
+												< div className="col-5 position-relative border border-2 border-dark-subtle rounded-circle shadow-lg" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+													<img
+														style={{
+															objectFit: 'cover',
+															width: '100%',
+															height: '100%',
+															position: 'absolute',
+															top: '50%',
+															left: '50%',
+															transform: 'translate(-50%, -50%)'
+														}}
+														fetchPriority="high"
+														alt="profile picture"
+														src={`${BACKEND_URL}${pair.player1.image}`}
+													/>
+												</div>
+												<span className="col-7 text-truncate fs-3" style={{ maxWidth: 'calc(80%)' }}>{pair.player1.username}</span>
 											</div>
-											<span className="col-7 text-truncate fs-3" style={{ maxWidth: 'calc(80%)' }}>{pair.player1.username}</span>
-										</div>
-									</>
-								))}
-							</div>
-							<div className="flame-text-container position-absolute p-3  top-50 start-50 translate-middle">
-								<span className="flame-text fw-bolder fs-1">VS</span>
-							</div>
-							<div className="d-flex flex-column col-5 position-asbolute top-0 end-0">
-								{pairs && pairs.map((pair) => (
-									<>
-										<div key={pair.id} className=" text-light border bg-transparent mb-1 bg-light d-flex rounded-end-4 shadow col-12 align-items-center justify-content-around" style={{ height: '70px' }}>
-											<span className="col-7 text-end text-truncate fs-3" style={{ maxWidth: 'calc(60%)' }}>{pair.player2.username}</span>
-											< div className="col-5 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
-												<img
-													style={{
-														objectFit: 'cover',
-														width: '100%',
-														height: '100%',
-														position: 'absolute',
-														top: '50%',
-														left: '50%',
-														transform: 'translate(-50%, -50%)'
-													}}
-													fetchPriority="high"
-													alt="profile picture"
-													src={`${BACKEND_URL}${pair.player2.image}`}
-												/>
+										</>
+									))}
+								</div>
+								<div className="flame-text-container position-absolute p-3  top-50 start-50 translate-middle">
+									<span className="flame-text fw-bolder fs-1">VS</span>
+								</div>
+								<div className="d-flex flex-column col-5 position-asbolute top-0 end-0">
+									{pairs && pairs.map((pair, index) => (
+										<>
+											<div key={index} className=" text-light border bg-transparent mb-1 bg-light d-flex rounded-end-4 shadow col-12 align-items-center justify-content-around" style={{ height: '70px' }}>
+												<span className="col-7 text-end text-truncate fs-3" style={{ maxWidth: 'calc(60%)' }}>{pair.player2.username}</span>
+												< div className="col-5 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+													<img
+														style={{
+															objectFit: 'cover',
+															width: '100%',
+															height: '100%',
+															position: 'absolute',
+															top: '50%',
+															left: '50%',
+															transform: 'translate(-50%, -50%)'
+														}}
+														fetchPriority="high"
+														alt="profile picture"
+														src={`${BACKEND_URL}${pair.player2.image}`}
+													/>
+												</div>
 											</div>
-										</div>
-									</>
-								))}
+										</>
+									))}
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
+				}
 			</div >
+			{
+				tournamentData && tournamentData.creator.id === session?.user?.id && !tournamentData.isStarted &&
+				<button className="btn btn-primary" onClick={handleStartTournament}>
+					Start Tournament
+				</button >
+			}
 		</>
 	)
 }

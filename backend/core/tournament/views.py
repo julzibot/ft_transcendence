@@ -81,6 +81,20 @@ class TournamentView(APIView):
 		participantSerializer = ParticipantSerializer(participants, many=True)
 		return Response({'participants': participantSerializer.data, 'tournament': tournamentSerializer.data}, status=status.HTTP_200_OK)
 
+class StartTournamentView(APIView):
+	def put(self, request, id):
+		try:
+			uuid.UUID(id, version=4)
+		except ValueError:
+			return Response({'message': 'Invalid id'}, status=status.HTTP_400_BAD_REQUEST)
+		try:
+			tournament = TournamentModel.objects.get(linkToJoin=id)
+		except ObjectDoesNotExist:
+			return Response(status=status.HTTP_404_NOT_FOUND)
+		tournament.isStarted = True
+		tournament.save()
+		return Response(status=status.HTTP_200_OK)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class DeleteParticipantView(APIView):
