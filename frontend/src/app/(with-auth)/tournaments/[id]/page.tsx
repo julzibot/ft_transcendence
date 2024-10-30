@@ -27,6 +27,7 @@ export default function TournamentLobby() {
 	const [isTranslated, setIsTranslated] = useState(false);
 	const socket = useSocketContext();
 	const [isReady, setIsReady] = useState(false);
+	const [joined, setJoined] = useState<boolean>(false);
 
 	const handleStartTournament = async () => {
 		//update isStarted in DB to prevent user to enter and to continue match making
@@ -80,7 +81,8 @@ export default function TournamentLobby() {
 	}, []);
 
 	useEffect(() => {
-		if (session && socket) {
+		if (session && socket && !joined) {
+			console.log("[joinTournament] emitting...");
 			socket.emit('joinTournament', {
 				tournamentId: id,
 				user: {
@@ -89,6 +91,7 @@ export default function TournamentLobby() {
 					image: session?.user.image
 				}
 			})
+			setJoined(true);
 		}
 	}, [session, socket, id]);
 
@@ -121,7 +124,7 @@ export default function TournamentLobby() {
 					});
 					// Push to the lobby
 					socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player1.id, oppId: pair?.player2.id })
-					router.push('/game/online/lobby/' + linkToJoin);
+					router.push(`${id}/lobby/` + linkToJoin);
 				}
 				else {
 					socket.on('receiveLink', async (data: { linkToJoin: string, receiverId: number }) => {
@@ -129,16 +132,17 @@ export default function TournamentLobby() {
 						if (data.receiverId === session?.user?.id) {
 							await JoinLobby(data.linkToJoin, session.user.id);
 							socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player2.id, oppId: pair?.player1.id })
-							router.push('/game/online/lobby/' + data.linkToJoin);
+							router.push(`${id}/lobby/` + data.linkToJoin);
 						}
 					})
 				}
 			})
 		}
 		return () => {
-			socket?.off('updateParticipants');
-			socket?.off('getMatchPair');
-			socket?.off('receiveLink');
+			console.log('[Cleanup] sockets');
+			// socket?.off('updateParticipants');
+			// socket?.off('getMatchPair');
+			// socket?.off('receiveLink');
 		}
 	}, [socket, isReady]);
 

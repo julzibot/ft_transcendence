@@ -83,7 +83,18 @@ const computeMatches = (tournament) => {
 export default function tournamentEvents(io, socket) {
 	// Tournament sockets
 	socket.on('joinTournament', (data) => {
-		// tournamentUsers.set(socket.id, data.user.id);
+
+		if (tournamentUsers.get(socket.id)) {
+			console.log('[tournament] [joinTournament] user already exists');
+			return;
+		}
+		else if (tournamentUsers.has(data.user.id)) {
+			const user = tournament.has(data.user.id);
+			user.userId = data.user.id;
+			return;
+		}
+		else
+			tournamentUsers.set(socket.id, data.user.id);
 
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
 		let updatedParticipants = [];
@@ -113,14 +124,20 @@ export default function tournamentEvents(io, socket) {
 		const userId = data.userId
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
 		if (tournament) {
-			console.log(tournament.inLobby)
+			console.log("[tournament] if (tournament): " + tournament.inLobby)
 			const p = tournament.participants.find(participant => participant.user.id === userId);
+			if (!p)
+				console.log('participant not found');
 			p.return_time = performance.now();
 			tournament.inLobby.push(p);
 			const tournament_elapsed = (p.return_time - tournament.startTime) / 1000;
 			if (tournament_elapsed < tournament.duration) {
+				console.log("[tournament] tournament_elapsed < tournament.duration")
+				console.log("[tournament] [before] tournament.inLobby: " + JSON.stringify(tournament.inLobby));
 				const pairsArray = computeMatches(tournament);
+				console.log("[tournament] [after] pairsArray: " + JSON.stringify(pairsArray));
 				if (pairsArray.length > 0) {
+					console.log("[tournament] pairsArray.length > 0")
 					const pairs = [];
 
 					pairsArray.forEach(pair => {
@@ -129,11 +146,14 @@ export default function tournamentEvents(io, socket) {
 							player2: tournament.participants.find(p => p.user.id === pair[1]).user
 						})
 					});
+					console.log('[tournament] emit getMatchPair - pairs: ' + JSON.stringify(pairs));
 					io.in(data.tournamentId).emit('getMatchPair', pairs);
 				}
 			}
-			else if (tournament.inLobby.length === tournament.participants.length)
+			else if (tournament.inLobby.length === tournament.participants.length) {
+				console.log('emit tournament end');
 				io.in(data.tournamentId).emit('announceTournamentEnd');
+			}
 		}
 	})
 
@@ -178,15 +198,23 @@ export default function tournamentEvents(io, socket) {
 	})
 
 	socket.on('tournamentGameEntered', (data) => {
+		console.log("[tournamentGameEntered] entered");
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		console.log('1');
 		const i = tournament.inLobby.findIndex(participant => participant.user.id === data.userId);
+		console.log('2');
 		const participant = tournament.participants.find(participant => participant.user.id === data.userId);
+		console.log('3');
 
 		if (participant && participant.opponents.has(data.oppId)) {
+			console.log('4');
 			const count = participant.opponents.get(data.oppId)
 			participant.opponents.set(data.oppId, count + 1);
 
 		}
+		console.log('5');
+		console.log("[BEFORE] PRINTING THE LOBBY: " + JSON.stringify(tournament.inLobby));
 		tournament.inLobby.splice(i, 1);
+		console.log("[AFTER]  PRINTING THE LOBBY: " + JSON.stringify(tournament.inLobby));
 	})
 }

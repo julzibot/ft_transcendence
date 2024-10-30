@@ -19,7 +19,6 @@ import Cookies from 'js-cookie';
 // // 3 -> Tournament (?)
 export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode, handleGameEnded }) {
 
-	console.log(`[ThreeScene] Game Settings: ${JSON.stringify(gameSettings)}`);
 	const containerRef = useRef(null);
 	const animationFrameIdRef = useRef();
 	const stopAnim = useRef(false);
@@ -230,7 +229,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						p.vars.endString = `GAME ENDED\n${g.p2Name} WINS`;
 
 					printGameInfo(p.vars.endMsgMesh, p.vars.endString, 5, -1, 3, p);
-					console.log(`[ThreeScene] [Scoring Logic] p1: ${p.vars.p1score} p2: ${p.vars.p2score}`);
+					console.log(`[ThreeScene] [Scoring Logic] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`);
 					if (isHost || g.lastConnected) {
 						const put_response = PutScores(gamemode, g.game_id, p);
 						if (put_response == false)
@@ -336,7 +335,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 					deactivate_power(id, 4, gamemode, p, arr);
 				}
 			}
-			
+
 			const collisionLogic = (room_id, socket, gamemode, p, arr) => {
 				let p1HB = new THREE.Box3().setFromObject(p.objs.player1);
 				let p2HB = new THREE.Box3().setFromObject(p.objs.player2);
@@ -658,7 +657,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				let putPath = 'local';
 				if (gameMode >= 2)
 					putPath = 'online';
-				console.log(`[ThreeScene] [PutScores] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`)
+				// console.log(`[ThreeScene] [PutScores] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`)
 				const response = await fetch(BACKEND_URL + `/api/game/${putPath}/update/${game_id}`,
 					{
 						method: 'PUT',
