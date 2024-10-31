@@ -11,6 +11,7 @@ import GameModesChart from "./GameModesChart";
 import Image from 'next/image';
 
 import createScoreData from "./ChartDataUtils";
+import { convertDate } from "./ChartDataUtils";
 import { GameMatch, Player } from "./DashboardInterfaces";
 import { DashboardPlaceholder } from "@/components/placeholders/DashboardPlaceholder";
 import { BACKEND_URL } from "@/config";
@@ -26,17 +27,7 @@ interface DashboardItems {
 	record_streak: number
 }
 
-interface User {
-	id: number;
-	username: string;
-	image: string;
-}
-
-interface UserDashboardCardProps {
-	user: Player;
-}
-
-const UserDashboardCard: React.FC<UserDashboardCardProps> = () => {
+const UserDashboardCard = () => {
 
 	const { session } = useAuth();
 	const [DashboardData, setDashboardData] = useState<DashboardItems | null>(null);
@@ -88,16 +79,16 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = () => {
 	const [activityData, setActivityData] = useState([]);
 	const [gameModesData, setGameModesData] = useState([]);
 	const [maxY, setMaxY] = useState(5);
-	const [minDate, setMinDate] = useState(new Date());
+	const [minDate, setMinDate] = useState(convertDate(new Date()));
 
 	let currentDate = new Date();
 	currentDate.setDate(currentDate.getDate() - 6);
-	let sevenDays = new Date(currentDate.toISOString().split('T')[0]);
+	let sevenDays = convertDate(currentDate);
 
 	const [activityInstance, setActivityInstance] = useState<RefObject<Chart> | null>(null);
 	const [scoreInstance, setScoreInstance] = useState<RefObject<Chart> | null>(null);
 	const [pieInstance, setPieInstance] = useState<RefObject<Chart> | null>(null);
-	const [displayedDate, setDisplayedDate] = useState(sevenDays);
+	const [displayedDate, setDisplayedDate] = useState<Date>(new Date(sevenDays));
 	const [statsToggle, setStatsToggle] = useState(true);
 
 	useEffect(() => {
@@ -114,26 +105,29 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = () => {
 			setActivityData([]);
 
 			console.log(`[Dashboard post-createScoreData() setting dataCreated to true`);
-			// createScoreData(
-			// session?.user?.id, userHistory.data,
-			// winData, setWinData,
-			// lossData, setLossData,
-			// activityData, setActivityData,
-			// gameModesData, setGameModesData,
-			// maxY, setMaxY,
-			// minDate, setMinDate);
+			if (session?.user) {
+
+				createScoreData(
+					session?.user?.id, userHistory.data,
+					winData, setWinData,
+					lossData, setLossData,
+					activityData, setActivityData,
+					gameModesData, setGameModesData,
+					maxY, setMaxY,
+					minDate, setMinDate);
+			}
 			console.log(`[Dashboard post-createScoreData() setting dataCreated to true`);
 			setDataCreated(true);
 		}
-	}, [userHistoryFetched, dataCreated]);
+	}, [session, userHistoryFetched, dataCreated]);
 	// Buttons
 	const handleStatsToggle = () => {
 		setStatsToggle(!statsToggle)
 	}
-	const updateDate = (instance: RefObject<Chart>, date: Date) => {
+	const updateDate = (instance: RefObject<Chart>, date: string) => {
 		const xScale = instance.current?.options.scales?.['x'] as TimeScale | undefined;
 		if (xScale) {
-			xScale.min = date.getTime();
+			xScale.min = (new Date(date)).getTime();
 			instance.current?.update();
 		}
 	}
@@ -143,7 +137,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = () => {
 			updateDate(activityInstance, minDate)
 		else if (!statsToggle && scoreInstance?.current)
 			updateDate(scoreInstance, minDate);
-		setDisplayedDate(minDate);
+		setDisplayedDate(new Date(minDate));
 	}
 
 	const handle7DaysBtn = () => {
@@ -151,7 +145,7 @@ const UserDashboardCard: React.FC<UserDashboardCardProps> = () => {
 			updateDate(activityInstance, sevenDays);
 		else if (!statsToggle && scoreInstance?.current)
 			updateDate(scoreInstance, sevenDays);
-		setDisplayedDate(sevenDays);
+		setDisplayedDate(new Date(sevenDays));
 	}
 
 	return (
