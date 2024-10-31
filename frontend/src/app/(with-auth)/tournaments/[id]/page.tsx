@@ -170,7 +170,7 @@ export default function TournamentLobby() {
 								participantsList && participantsList.map((participant: ParticipantType, index: number) => {
 									return (
 										<div
-											key={index}
+											key={`${participant.user.id}-${index}`}
 											className={`${participantsList.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} d-flex flex-row align-items-center fw-bold fs-5`}
 											style={{ height: '70px' }}
 										>
@@ -229,28 +229,26 @@ export default function TournamentLobby() {
 							<h1 className="card-title text-center text-light flame-text">Fighting Pit</h1>
 							<div className="mt-5 d-flex position-relative justify-content-between">
 								<div className="d-flex flex-column position-asbolute col-5 top-0 start-0 opacity">
-									{pairs && pairs.map((pair) => (
-										<>
-											<div key={pair.id} className="text-light border bg-transparent mb-1 d-flex rounded-start-4 shadow col-12 align-items-center justify-content-around" style={{ height: '70px' }}>
-												< div className="col-5 position-relative border border-2 border-dark-subtle rounded-circle shadow-lg" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
-													<img
-														style={{
-															objectFit: 'cover',
-															width: '100%',
-															height: '100%',
-															position: 'absolute',
-															top: '50%',
-															left: '50%',
-															transform: 'translate(-50%, -50%)'
-														}}
-														fetchPriority="high"
-														alt="profile picture"
-														src={`${BACKEND_URL}${pair.player1.image}`}
-													/>
-												</div>
-												<span className="col-7 text-truncate fs-3" style={{ maxWidth: 'calc(80%)' }}>{pair.player1.username}</span>
+									{pairs && pairs.map((pair, index) => (
+										<div key={`${pair.player1.id}-${index}`} className="text-light border bg-transparent mb-1 d-flex rounded-start-4 shadow col-12 align-items-center justify-content-around" style={{ height: '70px' }}>
+											< div className="col-5 position-relative border border-2 border-dark-subtle rounded-circle shadow-lg" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+												<img
+													style={{
+														objectFit: 'cover',
+														width: '100%',
+														height: '100%',
+														position: 'absolute',
+														top: '50%',
+														left: '50%',
+														transform: 'translate(-50%, -50%)'
+													}}
+													fetchPriority="high"
+													alt="profile picture"
+													src={`${BACKEND_URL}${pair.player1.image}`}
+												/>
 											</div>
-										</>
+											<span className="col-7 text-truncate fs-3" style={{ maxWidth: 'calc(80%)' }}>{pair.player1.username}</span>
+										</div>
 									))}
 								</div>
 								<div className="flame-text-container position-absolute p-3  top-50 start-50 translate-middle">
@@ -258,27 +256,25 @@ export default function TournamentLobby() {
 								</div>
 								<div className="d-flex flex-column col-5 position-asbolute top-0 end-0">
 									{pairs && pairs.map((pair, index) => (
-										<>
-											<div key={index} className=" text-light border bg-transparent mb-1 bg-light d-flex rounded-end-4 shadow col-12 align-items-center justify-content-around" style={{ height: '70px' }}>
-												<span className="col-7 text-end text-truncate fs-3" style={{ maxWidth: 'calc(60%)' }}>{pair.player2.username}</span>
-												< div className="col-5 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
-													<img
-														style={{
-															objectFit: 'cover',
-															width: '100%',
-															height: '100%',
-															position: 'absolute',
-															top: '50%',
-															left: '50%',
-															transform: 'translate(-50%, -50%)'
-														}}
-														fetchPriority="high"
-														alt="profile picture"
-														src={`${BACKEND_URL}${pair.player2.image}`}
-													/>
-												</div>
+										<div key={`${pair.player2.id}-${index}`} className=" text-light border bg-transparent mb-1 bg-light d-flex rounded-end-4 shadow col-12 align-items-center justify-content-around" style={{ height: '70px' }}>
+											<span className="col-7 text-end text-truncate fs-3" style={{ maxWidth: 'calc(60%)' }}>{pair.player2.username}</span>
+											< div className="col-5 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+												<img
+													style={{
+														objectFit: 'cover',
+														width: '100%',
+														height: '100%',
+														position: 'absolute',
+														top: '50%',
+														left: '50%',
+														transform: 'translate(-50%, -50%)'
+													}}
+													fetchPriority="high"
+													alt="profile picture"
+													src={`${BACKEND_URL}${pair.player2.image}`}
+												/>
 											</div>
-										</>
+										</div>
 									))}
 								</div>
 							</div>
