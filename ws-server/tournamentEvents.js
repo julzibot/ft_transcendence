@@ -33,21 +33,28 @@ const computeMatches = (tournament) => {
 	let priosMap = new Map();
 
 	// FIRST, check which opponents in lobby are viable for pairing
+	console.log(`[computeMatches] [tournament.inLobby] ${JSON.stringify(tournament.inLobby)}`);
 	tournament.inLobby.forEach(participant => {
+		console.log(`[computeMatches] [participant] ${JSON.stringify(participant)}`);
 		time_elapsed = performance.now() - participant.return_time;
 		prio = 0;
 		if (time_elapsed > 60000)
 			prio += 1 + Math.floor((time_elapsed - 60000) / 30000)
 		maxMatchesNumber = Math.min(...participant.opponents.values()) + prio;
+		console.log(`[computeMatches] [maxMatchesNumber] ${maxMatchesNumber}`);
+		console.log(`[computeMatches] [participant.opponents] ${JSON.stringify(participant.opponents)}`);
 
 		const inLobbyOpps = [...participant.opponents].filter(([key]) => tournament.inLobby.map(participant => participant.user.id).indexOf(key) !== -1);
+		console.log(`[computeMatches] [inLobbyOpps] ${JSON.stringify(inLobbyOpps)}`);
 		const possibleOpps = inLobbyOpps.filter(([, value]) => value <= maxMatchesNumber).map(sub => sub[0]);
+		console.log(`[computeMatches] [possibleOpps] ${JSON.stringify(possibleOpps)}`);
 		// HERE, possibleOpps is an array of all viable opponents' IDs for the participant
 		if (possibleOpps.length > 0) {
 			priosMap.set(participant.user.id, prio);
 			filtered_lobby.set(participant.user.id, possibleOpps);
 		}
 	})
+	console.log(`[computeMatches] [filtered_lobby] ${JSON.stringify(filtered_lobby)}`);
 
 	if (filtered_lobby.size > 0) {
 		// REARRANGE indexes according to priority (highest first)
@@ -60,6 +67,7 @@ const computeMatches = (tournament) => {
 		// NEXT, check reciprocity for each opponent in the sorted opponents map, for each participant
 		let finalOppsArray = [];
 		let index = 0;
+		console.log(`[computeMatches] [sortedOppsMap] ${JSON.stringify(sortedOppsMap)}`);
 		sortedOppsMap.forEach((opps, participant) => {
 			opps.forEach((opp) => {
 				if (sortedOppsMap.has(opp) && sortedOppsMap.get(opp).includes(participant))
@@ -84,14 +92,11 @@ export default function tournamentEvents(io, socket) {
 	// Tournament sockets
 	socket.on('joinTournament', (data) => {
 
-		if (tournamentUsers.get(socket.id)) {
+		if (tournamentUsers.get(socket.id))
 			console.log('[tournament] [joinTournament] user already exists');
-			return;
-		}
 		else if (tournamentUsers.has(data.user.id)) {
 			const user = tournament.has(data.user.id);
 			user.userId = data.user.id;
-			return;
 		}
 		else
 			tournamentUsers.set(socket.id, data.user.id);
@@ -121,23 +126,20 @@ export default function tournamentEvents(io, socket) {
 
 	socket.on('returnToLobby', (data) => {
 		console.log("################## returningToLobby ##########################")
-		const userId = data.userId
+		const { userId } = data;
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
 		if (tournament) {
-			console.log("[tournament] if (tournament): " + tournament.inLobby)
 			const p = tournament.participants.find(participant => participant.user.id === userId);
-			if (!p)
-				console.log('participant not found');
 			p.return_time = performance.now();
-			tournament.inLobby.push(p);
+			const exists = tournament.inLobby.find((p) => p.user.id === userId);
+			if (!exists)
+				tournament.inLobby.push(p);
 			const tournament_elapsed = (p.return_time - tournament.startTime) / 1000;
 			if (tournament_elapsed < tournament.duration) {
-				console.log("[tournament] tournament_elapsed < tournament.duration")
 				console.log("[tournament] [before] tournament.inLobby: " + JSON.stringify(tournament.inLobby));
 				const pairsArray = computeMatches(tournament);
 				console.log("[tournament] [after] pairsArray: " + JSON.stringify(pairsArray));
 				if (pairsArray.length > 0) {
-					console.log("[tournament] pairsArray.length > 0")
 					const pairs = [];
 
 					pairsArray.forEach(pair => {
@@ -146,12 +148,11 @@ export default function tournamentEvents(io, socket) {
 							player2: tournament.participants.find(p => p.user.id === pair[1]).user
 						})
 					});
-					console.log('[tournament] emit getMatchPair - pairs: ' + JSON.stringify(pairs));
 					io.in(data.tournamentId).emit('getMatchPair', pairs);
 				}
 			}
 			else if (tournament.inLobby.length === tournament.participants.length) {
-				console.log('emit tournament end');
+				// console.log('emit tournament end');
 				io.in(data.tournamentId).emit('announceTournamentEnd');
 			}
 		}
@@ -198,23 +199,17 @@ export default function tournamentEvents(io, socket) {
 	})
 
 	socket.on('tournamentGameEntered', (data) => {
-		console.log("[tournamentGameEntered] entered");
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
-		console.log('1');
 		const i = tournament.inLobby.findIndex(participant => participant.user.id === data.userId);
-		console.log('2');
 		const participant = tournament.participants.find(participant => participant.user.id === data.userId);
-		console.log('3');
 
 		if (participant && participant.opponents.has(data.oppId)) {
-			console.log('4');
 			const count = participant.opponents.get(data.oppId)
 			participant.opponents.set(data.oppId, count + 1);
 
 		}
-		console.log('5');
-		console.log("[BEFORE] PRINTING THE LOBBY: " + JSON.stringify(tournament.inLobby));
+		console.log("[tournament]  [tournamentGameEntered] [BEFORE] PRINTING THE LOBBY: " + JSON.stringify(tournament.inLobby));
 		tournament.inLobby.splice(i, 1);
-		console.log("[AFTER]  PRINTING THE LOBBY: " + JSON.stringify(tournament.inLobby));
+		console.log("[tournament] [tournamentGameEntered] [AFTER]  PRINTING THE LOBBY: " + JSON.stringify(tournament.inLobby));
 	})
 }
