@@ -1127,9 +1127,9 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			let backgroundMaterial;
 			if (gameSettings.background > 3) {
 				if (gameSettings.background == 4)
-					decorFilePath = '../../snow.jpg'
+					decorFilePath = '/snow.jpg'
 				else if (gameSettings.background == 5)
-					decorFilePath = '../../city.jpg'
+					decorFilePath = '/city.jpg'
 				const landscape = new THREE.TextureLoader().load(decorFilePath);
 				backgroundMaterial = new THREE.MeshBasicMaterial({ side: THREE.BackSide, map: landscape });
 			}
