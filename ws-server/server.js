@@ -13,7 +13,7 @@ const backendPort = process.env.BACKEND_PORT;
 
 export const lobbyUsers = new Map(); // socket.id -> {user.id, 0 || 1}
 export const gameUsers = new Map(); // socket.id -> {user.id, 0 || 1}
-export const tournamentUsers = new Map(); // socket.id -> {user.id, 0 || 1}
+export const tournamentUsers = new Map(); // socket.id -> {user.id}
 
 export const gameLobbies = new Map(); // lobbyId -> {player1 (userId), player2 (userId)}
 export const gameRooms = new Map(); // roomId -> {player1 (socket.id), player2 (socket.id)}
@@ -133,7 +133,9 @@ lobby.on('connection', async (socket) => {
 					lobby.player1 = null;
 				else if (lobby.player2 && lobby.player2.id === userId)
 					lobby.player2 = null;
+				console.log(`[lobby] [disconnect] Player disconnected. Lobby: ${JSON.stringify(lobby)}`);
 				if (!lobby.player1 && !lobby.player2) {
+					console.log(`[lobby] [disconnect] Both players are null. Deleting lobby: ${lobbyId}`);
 					await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
 						method: 'DELETE',
 						headers: { 'Content-Type': 'application/json' },

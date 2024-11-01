@@ -6,6 +6,7 @@ import { tournamentUsers } from "./server.js";
 //	duration: 0,
 // 	participants: [participant1, ...],
 //	inLobby: [participant1, ...],
+//	computeTimer: performance.now(),
 // 	rooms: []
 // }
 
@@ -110,6 +111,7 @@ export default function tournamentEvents(io, socket) {
 				tournamentId: tournamentId,
 				startTime: 0,
 				duration: 0,
+				timeoutStarted: false,
 				participants: [{ user: user, return_time: 0, opponents: new Map() }],
 			}
 			tournamentsArray.push(newTournament);
@@ -118,33 +120,40 @@ export default function tournamentEvents(io, socket) {
 		socket.in(tournamentId).emit('updateParticipants', updatedParticipants);
 	});
 
-	socket.on('returnToLobby', (data) => {
+	socket.on('returnToLobby', async (data) => {
 		const { userId, tournamentId } = data;
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		if (tournament) {
 			const p = tournament.participants.find(participant => participant.user.id === userId);
 
-			p.return_time = performance.now();
 			const exists = tournament.inLobby.find((p) => p.user.id === userId);
 			if (!exists)
 				tournament.inLobby.push(p);
-			const tournament_elapsed = (p.return_time - tournament.startTime) / 1000;
-			if (tournament_elapsed < tournament.duration) {
-				const pairsArray = computeMatches(tournament);
-				if (pairsArray.length > 0) {
-					const pairs = [];
 
-					pairsArray.forEach(pair => {
-						pairs.push({
-							player1: tournament.participants.find(p => p.user.id === pair[0]).user,
-							player2: tournament.participants.find(p => p.user.id === pair[1]).user
-						})
-					});
-					io.in(tournamentId).emit('getMatchPair', pairs);
-				}
+			p.return_time = performance.now();
+			if (!tournament.timeoutStarted) {
+				tournament.timeoutStarted = true;
+				setTimeout(() => {
+					const tournament_elapsed = (p.return_time - tournament.startTime) / 1000;
+					if (tournament_elapsed < tournament.duration) {
+						const pairsArray = computeMatches(tournament);
+						if (pairsArray.length > 0) {
+							const pairs = [];
+
+							pairsArray.forEach(pair => {
+								pairs.push({
+									player1: tournament.participants.find(p => p.user.id === pair[0]).user,
+									player2: tournament.participants.find(p => p.user.id === pair[1]).user
+								})
+							});
+							io.in(tournamentId).emit('getMatchPair', pairs);
+						}
+					}
+					else if (tournament.inLobby.length === tournament.participants.length)
+						io.in(tournamentId).emit('announceTournamentEnd');
+					tournament.timeoutStarted = false;
+				}, 5000)
 			}
-			else if (tournament.inLobby.length === tournament.participants.length)
-				io.in(tournamentId).emit('announceTournamentEnd');
 		}
 	})
 
@@ -153,10 +162,16 @@ export default function tournamentEvents(io, socket) {
 		const { tournamentId, linkToJoin, receiver } = data;
 		console.log(`[tournament] [sendLink] data: ${JSON.stringify(data)}`);
 
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
+		let socketId;
+		tournamentUsers.forEach((userId, keyId) => {
+			if (userId === receiver.id)
+				socketId = keyId;
+		})
 
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		if (tournament) {
-			io.in(tournamentId).emit('receiveLink', { linkToJoin: linkToJoin, receiverId: receiver.id });
+			console.log(`[tournament] [sendLink] receiveLink -> socketId: ${socketId}`);
+			io.to(socketId).emit('receiveLink', { linkToJoin: linkToJoin, receiverId: receiver.id });
 		}
 	})
 

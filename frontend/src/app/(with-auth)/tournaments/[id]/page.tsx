@@ -29,6 +29,9 @@ export default function TournamentLobby() {
 	const [isReady, setIsReady] = useState(false);
 	const [joined, setJoined] = useState<boolean>(false);
 
+	const [received, setReceived] = useState(false);
+	const [sent, setSent] = useState(false);
+
 	const handleStartTournament = async () => {
 		//update isStarted in DB to prevent user to enter and to continue match making
 		await startTournament(id.toString())
@@ -95,48 +98,60 @@ export default function TournamentLobby() {
 		}
 	}, [session, socket, id]);
 
+
 	useEffect(() => {
 		if (socket && isReady) {
 			socket.on('updateParticipants', (data: ParticipantType[]) => {
 				setParticipantsList(data);
 			})
-			socket.on('getMatchPair', async (data: Pair[]) => {
-				setPairs(data);
-				//find the pair that the user is in
-				const pair = data.find(pair => pair.player1.id === session?.user?.id || pair.player2.id === session?.user?.id);
-				if (tournamentData && session?.user && pair?.player1.id === session?.user?.id) {
-					const payload: LobbyPayload = {
-						name: `${pair?.player1.username} vs ${pair?.player2.username}`,
-						player1: session?.user?.id,
-						difficultyLevel: tournamentData?.difficultyLevel,
-						pointsPerGame: tournamentData?.pointsPerGame,
-						power_ups: tournamentData?.power_ups,
-						gameMode: 'TOURNAMENT',
-						tournamentLink: id.toString()
-					}
-					//Create a lobby with payload
-					const linkToJoin = await AddLobbyData(payload);
-					//Send the link to the other player
-					socket.emit('sendLink', {
-						tournamentId: id,
-						linkToJoin: linkToJoin,
-						receiver: pair?.player2
-					});
-					// Push to the lobby
-					socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player1.id, oppId: pair?.player2.id })
-					router.push(`${id}/lobby/` + linkToJoin);
-				}
-				else {
-					socket.on('receiveLink', async (data: { linkToJoin: string, receiverId: number }) => {
-						// do Not simply push to the lobby, but join using JoinLobbyView API in the backend ()
-						if (data.receiverId === session?.user?.id) {
-							await JoinLobby(data.linkToJoin, session.user.id);
-							socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player2.id, oppId: pair?.player1.id })
-							router.push(`${id}/lobby/` + data.linkToJoin);
+			if (!sent && !received) {
+				socket.on('getMatchPair', async (data: Pair[]) => {
+					setPairs(data);
+					//find the pair that the user is in
+					const pair = data.find(pair => pair.player1.id === session?.user?.id || pair.player2.id === session?.user?.id);
+					if (tournamentData && session?.user && session?.user?.id === pair?.player1.id) {
+						const payload: LobbyPayload = {
+							name: `${pair?.player1.username} vs ${pair?.player2.username}`,
+							player1: session?.user?.id,
+							difficultyLevel: tournamentData?.difficultyLevel,
+							pointsPerGame: tournamentData?.pointsPerGame,
+							power_ups: tournamentData?.power_ups,
+							gameMode: 'TOURNAMENT',
+							tournamentLink: id.toString()
 						}
-					})
-				}
-			})
+						//Create a lobby with payload
+						const linkToJoin = await AddLobbyData(payload);
+						//Send the link to the other player
+						console.log('sending link:', linkToJoin);
+						socket.emit('sendLink', {
+							tournamentId: id,
+							linkToJoin: linkToJoin,
+							receiver: pair?.player2
+						});
+						// socket.off('receiveLink');
+						// socket.off('sendLink');
+						setSent(true);
+						// Push to the lobby
+						socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player1.id, oppId: pair?.player2.id })
+						router.push(`${id}/lobby/` + linkToJoin);
+					}
+					else if (tournamentData && session?.user && session?.user?.id === pair?.player2.id) {
+
+						socket.on('receiveLink', async (data: { linkToJoin: string, receiverId: number }) => {
+							console.log('received link:', data);
+							// do Not simply push to the lobby, but join using JoinLobbyView API in the backend ()
+							if (data.receiverId === session?.user?.id) {
+								setReceived(true);
+								await JoinLobby(data.linkToJoin, session.user.id);
+								socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player2.id, oppId: pair?.player1.id })
+								// socket.off('receiveLink');
+								// socket.off('sendLink');
+								router.push(`${id}/lobby/` + data.linkToJoin);
+							}
+						});
+					}
+				})
+			}
 		}
 		return () => {
 			console.log('[Cleanup] sockets');
