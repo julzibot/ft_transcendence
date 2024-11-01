@@ -33,28 +33,22 @@ const computeMatches = (tournament) => {
 	let priosMap = new Map();
 
 	// FIRST, check which opponents in lobby are viable for pairing
-	console.log(`[computeMatches] [tournament.inLobby] ${JSON.stringify(tournament.inLobby)}`);
 	tournament.inLobby.forEach(participant => {
-		console.log(`[computeMatches] [participant] ${JSON.stringify(participant)}`);
+
 		time_elapsed = performance.now() - participant.return_time;
 		prio = 0;
 		if (time_elapsed > 60000)
 			prio += 1 + Math.floor((time_elapsed - 60000) / 30000)
 		maxMatchesNumber = Math.min(...participant.opponents.values()) + prio;
-		console.log(`[computeMatches] [maxMatchesNumber] ${maxMatchesNumber}`);
-		console.log(`[computeMatches] [participant.opponents] ${JSON.stringify(participant.opponents)}`);
 
 		const inLobbyOpps = [...participant.opponents].filter(([key]) => tournament.inLobby.map(participant => participant.user.id).indexOf(key) !== -1);
-		console.log(`[computeMatches] [inLobbyOpps] ${JSON.stringify(inLobbyOpps)}`);
 		const possibleOpps = inLobbyOpps.filter(([, value]) => value <= maxMatchesNumber).map(sub => sub[0]);
-		console.log(`[computeMatches] [possibleOpps] ${JSON.stringify(possibleOpps)}`);
 		// HERE, possibleOpps is an array of all viable opponents' IDs for the participant
 		if (possibleOpps.length > 0) {
 			priosMap.set(participant.user.id, prio);
 			filtered_lobby.set(participant.user.id, possibleOpps);
 		}
 	})
-	console.log(`[computeMatches] [filtered_lobby] ${JSON.stringify(filtered_lobby)}`);
 
 	if (filtered_lobby.size > 0) {
 		// REARRANGE indexes according to priority (highest first)
@@ -67,7 +61,6 @@ const computeMatches = (tournament) => {
 		// NEXT, check reciprocity for each opponent in the sorted opponents map, for each participant
 		let finalOppsArray = [];
 		let index = 0;
-		console.log(`[computeMatches] [sortedOppsMap] ${JSON.stringify(sortedOppsMap)}`);
 		sortedOppsMap.forEach((opps, participant) => {
 			opps.forEach((opp) => {
 				if (sortedOppsMap.has(opp) && sortedOppsMap.get(opp).includes(participant))
@@ -91,54 +84,53 @@ const computeMatches = (tournament) => {
 export default function tournamentEvents(io, socket) {
 	// Tournament sockets
 	socket.on('joinTournament', (data) => {
+		const { tournamentId, user } = data;
 
 		if (tournamentUsers.get(socket.id))
 			console.log('[tournament] [joinTournament] user already exists');
-		else if (tournamentUsers.has(data.user.id)) {
-			const user = tournament.has(data.user.id);
-			user.userId = data.user.id;
+		else if (tournamentUsers.has(user.id)) {
+			const user = tournament.has(user.id);
+			user.userId = user.id;
 		}
-		else
-			tournamentUsers.set(socket.id, data.user.id);
+		else {
+			tournamentUsers.set(socket.id, user.id);
+			socket.join(tournamentId);
+		}
 
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		let updatedParticipants = [];
 		if (tournament) {
-			const participant = tournament.participants.find(participant => participant.user.id === data.user.id)
+			const participant = tournament.participants.find(participant => participant.user.id === user.id)
 			if (!participant)
-				tournament.participants.push({ user: data.user, return_time: 0, opponents: new Map() });
+				tournament.participants.push({ user: user, return_time: 0, opponents: new Map() });
 			updatedParticipants = tournament.participants;
 		}
 		else {
 			const newTournament = {
-				tournamentId: data.tournamentId,
+				tournamentId: tournamentId,
 				startTime: 0,
 				duration: 0,
-				participants: [{ user: data.user, return_time: 0, opponents: new Map() }],
+				participants: [{ user: user, return_time: 0, opponents: new Map() }],
 			}
 			tournamentsArray.push(newTournament);
 			updatedParticipants = newTournament.participants;
 		}
-		// Inform other participants about the new participant
-		socket.join(data.tournamentId);
-		socket.in(data.tournamentId).emit('updateParticipants', updatedParticipants);
+		socket.in(tournamentId).emit('updateParticipants', updatedParticipants);
 	});
 
 	socket.on('returnToLobby', (data) => {
-		console.log("################## returningToLobby ##########################")
-		const { userId } = data;
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		const { userId, tournamentId } = data;
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		if (tournament) {
 			const p = tournament.participants.find(participant => participant.user.id === userId);
+
 			p.return_time = performance.now();
 			const exists = tournament.inLobby.find((p) => p.user.id === userId);
 			if (!exists)
 				tournament.inLobby.push(p);
 			const tournament_elapsed = (p.return_time - tournament.startTime) / 1000;
 			if (tournament_elapsed < tournament.duration) {
-				console.log("[tournament] [before] tournament.inLobby: " + JSON.stringify(tournament.inLobby));
 				const pairsArray = computeMatches(tournament);
-				console.log("[tournament] [after] pairsArray: " + JSON.stringify(pairsArray));
 				if (pairsArray.length > 0) {
 					const pairs = [];
 
@@ -148,29 +140,32 @@ export default function tournamentEvents(io, socket) {
 							player2: tournament.participants.find(p => p.user.id === pair[1]).user
 						})
 					});
-					io.in(data.tournamentId).emit('getMatchPair', pairs);
+					io.in(tournamentId).emit('getMatchPair', pairs);
 				}
 			}
-			else if (tournament.inLobby.length === tournament.participants.length) {
-				// console.log('emit tournament end');
-				io.in(data.tournamentId).emit('announceTournamentEnd');
-			}
+			else if (tournament.inLobby.length === tournament.participants.length)
+				io.in(tournamentId).emit('announceTournamentEnd');
 		}
 	})
 
 
 	socket.on('sendLink', (data) => {
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		const { tournamentId, linkToJoin, receiver } = data;
+		console.log(`[tournament] [sendLink] data: ${JSON.stringify(data)}`);
+
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 
 		if (tournament) {
-			io.in(data.tournamentId).emit('receiveLink', { linkToJoin: data.linkToJoin, receiverId: data.receiver.id });
+			io.in(tournamentId).emit('receiveLink', { linkToJoin: linkToJoin, receiverId: receiver.id });
 		}
 	})
 
 	socket.on('startTournament', (data) => {
+		const { tournamentId, tournamentDuration } = data;
+		console.log(`[tournament] [startTournament] data: ${JSON.stringify(data)}`);
 
 		// INITIALIZE TOURNAMENT INFOS + SEND FIRST MATCHMAKING
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		if (tournament) {
 			tournament.participants.forEach(participant1 => {
 				tournament.participants.forEach(participant2 => {
@@ -180,8 +175,11 @@ export default function tournamentEvents(io, socket) {
 				participant1.return_time = performance.now();
 			});
 			tournament.startTime = performance.now();
-			tournament.duration = data.tournamentDuration * 60;
-			tournament.inLobby = tournament.participants;
+			tournament.duration = tournamentDuration * 60;
+			tournament.inLobby = tournament.participants.map(p => ({
+				...p,
+				opponents: p.opponents
+			}));
 
 			const pairsArray = computeMatches(tournament);
 			if (pairsArray.length > 0) {
@@ -193,23 +191,22 @@ export default function tournamentEvents(io, socket) {
 						player2: tournament.participants.find(p => p.user.id === pair[1]).user
 					})
 				});
-				io.in(data.tournamentId).emit('getMatchPair', pairs);
+				io.in(tournamentId).emit('getMatchPair', pairs);
 			}
 		}
 	})
 
 	socket.on('tournamentGameEntered', (data) => {
-		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === data.tournamentId);
-		const i = tournament.inLobby.findIndex(participant => participant.user.id === data.userId);
-		const participant = tournament.participants.find(participant => participant.user.id === data.userId);
+		const { tournamentId, userId, oppId } = data;
+		console.log(`[tournament] [tournamentGameEntered] data: ${JSON.stringify(data)}`);
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
+		const i = tournament.inLobby.findIndex(participant => participant.user.id === userId);
+		const participant = tournament.participants.find(participant => participant.user.id === userId);
 
-		if (participant && participant.opponents.has(data.oppId)) {
-			const count = participant.opponents.get(data.oppId)
-			participant.opponents.set(data.oppId, count + 1);
-
+		if (participant && participant.opponents.has(oppId)) {
+			const count = participant.opponents.get(oppId)
+			participant.opponents.set(oppId, count + 1);
 		}
-		console.log("[tournament]  [tournamentGameEntered] [BEFORE] PRINTING THE LOBBY: " + JSON.stringify(tournament.inLobby));
 		tournament.inLobby.splice(i, 1);
-		console.log("[tournament] [tournamentGameEntered] [AFTER]  PRINTING THE LOBBY: " + JSON.stringify(tournament.inLobby));
 	})
 }

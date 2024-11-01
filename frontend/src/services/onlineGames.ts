@@ -56,7 +56,7 @@ export const JoinLobby = async (lobbyId: string, userId: number) => {
 		})
 		const data = await response.json()
 		if (!response.ok)
-			throw new Error(data.message)
+			throw new Error(data.message) // Lobby is full
 	}
 	catch (error) {
 		throw error
