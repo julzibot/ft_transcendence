@@ -31,10 +31,10 @@ export default function TournamentLobby() {
 
 	const handleStartTournament = async () => {
 		//update isStarted in DB to prevent user to enter and to continue match making
-		await startTournament(id)
+		await startTournament(id.toString())
 
 		// send signal to sockets
-		socket.emit('startTournament', { tournamentId: id, tournamentDuration: tournamentData.timer })
+		socket?.emit('startTournament', { tournamentId: id, tournamentDuration: tournamentData?.timer })
 
 	}
 
@@ -86,9 +86,9 @@ export default function TournamentLobby() {
 			socket.emit('joinTournament', {
 				tournamentId: id,
 				user: {
-					id: session?.user.id,
-					username: session?.user.username,
-					image: session?.user.image
+					id: session?.user?.id,
+					username: session?.user?.username,
+					image: session?.user?.image
 				}
 			})
 			setJoined(true);
@@ -104,7 +104,7 @@ export default function TournamentLobby() {
 				setPairs(data);
 				//find the pair that the user is in
 				const pair = data.find(pair => pair.player1.id === session?.user?.id || pair.player2.id === session?.user?.id);
-				if (pair?.player1.id === session?.user?.id) {
+				if (tournamentData && session?.user && pair?.player1.id === session?.user?.id) {
 					const payload: LobbyPayload = {
 						name: `${pair?.player1.username} vs ${pair?.player2.username}`,
 						player1: session?.user?.id,
@@ -112,7 +112,7 @@ export default function TournamentLobby() {
 						pointsPerGame: tournamentData?.pointsPerGame,
 						power_ups: tournamentData?.power_ups,
 						gameMode: 'TOURNAMENT',
-						tournamentLink: id
+						tournamentLink: id.toString()
 					}
 					//Create a lobby with payload
 					const linkToJoin = await AddLobbyData(payload);
@@ -147,9 +147,9 @@ export default function TournamentLobby() {
 	}, [socket, isReady]);
 
 	useEffect(() => {
-		if (tournamentData && tournamentData.isStarted) {
-			console.log(tournamentData);
-			socket.emit("returnToLobby", { tournamentId: id, userId: session.user.id })
+		if (socket && tournamentData && tournamentData.isStarted) {
+			// console.log(tournamentData);
+			socket.emit("returnToLobby", { tournamentId: id, userId: session?.user?.id })
 		}
 	}, [tournamentData])
 	return (

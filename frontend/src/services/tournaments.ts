@@ -84,7 +84,7 @@ export const leaveTournament = async (tournamentId: number, userId: number) => {
 	return data
 }
 
-export const startTournament = async (tournamentId: number) => {
+export const startTournament = async (tournamentId: string) => {
 	await fetch(`${BACKEND_URL}/api/tournament/${tournamentId}/start/`, {
 		method: 'PUT',
 		credentials: 'include',
