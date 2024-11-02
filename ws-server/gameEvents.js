@@ -5,8 +5,12 @@ import { lobbyUsers } from "./server.js";
 export default function gameEvents(io, lobby, socket) {
 
 	socket.on('joinGame', (data) => {
-		const { userId, gameId, lobbyId } = data;
-		gameUsers.set(socket.id, { userId: userId, mode: 0 });
+		const { userId, gameId, lobbyId, gameMode } = data;
+		if (gameMode === 2)
+			gameUsers.set(socket.id, { userId: user.id, mode: 0 });
+		else if (gameMode === 3)
+			gameUsers.set(socket.id, { userId: user.id, mode: 1 });
+
 		socket.join(gameId);
 		console.log(`[gameEvents] [joinGame] ${socket.id} has joined -> ${gameId}`);
 		const room = gameRooms.get(gameId);
