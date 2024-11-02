@@ -285,7 +285,7 @@ export default function Customization() {
 
 			<div className="d-flex flex-column align-items-center">
 				<div className="m-2">
-					<button className={`btn btn-danger rounded-pill ${styles.button} ${isMounted ? styles.mounted : ''}`}
+					<button className={`btn btn-warning rounded-pill ${styles.button} ${isMounted ? styles.mounted : ''}`}
 						type="button"
 						data-bs-toggle="offcanvas"
 						data-bs-target="#offcanvasCustomization"

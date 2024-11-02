@@ -108,6 +108,13 @@ export default function TournamentLobby() {
 
 	useEffect(() => {
 		if (socket && isReady) {
+
+			socket.on('announceTournamentEnd', () => {
+				//update isFinished in db
+				//display a card showing the ranking and leave button
+				console.log('C FINI!!!!')
+			})
+
 			socket.on('updateParticipants', (data: ParticipantType[]) => {
 				setParticipantsList(data);
 			})
