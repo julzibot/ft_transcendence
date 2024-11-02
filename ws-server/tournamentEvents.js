@@ -6,6 +6,7 @@ import { tournamentsArray, tournamentUsers } from "./server.js";
 //	duration: 0,
 // 	participants: [participant1, ...],
 //	inLobby: [participant1, ...],
+//	disconnected: [p1, p2]
 //	computeTimer: performance.now(),
 // 	rooms: []
 // }
@@ -127,7 +128,12 @@ export default function tournamentEvents(io, socket) {
 
 			const exists = tournament.inLobby.find((p) => p.user.id === userId);
 			if (!exists)
+			{
 				tournament.inLobby.push(p);
+				const discoIndex = tournament.disconnected.findIndex(participant.user.id);
+				if ( discoIndex != -1)
+					tournament.disconnected.splice(discoIndex, 1);
+			}
 
 			p.return_time = performance.now();
 			if (!tournament.timeoutStarted) {
@@ -148,7 +154,7 @@ export default function tournamentEvents(io, socket) {
 							io.in(tournamentId).emit('getMatchPair', pairs);
 						}
 					}
-					else if (tournament.inLobby.length === tournament.participants.length)
+					else if (tournament.inLobby.length + tournament.disconnected.length === tournament.participants.length)
 						io.in(tournamentId).emit('announceTournamentEnd');
 					tournament.timeoutStarted = false;
 				}, 2500)
@@ -194,6 +200,7 @@ export default function tournamentEvents(io, socket) {
 				...p,
 				opponents: p.opponents
 			}));
+			tournament.disconnected = [];
 
 			const pairsArray = computeMatches(tournament);
 			if (pairsArray.length > 0) {

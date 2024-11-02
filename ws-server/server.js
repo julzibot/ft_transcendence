@@ -234,6 +234,7 @@ tournament.on('connection', (socket) => {
 				console.log(`[game] -BFR- inLobby ${JSON.stringify(t.inLobby)}`);
 				console.log(`[game] Deleting player...`);
 				t.inLobby.splice(playerIndex, 1);
+				t.disconnected.push(playerIndex);
 				console.log(`[game] -AFR- inLobby ${JSON.stringify(t.inLobby)}`);
 			}
 		})
