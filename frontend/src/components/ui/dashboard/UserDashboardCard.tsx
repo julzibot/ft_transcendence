@@ -169,17 +169,23 @@ const UserDashboardCard = () => {
 							{
 								dataCreated && (
 									<>
-										<div className="btn-group" role="group" aria-label="Basic radio toggle button group">
-											<input type="radio" className="btn-check" name="btnradio" id="radio7days" defaultChecked onClick={() => handle7DaysBtn()} />
+										<div className="btn-group m-1" role="group">
+											<input type="radio" className="btn-check" name="radioTime" id="radio7days" defaultChecked autoComplete="off" onClick={() => handle7DaysBtn()} />
 											<label className="btn btn-outline-primary" htmlFor="radio7days" >Past 7 days</label>
 
-											<input type="radio" className="btn-check" name="btnradio" id="radioAllTime" onClick={() => handleAllTimeBtn()} />
+											<input type="radio" className="btn-check" name="radioTime" id="radioAllTime" autoComplete="off" onClick={() => handleAllTimeBtn()} />
 											<label className="btn btn-outline-primary" htmlFor="radioAllTime">All time</label>
 										</div>
 
-										{/* <button type='button' className='btn btn-primary m-1' onClick={() => handle7DaysBtn()}>Past 7 days</button>
-										<button type='button' className='btn btn-primary m-1' onClick={() => handleAllTimeBtn()}>All time</button> */}
-										<input
+										<div className="btn-group m-1" role="group">
+											<input type="radio" className="btn-check" name="btnradio" id="radioWithoutStats" defaultChecked autoComplete="off" onClick={() => setStatsToggle(!statsToggle)} />
+											<label className="btn btn-outline-danger" htmlFor="radioWithoutStats" >Without Stats</label>
+
+											<input type="radio" className="btn-check" name="btnradio" id="radioWithStats" autoComplete="off" onClick={() => setStatsToggle(!statsToggle)} />
+											<label className="btn btn-outline-danger" htmlFor="radioWithStats">With Stats</label>
+										</div>
+
+										{/* <input
 											type="checkbox"
 											className="btn-check"
 											id="btn-check"
@@ -196,7 +202,7 @@ const UserDashboardCard = () => {
 													<label className="btn btn-danger m-2" htmlFor="btn-check">With Stats</label>
 												</>
 											)
-										}
+										} */}
 										<div className='d-flex flex-row m-3'>
 											{
 												statsToggle ?
