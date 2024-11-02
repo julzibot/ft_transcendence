@@ -1,5 +1,3 @@
-'use client'
-
 import { SocketProvider } from "@/context/socket";
 import React from 'react'
 

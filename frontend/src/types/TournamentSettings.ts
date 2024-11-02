@@ -33,6 +33,11 @@ export interface TournamentType {
 	creator: User;
 	participants: ParticipantType[];
 	settings: TournamentSettingsType;
+	timer: number;
+	difficultyLevel: number;
+	pointsPerGame: number;
+	power_ups: boolean;
+	isStarted: boolean;
 }
 
 export interface Pair {

@@ -33,7 +33,7 @@ interface Lobby {
 	gameMode: 'TOURNAMENT' | 'ONLINE';
 }
 
-export default function Lobby() {
+export default function TournamentGameLobby() {
 	const { session } = useAuth();
 	const router = useRouter();
 	const { linkToJoin } = useParams();
@@ -149,7 +149,7 @@ export default function Lobby() {
 								gamemode={gameInfos?.game_mode} handleGameEnded={handleGameEnded} />
 						)
 					)}
-					{gameEnded && <EndGameCard gameMode={lobbyData.gameMode} tournamentLink={lobbyData.tournamentLink ? lobbyData.tournamentLink : null} />}
+					{gameEnded && <EndGameCard gameMode={lobbyData?.gameMode} tournamentLink={lobbyData?.tournamentLink ? lobbyData?.tournamentLink : null} />}
 				</SocketProvider>
 			}
 		</>

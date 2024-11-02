@@ -27,7 +27,6 @@ interface LobbyForm {
 }
 
 export const CreateTournament = async (payload: LobbyForm) => {
-	console.log(payload)
 	try {
 		const response = await fetch(BACKEND_URL + `/api/tournament/create/`, {
 			method: "POST",
@@ -83,4 +82,16 @@ export const leaveTournament = async (tournamentId: number, userId: number) => {
 	})
 	const data = await response.json()
 	return data
+}
+
+export const startTournament = async (tournamentId: string) => {
+	await fetch(`${BACKEND_URL}/api/tournament/${tournamentId}/start/`, {
+		method: 'PUT',
+		credentials: 'include',
+		headers: {
+			"Content-Type": 'application/json',
+			"X-CSRFToken": Cookies.get('csrftoken') as string
+		}
+	}
+	)
 }

@@ -53,7 +53,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		name: '',
 		maxPlayerNumber: 4,
 		timer: 15,
-		pointsPerGame: 10,
+		pointsPerGame: 1,
 		difficultyLevel: "",
 		power_ups: true,
 		isStarted: false,
