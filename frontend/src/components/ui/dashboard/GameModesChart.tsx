@@ -61,7 +61,7 @@ export default function GameModesChart({ setChartInstance, displayedDate, data }
 					backgroundColor: [
 						'rgb(50, 215, 75)',
 						'rgb(10, 132, 255)',
-						'rgb(255, 159, 10)',
+						'rgb(255, 190, 10)',
 						'rgb(255, 69, 58)',
 						'rgb(173, 173, 173)',
 					],

@@ -169,8 +169,16 @@ const UserDashboardCard = () => {
 							{
 								dataCreated && (
 									<>
-										<button type='button' className='btn btn-primary m-1' onClick={() => handle7DaysBtn()}>Past 7 days</button>
-										<button type='button' className='btn btn-primary m-1' onClick={() => handleAllTimeBtn()}>All time</button>
+										<div className="btn-group" role="group" aria-label="Basic radio toggle button group">
+											<input type="radio" className="btn-check" name="btnradio" id="radio7days" defaultChecked onClick={() => handle7DaysBtn()} />
+											<label className="btn btn-outline-primary" htmlFor="radio7days" >Past 7 days</label>
+
+											<input type="radio" className="btn-check" name="btnradio" id="radioAllTime" onClick={() => handleAllTimeBtn()} />
+											<label className="btn btn-outline-primary" htmlFor="radioAllTime">All time</label>
+										</div>
+
+										{/* <button type='button' className='btn btn-primary m-1' onClick={() => handle7DaysBtn()}>Past 7 days</button>
+										<button type='button' className='btn btn-primary m-1' onClick={() => handleAllTimeBtn()}>All time</button> */}
 										<input
 											type="checkbox"
 											className="btn-check"
