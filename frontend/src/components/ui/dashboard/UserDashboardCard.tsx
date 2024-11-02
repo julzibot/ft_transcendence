@@ -184,25 +184,6 @@ const UserDashboardCard = () => {
 											<input type="radio" className="btn-check" name="btnradio" id="radioWithStats" autoComplete="off" onClick={() => setStatsToggle(!statsToggle)} />
 											<label className="btn btn-outline-danger" htmlFor="radioWithStats">With Stats</label>
 										</div>
-
-										{/* <input
-											type="checkbox"
-											className="btn-check"
-											id="btn-check"
-											autoComplete="off"
-											checked={!statsToggle}
-											onChange={handleStatsToggle} />
-										{
-											statsToggle ? (
-												<>
-													<label className="btn btn-secondary m-2" htmlFor="btn-check">Without Stats</label>
-												</>
-											) : (
-												<>
-													<label className="btn btn-danger m-2" htmlFor="btn-check">With Stats</label>
-												</>
-											)
-										} */}
 										<div className='d-flex flex-row m-3'>
 											{
 												statsToggle ?
@@ -257,7 +238,12 @@ const UserDashboardCard = () => {
 																<div className="match_item_bg"></div>
 																<div className="match_item_game_mode">{cardColor}</div>
 																<div className="match_item_title">
-																	{new Date(obj.date).toLocaleDateString()}
+																	{new Date(obj.date).toLocaleDateString('en-GB', {
+																		weekday: 'short',
+																		year: 'numeric',
+																		month: 'short',
+																		day: 'numeric',
+																	})}
 																</div>
 																<div className="match_item_date-box">
 																	{
