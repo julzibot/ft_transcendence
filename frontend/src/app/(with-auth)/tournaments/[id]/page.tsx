@@ -13,6 +13,7 @@ import { AddLobbyData, JoinLobby } from '@/services/onlineGames';
 import { LobbyPayload } from '@/types/Lobby';
 import { startTournament } from '@/services/tournaments';
 import "./styles.css"
+import Image from '@/components/Utils/Image';
 
 
 export default function TournamentLobby() {

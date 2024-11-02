@@ -1,7 +1,7 @@
 "use client"
-import { useState, useEffect } from 'react'
-import { BACKEND_URL } from '@/config';
+import { useEffect } from 'react'
 import useSocketContext from '@/context/socket';
+import Image from '../Utils/Image';
 import { NumberKeyframeTrack } from 'three';
 import { useAuth } from '@/app/lib/AuthContext';
 
@@ -29,7 +29,7 @@ export default function GameCountdownModal({ lobby_id, game_id, players, countdo
 
 	return (
 		<>
-			<div className={`modal fade show d-block`} tabIndex={-1}>
+			<div className={`modal fade show d-block`}>
 				<div className={`modal-dialog modal-lg modal-dialog-centered`}>
 					<div className={`modal-content`}>
 						<div className="modal-body">
@@ -38,22 +38,7 @@ export default function GameCountdownModal({ lobby_id, game_id, players, countdo
 									height: '100px'
 								}}>
 									<div className="d-flex flex-row align-items-center">
-										< div className="me-3 position-relative border border-3 border-dark-subtle rounded-circle" style={{ width: '70px', height: '70px', overflow: 'hidden' }}>
-											<img
-												style={{
-													objectFit: 'cover',
-													width: '100%',
-													height: '100%',
-													position: 'absolute',
-													top: '50%',
-													left: '50%',
-													transform: 'translate(-50%, -50%)'
-												}}
-												fetchPriority="high"
-												alt="profile picture"
-												src={`${BACKEND_URL}${players.player1.image}`}
-											/>
-										</div>
+										<Image className="me-3" src={players.player1.image} alt="profile picture" whRatio="70px" />
 										<span className="me-2 text-truncate fs-2" style={{ maxWidth: 'calc(80%)' }}>{players.player1.username}</span>
 									</div>
 								</div>
@@ -62,22 +47,7 @@ export default function GameCountdownModal({ lobby_id, game_id, players, countdo
 								>
 									<div className="d-flex flex-row align-items-center">
 										<span className="me-2 text-truncate fs-2" style={{ maxWidth: 'calc(80%)' }}>{players.player2.username}</span>
-										< div className="ms-2 position-relative border border-3 border-dark-subtle rounded-circle" style={{ width: '70px', height: '70px', overflow: 'hidden' }}>
-											<img
-												style={{
-													objectFit: 'cover',
-													width: '100%',
-													height: '100%',
-													position: 'absolute',
-													top: '50%',
-													left: '50%',
-													transform: 'translate(-50%, -50%)'
-												}}
-												fetchPriority="high"
-												alt="profile picture"
-												src={`${BACKEND_URL}${players.player2.image}`}
-											/>
-										</div>
+										<Image src={players.player2.image} alt="profile picture" whRatio="70px" />
 									</div>
 								</div>
 							</div>

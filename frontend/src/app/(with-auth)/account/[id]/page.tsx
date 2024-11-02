@@ -9,6 +9,7 @@ import Customization from "@/components/game/Customization";
 import { useParams, useRouter } from "next/navigation";
 import { BACKEND_URL } from "@/config";
 import Cookies from "js-cookie";
+import Image from "@/components/Utils/Image";
 
 interface User {
 	id: number;
@@ -46,19 +47,6 @@ export default function ProfilePage() {
 		error: '',
 	})
 
-	const [gameSettings, setGameSettings] = useState({
-		user: session?.user?.id || 0,
-		background: 0, // 0 - 3 animated, 4 - 5 static
-		palette: 0, // palette: 4 choices
-		bgColor: '#ff0000',
-		opacity: 80,
-		sparks: true,
-
-		game_difficulty: 4,
-		points_to_win: 5,
-		power_ups: true
-	});
-
 	const handleShow = () => {
 		setShowModal(true);
 
@@ -79,7 +67,7 @@ export default function ProfilePage() {
 		})
 		if (!response.ok) {
 			router.push(`/error?code=${response.status}`)
-			return;
+			return
 		}
 		const data = await response.json()
 		setUser({
@@ -180,30 +168,7 @@ export default function ProfilePage() {
 			<div className="d-flex flex-row align-items-center justify-content-evenly">
 				<div className="card flex-column shadow-lg text-center bg-light ms-5">
 					<div className="card-body">
-						<div className="position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '280px', height: '280px', overflow: 'hidden' }}>
-							{
-								user.image ? (
-									<img
-										style={{
-											objectFit: 'cover',
-											width: '100%',
-											height: '100%',
-											position: 'absolute',
-											top: '50%',
-											left: '50%',
-											transform: 'translate(-50%, -50%)'
-										}}
-										fetchPriority="high"
-										alt="profile picture"
-										src={`${BACKEND_URL}${user.image}`}
-									/>
-								) : (
-									<div className="placeholder-glow w-100 h-100">
-										<div className="placeholder bg-secondary w-100 h-100"></div>
-									</div>
-								)
-							}
-						</div>
+							<Image src={user.image} alt="profile picture" whRatio="280px" loading={loading} />
 						<br />
 						{
 							session?.user?.id === Number(id) ? (
@@ -224,7 +189,6 @@ export default function ProfilePage() {
 												<div className="d-flex flex-row align-items-center justify-content-between">
 													{
 														session.user.username ? (<span className="flex-grow-1 overflow-hidden text-truncate fw-semibold fs-4">{session.user.username}</span>) : (
-															// Display placeholder if username is not set
 															<>
 																<p className="card-text fs-4 placeholder-glow">
 																	<span className="placeholder col-7"></span>

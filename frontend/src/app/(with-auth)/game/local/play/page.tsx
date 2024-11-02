@@ -82,11 +82,12 @@ export default function Play() {
 		if (response.status === 201) {
 			const res = await response.json();
 			setGameInfos({
-				game_id: parseInt(res.id),
+				game_id: parseInt(res.game_id),
 				p1Name: session?.user?.username,
 				p2Name: gameMode === 0 ? 'guest' : 'ai',
 				p1p: session?.user?.image,
-				p2p: gameMode === 0 ? '../../guest.png' : '../../airobot.png'
+				p2p: gameMode === 0 ? '../../guest.png' : '../../airobot.png',
+				game_mode: gameMode
 			});
 		}
 	}
