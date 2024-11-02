@@ -57,7 +57,7 @@ export default function ProfilePage() {
 
 	async function getUserInfo() {
 		if (!id || !/^\d+$/.test(id as string)) {
-			router.push(`/error?code=400`)
+			router.replace(`/error?code=400`)
 			return
 		}
 		const response = await fetch(`${BACKEND_URL}/api/user/get-user-info/?id=${id}`, {
@@ -66,7 +66,7 @@ export default function ProfilePage() {
 			headers: { 'Content-Type': 'application/json' }
 		})
 		if (!response.ok) {
-			router.push(`/error?code=${response.status}`)
+			router.replace(`/error?code=${response.status}`)
 			return
 		}
 		const data = await response.json()
@@ -150,7 +150,7 @@ export default function ProfilePage() {
 			})
 		})
 		if (response.status === 204) {
-			router.push('/auth/signin')
+			router.replace('/auth/signin')
 		}
 		else {
 			const res = await response.json()
@@ -168,7 +168,7 @@ export default function ProfilePage() {
 			<div className="d-flex flex-row align-items-center justify-content-evenly">
 				<div className="card flex-column shadow-lg text-center bg-light ms-5">
 					<div className="card-body">
-							<Image src={user.image} alt="profile picture" whRatio="280px" loading={loading} />
+						<Image src={user.image} alt="profile picture" whRatio="280px" loading={loading} />
 						<br />
 						{
 							session?.user?.id === Number(id) ? (

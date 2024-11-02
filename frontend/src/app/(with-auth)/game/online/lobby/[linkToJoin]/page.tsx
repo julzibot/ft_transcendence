@@ -55,8 +55,7 @@ export default function Lobby() {
 					credentials: 'include'
 				});
 				if (!response.ok) {
-					console.log('Error fetching tournament data')
-					router.push(`/error?code=${response.status}`)
+					router.replace(`/error?code=${response.status}`)
 				}
 				else {
 					const data = await response.json()
@@ -129,7 +128,7 @@ export default function Lobby() {
 
 	return (
 		<>
-			{socket &&
+			{socket && lobbyData &&
 				<SocketProvider nsp="/game">
 					{countdown !== 0 ? (
 						(players

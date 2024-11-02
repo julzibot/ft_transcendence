@@ -58,7 +58,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 	const handleJoin = async (linkToJoin: string) => {
 		try {
 			await JoinLobby(linkToJoin, session?.user?.id)
-			router.push(`/game/online/lobby/${linkToJoin}`)
+			router.replace(`/game/online/lobby/${linkToJoin}`)
 		}
 		catch (error: any) {
 			setErrorField({ ...errorField, joinError: error.message })
@@ -77,7 +77,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 			'player1': session?.user?.id
 		}
 		const linkToJoin = await AddLobbyData(payload)
-		router.push(`/game/online/lobby/${linkToJoin}`)
+		router.replace(`/game/online/lobby/${linkToJoin}`)
 	}
 
 	const fetchLobbyData = async () => {

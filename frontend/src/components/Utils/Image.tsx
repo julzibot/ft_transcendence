@@ -14,9 +14,9 @@ export default function Image({ className, src, alt, whRatio, loading }: { class
                   width: '100%',
                   height: '100%',
                   position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)'
+                  top: '49%',
+                  left: '51%',
+                  transform: 'translate(-51%, -49%)'
                 }}
                 fetchPriority="high"
                 alt={alt}

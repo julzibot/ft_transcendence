@@ -5,14 +5,19 @@ import { Button, Modal } from 'react-bootstrap'
 import { GetTournamentData, CreateTournament, joinTournament } from '@/services/tournaments';
 import { useAuth } from '@/app/lib/AuthContext';
 import DOMPurify from 'dompurify';
-import { TournamentSettingsType } from '@/types/TournamentSettings'
 import { PersonFillUp, Controller, Toggle2On, Toggle2Off, LightningFill, ClockFill, Activity, TrophyFill, Alphabet, CircleFill } from 'react-bootstrap-icons'
-import { BACKEND_URL } from '@/config';
 import { CustomTooltip } from '../Utils/Tooltip';
 import { useRouter } from 'next/navigation'
 import './styles.css'
 import DifficultyLevel from '../Utils/DifficultyLevel';
 import Image from '../Utils/Image';
+import { ParticipantType } from '@/types/TournamentSettings';
+
+interface User {
+	id: number;
+	username: string;
+	image: string;
+};
 
 interface Tournament {
 	id: number;
@@ -24,14 +29,11 @@ interface Tournament {
 	timer: number;
 	isStarted: boolean;
 	linkToJoin: string;
-	creator: {
-		id: number;
-		username: string;
-		image: string;
-	};
+	creator: User
 	numberOfPlayers: number;
 	pointsPerGame: number;
 	difficultyLevel: number;
+	participants: ParticipantType[]
 }
 
 interface TournamentSettingsProps {
@@ -65,11 +67,6 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 
 
 	const handleJoin = async (tournament: Tournament, userId: number | undefined, linkToJoin: string) => {
-		if (tournament.isStarted) {
-			setErrorField({ ...errorField, joinError: 'Tournament has already started' })
-			setToastShow(true)
-			return
-		}
 		try {
 			await joinTournament(tournament.id, userId)
 			router.push(`/tournaments/${linkToJoin}`)
@@ -112,6 +109,10 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 	useEffect(() => {
 		fetchData()
 	}, [])
+
+	useEffect(() => {
+		console.log(tournamentData)
+	}, [tournamentData])
 
 
 	return (
@@ -167,8 +168,23 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 							<div
 								key={index}
 								onClick={() => handleJoin(tournament, session?.user?.id, tournament.linkToJoin)}
-								className={`${tournament.isStarted ? 'disabled' : ''} ${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5`}
+								className={`${tournament.isStarted && !tournament.participants.some((participant) => participant.user.id === session.user.id) ? 'disabled' : 'text-light'
+									} ${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5 z-1 position-relative`}
 							>
+								{
+									tournament.isStarted && tournament.participants.some((participant) => participant.user.id === session.user.id) &&
+									<div className="video-container">
+										<video
+											className="background-video"
+											autoPlay
+											muted
+											loop
+											src="/videos/flame3.mp4"
+										>
+											Your browser does not support HTML5 video.
+										</video>
+									</div>
+								}
 								<div className="border-end col-2 d-flex justify-content-center align-items-center text-truncate">
 									{tournament.name}
 								</div>

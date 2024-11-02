@@ -12,6 +12,8 @@ function ErrorContent() {
     switch (code) {
       case '404':
         return "Oops you are lost"
+      case '403':
+        return "You are not allowed to come here."
       case '400':
         return "Bad Request"
       default:

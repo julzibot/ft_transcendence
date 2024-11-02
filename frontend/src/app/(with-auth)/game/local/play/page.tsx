@@ -136,7 +136,7 @@ export default function Play() {
 					gamemode={gameMode}
 					handleGameEnded={handleGameEnded}
 				/>)}
-			{gameEnded && <EndGameCard callbackUrl={'/game/local'} />}
+			{gameEnded && <EndGameCard gameMode="LOCAL" />}
 		</>
 	);
 }

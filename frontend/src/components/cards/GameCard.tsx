@@ -12,7 +12,7 @@ export default function GameCard({ src }: { src: string }) {
   const handleSingleButton = () => {
     setMove(!move)
     setDirection(styles.left)
-    const timer = setTimeout(() => {
+    setTimeout(() => {
       router.push('/game/simple')
     }, 500);
   }
@@ -20,7 +20,7 @@ export default function GameCard({ src }: { src: string }) {
   const handleTournamentsButton = () => {
     setMove(!move)
     setDirection(styles.right)
-    const timer = setTimeout(() => {
+    setTimeout(() => {
       router.push('/tournaments')
     }, 500);
   }
