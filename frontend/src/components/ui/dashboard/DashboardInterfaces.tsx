@@ -1,7 +1,7 @@
 'use client'
 
 export interface MatchEntry {
-	x: number,
+	x: string,
 	y: number
 }
 
@@ -17,5 +17,5 @@ export interface GameMatch {
 	score1: number,
 	score2: number,
 	game_mode: number,
-	date: Date
+	date: string
 }

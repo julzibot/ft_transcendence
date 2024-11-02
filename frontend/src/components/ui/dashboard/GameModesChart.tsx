@@ -5,6 +5,7 @@ import 'chartjs-adapter-luxon';
 import './styles.css';
 
 import { MatchEntry } from "./DashboardInterfaces";
+import { convertDate } from "./ChartDataUtils";
 
 interface GameModesProps {
 	setChartInstance: Function,
@@ -16,8 +17,8 @@ const extractGameModesData = (data: Array<MatchEntry>, setDisplayedData: Functio
 	const newData: Array<number> = [0, 0, 0, 0, 0];
 	if (Array.isArray(data)) {
 		data.forEach((item) => {
-			const date = new Date(displayedDate);
-			if (item.x >= date.getTime()) {
+			const date = convertDate(displayedDate);
+			if (item.x >= date) {
 				if (item.y === 0) newData[0] += 1;
 				else if (item.y === 1) newData[1] += 1;
 				else if (item.y === 2) newData[2] += 1;

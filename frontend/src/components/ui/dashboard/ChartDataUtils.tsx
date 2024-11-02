@@ -2,26 +2,44 @@
 
 import { GameMatch, MatchEntry } from "./DashboardInterfaces";
 
+export const convertDate = (date: Date) => {
+
+	let year = date.toLocaleString('default', { year: 'numeric' });
+	let month = date.toLocaleString('default', { month: "2-digit" });
+	let day = date.toLocaleString('default', { day: '2-digit' })
+
+	return (year + "-" + month + "-" + day);
+}
+
+export const incrementDateDay = (date: string) => {
+
+	const dateToIncrement = new Date(date);
+	dateToIncrement.setDate(dateToIncrement.getDate() + 1);
+	let year = dateToIncrement.toLocaleString('default', { year: 'numeric' });
+	let month = dateToIncrement.toLocaleString('default', { month: "2-digit" });
+	let day = dateToIncrement.toLocaleString('default', { day: '2-digit' })
+
+	return (year + "-" + month + "-" + day);
+}
+
 const parseActivity = (newActivityData: Array<MatchEntry>) => {
 
 	if (Array.isArray(newActivityData)) {
 		console.log(`[parseActivity] newActivityData: ${JSON.stringify(newActivityData)}`)
 		let i = 0;
-		while (i < newActivityData.length) {
+		while (i < newActivityData.length - 1) {
 			console.log(`[parseActivity] loop`);
-			const cmpDate = new Date(newActivityData[i].x);
-			console.log(`*** cmpDate: ${cmpDate.getTime()} - ${new Date(cmpDate)}`);
-			cmpDate.setDate(cmpDate.getDate() + 1);
-			console.log(`***cmpDate: ${cmpDate.getTime()} - ${new Date(cmpDate)}`);
+			const cmpDate = incrementDateDay(newActivityData[i].x);
 
-			if (i + 1 < newActivityData.length && cmpDate.getTime() !== (new Date(newActivityData[i + 1].x)).getTime()) {
-				console.log(`cmpDate: ${cmpDate.getTime()} - ${new Date(cmpDate)}`);
-				console.log(`actDate: ${(new Date(newActivityData[i + 1].x)).getTime()} - ${new Date(newActivityData[i + 1].x)}`);
-				newActivityData.splice(i + 1, 0, { x: cmpDate.getTime(), y: 0 });
-			}
-			else
-				i++;
+			if (cmpDate !== newActivityData[i + 1].x && !newActivityData.some(entry => entry.x === cmpDate))
+				newActivityData.splice(i + 1, 0, { x: cmpDate, y: 0 });
+			i++;
 		}
+
+		// Sort by date after all splicing to maintain chronological order
+		newActivityData.sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
+		console.log(`[parseActivity] sorted newActivityData: ${JSON.stringify(newActivityData)}`);
+
 
 		console.log(`[parseActivity] newActivityData: ${JSON.stringify(newActivityData)}`)
 		// const parsedData: Array<MatchEntry> = [];
@@ -72,7 +90,7 @@ export default function createScoreData(
 	setGameModesData: Function,
 	maxY: number,
 	setMaxY: Function,
-	minDate: Date,
+	minDate: string,
 	setMinDate: Function
 ) {
 	if (Array.isArray(data)) {
@@ -84,57 +102,54 @@ export default function createScoreData(
 
 		data.map((item) => {
 			console.log(`[createScoreData] [item] ${JSON.stringify(item)}`);
-			const itemDate = new Date(item.date);
-			const dateISO = itemDate.getTime();
+			// const itemDate = new Date(item.date); // item.date -> YYYY-MM-DD
+			// const dateISO = itemDate.getTime();
 			// console.log(`data.map -> date -> ${dateISO}`);
 
-			if (dateISO < newMinDate.getTime())
-				newMinDate = itemDate;
+			if (item.date < newMinDate)
+				newMinDate = item.date;
 
 			// Wins and losses
 			if ((Number(item.player1.id) === user_id && item.score1 > item.score2) || ((item.player2 ? Number(item.player2.id) : -1) === user_id && item.score1 < item.score2)) {
-				const existingDate = newWinData.find(obj => obj.x === dateISO);
+				const existingDate = newWinData.find(obj => obj.x === item.date);
 
 				if (!existingDate)
-					newWinData.push({ x: dateISO, y: 1 });
+					newWinData.push({ x: item.date, y: 1 });
 				else
 					existingDate.y += 1;
 			}
 			else {
-				const existingDate = newLossData.find(obj => obj.x === dateISO);
+				const existingDate = newLossData.find(obj => obj.x === item.date);
 
 				if (!existingDate)
-					newLossData.push({ x: dateISO, y: 1 });
+					newLossData.push({ x: item.date, y: 1 });
 				else
 					existingDate.y += 1;
 			}
 
 			// Activity & Game Mode data
-			const activityDate = newActivityData.find(obj => obj.x === dateISO);
+			const activityDate = newActivityData.find(obj => obj.x === item.date);
 			if (!activityDate) {
-				newActivityData.push({ x: dateISO, y: 1 });
+				newActivityData.push({ x: item.date, y: 1 });
 			}
 			else {
 				activityDate.y += 1;
 				if (activityDate.y > maxY)
 					setMaxY(activityDate.y);
 			}
-			newGameModesData.push({ x: dateISO, y: item.game_mode })
+			newGameModesData.push({ x: item.date, y: item.game_mode })
 		});
-		const today = new Date();
-		today.setDate(today.getDate())
+		const today = convertDate(new Date());
 
 		// console.log(`[ChartDataUtils] newActivityData: ${JSON.stringify(newActivityData)}`);
-		let lastDay = new Date(newActivityData[newActivityData.length - 1].x);
-		let lastDayRounded = lastDay.toISOString().split('T')[0];
-		let lastDayDate = new Date(lastDayRounded);
+		let lastDay = newActivityData[newActivityData.length - 1].x;
 
-		while (lastDayDate.getTime() < today.getTime()) {
+		while (lastDay < today) {
 			// console.log('[ChartDataUtils] time loop()');
-			newActivityData.push({ x: lastDayDate.getTime(), y: 0 });
-			newWinData.push({ x: lastDayDate.getTime(), y: 0 });
-			newLossData.push({ x: lastDayDate.getTime(), y: 0 });
-			lastDayDate.setDate(lastDayDate.getDate() + 1); // increment lastDayDate
+			newActivityData.push({ x: lastDay, y: 0 });
+			newWinData.push({ x: lastDay, y: 0 });
+			newLossData.push({ x: lastDay, y: 0 });
+			lastDay = incrementDateDay(lastDay); // increment lastDayDate
 		}
 		console.log(`[ChartDataUtils] after time loop()`);
 
@@ -143,6 +158,7 @@ export default function createScoreData(
 		setMinDate(newMinDate);
 		setWinData(newWinData);
 		setLossData(newLossData);
+		console.log(`[newGameModesData] ${JSON.stringify(newGameModesData)}`);
 		setGameModesData(newGameModesData);
 	}
 }
