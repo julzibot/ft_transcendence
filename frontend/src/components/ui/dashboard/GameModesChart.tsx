@@ -58,10 +58,10 @@ export default function GameModesChart({ setChartInstance, displayedDate, data }
 					label: 'Total',
 					data: displayData,
 					backgroundColor: [
-						'rgb(255, 99, 132)',
-						'rgb(54, 162, 235)',
-						'rgb(255, 205, 86)',
-						'rgb(228, 64, 2)',
+						'rgb(50, 215, 75)',
+						'rgb(10, 132, 255)',
+						'rgb(255, 159, 10)',
+						'rgb(255, 69, 58)',
 						'rgb(173, 173, 173)',
 					],
 					hoverOffset: 4
