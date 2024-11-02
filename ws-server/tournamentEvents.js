@@ -104,7 +104,7 @@ export default function tournamentEvents(io, socket) {
 			const participant = tournament.participants.find(participant => participant.user.id === user.id)
 			if (!participant)
 				tournament.participants.push({ user: user, return_time: 0, opponents: new Map() });
-			updatedParticipants = tournament.participants;
+			updatedParticipants = tournament.participants.map(p => ({...p}));
 		}
 		else {
 			const newTournament = {
@@ -115,7 +115,7 @@ export default function tournamentEvents(io, socket) {
 				participants: [{ user: user, return_time: 0, opponents: new Map() }],
 			}
 			tournamentsArray.push(newTournament);
-			updatedParticipants = newTournament.participants;
+			updatedParticipants = newTournament.participants.map(p => ({...p}));
 		}
 		socket.in(tournamentId).emit('updateParticipants', updatedParticipants);
 	});
@@ -125,6 +125,7 @@ export default function tournamentEvents(io, socket) {
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		if (tournament) {
 			const p = tournament.participants.find(participant => participant.user.id === userId);
+			console.log("*********** OPPONENTS: " + JSON.stringify(p.opponents));
 
 			const exists = tournament.inLobby.find((p) => p.user.id === userId);
 			if (!exists)

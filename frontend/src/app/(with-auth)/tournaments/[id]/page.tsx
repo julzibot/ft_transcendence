@@ -138,9 +138,9 @@ export default function TournamentLobby() {
 					else if (tournamentData && session?.user && session?.user?.id === pair?.player2.id) {
 
 						socket.on('receiveLink', async (data: { linkToJoin: string, receiverId: number }) => {
-							console.log('received link:', data);
 							// do Not simply push to the lobby, but join using JoinLobbyView API in the backend ()
 							if (data.receiverId === session?.user?.id) {
+								console.log('received link:', data);
 								setReceived(true);
 								await JoinLobby(data.linkToJoin, session.user.id);
 								socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player2.id, oppId: pair?.player1.id })
@@ -155,9 +155,9 @@ export default function TournamentLobby() {
 		}
 		return () => {
 			console.log('[Cleanup] sockets');
-			// socket?.off('updateParticipants');
-			// socket?.off('getMatchPair');
-			// socket?.off('receiveLink');
+			socket?.off('updateParticipants');
+			socket?.off('getMatchPair');
+			socket?.off('receiveLink');
 		}
 	}, [socket, isReady]);
 
