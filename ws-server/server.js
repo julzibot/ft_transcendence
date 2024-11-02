@@ -17,6 +17,7 @@ export const tournamentUsers = new Map(); // socket.id -> {user.id}
 
 export const gameLobbies = new Map(); // lobbyId -> {player1 (userId), player2 (userId)}
 export const gameRooms = new Map(); // roomId -> {player1 (socket.id), player2 (socket.id)}
+export const tournamentsArray = [];
 
 // setInterval(() => {
 
@@ -183,6 +184,13 @@ game.on('connection', (socket) => {
 
 	socket.on('disconnect', () => {
 		console.log('[game] User disconnected => ' + socket.id);
+		const disconnectedUser = gameUsers.get(socket.id);
+		if (!disconnectedUser) {
+			console.log(`[game] [disconnect] Player not found`);
+			return;
+		}
+		else
+			console.log('[game]' + socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
 
 		for (const [roomId, room] of gameRooms.entries()) {
 			if (room.player1 === socket.id || room.player2 === socket.id) {
@@ -218,7 +226,17 @@ tournament.on('connection', (socket) => {
 			return;
 		}
 		else
-			console.log(socket.id + ' -> ' + tournamentUsers.userId + " has disconnected");
+			console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
+
+		const tournament = tournamentsArray.forEach(t => {
+			const playerIndex = t.inLobby.findIndex(p => p.user.id === disconnectedUser.userId);
+			if (playerIndex != -1) {
+				console.log(`[game] -BFR- inLobby ${JSON.stringify(t.inLobby)}`);
+				console.log(`[game] Deleting player...`);
+				t.inLobby.splice(playerIndex, 1);
+				console.log(`[game] -AFR- inLobby ${JSON.stringify(t.inLobby)}`);
+			}
+		})
 
 		// 	const userId = disconnectedUser.userId;
 		// 	connectedUsers.delete(socket.id);

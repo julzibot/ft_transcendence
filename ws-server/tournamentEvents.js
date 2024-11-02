@@ -1,4 +1,4 @@
-import { tournamentUsers } from "./server.js";
+import { tournamentsArray, tournamentUsers } from "./server.js";
 
 // const tournament = {
 // 	tournamentId: 0,
@@ -22,24 +22,23 @@ import { tournamentUsers } from "./server.js";
 // 	gamesPlayed
 // }
 
-const tournamentsArray = []
-
 const computeMatches = (tournament) => {
 
 	let pairs = [];
-	let time_elapsed = 0;
+	let timeElapsedSecs = 0;
 	let prio = 0;
 	let maxMatchesNumber = 0;
 	let filtered_lobby = new Map();
 	let priosMap = new Map();
+	const prioWaitingTime = tournament.duration / 10;
 
 	// FIRST, check which opponents in lobby are viable for pairing
 	tournament.inLobby.forEach(participant => {
 
-		time_elapsed = performance.now() - participant.return_time;
+		timeElapsedSecs = (performance.now() - participant.return_time) / 1000;
 		prio = 0;
-		if (time_elapsed > 60000)
-			prio += 1 + Math.floor((time_elapsed - 60000) / 30000)
+		if (timeElapsedSecs > prioWaitingTime)
+			prio += 1 + Math.floor((timeElapsedSecs - prioWaitingTime) / (prioWaitingTime / 2))
 		maxMatchesNumber = Math.min(...participant.opponents.values()) + prio;
 
 		const inLobbyOpps = [...participant.opponents].filter(([key]) => tournament.inLobby.map(participant => participant.user.id).indexOf(key) !== -1);
@@ -72,7 +71,6 @@ const computeMatches = (tournament) => {
 				index = Math.floor(Math.random() * finalOppsArray.length);
 				pairs.push([participant, finalOppsArray[index]]);
 
-				// TO DO: INCREMENT GAME COUNT IN .opponents FOR EACH PAIRED PLAYER
 				sortedOppsMap.delete(participant);
 				sortedOppsMap.delete(finalOppsArray[index]);
 				finalOppsArray.length = 0;
@@ -153,7 +151,7 @@ export default function tournamentEvents(io, socket) {
 					else if (tournament.inLobby.length === tournament.participants.length)
 						io.in(tournamentId).emit('announceTournamentEnd');
 					tournament.timeoutStarted = false;
-				}, 5000)
+				}, 2500)
 			}
 		}
 	})

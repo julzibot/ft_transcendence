@@ -4,8 +4,11 @@ import { lobbyUsers, gameLobbies, gameRooms } from "./server.js";
 
 export default function gameLobbyEvents(io, socket) {
 	socket.on('joinRoom', async (data) => {
-		const { lobbyId, user } = data;
-		lobbyUsers.set(socket.id, { userId: user.id, mode: 0 });
+		const { lobbyId, user, gameMode } = data;
+		if (gameMode === 2)
+			lobbyUsers.set(socket.id, { userId: user.id, mode: 0 });
+		else if (gameMode === 3)
+			lobbyUsers.set(socket.id, { userId: user.id, mode: 1 });
 
 		let lobby = gameLobbies.get(lobbyId);
 		if (!lobby) {
@@ -37,7 +40,7 @@ export default function gameLobbyEvents(io, socket) {
 				body: JSON.stringify({
 					'player1': lobby.player1.id,
 					'player2': lobby.player2.id,
-					'game_mode': 2
+					'game_mode': gameMode
 				})
 			});
 			if (response.status === 201) {

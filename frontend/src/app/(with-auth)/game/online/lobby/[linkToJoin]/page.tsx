@@ -84,7 +84,8 @@ export default function Lobby() {
 					id: session?.user?.id,
 					username: session?.user?.username,
 					image: session?.user?.image
-				}
+				},
+				gameMode: 2
 			})
 
 			socket.on('initGame', (data: any) => {
@@ -137,7 +138,7 @@ export default function Lobby() {
 							&& players.player2
 							&& gameInfos
 							&& gameInfos.game_id) ? (
-							<GameCountdownModal lobby_id={linkToJoin} game_id={gameInfos.game_id} players={players} countdown={countdown} setCountdown={setCountdown} />
+							<GameCountdownModal lobby_id={linkToJoin} game_id={gameInfos.game_id} game_mode={gameInfos.game_mode} players={players} countdown={countdown} setCountdown={setCountdown} />
 						) : (<WaitingLobbyModal players={players} />)
 					) : (start && session && gameSettings &&
 						(
