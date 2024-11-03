@@ -1,6 +1,6 @@
 'use client'
 
-import React, { RefObject, useEffect, useState } from "react";
+import { RefObject, useEffect, useState } from "react";
 import './styles.css';
 
 import { Chart, TimeScale } from 'chart.js/auto';
@@ -10,7 +10,7 @@ import ActivityChart from "./ActivityChart";
 import GameModesChart from "./GameModesChart";
 import Image from "@/components/Utils/Image";
 
-import createScoreData from "./ChartDataUtils";
+import { createScoreData, convertDate } from "./ChartDataUtils";
 import { GameMatch, Player } from "./DashboardInterfaces";
 import { DashboardPlaceholder } from "@/components/placeholders/DashboardPlaceholder";
 import { BACKEND_URL } from "@/config";
@@ -26,20 +26,22 @@ interface DashboardItems {
 }
 
 interface User {
-	id: number;
-	username: string;
-	image: string;
+	id: number,
+	username: string,
+	image: string
 }
 
-
-const UserDashboardCard = ({ user } : {user: User}) => {
+const UserDashboardCard = ({ user }: { user: User }) => {
+	console.log(`[UserDashboardCard] user: ${JSON.stringify(user)}`);
 
 	const [DashboardData, setDashboardData] = useState<DashboardItems | null>(null);
+	const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
+	const [userHistoryFetched, setUserHistoryFetched] = useState<Boolean>(false);
 
 	useEffect(() => {
-		if (user.id) {
+		if (user?.id) {
 			const fetchDashboardDetail = async () => {
-				const response = await fetch(`${BACKEND_URL}/api/dashboard/${user.id}`, {
+				const response = await fetch(`${BACKEND_URL}/api/dashboard/${user?.id}`, {
 					method: "GET",
 					credentials: 'include'
 				});
@@ -52,15 +54,8 @@ const UserDashboardCard = ({ user } : {user: User}) => {
 				}
 			};
 			fetchDashboardDetail();
-		}
-	}, [user.id]);
-
-	const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
-	const [userHistoryFetched, setUserHistoryFetched] = useState<Boolean>(false);
-	useEffect(() => {
-		if (user.id) {
 			const fetchUserHistory = async () => {
-				const response = await fetch(`${BACKEND_URL}/api/game/history/user/${user.id}`, {
+				const response = await fetch(`${BACKEND_URL}/api/game/history/user/${user?.id}`, {
 					method: "GET",
 					credentials: 'include'
 				});
@@ -79,7 +74,7 @@ const UserDashboardCard = ({ user } : {user: User}) => {
 			};
 			fetchUserHistory();
 		}
-	}, [user.id]);
+	}, []);
 
 	// Data
 	const [dataCreated, setDataCreated] = useState(false);
@@ -88,44 +83,53 @@ const UserDashboardCard = ({ user } : {user: User}) => {
 	const [activityData, setActivityData] = useState([]);
 	const [gameModesData, setGameModesData] = useState([]);
 	const [maxY, setMaxY] = useState(5);
-	const [minDate, setMinDate] = useState(new Date());
+	const [minDate, setMinDate] = useState(convertDate(new Date()));
 
 	let currentDate = new Date();
 	currentDate.setDate(currentDate.getDate() - 6);
-	let sevenDays = new Date(currentDate.toISOString().split('T')[0]);
+	let sevenDays = convertDate(currentDate);
 
 	const [activityInstance, setActivityInstance] = useState<RefObject<Chart> | null>(null);
 	const [scoreInstance, setScoreInstance] = useState<RefObject<Chart> | null>(null);
 	const [pieInstance, setPieInstance] = useState<RefObject<Chart> | null>(null);
-	const [displayedDate, setDisplayedDate] = useState(sevenDays);
+	const [displayedDate, setDisplayedDate] = useState<Date>(new Date(sevenDays));
 	const [statsToggle, setStatsToggle] = useState(true);
 
 	useEffect(() => {
-		if (user.id && userHistoryFetched && !dataCreated) {
+		if (userHistoryFetched && !dataCreated) {
 			if (!userHistory) {
+				console.log(`[Dashboard] No user history setting dataCreated to true`);
 				setDataCreated(true);
 				return;
 			}
+			// console.log(`[UserHistory] ${JSON.stringify(userHistory)}`);
 
-			createScoreData(
-				user.id, userHistory.data,
-				winData, setWinData,
-				lossData, setLossData,
-				activityData, setActivityData,
-				gameModesData, setGameModesData,
-				maxY, setMaxY,
-				minDate, setMinDate);
+			setWinData([]);
+			setLossData([]);
+			setActivityData([]);
+
+			console.log(`[Dashboard post-createScoreData() setting dataCreated to true`);
+			if (user) {
+
+				createScoreData(
+					user?.id, userHistory.data,
+					winData, setWinData,
+					lossData, setLossData,
+					activityData, setActivityData,
+					gameModesData, setGameModesData,
+					maxY, setMaxY,
+					minDate, setMinDate);
+			}
+			console.log(`[Dashboard post-createScoreData() setting dataCreated to true`);
 			setDataCreated(true);
 		}
-	}, [userHistoryFetched, dataCreated]);
+	}, [user?.id, userHistoryFetched, dataCreated]);
+
 	// Buttons
-	const handleStatsToggle = () => {
-		setStatsToggle(!statsToggle)
-	}
-	const updateDate = (instance: RefObject<Chart>, date: Date) => {
+	const updateDate = (instance: RefObject<Chart>, date: string) => {
 		const xScale = instance.current?.options.scales?.['x'] as TimeScale | undefined;
 		if (xScale) {
-			xScale.min = date.getTime();
+			xScale.min = (new Date(date)).getTime();
 			instance.current?.update();
 		}
 	}
@@ -135,7 +139,7 @@ const UserDashboardCard = ({ user } : {user: User}) => {
 			updateDate(activityInstance, minDate)
 		else if (!statsToggle && scoreInstance?.current)
 			updateDate(scoreInstance, minDate);
-		setDisplayedDate(minDate);
+		setDisplayedDate(new Date(minDate));
 	}
 
 	const handle7DaysBtn = () => {
@@ -143,7 +147,7 @@ const UserDashboardCard = ({ user } : {user: User}) => {
 			updateDate(activityInstance, sevenDays);
 		else if (!statsToggle && scoreInstance?.current)
 			updateDate(scoreInstance, sevenDays);
-		setDisplayedDate(sevenDays);
+		setDisplayedDate(new Date(sevenDays));
 	}
 
 	return (
@@ -167,26 +171,21 @@ const UserDashboardCard = ({ user } : {user: User}) => {
 							{
 								dataCreated && (
 									<>
-										<button type='button' className='btn btn-primary m-1' onClick={() => handle7DaysBtn()}>Past 7 days</button>
-										<button type='button' className='btn btn-primary m-1' onClick={() => handleAllTimeBtn()}>All time</button>
-										<input
-											type="checkbox"
-											className="btn-check"
-											id="btn-check"
-											autoComplete="off"
-											checked={!statsToggle}
-											onChange={handleStatsToggle} />
-										{
-											statsToggle ? (
-												<>
-													<label className="btn btn-secondary m-2" htmlFor="btn-check">Without Stats</label>
-												</>
-											) : (
-												<>
-													<label className="btn btn-danger m-2" htmlFor="btn-check">With Stats</label>
-												</>
-											)
-										}
+										<div className="btn-group m-1" role="group">
+											<input type="radio" className="btn-check" name="radioTime" id="radio7days" defaultChecked autoComplete="off" onClick={() => handle7DaysBtn()} />
+											<label className="btn btn-outline-primary" htmlFor="radio7days" >Past 7 days</label>
+
+											<input type="radio" className="btn-check" name="radioTime" id="radioAllTime" autoComplete="off" onClick={() => handleAllTimeBtn()} />
+											<label className="btn btn-outline-primary" htmlFor="radioAllTime">All time</label>
+										</div>
+
+										<div className="btn-group m-1" role="group">
+											<input type="radio" className="btn-check" name="btnradio" id="radioWithoutStats" defaultChecked autoComplete="off" onClick={() => setStatsToggle(!statsToggle)} />
+											<label className="btn btn-outline-danger" htmlFor="radioWithoutStats" >Without Stats</label>
+
+											<input type="radio" className="btn-check" name="btnradio" id="radioWithStats" autoComplete="off" onClick={() => setStatsToggle(!statsToggle)} />
+											<label className="btn btn-outline-danger" htmlFor="radioWithStats">With Stats</label>
+										</div>
 										<div className='d-flex flex-row m-3'>
 											{
 												statsToggle ?
@@ -233,61 +232,81 @@ const UserDashboardCard = ({ user } : {user: User}) => {
 
 														let player2: Player | null = null;
 														if (obj.game_mode === 2 || obj.game_mode === 3) {
-															player2 = obj.player1.id === user.id ? obj.player2 : obj.player1;
+															player2 = obj.player1.id === user?.id ? obj.player2 : obj.player1;
 														}
 
-													return (
-														<div key={index} className={`match_item match_item_link ${cardColor}`}>
-															<div className="match_item_bg"></div>
-															<div className="match_item_game_mode">{cardColor}</div>
-															<div className="match_item_title">
-																{new Date(obj.date).toLocaleDateString()}
-															</div>
-															<div className="match_item_date-box">
-																{
-																	<table className="table match-table">
-																		<thead>
-																			<tr className='match-table'>
-																				<th className='match-table-row' scope='col'>
-																					<div className="d-flex flex-row align-items-center justify-content-evenly">
-																						<div className="flex-column position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
-																						<img
-                    style={{
-                      objectFit: 'cover',
-                      width: '100%',
-                      height: '100%',
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)'
-                    }}
-                    fetchPriority="high"
-                    alt="profile picture"
-                    src={`${BACKEND_URL}${user.image}`}
-                  />
-																						</div>
-																						<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>
-																							{user.username}
-																						</span>
-																					</div>
-																				</th>
-																				<th className='match-table-row' scope='col'>vs</th>
-																				{
-																					player2 ?
-																						<th className='match-table-row' scope='col'>
-																							<div className="d-flex flex-row align-items-center justify-content-evenly">
-
-																								<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>{player2.username}</span>
-																								<Image className="ms-2" src={player2.image} alt="profile picture" whRatio="50px"/>
+														return (
+															<div key={index} className={`match_item match_item_link ${cardColor}`}>
+																<div className="match_item_bg"></div>
+																<div className="match_item_game_mode">{cardColor}</div>
+																<div className="match_item_title">
+																	{new Date(obj.date).toLocaleDateString('en-GB', {
+																		weekday: 'short',
+																		year: 'numeric',
+																		month: 'short',
+																		day: 'numeric',
+																	})}
+																</div>
+																<div className="match_item_date-box">
+																	{
+																		<table className="table match-table">
+																			<thead>
+																				<tr className='match-table'>
+																					<th className='match-table-row' scope='col'>
+																						<div className="d-flex flex-row align-items-center justify-content-evenly">
+																							<div className="flex-column position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+																								<img
+																									style={{
+																										objectFit: 'cover',
+																										width: '100%',
+																										height: '100%',
+																										position: 'absolute',
+																										top: '50%',
+																										left: '50%',
+																										transform: 'translate(-50%, -50%)'
+																									}}
+																									fetchPriority="high"
+																									alt="profile picture"
+																									src={`${BACKEND_URL}${user?.image}`}
+																								/>
 																							</div>
-																						</th>
-																						:
-																						(
+																							<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>
+																								{user?.username}
+																							</span>
+																						</div>
+																					</th>
+																					<th className='match-table-row' scope='col'>vs</th>
+																					{
+																						player2 ?
 																							<th className='match-table-row' scope='col'>
-																								<div className="d-flex flex-row align-items-center">
+																								<div className="d-flex flex-row align-items-center justify-content-evenly">
+
+																									<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>{player2.username}</span>
+																									<div className="ms-2 position-relative border border-4 border-dark-subtle rounded-circle" style={{ width: '50px', height: '50px', overflow: 'hidden' }}>
+																										<img
+																											style={{
+																												objectFit: 'cover',
+																												width: '100%',
+																												height: '100%',
+																												position: 'absolute',
+																												top: '50%',
+																												left: '50%',
+																												transform: 'translate(-50%, -50%)'
+																											}}
+																											fetchPriority="high"
+																											alt="profile picture"
+																											src={`${BACKEND_URL}${player2.image}`}
+																										/>
+																									</div>
+																								</div>
+																							</th>
+																							:
+																							(
+																								<th className='match-table-row' scope='col'>
+																									<div className="d-flex flex-row align-items-center">
 
 																										<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>Guest</span>
-																										<Image className="ms-2" src="/static/images/default.jpg" alt="Guest" whRatio="50px"/>
+																										<Image className="ms-2" src="/static/images/default.jpg" alt="Guest" whRatio="50px" />
 																									</div>
 																								</th>
 																							)

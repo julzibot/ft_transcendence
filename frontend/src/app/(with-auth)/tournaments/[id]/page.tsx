@@ -30,6 +30,7 @@ export default function TournamentLobby() {
 	const [joined, setJoined] = useState<boolean>(false);
 	const [received, setReceived] = useState(false);
 	const [sent, setSent] = useState(false);
+	const [isStarting, setIsStarting] = useState(false);
 
 	const fetchTournamentData = async () => {
 		const response = await fetch(`${BACKEND_URL}/api/tournament/${id}/`, {
@@ -45,6 +46,7 @@ export default function TournamentLobby() {
 			if (data.participants.some((participant: ParticipantType) => Number(participant.user.id) === session?.user?.id)) {
 				setParticipantsList(data.participants)
 				setTournamentData(data.tournament)
+				console.log(data.tournament)
 			} else
 				router.replace('/error?code=403')
 		}
@@ -59,6 +61,7 @@ export default function TournamentLobby() {
 		}
 		await startTournament(id.toString()) //update isStarted in DB to prevent user to enter and to continue matchmaking
 		fetchTournamentData() //updates tournamentData
+		setIsStarting(true);
 		socket?.emit('startTournament', { tournamentId: id, tournamentDuration: tournamentData?.timer })
 	}
 
@@ -104,6 +107,11 @@ export default function TournamentLobby() {
 				//update isFinished in db
 				//display a card showing the ranking and leave button
 				console.log('C FINI!!!!')
+			})
+
+			socket.on('tournamentStarted', () => {
+				console.log('tournament started setting isStarting to true')
+				setIsStarting(true);
 			})
 
 			socket.on('updateParticipants', (data: ParticipantType[]) => {
@@ -216,7 +224,7 @@ export default function TournamentLobby() {
 					</div>
 				</div>
 				{
-					tournamentData?.isStarted || pairs &&
+					(tournamentData?.isStarted || isStarting) &&
 					<div className="card position-relative mt-5 z-1 match-card border-2 rounded-5 col-4 position-absolute translate-middle-x start-50" style={{ height: '500px' }}>
 						<div className="video-container">
 							<video
