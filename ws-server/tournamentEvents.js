@@ -1,8 +1,8 @@
-import { tournamentsArray, tournamentUsers } from "./server.js";
-
+const tournamentsArray = [];
+const tournamentUsers = new Map();
 // const tournament = {
 // 	tournamentId: 0,
-//	startTime: performance.now(),
+//	startTime: performance.now(),					else if (tournament.inLobby.length + tournament.disconnected.length === tournament
 //	duration: 0,
 // 	participants: [participant1, ...],
 //	inLobby: [participant1, ...],
@@ -124,19 +124,18 @@ export default function tournamentEvents(io, socket) {
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		if (tournament) {
 			const p = tournament.participants.find(participant => participant.user.id === userId);
-			console.log("*********** OPPONENTS: " + JSON.stringify(p.opponents));
 
-			const exists = tournament.inLobby.find((p) => p.user.id === userId);
-			if (!exists)
+			const i = tournament.inLobby.findIndex(p => p.user.id === userId);
+			if (i === -1)
 			{
 				tournament.inLobby.push(p);
-				const discoIndex = tournament.disconnected.findIndex(participant.user.id);
+				const discoIndex = tournament.disconnected.findIndex(id => p.user.id === id);
 				if ( discoIndex != -1)
 					tournament.disconnected.splice(discoIndex, 1);
 			}
 
 			p.return_time = performance.now();
-			if (!tournament.timeoutStarted) {
+			if (!tournament.timeoutStarted && tournament.inLobby.length > 1) {
 				tournament.timeoutStarted = true;
 				setTimeout(() => {
 					const tournament_elapsed = (p.return_time - tournament.startTime) / 1000;
@@ -229,5 +228,26 @@ export default function tournamentEvents(io, socket) {
 			participant.opponents.set(oppId, count + 1);
 		}
 		tournament.inLobby.splice(i, 1);
+	})
+
+	socket.on('disconnect', async () => {
+		const disconnectedUser = tournamentUsers.get(socket.id);
+		if (!disconnectedUser) {
+			console.log(`[tournament] [disconnect] Player not found`);
+			return;
+		}
+		else
+		{
+			console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
+			tournamentsArray.forEach(t => {
+				if (t.inLobby) {
+					const playerIndex = t.inLobby.findIndex(p => p.user.id === disconnectedUser.userId);
+					if (playerIndex != -1) {
+						t.inLobby.splice(playerIndex, 1);
+						t.disconnected.push(playerIndex);
+					}
+				}
+			})
+		}
 	})
 }

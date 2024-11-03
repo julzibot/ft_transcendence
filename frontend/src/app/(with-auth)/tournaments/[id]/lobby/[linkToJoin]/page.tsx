@@ -94,6 +94,7 @@ export default function TournamentGameLobby() {
 				setPlayers(data)
 			})
 			socket.on('startGame', () => {
+				console.log(`[TournamentGameLobby] startGame -> true`);
 				setStart(true);
 
 				socket.disconnect();

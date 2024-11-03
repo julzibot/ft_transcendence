@@ -172,7 +172,8 @@ export default function TournamentLobby() {
 	}, [socket, isReady]);
 
 	useEffect(() => { // Handles players that got back from a game
-		console.log(tournamentData)
+		if (tournamentData)
+			console.log(tournamentData)
 		if (socket && tournamentData && tournamentData.isStarted) {
 			socket.emit("returnToLobby", { tournamentId: id, userId: session?.user?.id })
 		}
