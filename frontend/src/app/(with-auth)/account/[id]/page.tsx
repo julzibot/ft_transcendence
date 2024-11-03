@@ -307,7 +307,7 @@ export default function ProfilePage() {
 					</div>
 				</div>
 				{
-					session && <UserDashboardCard />
+					user?.id && <UserDashboardCard user={user} />
 				}
 			</div >
 

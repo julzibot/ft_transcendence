@@ -1,6 +1,6 @@
 'use client'
 
-import React, { RefObject, useEffect, useState } from "react";
+import { RefObject, useEffect, useState } from "react";
 import './styles.css';
 
 import { Chart, TimeScale } from 'chart.js/auto';
@@ -10,12 +10,10 @@ import ActivityChart from "./ActivityChart";
 import GameModesChart from "./GameModesChart";
 import Image from 'next/image';
 
-import createScoreData from "./ChartDataUtils";
-import { convertDate } from "./ChartDataUtils";
+import { createScoreData, convertDate } from "./ChartDataUtils";
 import { GameMatch, Player } from "./DashboardInterfaces";
 import { DashboardPlaceholder } from "@/components/placeholders/DashboardPlaceholder";
 import { BACKEND_URL } from "@/config";
-import { useAuth } from "@/app/lib/AuthContext";
 
 type UserHistory = {
 	data: Array<GameMatch>
@@ -27,17 +25,23 @@ interface DashboardItems {
 	record_streak: number
 }
 
-const UserDashboardCard = () => {
+interface User {
+	id: number,
+	username: string,
+	image: string
+}
 
-	const { session } = useAuth();
+const UserDashboardCard = ({ user }: { user: User }) => {
+	console.log(`[UserDashboardCard] user: ${JSON.stringify(user)}`);
+
 	const [DashboardData, setDashboardData] = useState<DashboardItems | null>(null);
 	const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
 	const [userHistoryFetched, setUserHistoryFetched] = useState<Boolean>(false);
 
 	useEffect(() => {
-		if (session?.user?.id) {
+		if (user?.id) {
 			const fetchDashboardDetail = async () => {
-				const response = await fetch(`${BACKEND_URL}/api/dashboard/${session?.user?.id}`, {
+				const response = await fetch(`${BACKEND_URL}/api/dashboard/${user?.id}`, {
 					method: "GET",
 					credentials: 'include'
 				});
@@ -51,7 +55,7 @@ const UserDashboardCard = () => {
 			};
 			fetchDashboardDetail();
 			const fetchUserHistory = async () => {
-				const response = await fetch(`${BACKEND_URL}/api/game/history/user/${session?.user?.id}`, {
+				const response = await fetch(`${BACKEND_URL}/api/game/history/user/${user?.id}`, {
 					method: "GET",
 					credentials: 'include'
 				});
@@ -98,17 +102,17 @@ const UserDashboardCard = () => {
 				setDataCreated(true);
 				return;
 			}
-			console.log(`[UserHistory] ${JSON.stringify(userHistory)}`);
+			// console.log(`[UserHistory] ${JSON.stringify(userHistory)}`);
 
 			setWinData([]);
 			setLossData([]);
 			setActivityData([]);
 
 			console.log(`[Dashboard post-createScoreData() setting dataCreated to true`);
-			if (session?.user) {
+			if (user) {
 
 				createScoreData(
-					session?.user?.id, userHistory.data,
+					user?.id, userHistory.data,
 					winData, setWinData,
 					lossData, setLossData,
 					activityData, setActivityData,
@@ -119,11 +123,9 @@ const UserDashboardCard = () => {
 			console.log(`[Dashboard post-createScoreData() setting dataCreated to true`);
 			setDataCreated(true);
 		}
-	}, [session, userHistoryFetched, dataCreated]);
+	}, [user?.id, userHistoryFetched, dataCreated]);
+
 	// Buttons
-	const handleStatsToggle = () => {
-		setStatsToggle(!statsToggle)
-	}
 	const updateDate = (instance: RefObject<Chart>, date: string) => {
 		const xScale = instance.current?.options.scales?.['x'] as TimeScale | undefined;
 		if (xScale) {
@@ -230,7 +232,7 @@ const UserDashboardCard = () => {
 
 														let player2: Player | null = null;
 														if (obj.game_mode === 2 || obj.game_mode === 3) {
-															player2 = obj.player1.id === session?.user?.id ? obj.player2 : obj.player1;
+															player2 = obj.player1.id === user?.id ? obj.player2 : obj.player1;
 														}
 
 														return (
@@ -265,11 +267,11 @@ const UserDashboardCard = () => {
 																									}}
 																									fetchPriority="high"
 																									alt="profile picture"
-																									src={`${BACKEND_URL}${session?.user?.image}`}
+																									src={`${BACKEND_URL}${user?.image}`}
 																								/>
 																							</div>
 																							<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>
-																								{session?.user?.username}
+																								{user?.username}
 																							</span>
 																						</div>
 																					</th>

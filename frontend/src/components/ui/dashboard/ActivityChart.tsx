@@ -97,12 +97,12 @@ export default function ActivityChart({ setChartInstance, displayedDate, activit
 								stacked: true,
 								beginAtZero: true,
 								min: 0,
-								suggestedMax: maxY + 2,
+								suggestedMax: maxY,
 								ticks: {
 									font: {
 										size: 18
 									},
-									stepSize: 1
+									stepSize: 10
 								}
 							}
 						},

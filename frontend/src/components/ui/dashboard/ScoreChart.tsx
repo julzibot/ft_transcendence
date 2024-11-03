@@ -6,6 +6,7 @@ import 'chartjs-adapter-luxon';
 import './styles.css';
 
 import { MatchEntry } from "./DashboardInterfaces";
+import { ceilToTen } from "./ChartDataUtils";
 
 interface ScoreChartProps {
 	setChartInstance: Function,
@@ -53,7 +54,7 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 						plugins: {
 							title: {
 								display: true,
-								text: 'Activity/Score Chart',
+								text: 'Score Chart',
 								padding: {
 									bottom: 20
 								},
@@ -97,12 +98,12 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 								stacked: true,
 								beginAtZero: true,
 								min: 0,
-								suggestedMax: maxY + 2,
+								suggestedMax: maxY,
 								ticks: {
 									font: {
 										size: 18,
 									},
-									stepSize: 1
+									stepSize: 10
 								}
 							}
 						}

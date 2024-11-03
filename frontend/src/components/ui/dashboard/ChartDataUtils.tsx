@@ -25,74 +25,39 @@ export const incrementDateDay = (date: string) => {
 const parseActivity = (newActivityData: Array<MatchEntry>) => {
 
 	if (Array.isArray(newActivityData)) {
-		console.log(`[parseActivity] newActivityData: ${JSON.stringify(newActivityData)}`)
+		// console.log(`[parseActivity] newActivityData: ${JSON.stringify(newActivityData)}`)
 		let i = 0;
 		while (i < newActivityData.length - 1) {
-			console.log(`[parseActivity] loop`);
+			// console.log(`[parseActivity] loop i: ${i} newActivityData[i].x: ${newActivityData[i].x}`);
 			const cmpDate = incrementDateDay(newActivityData[i].x);
 
-			if (cmpDate !== newActivityData[i + 1].x && !newActivityData.some(entry => entry.x === cmpDate))
+			if (cmpDate > newActivityData[newActivityData.length - 1].x)
+				break;
+
+			if (newActivityData[i + 1] && cmpDate !== newActivityData[i + 1].x && !newActivityData.some(entry => entry.x === cmpDate))
 				newActivityData.splice(i + 1, 0, { x: cmpDate, y: 0 });
-			i++;
+			else
+				i++;
 		}
 
 		// Sort by date after all splicing to maintain chronological order
 		newActivityData.sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
-		console.log(`[parseActivity] sorted newActivityData: ${JSON.stringify(newActivityData)}`);
-
-
-		console.log(`[parseActivity] newActivityData: ${JSON.stringify(newActivityData)}`)
-		// const parsedData: Array<MatchEntry> = [];
-		// for (let i = 0; i < newActivityData.length; i++) {
-		// 	const cmpDate = new Date(newActivityData[i].x);
-		// 	cmpDate.setDate(cmpDate.getDate() + 1);
-
-		// 	parsedData.push(newActivityData[i]);
-		// 	console.log(`cmpDate: ${new Date(cmpDate.getTime())}`);
-		// 	console.log(`actDate: ${new Date(newActivityData[i + 1].x)}`);
-		// 	if (i + 1 < newActivityData.length && cmpDate.getTime() !== newActivityData[i + 1].x) {
-		// 		parsedData.push({ x: cmpDate.getTime(), y: 0 });
-		// 		console.log('pushing');
-		// 		i = 0;
-		// 	}
-		// }
-
-		// newActivityData.forEach((item, index) => {
-		// 	const cmpDate = new Date(item.x);
-		// 	cmpDate.setDate(cmpDate.getDate() + 1);
-
-		// 	parsedData.push(item);
-		// 	if (newActivityData[index + 1] && cmpDate.getTime() != newActivityData[index + 1].x) {
-		// 		console.log(`[condition] pushing: x -> ${new Date(cmpDate.getTime())}`);
-		// 		parsedData.push({ x: cmpDate.getTime(), y: 0 });
-		// 		index = 0;
-		// 	}
-		// });
-		// parsedData.forEach((item) => {
-
-		// console.log(`[parseActivity] parsedData X: ${JSON.stringify(new Date(item.x))}`)
-		// console.log(`[parseActivity] parsedData Y: ${JSON.stringify(item.y)}`)
-		// })
-		// return (parsedData);
+		// console.log(`[parseActivity] sorted newActivityData: ${JSON.stringify(newActivityData)}`);
 	}
 }
 
-export default function createScoreData(
+export const createScoreData = (
 	user_id: number,
 	data: Array<GameMatch>,
-	winData: Array<MatchEntry>,
-	setWinData: Function,
-	lossData: Array<MatchEntry>,
-	setLossData: Function,
-	activityData: Array<MatchEntry>,
-	setActivityData: Function,
-	gameModesData: Array<MatchEntry>,
-	setGameModesData: Function,
+	winData: Array<MatchEntry>, setWinData: Function,
+	lossData: Array<MatchEntry>, setLossData: Function,
+	activityData: Array<MatchEntry>, setActivityData: Function,
+	gameModesData: Array<MatchEntry>, setGameModesData: Function,
 	maxY: number,
 	setMaxY: Function,
 	minDate: string,
 	setMinDate: Function
-) {
+) => {
 	if (Array.isArray(data)) {
 		const newWinData = [...winData];
 		const newLossData = [...lossData];
@@ -101,7 +66,7 @@ export default function createScoreData(
 		let newMinDate = minDate;
 
 		data.map((item) => {
-			console.log(`[createScoreData] [item] ${JSON.stringify(item)}`);
+			// console.log(`[createScoreData] [item] ${JSON.stringify(item)}`);
 			// const itemDate = new Date(item.date); // item.date -> YYYY-MM-DD
 			// const dateISO = itemDate.getTime();
 			// console.log(`data.map -> date -> ${dateISO}`);
@@ -158,7 +123,7 @@ export default function createScoreData(
 		setMinDate(newMinDate);
 		setWinData(newWinData);
 		setLossData(newLossData);
-		console.log(`[newGameModesData] ${JSON.stringify(newGameModesData)}`);
+		// console.log(`[newGameModesData] ${JSON.stringify(newGameModesData)}`);
 		setGameModesData(newGameModesData);
 	}
 }
