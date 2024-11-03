@@ -7,10 +7,6 @@ from game.models import GameMatch
 class DashboardData(models.Model):
 	user = models.OneToOneField(UserAccount, related_name='user_dashboard', on_delete=models.CASCADE)
 
-	record_streak = models.IntegerField(default=0)
-	current_streak = models.IntegerField(default=0)
-	prev_result = models.BooleanField(default=False)
-
 	tournaments_won = models.IntegerField(default=0)
 	tournaments_played = models.IntegerField(default=0)
 
@@ -26,6 +22,22 @@ class DashboardData(models.Model):
 			if (game.player1 == self.user and game.score1 > game.score2) or (game.player2 == self.user and game.score2 > game.score1):
 				wins += 1
 		return wins
+
+	@property
+	def record_streak(self):
+		matches = GameMatch.objects.filter(Q(player1=self.user) | Q(player2=self.user))
+
+		streak = 0
+		current_streak = 0
+		for match in matches:
+			if match.player1 == self.user and match.score1 > match.score2:
+				current_streak += 1
+			elif match.player2 == self.user and match.score1 < match.score2:
+				current_streak += 1
+			else:
+				if current_streak > streak:
+					streak = current_streak
+		return streak
 
 	class Meta:
 		verbose_name = 'Dashboard Data'

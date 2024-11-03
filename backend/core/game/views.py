@@ -104,10 +104,6 @@ class UpdateLocalGame(APIView):
 			except DashboardData.DoesNotExist:
 				return Response({'message': f'[PUT] [{game.id}] Player 1: No Dashboard Data'}, status=status.HTTP_404_NOT_FOUND)
 
-			if score1 > score2:
-				dashboard.prev_result = True
-			else:
-				dashboard.prev_result = False
 			dashboard.save()
 
 			return Response({'message': f'[{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
@@ -150,12 +146,7 @@ class UpdateOnlineGame(APIView):
 				loser = dashboard1
 				winner = dashboard2
 
-			# winner.games_played += 1
-			winner.prev_result = True
 			winner.save()
-
-			# loser.games_played += 1
-			loser.prev_result = False
 			loser.save()
 
 			return Response({'message': f'[PUT] [{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)

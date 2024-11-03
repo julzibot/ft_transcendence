@@ -151,7 +151,7 @@ body {
 }
 
 .Local .match_item_bg {
-	background-color: #32d74b;
+	background-color: #ffbe0a;
 }
 
 .AI .match_item_bg {
@@ -159,7 +159,7 @@ body {
 }
 
 .Online .match_item_bg {
-	background-color: #ffbe0a;
+	background-color: #32d74b;
 }
 
 .Tournament .match_item_bg {
