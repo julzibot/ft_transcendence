@@ -13,9 +13,11 @@ const backendPort = process.env.BACKEND_PORT;
 
 export const lobbyUsers = new Map(); // socket.id -> {user.id, 0 || 1}
 export const gameUsers = new Map(); // socket.id -> {user.id, 0 || 1} // socket.id -> {user.id}
+export const tournamentUsers = new Map(); // socket.id -> user.id
 
 export const gameLobbies = new Map(); // lobbyId -> {player1 (userId), player2 (userId)}
 export const gameRooms = new Map(); // roomId -> {player1 (socket.id), player2 (socket.id)}
+export const tournamentsArray = [];
 
 // setInterval(() => {
 
@@ -217,37 +219,33 @@ tournament.on('connection', (socket) => {
 	console.log('[tournament] New connection: ' + socket.id);
 	tournamentEvents(tournament, socket);
 
-	// 	const userId = disconnectedUser.userId;
-	// 	connectedUsers.delete(socket.id);
 
-	// 	if (disconnectedUser.mode === 1) {
-	// 		// Tournament
-	// 		// Deleting the participant
-	// 		let emptyTournamentId = '';
-	// 		let updatedParticipants = [];
-	// 		tournamentsArray = tournamentsArray.map(tournament => {
-	// 			updatedParticipants = tournament.participants.filter(participant => participant.user.id !== disconnectedUserId);
-	// 			updatedParticipants.forEach(participant => {
-	// 				for (const key of participant.opponents.keys()) {
-	// 					participant.opponents.delete(key);
-	// 				}
-	// 				console.log(`[disconnect] Opponents for: ${participant.user.id} - ${Array.from(participant.opponents.entries())}`)
-	// 			})
-	// 			if (tournament.isStarted && updatedParticipants.length === 0)
-	// 				emptyTournamentId = tournament.tournamentId;
-	// 			else {
-	// 				socket.in(tournament.tournamentId).emit('updateParticipants', updatedParticiuserIdpants);
-	// 			}
-	// 			deleteParticipant(tournament.tournamentId, disconnectedUserId)
-	// 			return { ...tournament, participants: updatedParticipants }
-	// 		});
-
-	// 		// if tournament has no participants left, delete tournament
-	// 		if (emptyTournamentId.length !== 0) {
-	// 			const tournamentIndex = tournamentsArray.findIndex(tournament => tournament.tournamentId === emptyTournamentId);
-	// 			tournamentsArray.splice(tournamentIndex, 1);
-	// 		}
-	// 	}
+	socket.on('disconnect', async () => {
+		console.log(`[tournament] [disconnect] Player disconnecting`);
+		const disconnectedUserId = tournamentUsers.get(socket.id);
+		console.log('[tournament] [disconnect] disc user ' + JSON.stringify(disconnectedUserId));
+		if (!disconnectedUserId) {
+			console.log(`[tournament] [disconnect] Player ID not found`);
+			return;
+		}
+		else {
+			console.log('[tournament] [disconnect] ' + socket.id + ' -> ' + disconnectedUserId + " has disconnected");
+			tournamentsArray.forEach(t => {
+				const part = t.participants.find(p => p.user.id === disconnectedUserId);
+				if (part) {
+					t.disconnected.push(disconnectedUserId);
+					if (t.inLobby) {
+						const playerIndex = t.inLobby.findIndex(p => p.user.id === disconnectedUserId);
+						console.log(`[tournament] [disconnect] ${playerIndex}`);
+						if (playerIndex != -1) {
+							t.inLobby.splice(playerIndex, 1);
+							console.log(`[tournament] [disconnect] spliced`)
+						}
+					}
+				}
+			})
+		}
+	});
 })
 
 server.listen(port, () => {

@@ -271,7 +271,7 @@ export default function ProfilePage() {
 					</div>
 				</div>
 				{
-					user && <UserDashboardCard user={user} />
+					user?.id && <UserDashboardCard user={user} />
 				}
 			</div >
 

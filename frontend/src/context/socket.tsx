@@ -21,10 +21,8 @@ export function SocketProvider({ children, nsp }: { children: React.ReactNode, n
 		});
 
 		return (() => {
-			if (nsp !== '/tournament') {
 				console.log(`[SocketProvider] Leaving namespace: ${nsp}`);
 				newSocket.disconnect();
-			}
 		})
 
 	}, []);
