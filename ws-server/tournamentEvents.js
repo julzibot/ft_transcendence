@@ -103,7 +103,7 @@ export default function tournamentEvents(io, socket) {
 			const participant = tournament.participants.find(participant => participant.user.id === user.id)
 			if (!participant)
 				tournament.participants.push({ user: user, return_time: 0, opponents: new Map() });
-			updatedParticipants = tournament.participants.map(p => ({...p}));
+			updatedParticipants = tournament.participants.map(p => ({ ...p }));
 		}
 		else {
 			const newTournament = {
@@ -114,7 +114,7 @@ export default function tournamentEvents(io, socket) {
 				participants: [{ user: user, return_time: 0, opponents: new Map() }],
 			}
 			tournamentsArray.push(newTournament);
-			updatedParticipants = newTournament.participants.map(p => ({...p}));
+			updatedParticipants = newTournament.participants.map(p => ({ ...p }));
 		}
 		socket.in(tournamentId).emit('updateParticipants', updatedParticipants);
 	});
@@ -126,11 +126,10 @@ export default function tournamentEvents(io, socket) {
 			const p = tournament.participants.find(participant => participant.user.id === userId);
 
 			const i = tournament.inLobby.findIndex(p => p.user.id === userId);
-			if (i === -1)
-			{
+			if (i === -1) {
 				tournament.inLobby.push(p);
 				const discoIndex = tournament.disconnected.findIndex(id => p.user.id === id);
-				if ( discoIndex != -1)
+				if (discoIndex != -1)
 					tournament.disconnected.splice(discoIndex, 1);
 			}
 
@@ -183,6 +182,8 @@ export default function tournamentEvents(io, socket) {
 		const { tournamentId, tournamentDuration } = data;
 		console.log(`[tournament] [startTournament] data: ${JSON.stringify(data)}`);
 
+		io.in(tournamentId).emit('tournamentStarted');
+
 		// INITIALIZE TOURNAMENT INFOS + SEND FIRST MATCHMAKING
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		if (tournament) {
@@ -214,7 +215,7 @@ export default function tournamentEvents(io, socket) {
 				io.in(tournamentId).emit('getMatchPair', pairs);
 			}
 		}
-	})
+	});
 
 	socket.on('tournamentGameEntered', (data) => {
 		const { tournamentId, userId, oppId } = data;
@@ -236,8 +237,7 @@ export default function tournamentEvents(io, socket) {
 			console.log(`[tournament] [disconnect] Player not found`);
 			return;
 		}
-		else
-		{
+		else {
 			console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
 			tournamentsArray.forEach(t => {
 				if (t.inLobby) {
