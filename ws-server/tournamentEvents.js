@@ -1,7 +1,9 @@
-
+const tournamentsArray = [];
+const tournamentUsers = new Map();
+const backendPort = process.env.BACKEND_PORT;
 // const tournament = {
 // 	tournamentId: 0,
-//	startTime: performance.now(),
+//	startTime: performance.now(),					else if (tournament.inLobby.length + tournament.disconnected.length === tournament
 //	duration: 0,
 // 	participants: [participant1, ...],
 //	inLobby: [participant1, ...],
@@ -22,8 +24,6 @@
 // 	gamesPlayed
 // }
 
-const tournamentsArray = [];
-const tournamentUsers = new Map();
 
 const computeMatches = (tournament) => {
 
@@ -125,15 +125,34 @@ export default function tournamentEvents(io, socket) {
 		const { userId, tournamentId } = data;
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		if (tournament) {
-			const p = tournament.participants.find(participant => participant.user.id === userId);
-			console.log("*********** OPPONENTS: " + JSON.stringify(p.opponents));
+			let updatedParticipants = []
+			const response = await fetch(`http://django:${backendPort}/api/tournament/${tournamentId}`, {
+				method: 'GET',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+			})
+			if (response.ok) {
+				const data = await response.json()
+				updatedParticipants = data.participants
+				console.log('Participants: ' + { updatedParticipants })
+			}
+			socket.in(tournamentId).emit('updateParticipants', updatedParticipants)
 
-			const exists = tournament.inLobby.find((p) => p.user.id === userId);
-			if (!exists)
+			const p = tournament.participants.find(participant => participant.user.id === userId);
+
+			const i = tournament.inLobby.findIndex(p => p.user.id === userId);
+			if (i === -1) {
 				tournament.inLobby.push(p);
+				const discoIndex = tournament.disconnected.findIndex(id => p.user.id === id);
+				if (discoIndex != -1)
+					tournament.disconnected.splice(discoIndex, 1);
+			}
 
 			p.return_time = performance.now();
-			if (!tournament.timeoutStarted) {
+			if (!tournament.timeoutStarted && tournament.inLobby.length > 1) {
 				tournament.timeoutStarted = true;
 				setTimeout(() => {
 					const tournament_elapsed = (p.return_time - tournament.startTime) / 1000;
@@ -235,18 +254,17 @@ export default function tournamentEvents(io, socket) {
 			console.log(`[tournament] [disconnect] Player not found`);
 			return;
 		}
-		else
-			console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected from tournament");
-
-		tournamentsArray.forEach(tournament => {
-			const playerIndex = tournament.inLobby.findIndex(player => player.user.id === disconnectedUser.userId);
-			if (playerIndex != -1) {
-				console.log(`[game] -BFR- inLobby ${JSON.stringify(tournament.inLobby)}`);
-				console.log(`[game] Deleting player...`);
-				tournament.inLobby.splice(playerIndex, 1);
-				tournament.disconnected.push(playerIndex);
-				console.log(`[game] -AFR- inLobby ${JSON.stringify(tournament.inLobby)}`);
-			}
-		})
-	});
+		else {
+			console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
+			tournamentsArray.forEach(t => {
+				if (t.inLobby) {
+					const playerIndex = t.inLobby.findIndex(p => p.user.id === disconnectedUser.userId);
+					if (playerIndex != -1) {
+						t.inLobby.splice(playerIndex, 1);
+						t.disconnected.push(playerIndex);
+					}
+				}
+			})
+		}
+	})
 }

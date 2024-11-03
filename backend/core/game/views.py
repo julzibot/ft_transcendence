@@ -4,12 +4,14 @@ from rest_framework.response import Response
 from django.db.models import Q
 
 from users.models import UserAccount
+from tournament.models import TournamentModel, ParticipantModel
 from .models import GameMatch
 from .serializers import GameMatchSerializer
 from dashboard.models import DashboardData
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.permissions import AllowAny
+from django.core.exceptions import ObjectDoesNotExist
 
 class GameHistory(APIView):
 	def get(self, request, id=None):
@@ -60,14 +62,19 @@ class	GameDataView(APIView):
 					user2 = UserAccount.objects.get(id=user2_id)
 				except UserAccount.DoesNotExist:
 					return Response({'message': 'Player 2: Unknown User'}, status=status.HTTP_404_NOT_FOUND)
-				new_game = GameMatch.objects.create(player1=user1, player2=user2, game_mode=game_mode)
+				if game_mode == 3:
+					tournament = TournamentModel.objects.get(linkToJoin=data['tournamentLink'])
+					new_game = GameMatch.objects.create(player1=user1, player2=user2, game_mode=game_mode, tournamentLink=tournament.linkToJoin)
+				else:
+					new_game = GameMatch.objects.create(player1=user1, player2=user2, game_mode=game_mode)
 				game_data = {
 				'game_id': new_game.id,
 				'p1Name': new_game.player1.username,
 				'p2Name': new_game.player2.username,
 				'p1p': new_game.player1.image.url,
 				'p2p': new_game.player2.image.url,
-				'game_mode': new_game.game_mode
+				'game_mode': new_game.game_mode,
+				'tournamentLink': new_game.tournamentLink
 			}
 			else:
 				new_game = GameMatch.objects.create(player1=user1, player2=None, game_mode=game_mode)
@@ -86,8 +93,8 @@ class UpdateLocalGame(APIView):
 			game = GameMatch.objects.get(id=id)
 		except GameMatch.DoesNotExist:
 			return Response({'message': f'[{id}] Unknown Game Match'}, status=status.HTTP_404_NOT_FOUND)
-		
 		data = request.data
+	
 		score1 = data.get('score1')
 		score2 = data.get('score2')
 		if score1 is not None and score2 is not None:
@@ -128,6 +135,24 @@ class UpdateOnlineGame(APIView):
 			game.score1 = score1
 			game.score2 = score2
 			game.save()
+
+
+		# update tournament participants score 
+		if game.game_mode == 3:
+			try:
+				tournament = TournamentModel.objects.get(linkToJoin=game.tournamentLink)
+				participant1 = ParticipantModel.objects.get(user=game.player1.id, tournament=tournament)
+				participant2 = ParticipantModel.objects.get(user=game.player2.id, tournament=tournament)
+			except ObjectDoesNotExist:
+				return Response(status=status.HTTP_404_NOT_FOUND)
+			if score1 > score2: #player1 won
+				participant1.wins += 1
+			else: #player2 won
+				participant2.wins += 1
+			participant1.gamesPlayed += 1 
+			participant2.gamesPlayed += 1
+			participant1.save()
+			participant2.save()
 
 			try:
 				player1 = UserAccount.objects.get(id=game.player1.id)

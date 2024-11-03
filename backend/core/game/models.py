@@ -9,7 +9,7 @@ class GameChoices(models.IntegerChoices):
 	TOURNAMENT = 3, 'Tournament'
 
 class GameMatch(models.Model):
-  tournament = models.ForeignKey(TournamentModel, related_name='tournament_gamehistory', null=True, on_delete=models.CASCADE)
+  tournamentLink = models.UUIDField(null=True, blank=True)
   game_mode = models.PositiveSmallIntegerField(
 		choices=GameChoices.choices,
 		default=GameChoices.LOCAL)

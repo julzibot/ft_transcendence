@@ -33,7 +33,7 @@ services:
       - NEXT_PUBLIC_API_URL=https://${DOMAIN_NAME}:${BACKEND_PORT}
       - NEXT_PUBLIC_DOMAIN=${DOMAIN_NAME}
       - NEXT_PUBLIC_URL=https://${DOMAIN_NAME}:${FRONTEND_PORT}
-    command: npm start
+    command: npm run dev
 
   ws-server:
     container_name: ws-server

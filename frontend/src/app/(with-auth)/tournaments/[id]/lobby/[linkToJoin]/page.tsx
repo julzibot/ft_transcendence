@@ -37,7 +37,7 @@ interface Lobby {
 export default function TournamentGameLobby() {
 	const { session } = useAuth();
 	const router = useRouter();
-	const { linkToJoin } = useParams();
+	const { linkToJoin, id } = useParams();
 
 	const [lobbyData, setLobbyData] = useState<Lobby>();
 	const [players, setPlayers] = useState<Players>()
@@ -56,7 +56,7 @@ export default function TournamentGameLobby() {
 					credentials: 'include'
 				});
 				if (!response.ok) {
-					console.log('Error fetching tournament data')
+					console.log('Error fetching lobby data in tournament')
 					router.push(`/error?code=${response.status}`)
 				}
 				else {
@@ -86,7 +86,8 @@ export default function TournamentGameLobby() {
 					username: session?.user?.username,
 					image: session?.user?.image
 				},
-				gameMode: 3
+				gameMode: 3,
+				tournamentLink: id
 			})
 
 			socket.on('initGame', (data: any) => {
@@ -96,6 +97,7 @@ export default function TournamentGameLobby() {
 				setPlayers(data)
 			})
 			socket.on('startGame', () => {
+				console.log(`[TournamentGameLobby] startGame -> true`);
 				setStart(true);
 
 				socket.disconnect();

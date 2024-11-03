@@ -107,6 +107,7 @@ export default function TournamentLobby() {
 			})
 
 			socket.on('updateParticipants', (data: ParticipantType[]) => {
+				console.log(data)
 				setParticipantsList(data);
 			})
 			if (!sent && !received) {
@@ -165,10 +166,10 @@ export default function TournamentLobby() {
 	}, [socket, isReady]);
 
 	useEffect(() => { // Handles players that got back from a game
-		console.log(tournamentData)
-		if (socket && tournamentData && tournamentData.isStarted) {
-			socket.emit("returnToLobby", { tournamentId: id, userId: session?.user?.id })
-		}
+		if (tournamentData)
+			if (socket && tournamentData && tournamentData.isStarted) {
+				socket.emit("returnToLobby", { tournamentId: id, userId: session?.user?.id })
+			}
 	}, [tournamentData, socket])
 
 	return (

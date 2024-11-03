@@ -12,8 +12,7 @@ const frontendPort = process.env.FRONTEND_PORT;
 const backendPort = process.env.BACKEND_PORT;
 
 export const lobbyUsers = new Map(); // socket.id -> {user.id, 0 || 1}
-export const gameUsers = new Map(); // socket.id -> {user.id, 0 || 1}
-export const tournamentUsers = new Map(); // socket.id -> {user.id}
+export const gameUsers = new Map(); // socket.id -> {user.id, 0 || 1} // socket.id -> {user.id}
 
 export const gameLobbies = new Map(); // lobbyId -> {player1 (userId), player2 (userId)}
 export const gameRooms = new Map(); // roomId -> {player1 (socket.id), player2 (socket.id)}
@@ -182,7 +181,7 @@ game.on('connection', (socket) => {
 	})
 
 	socket.on('disconnect', () => {
-		console.log('[game] User disconnected => ' + socket.id);
+		console.log('[game] [disconnect] GAME USERS => ' + JSON.stringify(Array.from(gameUsers.entries())));
 		const disconnectedUser = gameUsers.get(socket.id);
 		if (!disconnectedUser) {
 			console.log(`[game] [disconnect] Player not found`);
@@ -218,26 +217,6 @@ tournament.on('connection', (socket) => {
 	console.log('[tournament] New connection: ' + socket.id);
 	tournamentEvents(tournament, socket);
 
-	// socket.on('disconnect', async () => {
-	// 	const disconnectedUser = tournamentUsers.get(socket.id);
-	// 	if (!disconnectedUser) {
-	// 		console.log(`[tournament] [disconnect] Player not found`);
-	// 		return;
-	// 	}
-	// 	else
-	// 		console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
-
-	// 	const tournament = tournamentsArray.forEach(t => {
-	// 		const playerIndex = t.inLobby.findIndex(p => p.user.id === disconnectedUser.userId);
-	// 		if (playerIndex != -1) {
-	// 			console.log(`[game] -BFR- inLobby ${JSON.stringify(t.inLobby)}`);
-	// 			console.log(`[game] Deleting player...`);
-	// 			t.inLobby.splice(playerIndex, 1);
-	// 			t.disconnected.push(playerIndex);
-	// 			console.log(`[game] -AFR- inLobby ${JSON.stringify(t.inLobby)}`);
-	// 		}
-	// 	})
-
 	// 	const userId = disconnectedUser.userId;
 	// 	connectedUsers.delete(socket.id);
 
@@ -269,7 +248,6 @@ tournament.on('connection', (socket) => {
 	// 			tournamentsArray.splice(tournamentIndex, 1);
 	// 		}
 	// 	}
-	// });
 })
 
 server.listen(port, () => {

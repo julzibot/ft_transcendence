@@ -40,7 +40,8 @@ export default function gameLobbyEvents(io, socket) {
 				body: JSON.stringify({
 					'player1': lobby.player1.id,
 					'player2': lobby.player2.id,
-					'game_mode': gameMode
+					'game_mode': gameMode,
+					'tournamentLink': gameMode === 3 ? data.tournamentLink : null
 				})
 			});
 			if (response.status === 201) {

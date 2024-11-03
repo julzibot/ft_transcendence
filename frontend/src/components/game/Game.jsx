@@ -18,7 +18,8 @@ import Cookies from 'js-cookie';
 // // 2 -> remote
 // // 3 -> Tournament (?)
 export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode, handleGameEnded }) {
-
+	if (gamemode >= 2)
+		gamemode = 2;
 	const containerRef = useRef(null);
 	const animationFrameIdRef = useRef();
 	const stopAnim = useRef(false);
@@ -107,7 +108,10 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 
 			function printGameInfo(textMesh, string, mode, id, fontsize, p) {
 				p.csts.loader.load(CONST.FONTPATH + CONST.FONTNAME, function (font) {
-					let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, depth: 0.5 });
+					let depth = 0.5;
+					if (mode >= 4 && mode < 5)
+						depth = 0.1;
+					let updatedStringGeo = new TextGeometry(string, { font: font, size: fontsize, depth: depth });
 					if (mode === 0 && ((p.vars.scorePlaceAdjust[id] === 0 && parseInt(string, 10) > 9) || (id === 0 && p.vars.scorePlaceAdjust[id] === 1 && parseInt(string, 10) > 19))) {
 						if (id === 0 && p.vars.scorePlaceAdjust[0] === 0)
 							textMesh.position.set(-4.91, CONST.GAMEHEIGHT / 2 + 0.5, 1);
@@ -120,9 +124,9 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 					else if (mode > 0 && mode < 3) {
 						const textMaterial = new THREE.MeshStandardMaterial({ color: 0x0000cc, emissive: 0xee00ee, emissiveIntensity: 0.3 });
 						textMesh.material = textMaterial;
-						if (mode == 1)
+						if (mode === 1)
 							textMesh.position.set(-4.11, CONST.GAMEHEIGHT / 2 + 0.5, 1);
-						else if (mode == 2) {
+						else if (mode === 2) {
 							let hyphenGeo = new TextGeometry("-", { font: font, size: fontsize, depth: 0.5 });
 							p.vars.hyphenMesh.material = textMaterial;
 							p.vars.hyphenMesh.position.set(-0.5, CONST.GAMEHEIGHT / 2 + 0.5, 1);
@@ -132,6 +136,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						}
 					}
 					else if (mode < 0) {
+						// SCORE UPDATE
 						const textMaterial = new THREE.MeshStandardMaterial({ color: 0xeeeeee, emissive: 0xdddddd, emissiveIntensity: 0.35, transparent: true, opacity: 0.7 });
 						textMesh.material = textMaterial;
 						if (mode === -1)
@@ -140,6 +145,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 							textMesh.position.set(7.5, CONST.GAMEHEIGHT / 2 - 7, -1.7);
 					}
 					else if (mode == 3) {
+						// PUs init
 						const textMaterial = new THREE.MeshStandardMaterial({ color: p.custom.modes_colormap[5], emissive: p.custom.modes_colormap[5], emissiveIntensity: 0.3 });
 						textMesh.material = textMaterial;
 						if (id === 0)
@@ -147,20 +153,31 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						else
 							textMesh.position.set(CONST.GAMEWIDTH / 2 - 8.5, CONST.GAMEHEIGHT / 2 + 2.4, 1)
 					}
-					else if (mode == 4) {
-						const textMaterial = new THREE.MeshStandardMaterial({ color: p.custom.modes_colormap[5], emissive: p.custom.modes_colormap[5], emissiveIntensity: 0.3 });
+					else if (mode === 4) {
+						// Tuto display
+						const textMaterial = new THREE.MeshStandardMaterial({ color: 0xeeeeee, emissive: 0xdddddd, emissiveIntensity: 0.4 });
 						textMesh.material = textMaterial;
 						if (id === 0)
-							textMesh.position.set(-CONST.GAMEWIDTH / 2 + 1, CONST.GAMEHEIGHT / 2 + 0.75, 1)
+							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 9.5, CONST.GAMEHEIGHT / 2 - 10, 1);
 						else
-							textMesh.position.set(CONST.GAMEWIDTH / 2 - 7, CONST.GAMEHEIGHT / 2 + 0.75, 1)
+						textMesh.position.set(CONST.GAMEWIDTH / 2 + 5.5, CONST.GAMEHEIGHT / 2 - 10, 1);
+					}
+					else if (mode === 4.5) {
+						const textMaterial = new THREE.MeshStandardMaterial( { color: 0xcc0000, emissive: 0xee00ee, emissiveIntensity: 0.15 });
+						textMesh.material = textMaterial;
+						if (id === 0)
+							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 9.5, CONST.GAMEHEIGHT / 2 - 8.5, 1);
+						else
+							textMesh.position.set(CONST.GAMEWIDTH / 2 + 5.5, CONST.GAMEHEIGHT / 2 - 8.5, 1);
 					}
 					else if (mode == 5) {
+						// ENDGAME
 						const textMaterial = new THREE.MeshStandardMaterial({ color: 0x227700, emissive: 0x00cc00, emissiveIntensity: 0.25 });
 						textMesh.material = textMaterial;
 						textMesh.position.set(-11.5, -7, -1.5);
 					}
 					else if (mode > 5) {
+						// PUs update
 						const textMaterial = new THREE.MeshStandardMaterial({ color: p.custom.modes_colormap[mode - 6], emissive: p.custom.modes_colormap[mode - 6], emissiveIntensity: 0.3 });
 						textMesh.material.dispose();
 						textMesh.material = textMaterial;
@@ -556,15 +573,21 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				if (p.keys['KeyC']) {
 					p.vars.colorswitch[0] = (p.vars.colorswitch[0] + 1) % 3;
 					let ind = p.vars.colorswitch[0];
+					const newMat1 = new THREE.MeshStandardMaterial({ color: p.custom.player_colormap[2 * ind], emissive: p.custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
 					p.objs.player1.material.dispose();
-					p.objs.player1.material = new THREE.MeshStandardMaterial({ color: p.custom.player_colormap[2 * ind], emissive: p.custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
+					p.objs.player1.material = newMat1;
+					p.vars.p1TutoTitleText.material.dispose();
+					p.vars.p1TutoTitleText.material = newMat1;
 					p.keys['KeyC'] = false;
 				}
 				if (p.keys['ArrowLeft']) {
 					p.vars.colorswitch[1] = (p.vars.colorswitch[1] + 1) % 3;
 					let ind = p.vars.colorswitch[1];
+					const newMat2 = new THREE.MeshStandardMaterial({ color: p.custom.player_colormap[2 * ind], emissive: p.custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
 					p.objs.player2.material.dispose();
-					p.objs.player2.material = new THREE.MeshStandardMaterial({ color: p.custom.player_colormap[2 * ind], emissive: p.custom.player_colormap[2 * ind + 1], emissiveIntensity: 0.15 });
+					p.objs.player2.material = newMat2;
+					p.vars.p2TutoTitleText.material.dispose();
+					p.vars.p2TutoTitleText.material = newMat2;
 					p.keys['ArrowLeft'] = false;
 				}
 			}
@@ -1181,6 +1204,17 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			// ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
 			printGameInfo(p.vars.p1textMesh, "0", 1, -1, 2.75, p);
 			printGameInfo(p.vars.p2textMesh, "0", 2, -1, 2.75, p);
+			if (isHost)
+			{
+				printGameInfo(p.vars.p1TutoText, p.csts.tutoP1, 4, 0, 0.8, p);
+				printGameInfo(p.vars.p1TutoTitleText, p.csts.tutoTitles, 4.5, 0, 0.8, p);
+			}
+			if (!isHost || gamemode === 0)
+			{
+				printGameInfo(p.vars.p2TutoText, p.csts.tutoP2, 4, 1, 0.8, p);
+				printGameInfo(p.vars.p2TutoTitleText, p.csts.tutoTitles, 4.5, 1, 0.8, p);
+			}
+
 			if (p.custom.power_ups === true) {
 				printGameInfo(p.vars.latentMesh[0], "none", 3, 0, 0.85, p);
 				printGameInfo(p.vars.latentMesh[1], "none", 3, 1, 0.85, p);
@@ -1195,9 +1229,10 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				p.keys[event.code] = false;
 			}
 
-			if (gamemode === 2)
+			if (gamemode >= 2)
 				init_socket(socket, isHost, p, arr, g);
 			if (gamemode < 2 || (gamemode === 2 && socket && user_id)) {
+				console.log(`Calling animate...`)
 				animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool);
 			}
 

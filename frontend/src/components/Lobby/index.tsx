@@ -95,8 +95,6 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 		fetchLobbyData()
 	}, [])
 
-
-
 	return (
 		<>
 			<div className='d-flex flex-row align-items-center justify-content-between p-4'>
