@@ -78,8 +78,8 @@ body {
 }
 
 .match_item_title {
-	min-height: 60px;
-	margin: 30px 0 10px;
+	min-height: 50px;
+	margin: 30px 0 0px;
 
 	overflow: hidden;
 
