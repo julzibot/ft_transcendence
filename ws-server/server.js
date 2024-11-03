@@ -251,5 +251,5 @@ tournament.on('connection', (socket) => {
 })
 
 server.listen(port, () => {
-	console.log(`Socket server is now listening on https://${domain}:` + port);
+	console.log(`Socket server is listening on https://${domain}:` + port);
 });
