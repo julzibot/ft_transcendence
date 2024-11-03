@@ -17,11 +17,12 @@ class ParticipantSerializer(serializers.ModelSerializer):
 
 class TournamentSerializer(serializers.ModelSerializer):
 	creator = serializers.SerializerMethodField()
-	participants = ParticipantSerializer(source="players", many=True)
+	participants = ParticipantSerializer(source="players", many=True, read_only=True)
 
 	class Meta:
 		model = TournamentModel
 		fields = ['id', 'name', 'maxPlayerNumber', 'timer', 'power_ups', 'difficultyLevel', 'pointsPerGame', 'isStarted', 'creator', 'numberOfPlayers', 'linkToJoin', 'participants']
+		read_only_fields = ['participants']
 
 	def get_creator(self, obj):
 		return {
