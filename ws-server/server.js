@@ -17,7 +17,6 @@ export const tournamentUsers = new Map(); // socket.id -> {user.id}
 
 export const gameLobbies = new Map(); // lobbyId -> {player1 (userId), player2 (userId)}
 export const gameRooms = new Map(); // roomId -> {player1 (socket.id), player2 (socket.id)}
-export const tournamentsArray = [];
 
 // setInterval(() => {
 
@@ -219,58 +218,58 @@ tournament.on('connection', (socket) => {
 	console.log('[tournament] New connection: ' + socket.id);
 	tournamentEvents(tournament, socket);
 
-	socket.on('disconnect', async () => {
-		const disconnectedUser = tournamentUsers.get(socket.id);
-		if (!disconnectedUser) {
-			console.log(`[tournament] [disconnect] Player not found`);
-			return;
-		}
-		else
-			console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
+	// socket.on('disconnect', async () => {
+	// 	const disconnectedUser = tournamentUsers.get(socket.id);
+	// 	if (!disconnectedUser) {
+	// 		console.log(`[tournament] [disconnect] Player not found`);
+	// 		return;
+	// 	}
+	// 	else
+	// 		console.log(socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
 
-		const tournament = tournamentsArray.forEach(t => {
-			const playerIndex = t.inLobby.findIndex(p => p.user.id === disconnectedUser.userId);
-			if (playerIndex != -1) {
-				console.log(`[game] -BFR- inLobby ${JSON.stringify(t.inLobby)}`);
-				console.log(`[game] Deleting player...`);
-				t.inLobby.splice(playerIndex, 1);
-				t.disconnected.push(playerIndex);
-				console.log(`[game] -AFR- inLobby ${JSON.stringify(t.inLobby)}`);
-			}
-		})
+	// 	const tournament = tournamentsArray.forEach(t => {
+	// 		const playerIndex = t.inLobby.findIndex(p => p.user.id === disconnectedUser.userId);
+	// 		if (playerIndex != -1) {
+	// 			console.log(`[game] -BFR- inLobby ${JSON.stringify(t.inLobby)}`);
+	// 			console.log(`[game] Deleting player...`);
+	// 			t.inLobby.splice(playerIndex, 1);
+	// 			t.disconnected.push(playerIndex);
+	// 			console.log(`[game] -AFR- inLobby ${JSON.stringify(t.inLobby)}`);
+	// 		}
+	// 	})
 
-		// 	const userId = disconnectedUser.userId;
-		// 	connectedUsers.delete(socket.id);
+	// 	const userId = disconnectedUser.userId;
+	// 	connectedUsers.delete(socket.id);
 
-		// 	if (disconnectedUser.mode === 1) {
-		// 		// Tournament
-		// 		// Deleting the participant
-		// 		let emptyTournamentId = '';
-		// 		let updatedParticipants = [];
-		// 		tournamentsArray = tournamentsArray.map(tournament => {
-		// 			updatedParticipants = tournament.participants.filter(participant => participant.user.id !== disconnectedUserId);
-		// 			updatedParticipants.forEach(participant => {
-		// 				for (const key of participant.opponents.keys()) {
-		// 					participant.opponents.delete(key);
-		// 				}
-		// 				console.log(`[disconnect] Opponents for: ${participant.user.id} - ${Array.from(participant.opponents.entries())}`)
-		// 			})
-		// 			if (tournament.isStarted && updatedParticipants.length === 0)
-		// 				emptyTournamentId = tournament.tournamentId;
-		// 			else {
-		// 				socket.in(tournament.tournamentId).emit('updateParticipants', updatedParticiuserIdpants);
-		// 			}
-		// 			deleteParticipant(tournament.tournamentId, disconnectedUserId)
-		// 			return { ...tournament, participants: updatedParticipants }
-		// 		});
+	// 	if (disconnectedUser.mode === 1) {
+	// 		// Tournament
+	// 		// Deleting the participant
+	// 		let emptyTournamentId = '';
+	// 		let updatedParticipants = [];
+	// 		tournamentsArray = tournamentsArray.map(tournament => {
+	// 			updatedParticipants = tournament.participants.filter(participant => participant.user.id !== disconnectedUserId);
+	// 			updatedParticipants.forEach(participant => {
+	// 				for (const key of participant.opponents.keys()) {
+	// 					participant.opponents.delete(key);
+	// 				}
+	// 				console.log(`[disconnect] Opponents for: ${participant.user.id} - ${Array.from(participant.opponents.entries())}`)
+	// 			})
+	// 			if (tournament.isStarted && updatedParticipants.length === 0)
+	// 				emptyTournamentId = tournament.tournamentId;
+	// 			else {
+	// 				socket.in(tournament.tournamentId).emit('updateParticipants', updatedParticiuserIdpants);
+	// 			}
+	// 			deleteParticipant(tournament.tournamentId, disconnectedUserId)
+	// 			return { ...tournament, participants: updatedParticipants }
+	// 		});
 
-		// 		// if tournament has no participants left, delete tournament
-		// 		if (emptyTournamentId.length !== 0) {
-		// 			const tournamentIndex = tournamentsArray.findIndex(tournament => tournament.tournamentId === emptyTournamentId);
-		// 			tournamentsArray.splice(tournamentIndex, 1);
-		// 		}
-		// 	}
-	});
+	// 		// if tournament has no participants left, delete tournament
+	// 		if (emptyTournamentId.length !== 0) {
+	// 			const tournamentIndex = tournamentsArray.findIndex(tournament => tournament.tournamentId === emptyTournamentId);
+	// 			tournamentsArray.splice(tournamentIndex, 1);
+	// 		}
+	// 	}
+	// });
 })
 
 server.listen(port, () => {

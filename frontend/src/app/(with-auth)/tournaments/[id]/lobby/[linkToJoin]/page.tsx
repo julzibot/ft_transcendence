@@ -55,7 +55,8 @@ export default function TournamentGameLobby() {
 					credentials: 'include'
 				});
 				if (!response.ok) {
-					router.replace(`/error?code=${response.status}`)
+					console.log('Error fetching tournament data')
+					router.push(`/error?code=${response.status}`)
 				}
 				else {
 					const data = await response.json()

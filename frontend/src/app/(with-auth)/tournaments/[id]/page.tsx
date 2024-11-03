@@ -222,7 +222,7 @@ export default function TournamentLobby() {
 					</div>
 				</div>
 				{
-					tournamentData?.isStarted &&
+					tournamentData?.isStarted || pairs &&
 					<div className="card position-relative mt-5 z-1 match-card border-2 rounded-5 col-4 position-absolute translate-middle-x start-50" style={{ height: '500px' }}>
 						<div className="video-container">
 							<video
