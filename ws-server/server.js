@@ -12,8 +12,7 @@ const frontendPort = process.env.FRONTEND_PORT;
 const backendPort = process.env.BACKEND_PORT;
 
 export const lobbyUsers = new Map(); // socket.id -> {user.id, 0 || 1}
-export const gameUsers = new Map(); // socket.id -> {user.id, 0 || 1}
-export const tournamentUsers = new Map(); // socket.id -> {user.id}
+export const gameUsers = new Map(); // socket.id -> {user.id, 0 || 1} // socket.id -> {user.id}
 
 export const gameLobbies = new Map(); // lobbyId -> {player1 (userId), player2 (userId)}
 export const gameRooms = new Map(); // roomId -> {player1 (socket.id), player2 (socket.id)}
@@ -182,7 +181,14 @@ game.on('connection', (socket) => {
 	})
 
 	socket.on('disconnect', () => {
-		console.log('[game] User disconnected => ' + socket.id);
+		console.log('[game] [disconnect] GAME USERS => ' + JSON.stringify(Array.from(gameUsers.entries())));
+		const disconnectedUser = gameUsers.get(socket.id);
+		if (!disconnectedUser) {
+			console.log(`[game] [disconnect] Player not found`);
+			return;
+		}
+		else
+			console.log('[game]' + socket.id + ' -> ' + disconnectedUser.userId + " has disconnected");
 
 		for (const [roomId, room] of gameRooms.entries()) {
 			if (room.player1 === socket.id || room.player2 === socket.id) {
@@ -210,15 +216,6 @@ game.on('connection', (socket) => {
 tournament.on('connection', (socket) => {
 	console.log('[tournament] New connection: ' + socket.id);
 	tournamentEvents(tournament, socket);
-
-	socket.on('disconnect', async () => {
-		const disconnectedUser = tournamentUsers.get(socket.id);
-		if (!disconnectedUser) {
-			console.log(`[tournament] [disconnect] Player not found`);
-			return;
-		}
-		else
-			console.log(socket.id + ' -> ' + tournamentUsers.userId + " has disconnected");
 
 		// 	const userId = disconnectedUser.userId;
 		// 	connectedUsers.delete(socket.id);
@@ -251,7 +248,6 @@ tournament.on('connection', (socket) => {
 		// 			tournamentsArray.splice(tournamentIndex, 1);
 		// 		}
 		// 	}
-	});
 })
 
 server.listen(port, () => {

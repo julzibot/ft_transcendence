@@ -37,13 +37,6 @@ export const SignInFormSchema = z.object({
     .trim(),
 });
 
-export type SignInFormState =
-  | {
-    message?: string[]
-  }
-  | undefined
-
-
 export type RegisterFormState =
   | {
     errors?: {

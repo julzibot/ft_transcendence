@@ -14,6 +14,7 @@ import { Friend } from "@/types/Friend";
 import { User } from "@/types/User";
 import { SearchPlayerInputProps } from "@/types/Props";
 import { BACKEND_URL } from "@/config";
+import Image from "@/components/Utils/Image";
 
 
 export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputProps) {
@@ -169,10 +170,10 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
         placeholder="Search Player"
       />
 
-      <div className="border border-bottom-0">
+      <div className="border-top-0 border-bottom-0">
         {
           searchQuery.length > 0 && searchQuery.map((user) => (
-            <div key={user.id} className="d-flex flex-row align-items-center border-bottom">
+            <div key={user.id} className="border border-top-0 d-flex flex-row align-items-center border-bottom">
               <div className="ms-2 me-2">
                 {
                   user.is_online ? (
@@ -183,24 +184,9 @@ export default function SearchPlayerInput({ fetchFriends }: SearchPlayerInputPro
                 }
               </div>
               <Link href={`/account/${user.id}`}>
-                <div className="me-3 position-relative border border-1 border-dark-subtle rounded-circle" style={{ width: '30px', height: '30px', overflow: 'hidden' }}>
-                  <img
-                    style={{
-                      objectFit: 'cover',
-                      width: '100%',
-                      height: '100%',
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)'
-                    }}
-                    fetchPriority="high"
-                    alt="profile picture"
-                    src={`${BACKEND_URL}${user.image}`}
-                  />
-                </div>
+                <Image className="mt-1" src={user.image} alt="profile picture" whRatio="30px" loading={false} />
               </Link>
-              <span className="flex-grow-1 overflow-hidden fs-4 fw-semibold text-truncate">
+              <span className="ms-2 flex-grow-1 overflow-hidden fs-4 fw-semibold text-truncate">
                 {user.username}
               </span>
               <div className="me-2">

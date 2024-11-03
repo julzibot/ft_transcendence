@@ -3,12 +3,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/AuthContext";
-import { SignInFormState } from "@/app/lib/definitions";
 import CSRFToken from "@/components/Utils/CSRFToken";
 import FortyTwoSigninButton from "@/components/buttons/FortyTwoSigninButton";
 
 export default function SignIn() {
-  const [formState, setFormState] = useState<SignInFormState | undefined>(undefined);
+  const [error, setError] = useState('');
   const { signIn, loading } = useAuth();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -16,8 +15,8 @@ export default function SignIn() {
     const formData = new FormData(event.currentTarget);
     const username = formData.get("username");
     const password = formData.get("password");
-    signIn(username, password).then((message: any) => {
-      setFormState({ message: [message || ""] });
+    signIn(username as string, password as string).then((message: any) => {
+      setError(message);
     });
   }
 
@@ -61,7 +60,7 @@ export default function SignIn() {
               <button disabled={!loading} type="submit" className="btn btn-dark fw-bold mt-2">
                 <span>Sign In</span>
               </button>
-              {formState?.message && <p className="mt-2 text-danger">{formState.message}</p>}
+              {error !== '' && <p className="mt-2 text-danger">{error}</p>}
             </form>
           </div>
           <div className="card-footer">

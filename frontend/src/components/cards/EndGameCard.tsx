@@ -14,7 +14,7 @@ export default function EndGameCard({ gameMode, tournamentLink }: { gameMode: 'T
 		switch (gameMode) {
 			case 'TOURNAMENT':
 				setTimeout(() => {
-					router.push(`/tournaments/${tournamentLink}`)
+					router.replace(`/tournaments/${tournamentLink}`)
 				}, 3000)
 				break
 			case 'ONLINE':
@@ -44,7 +44,7 @@ export default function EndGameCard({ gameMode, tournamentLink }: { gameMode: 'T
 							</div>
 						</div>
 						<div className="modal-footer justify-content-center">
-							<button type="button" className="btn btn-outline-light" onClick={() => router.push(url)} data-bs-dismiss="modal">Return to Lobby</button>
+							<button type="button" className="btn btn-outline-light" onClick={() => router.replace(url)} data-bs-dismiss="modal">Return to Lobby</button>
 							{gameMode === 'LOCAL' &&
 								<button type="button" className="btn btn-secondary" onClick={() => location.reload()} data-bs-dismiss="modal">Play Again</button>
 							}

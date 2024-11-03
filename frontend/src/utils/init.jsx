@@ -116,7 +116,41 @@ export const initVars = (objs, csts, vars, custom) =>
     csts.pu_vs = shaders.pu_vs;
     csts.pu_fs = shaders.pu_fs;
 
+    csts.tutoP1 = `W/S
+
+
+
+Space
+
+
+
+C/Left`;
+
+    csts.tutoP2 = `Up/Down
+
+
+
+Right
+
+
+
+C/Left`;
+
+    csts.tutoTitles = `move:
+
+
+
+powerup:
+
+
+
+color:`;
+
     vars.scoreMsg = new THREE.Mesh();
+    vars.p1TutoText = new THREE.Mesh();
+    vars.p2TutoText = new THREE.Mesh();
+    vars.p1TutoTitleText = new THREE.Mesh();
+    vars.p2TutoTitleText = new THREE.Mesh();
     vars.p1textMesh = new THREE.Mesh();
     vars.hyphenMesh = new THREE.Mesh();
     vars.p2textMesh = new THREE.Mesh();

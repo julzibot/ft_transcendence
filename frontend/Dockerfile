@@ -9,8 +9,6 @@ COPY . .
 # ENV NEXT_PUBLIC_DOMAIN=localhost
 # ENV NEXT_PUBLIC_BACKEND_PORT=8000
 # WORKDIR /build
-# COPY --from=base /app /build
-# RUN npm run build
 
 FROM node:22-alpine3.18 AS runner
 ENV NODE_ENV=development

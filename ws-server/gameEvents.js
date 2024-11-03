@@ -1,12 +1,15 @@
 import { gameRooms, gameUsers } from "./server.js";
 import { gameLobbies } from "./server.js";
-import { lobbyUsers } from "./server.js";
 
 export default function gameEvents(io, lobby, socket) {
 
 	socket.on('joinGame', (data) => {
-		const { userId, gameId, lobbyId } = data;
-		gameUsers.set(socket.id, { userId: userId, mode: 0 });
+		const { userId, gameId, lobbyId, gameMode } = data;
+		if (gameMode === 2)
+			gameUsers.set(socket.id, { userId: userId, mode: 0 });
+		else if (gameMode === 3)
+			gameUsers.set(socket.id, { userId: userId, mode: 1 });
+
 		socket.join(gameId);
 		console.log(`[gameEvents] [joinGame] ${socket.id} has joined -> ${gameId}`);
 		const room = gameRooms.get(gameId);
@@ -24,7 +27,7 @@ export default function gameEvents(io, lobby, socket) {
 			}
 		}
 		else {
-			if (gameLobby.player1.id === userId) {
+			if (gameLobby.player1 && gameLobby.player1.id === userId) {
 				gameRooms.set(gameId, { player1: socket.id, player2: null });
 				console.log(`[gameEvents] Assigning player1 [${userId}] room: ${JSON.stringify(gameRooms.get(gameId))}`)
 			}

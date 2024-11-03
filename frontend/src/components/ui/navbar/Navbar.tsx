@@ -16,7 +16,7 @@ export default function Navbar() {
 							width={35}
 							height={35}
 							alt="42 Logo"
-							fetchPriority="high"
+							priority={true}
 							/>
 						<span className="ms-1 text-light fw-semibold">Transcendence</span>
 					</Link>

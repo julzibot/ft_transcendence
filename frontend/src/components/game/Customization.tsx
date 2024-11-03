@@ -23,6 +23,7 @@ export default function Customization() {
 	const [gameCustoms, setGameCustoms] = useState(defaultSettings);
 
 	useEffect(() => {
+		require("bootstrap/dist/js/bootstrap.bundle.min.js")
 		async function fetchGameCustoms(id: number | undefined) {
 			const response = await fetch(`${BACKEND_URL}/api/gameCustomization/${id}`, {
 				method: 'GET',
@@ -284,12 +285,12 @@ export default function Customization() {
 
 			<div className="d-flex flex-column align-items-center">
 				<div className="m-2">
-					<button className={`btn btn-primary rounded-pill ${styles.button} ${isMounted ? styles.mounted : ''}`}
+					<button className={`btn btn-warning rounded-pill ${styles.button} ${isMounted ? styles.mounted : ''}`}
 						type="button"
 						data-bs-toggle="offcanvas"
 						data-bs-target="#offcanvasCustomization"
 						aria-controls="offcanvasCustomization">
-						Customizations
+						Display Settings
 					</button>
 				</div>
 			</div>

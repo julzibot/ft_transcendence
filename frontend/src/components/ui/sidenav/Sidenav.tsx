@@ -22,11 +22,14 @@ export default function Sidenav() {
             </li>
           </ul>
         </div>
+
         <Offcanvas
           show={show}
           onHide={() => setShow(false)}
           placement="end"
           scroll={false}
+          style={{ width: '350px' }}
+          className="top-50 end-0  rounded-top-3 rounded-end-0"
         >
           <Offcanvas.Header closeButton>
             <Offcanvas.Title>Friend List</Offcanvas.Title>
