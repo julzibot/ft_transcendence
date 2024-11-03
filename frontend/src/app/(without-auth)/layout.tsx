@@ -14,10 +14,10 @@ export const metadata: Metadata = {
   description: "An online pong game",
 };
 
-export default function AuthLayout({ children }: {children: React.ReactNode}) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.className}>
-      <body >
+      <body>
         <main>
           <AuthProvider>
             {children}

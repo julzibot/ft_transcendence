@@ -42,7 +42,7 @@ export type RegisterFormState =
     errors?: {
       username?: string[];
       password?: string[];
-      rePass?: string;
+      rePass?: string[];
     }
     message?: string[]
   }

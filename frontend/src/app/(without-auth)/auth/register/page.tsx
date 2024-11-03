@@ -70,9 +70,9 @@ export default function RegisterForm() {
                   id="username"
                   className="form-control"
                 />
-                <p className="form-text fst-italic ">A unique username that will be displayed to other players</p>
+                <p className="form-text fst-italic text-danger">A unique username that will be displayed to other players</p>
                 {formState?.errors?.username && formState?.errors?.username.map((error, index) => (
-                  <div className="form-label" key={index} className="text-danger">{error}</div>)
+                  <div className="form-label" key={index}>{error}</div>)
                 )}
               </div>
               <div className="mb-3 form-group">

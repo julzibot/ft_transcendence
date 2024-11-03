@@ -20,7 +20,6 @@ export default function TournamentLobby() {
 	const { id } = useParams();
 	const { session } = useAuth();
 	const router = useRouter();
-	const videoRef = useRef()
 	const [participantsList, setParticipantsList] = useState<ParticipantType[]>([]);
 	const [pairs, setPairs] = useState<Pair[]>()
 	const [tournamentData, setTournamentData] = useState<TournamentType>();
@@ -43,7 +42,7 @@ export default function TournamentLobby() {
 		})
 		if (response.ok) {
 			const data = await response.json()
-			if (data.participants.some((participant: ParticipantType) => participant.user.id === session?.user?.id)) {
+			if (data.participants.some((participant: ParticipantType) => Number(participant.user.id) === session?.user?.id)) {
 				setParticipantsList(data.participants)
 				setTournamentData(data.tournament)
 			} else
@@ -68,12 +67,6 @@ export default function TournamentLobby() {
 			setIsReady(true);
 		}
 	}, [isReady, tournamentData]);
-
-	useEffect(() => {
-		if (videoRef.current) {
-			videoRef.current.playbackRate = 1.2; //Speed of the video
-		}
-	}, []);
 
 
 	useEffect(() => {
@@ -230,7 +223,6 @@ export default function TournamentLobby() {
 								autoPlay
 								muted
 								loop
-								ref={videoRef}
 								src="/videos/flame.mp4"
 							>
 								Your browser does not support HTML5 video.

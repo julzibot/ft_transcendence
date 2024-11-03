@@ -18,15 +18,17 @@ export const GetTournamentData = async () => {
 	}
 }
 
-interface LobbyForm {
+interface TournamentForm {
 	name: string,
-	player1: number,
 	difficultyLevel: number,
 	pointsPerGame: number,
 	power_ups: boolean,
+	maxPlayerNumber: number;
+	timer: number;
+	creator: number | undefined;
 }
 
-export const CreateTournament = async (payload: LobbyForm) => {
+export const CreateTournament = async (payload: TournamentForm) => {
 	try {
 		const response = await fetch(BACKEND_URL + `/api/tournament/create/`, {
 			method: "POST",
