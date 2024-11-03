@@ -29,7 +29,6 @@ export default function TournamentLobby() {
 	const socket = useSocketContext();
 	const [isReady, setIsReady] = useState(false);
 	const [joined, setJoined] = useState<boolean>(false);
-
 	const [received, setReceived] = useState(false);
 	const [sent, setSent] = useState(false);
 
@@ -56,13 +55,12 @@ export default function TournamentLobby() {
 	}
 
 	const handleStartTournament = async () => {
-		//update isStarted in DB to prevent user to enter and to continue match making
-		await startTournament(id.toString())
-		fetchTournamentData()
-
-		// send signal to sockets
+		if (participantsList.length < 2) {
+			return;
+		}
+		await startTournament(id.toString()) //update isStarted in DB to prevent user to enter and to continue matchmaking
+		fetchTournamentData() //updates tournamentData
 		socket?.emit('startTournament', { tournamentId: id, tournamentDuration: tournamentData?.timer })
-
 	}
 
 	useEffect(() => {
@@ -73,7 +71,7 @@ export default function TournamentLobby() {
 
 	useEffect(() => {
 		if (videoRef.current) {
-			videoRef.current.playbackRate = 1.2; // Adjust the speed here (e.g., 0.5 is half-speed, 2 is double-speed)
+			videoRef.current.playbackRate = 1.2; //Speed of the video
 		}
 	}, []);
 
@@ -173,11 +171,12 @@ export default function TournamentLobby() {
 		}
 	}, [socket, isReady]);
 
-	useEffect(() => {
+	useEffect(() => { // Handles players that got back from a game
+		console.log(tournamentData)
 		if (socket && tournamentData && tournamentData.isStarted) {
 			socket.emit("returnToLobby", { tournamentId: id, userId: session?.user?.id })
 		}
-	}, [tournamentData])
+	}, [tournamentData, socket])
 
 	return (
 		<>

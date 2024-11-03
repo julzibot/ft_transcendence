@@ -168,7 +168,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 							<div
 								key={index}
 								onClick={() => handleJoin(tournament, session?.user?.id, tournament.linkToJoin)}
-								className={`${tournament.isStarted && !tournament.participants.some((participant) => participant.user.id === session.user.id) ? 'disabled' : 'text-light'
+								className={`${tournament.isStarted && !tournament.participants.some((participant) => participant.user.id === session.user.id) ? 'disabled' : ''
 									} ${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5 z-1 position-relative`}
 							>
 								{
