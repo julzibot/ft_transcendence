@@ -1287,5 +1287,5 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		}
 	}, []);
 
-	return <canvas className="position-fixed top-0 left-0" style={{ height: '100vh', height: '100vw' }} ref={containerRef} />
+	return <canvas className="position-absolute top-0 left-0" style={{ height: '100vh', height: '100vw' }} ref={containerRef} />
 };
