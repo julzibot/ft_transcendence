@@ -1,7 +1,7 @@
 export const shaders = {};
 
-shaders.utils = 
-`
+shaders.utils =
+    `
 uniform float   u_time;
 uniform vec3    u_color;
 uniform int     u_palette;
@@ -24,10 +24,10 @@ vec3 palette(float t, int mode)
     }
     else if (mode == 2)
     {
-        a = vec3(0., 0.538, 0.288);
-        b = vec3(0., -0.362, 0.668);
-        c = vec3(0., 0.318, 0.248);
-        d = vec3(0., 0.198, 0.698);
+        a = vec3(0.5, 0.5, 0.5);
+        b = vec3(0.5, 0.5, 0.5);
+        c = vec3(1.0, 1.0, 1.0);
+        d = vec3(0.0, 0.33, 0.67);
     }
     else if (mode == 3)
     {
@@ -39,10 +39,10 @@ vec3 palette(float t, int mode)
 
     else if (mode == 4)
     {
-        a = vec3(0.668, 0.668, 0.498);
-        b = vec3(0.138, 0.500, 0.248);
-        c = vec3(1.000, -0.112, 0.318);
-        d = vec3(-0.092, 0.718, 0.538);
+        a = vec3(0.5, 0.5, 0.5);
+        b = vec3(0.5, 0.5, 0.5);
+        c = vec3(2.0, 1.0, 0.0);
+        d = vec3(0.5, 0.2, 0.25);
     }
     return abs(a + b * cos(6.28 * (c*t+d))); 
 }
@@ -191,8 +191,8 @@ vec3 specularLighting(vec3 normal, vec3 lightColor)
 }
 `
 
-const main_init = 
-`
+const main_init =
+    `
 void main()
 {
     // BORING COORDINATES STUFF
@@ -202,9 +202,9 @@ void main()
     vec4 worldSpacePos = inverse(viewMatrix) * viewSpacePos;
     vec2 pos = worldSpacePos.xy;
 `
-    
+
 shaders.background_default = main_init +
-`
+    `
     pos *= 4.;
     vec3 color = u_color;
     
@@ -225,8 +225,8 @@ shaders.background_default = main_init +
 }
 `
 
-shaders.background_lightsquares = main_init + 
-`
+shaders.background_lightsquares = main_init +
+    `
     pos *= 4.;
     vec3 color = u_color;
     if (u_palette != 0)
@@ -240,8 +240,8 @@ shaders.background_lightsquares = main_init +
 }
 `
 
-shaders.background_waves = main_init + 
-`
+shaders.background_waves = main_init +
+    `
     pos *= 4.;
     vec3 color = u_color;
     if (u_palette != 0)
@@ -256,7 +256,7 @@ shaders.background_waves = main_init +
 `
 
 shaders.background_fractcircles = main_init +
-`
+    `
     vec3 color = u_color;
     vec2 pos0 = pos;
     if (u_palette != 0)
@@ -275,8 +275,8 @@ shaders.background_skybox = "skybox"
 
 // POWER-UPS SHADERS
 
-shaders.pu_vs = 
-`
+shaders.pu_vs =
+    `
 uniform float u_time;
 varying vec3    pos;
 
@@ -382,7 +382,7 @@ void main()
 `
 
 shaders.pu_fs =
-`
+    `
 uniform float u_time;
 uniform float u_radius;
 uniform float u_spawn;

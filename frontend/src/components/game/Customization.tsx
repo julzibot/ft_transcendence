@@ -172,7 +172,7 @@ export default function Customization() {
 												onChange={handlePaletteRadio}
 											/>
 											<label className="btn" htmlFor="palette1">
-												<img src='/palette/palette_1.png' width="220" height="60" alt="palette 1" />
+												<img src='/palette/palette_1.gif' width="220" height="60" alt="palette 1" />
 											</label>
 										</div>
 										<div className="paletteButton">
@@ -186,7 +186,7 @@ export default function Customization() {
 												onChange={handlePaletteRadio}
 											/>
 											<label className="btn" htmlFor="palette2">
-												<img src='/palette/palette_2.png' width="220" height="60" alt="palette 2" />
+												<img src='/palette/palette_2.gif' width="220" height="60" alt="palette 2" />
 											</label>
 										</div>
 										<div className="paletteButton">
@@ -200,7 +200,7 @@ export default function Customization() {
 												onChange={handlePaletteRadio}
 											/>
 											<label className="btn" htmlFor="palette3">
-												<img src='/palette/palette_3.png' width="220" height="60" alt="palette 3" />
+												<img src='/palette/palette_3.gif' width="220" height="60" alt="palette 3" />
 											</label>
 										</div>
 										<div className="paletteButton">
@@ -214,7 +214,7 @@ export default function Customization() {
 												onChange={handlePaletteRadio}
 											/>
 											<label className="btn" htmlFor="palette4">
-												<img src='/palette/palette_4.png' width="220" height="60" alt="palette 4" />
+												<img src='/palette/palette_4.gif' width="220" height="60" alt="palette 4" />
 											</label>
 										</div>
 									</div>
