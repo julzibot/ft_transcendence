@@ -11,9 +11,10 @@ import useSocketContext from '@/context/socket';
 import { Pair } from '@/types/TournamentSettings';
 import { AddLobbyData, JoinLobby } from '@/services/onlineGames';
 import { LobbyPayload } from '@/types/Lobby';
-import { startTournament } from '@/services/tournaments';
+import { endTournament, startTournament } from '@/services/tournaments';
 import "./styles.css"
 import Image from '@/components/Utils/Image';
+import EndTournamentCard from '@/components/cards/EndTournamentCard';
 
 
 export default function TournamentLobby() {
@@ -31,6 +32,7 @@ export default function TournamentLobby() {
 	const [received, setReceived] = useState(false);
 	const [sent, setSent] = useState(false);
 	const [isStarting, setIsStarting] = useState(false);
+	const [endTournamentCardShow, setEndTournamentCardShow] = useState<boolean>(false)
 
 	const fetchTournamentData = async () => {
 		const response = await fetch(`${BACKEND_URL}/api/tournament/${id}/`, {
@@ -103,10 +105,10 @@ export default function TournamentLobby() {
 	useEffect(() => {
 		if (socket && isReady) {
 
-			socket.on('announceTournamentEnd', () => {
-				//update isFinished in db
-				//display a card showing the ranking and leave button
-				console.log('C FINI!!!!')
+			socket.on('announceTournamentEnd', async () => {
+				//set IsFinished to backend
+				await endTournament(id)
+				setEndTournamentCardShow(true)
 			})
 
 			socket.on('tournamentStarted', () => {
@@ -116,7 +118,12 @@ export default function TournamentLobby() {
 
 			socket.on('updateParticipants', (data: ParticipantType[]) => {
 				console.log(data)
-				setParticipantsList(data);
+				setParticipantsList(data.sort((a, b) => {
+					if (a.wins > b.wins) return -1;
+					if (a.wins < b.wins) return 1;
+					return a.gamesPlayed - b.gamesPlayed;
+				}))
+
 			})
 			if (!sent && !received) {
 				socket.on('getMatchPair', async (data: Pair[]) => {
@@ -271,6 +278,9 @@ export default function TournamentLobby() {
 				<button className="btn btn-primary" onClick={handleStartTournament}>
 					Start Tournament
 				</button >
+			}
+			{
+				endTournamentCardShow && <EndTournamentCard participants={participantsList} tournamentId={id} />
 			}
 		</>
 	)

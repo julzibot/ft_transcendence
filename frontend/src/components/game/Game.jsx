@@ -47,7 +47,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	g.p1Name = "";
 	g.p2Name = "";
 	g.startTime = performance.now();
-	g.lastConnected = false;
+	g.lastConnected = 0;
 	if (typeof window !== 'undefined') {
 		p.tools.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -160,10 +160,10 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						if (id === 0)
 							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 9.5, CONST.GAMEHEIGHT / 2 - 10, 1);
 						else
-						textMesh.position.set(CONST.GAMEWIDTH / 2 + 5.5, CONST.GAMEHEIGHT / 2 - 10, 1);
+							textMesh.position.set(CONST.GAMEWIDTH / 2 + 5.5, CONST.GAMEHEIGHT / 2 - 10, 1);
 					}
 					else if (mode === 4.5) {
-						const textMaterial = new THREE.MeshStandardMaterial( { color: 0xcc0000, emissive: 0xee00ee, emissiveIntensity: 0.15 });
+						const textMaterial = new THREE.MeshStandardMaterial({ color: 0xcc0000, emissive: 0xee00ee, emissiveIntensity: 0.15 });
 						textMesh.material = textMaterial;
 						if (id === 0)
 							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 9.5, CONST.GAMEHEIGHT / 2 - 8.5, 1);
@@ -247,7 +247,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 
 					printGameInfo(p.vars.endMsgMesh, p.vars.endString, 5, -1, 3, p);
 					console.log(`[ThreeScene] [Scoring Logic] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`);
-					if (isHost || g.lastConnected) {
+					if (isHost || g.lastConnected === 1) {
 						const put_response = PutScores(gamemode, g.game_id, p);
 						if (put_response == false)
 							console.log("Ouch ! Scores not updated !")
@@ -694,8 +694,11 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 							"score2": p.vars.p2Score
 						})
 					})
-				if (response.ok)
+				if (response.ok) {
+					if (isHost)
+						socket.emit('finalScoreUpdate', { room_id: room_id });
 					return true
+				}
 				return false
 			}
 
@@ -1076,6 +1079,9 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 							}
 						}
 					})
+					socket.on('noFinalUpdate', () => {
+						g.lastConnected = 2;
+					})
 				}
 				socket.on('playerDisconnected', () => {
 					console.log(`[ThreeScene] The other player has disconnected`);
@@ -1086,7 +1092,8 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 					else {
 						p.vars.p2Score = p.custom.win_score;
 						p.vars.p1Score = 0;
-						g.lastConnected = true;
+						if (g.lastConnected === 0)
+							g.lastConnected = 1;
 					}
 					p.vars.stopGame = 1;
 					console.log(`[ThreeScene] [playerDisconnected] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`);
@@ -1204,13 +1211,11 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			// ALTERNATIVE FONT PATH: ./Lobster_1.3_Regular.json
 			printGameInfo(p.vars.p1textMesh, "0", 1, -1, 2.75, p);
 			printGameInfo(p.vars.p2textMesh, "0", 2, -1, 2.75, p);
-			if (isHost)
-			{
+			if (isHost) {
 				printGameInfo(p.vars.p1TutoText, p.csts.tutoP1, 4, 0, 0.8, p);
 				printGameInfo(p.vars.p1TutoTitleText, p.csts.tutoTitles, 4.5, 0, 0.8, p);
 			}
-			if (!isHost || gamemode === 0)
-			{
+			if (!isHost || gamemode === 0) {
 				printGameInfo(p.vars.p2TutoText, p.csts.tutoP2, 4, 1, 0.8, p);
 				printGameInfo(p.vars.p2TutoTitleText, p.csts.tutoTitles, 4.5, 1, 0.8, p);
 			}

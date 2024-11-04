@@ -127,4 +127,8 @@ export default function gameEvents(io, lobby, socket) {
 	socket.on('sendDeletePU', data => {
 		socket.to(data.room_id).emit('updateDeletePU', { pu_id: data.pu_id });
 	});
+
+	socket.on('finalScoreUpdate', data => {
+		socket.to(data.room_id).emit('noFinalUpdate');
+	})
 }

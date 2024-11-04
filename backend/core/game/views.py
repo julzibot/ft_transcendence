@@ -137,8 +137,10 @@ class UpdateOnlineGame(APIView):
 		if game.game_mode == 3:
 			try:
 				tournament = TournamentModel.objects.get(linkToJoin=game.tournamentLink)
-				participant1 = ParticipantModel.objects.get(user=game.player1.id, tournament=tournament)
-				participant2 = ParticipantModel.objects.get(user=game.player2.id, tournament=tournament)
+				user1 = UserAccount.objects.get(id=game.player1.id)
+				user2 = UserAccount.objects.get(id=game.player2.id)
+				participant1 = ParticipantModel.objects.get(user=user1, tournament=tournament)
+				participant2 = ParticipantModel.objects.get(user=user2, tournament=tournament)
 			except ObjectDoesNotExist:
 				return Response(status=status.HTTP_404_NOT_FOUND)
 			if score1 > score2: #player1 won

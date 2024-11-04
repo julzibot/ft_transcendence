@@ -94,6 +94,16 @@ export const startTournament = async (tournamentId: string) => {
 			"Content-Type": 'application/json',
 			"X-CSRFToken": Cookies.get('csrftoken') as string
 		}
-	}
-	)
+	})
+}
+
+export const endTournament = async (tournamentId: string) => {
+	await fetch(`${BACKEND_URL}/api/tournament/${tournamentId}/end/`, {
+		method: 'PUT',
+		credentials: 'include',
+		headers: {
+			"Content-Type": 'application/json',
+			"X-CSRFToken": Cookies.get('csrftoken') as string
+		}
+	})
 }

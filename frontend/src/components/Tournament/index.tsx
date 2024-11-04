@@ -28,6 +28,7 @@ interface Tournament {
 	maxPlayerNumber: number;
 	timer: number;
 	isStarted: boolean;
+	isFinished: boolean;
 	linkToJoin: string;
 	creator: User
 	numberOfPlayers: number;
@@ -163,61 +164,60 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 					tournamentData && tournamentData.length === 0 && <h2 className="text-center mt-5 pt-5">No Tournaments Available</h2>
 				}
 				{
-					tournamentData && tournamentData.map((tournament: Tournament, index: number) => {
-						return (
-							<div
-								key={index}
-								onClick={() => handleJoin(tournament, session?.user?.id, tournament.linkToJoin)}
-								className={`${tournament.isStarted && !tournament.participants.some((p) => p.user.id === session.user.id) ? 'disabled' : ''}
-											${!tournament.isStarted && !tournament.participants.some((p) => p.user.id === session.user.id) ? 'text-dark' : 'text-light'}
+					tournamentData && tournamentData.map((tournament: Tournament, index: number) => (
+						!tournament.isFinished &&
+						<div
+							key={index}
+							onClick={() => handleJoin(tournament, session?.user?.id, tournament.linkToJoin)}
+							className={`${tournament.isStarted && !tournament.participants.some((p) => Number(p.user.id) === session?.user?.id) ? 'disabled' : ''}
+											${tournament.isStarted && tournament.participants.some((p) => Number(p.user.id) === session?.user?.id) && 'text-light'}
 											${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'}
 											tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5 z-1 position-relative`}
-							>
-								{
-									tournament.isStarted && tournament.participants.some((participant) => Number(participant.user.id) === session?.user?.id) &&
-									<div className="video-container">
-										<video
-											className="background-video"
-											autoPlay
-											muted
-											loop
-											src="/videos/flame3.mp4"
-										>
-											Your browser does not support HTML5 video.
-										</video>
-									</div>
-								}
-								<div className="border-end col-2 d-flex justify-content-center align-items-center text-truncate">
-									{tournament.name}
+						>
+							{
+								tournament.isStarted && tournament.participants.some((participant) => Number(participant.user.id) === session?.user?.id) &&
+								<div className="video-container">
+									<video
+										className="background-video"
+										autoPlay
+										muted
+										loop
+										src="/videos/flame3.mp4"
+									>
+										Your browser does not support HTML5 video.
+									</video>
 								</div>
-								<div className="border-end col-3 d-flex justify-content-center align-items-center text-truncate">
-									<div className="d-flex flex-row align-items-center">
-										<Image src={tournament.creator.image} alt="profile picture" whRatio="45px" />
-										<span className="ms-2 text-truncate" style={{ maxWidth: 'calc(70%)' }}>{tournament.creator.username}</span>
-									</div>
-								</div>
-								<div className="border-end col-1 d-flex justify-content-center align-items-center">
-									<span className="fw-bold">{tournament.numberOfPlayers} / {tournament.maxPlayerNumber}</span>
-								</div>
-								<div className="border-end col-1 d-flex justify-content-center align-items-center">
-									<span className="fw-bold">{tournament.pointsPerGame}</span>
-								</div>
-								<div className="border-end col-1 d-flex justify-content-center align-items-center">
-									{DifficultyLevel(tournament.difficultyLevel)}
-								</div>
-								<div className="border-end col-1 d-flex justify-content-center align-items-center">
-									<span>
-										{
-											tournament.power_ups ? (<Toggle2On size={20} color={'green'} />) : (<Toggle2Off size={20} color={'red'} />)
-										}
-									</span>
-								</div>
-								<div className="col-1 d-flex justify-content-center align-items-center">
-									<span className="ms-1">{tournament.timer}'</span>
+							}
+							<div className="border-end col-2 d-flex justify-content-center align-items-center text-truncate">
+								{tournament.name}
+							</div>
+							<div className="border-end col-3 d-flex justify-content-center align-items-center text-truncate">
+								<div className="d-flex flex-row align-items-center">
+									<Image src={tournament.creator.image} alt="profile picture" whRatio="45px" />
+									<span className="ms-2 text-truncate" style={{ maxWidth: 'calc(70%)' }}>{tournament.creator.username}</span>
 								</div>
 							</div>
-						)
-					})
+							<div className="border-end col-1 d-flex justify-content-center align-items-center">
+								<span className="fw-bold">{tournament.numberOfPlayers} / {tournament.maxPlayerNumber}</span>
+							</div>
+							<div className="border-end col-1 d-flex justify-content-center align-items-center">
+								<span className="fw-bold">{tournament.pointsPerGame}</span>
+							</div>
+							<div className="border-end col-1 d-flex justify-content-center align-items-center">
+								{DifficultyLevel(tournament.difficultyLevel)}
+							</div>
+							<div className="border-end col-1 d-flex justify-content-center align-items-center">
+								<span>
+									{
+										tournament.power_ups ? (<Toggle2On size={20} color={'green'} />) : (<Toggle2Off size={20} color={'red'} />)
+									}
+								</span>
+							</div>
+							<div className="col-1 d-flex justify-content-center align-items-center">
+								<span className="ms-1">{tournament.timer}'</span>
+							</div>
+						</div>
+					))
 				}
 
 
