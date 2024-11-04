@@ -4,6 +4,7 @@ import { BACKEND_URL } from '@/config';
 import React, { createContext, useEffect, useState, useContext } from 'react';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
+import DOMPurify from 'dompurify'
 
 interface User {
 	id: number;
@@ -60,15 +61,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				'X-CSRFToken': Cookies.get('csrftoken') as string,
 			},
 			body: JSON.stringify({
-				username,
-				password,
+				'username': DOMPurify.sanitize(username),
+				'password': DOMPurify.sanitize(password),
 				provider: 'credentials',
 			}),
 		})
 		if (!response.ok)
 			return ('Invalid Username or Password');
 		setLoading(false);
-		if(typeof window !== 'undefined')
+		if (typeof window !== 'undefined')
 			window.location.reload();
 	}
 

@@ -5,8 +5,8 @@ import * as Utils from './Utils';
 import 'chartjs-adapter-luxon';
 import './styles.css';
 
-import { MatchEntry } from "./DashboardInterfaces";
-import { ceilToTen } from "./ChartDataUtils";
+import { MatchEntry, ConvertedMatchEntry } from "./DashboardInterfaces";
+import { convertMatchData } from "./ActivityChart";
 
 interface ScoreChartProps {
 	setChartInstance: Function,
@@ -28,12 +28,12 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 				datasets: [
 					{
 						label: 'Wins',
-						data: winData,
+						data: convertMatchData(winData),
 						backgroundColor: Utils.CHART_COLORS.green,
 					},
 					{
 						label: 'Losses',
-						data: lossData,
+						data: convertMatchData(lossData),
 						backgroundColor: Utils.CHART_COLORS.red,
 					},
 				]

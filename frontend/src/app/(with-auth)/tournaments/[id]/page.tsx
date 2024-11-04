@@ -107,7 +107,7 @@ export default function TournamentLobby() {
 
 			socket.on('announceTournamentEnd', async () => {
 				//set IsFinished to backend
-				await endTournament(id)
+				await endTournament(id as string)
 				setEndTournamentCardShow(true)
 			})
 
@@ -280,7 +280,7 @@ export default function TournamentLobby() {
 				</button >
 			}
 			{
-				endTournamentCardShow && <EndTournamentCard participants={participantsList} tournamentId={id} />
+				endTournamentCardShow && <EndTournamentCard participants={participantsList} />
 			}
 		</>
 	)
