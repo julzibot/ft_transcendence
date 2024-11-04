@@ -26,16 +26,23 @@ export const RegisterFormSchema = z.object({
   path: ["rePass"],
 });
 
-export const SignInFormSchema = z.object({
+export const ChangeUsernameFormSchema = z.object({
   username: z
     .string()
-    .min(1, { message: "*Username is required." })
+    .max(8, { message: "*Username must be less then 8 characters." })
+    .regex(/^[a-zA-Z0-9]*$/, { message: "*Username contains forbidden characters." })
     .trim(),
-  password: z
-    .string()
-    .min(1, { message: '*Password is required.' })
-    .trim(),
-});
+})
+
+export type ChangeUsernameFormState =
+  | {
+    errors?: {
+      username?: string[];
+    }
+    message?: string[]
+  }
+  | undefined
+
 
 export type RegisterFormState =
   | {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/app/lib/AuthContext";
 import CSRFToken from "@/components/Utils/CSRFToken";
 import FortyTwoSigninButton from "@/components/buttons/FortyTwoSigninButton";
+import DOMPurify from 'dompurify'
 
 export default function SignIn() {
   const [error, setError] = useState('');
@@ -13,8 +14,8 @@ export default function SignIn() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const username = formData.get("username");
-    const password = formData.get("password");
+    const username = DOMPurify.sanitize(formData.get("username"));
+    const password = DOMPurify.sanitize(formData.get("password"));
     signIn(username as string, password as string).then((message: any) => {
       setError(message);
     });
