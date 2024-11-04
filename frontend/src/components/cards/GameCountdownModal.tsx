@@ -1,21 +1,31 @@
 "use client"
-import { User } from '@/types/Auth';
-import { useState, useEffect } from 'react'
-import { BACKEND_URL } from '@/config';
+import { useEffect } from 'react'
+import useSocketContext from '@/context/socket';
+import Image from '../Utils/Image';
+import { useAuth } from '@/app/lib/AuthContext';
 
-export default function GameCountdownModal({ players }) {
+interface User {
+	id: number;
+	username: string;
+	image: string;
+}
 
-	const [countdown, setCountdown] = useState<number>(3)
+export default function GameCountdownModal({ lobby_id, game_id, game_mode, players, countdown, setCountdown }: { lobby_id: string | string[], game_id: number, game_mode: number, players: { player1: User, player2: User }, countdown: number, setCountdown: Function }) {
 
+	const socket = useSocketContext();
+	const { session } = useAuth();
+
+	if (!session)
+		return;
 
 	useEffect(() => {
 		const interval = setInterval(() => {
+			if (countdown === 1)
+				socket?.emit('joinGame', { userId: session?.user?.id, gameId: game_id, lobbyId: lobby_id, gameMode: game_mode })
 			if (countdown > 0)
 				setCountdown(countdown - 1);
-			else {
-				console.log('Start the Game!');
+			else
 				clearInterval(interval);
-			}
 		}, 1000);
 		return () => {
 			clearInterval(interval)
@@ -24,7 +34,7 @@ export default function GameCountdownModal({ players }) {
 
 	return (
 		<>
-			<div className={`modal fade show d-block`} id="staticBackDrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1}>
+			<div className={`modal fade show d-block`}>
 				<div className={`modal-dialog modal-lg modal-dialog-centered`}>
 					<div className={`modal-content`}>
 						<div className="modal-body">
@@ -33,22 +43,7 @@ export default function GameCountdownModal({ players }) {
 									height: '100px'
 								}}>
 									<div className="d-flex flex-row align-items-center">
-										< div className="me-3 position-relative border border-3 border-dark-subtle rounded-circle" style={{ width: '70px', height: '70px', overflow: 'hidden' }}>
-											<img
-												style={{
-													objectFit: 'cover',
-													width: '100%',
-													height: '100%',
-													position: 'absolute',
-													top: '50%',
-													left: '50%',
-													transform: 'translate(-50%, -50%)'
-												}}
-												fetchPriority="high"
-												alt="profile picture"
-												src={`${BACKEND_URL}${players.player1.image}`}
-											/>
-										</div>
+										<Image className="me-3" src={players.player1.image} alt="profile picture" whRatio="70px" />
 										<span className="me-2 text-truncate fs-2" style={{ maxWidth: 'calc(80%)' }}>{players.player1.username}</span>
 									</div>
 								</div>
@@ -57,22 +52,7 @@ export default function GameCountdownModal({ players }) {
 								>
 									<div className="d-flex flex-row align-items-center">
 										<span className="me-2 text-truncate fs-2" style={{ maxWidth: 'calc(80%)' }}>{players.player2.username}</span>
-										< div className="ms-2 position-relative border border-3 border-dark-subtle rounded-circle" style={{ width: '70px', height: '70px', overflow: 'hidden' }}>
-											<img
-												style={{
-													objectFit: 'cover',
-													width: '100%',
-													height: '100%',
-													position: 'absolute',
-													top: '50%',
-													left: '50%',
-													transform: 'translate(-50%, -50%)'
-												}}
-												fetchPriority="high"
-												alt="profile picture"
-												src={`${BACKEND_URL}${players.player2.image}`}
-											/>
-										</div>
+										<Image src={players.player2.image} alt="profile picture" whRatio="70px" />
 									</div>
 								</div>
 							</div>

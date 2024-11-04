@@ -12,4 +12,5 @@ export interface Token {
 export interface Session {
   user: User;
   token: Token;
+  provider: '42-school' | 'credentials';
 }

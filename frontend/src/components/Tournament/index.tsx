@@ -1,18 +1,23 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, FormEvent } from 'react'
 import { Button, Modal } from 'react-bootstrap'
 import { GetTournamentData, CreateTournament, joinTournament } from '@/services/tournaments';
 import { useAuth } from '@/app/lib/AuthContext';
 import DOMPurify from 'dompurify';
-import { TournamentSettingsType } from '@/types/TournamentSettings'
 import { PersonFillUp, Controller, Toggle2On, Toggle2Off, LightningFill, ClockFill, Activity, TrophyFill, Alphabet, CircleFill } from 'react-bootstrap-icons'
-import { BACKEND_URL } from '@/config';
-import Link from 'next/link'
 import { CustomTooltip } from '../Utils/Tooltip';
 import { useRouter } from 'next/navigation'
 import './styles.css'
 import DifficultyLevel from '../Utils/DifficultyLevel';
+import Image from '../Utils/Image';
+import { ParticipantType } from '@/types/TournamentSettings';
+
+interface User {
+	id: number;
+	username: string;
+	image: string;
+};
 
 interface Tournament {
 	id: number;
@@ -23,15 +28,13 @@ interface Tournament {
 	maxPlayerNumber: number;
 	timer: number;
 	isStarted: boolean;
+	isFinished: boolean;
 	linkToJoin: string;
-	creator: {
-		id: number;
-		username: string;
-		image: string;
-	};
+	creator: User
 	numberOfPlayers: number;
 	pointsPerGame: number;
 	difficultyLevel: number;
+	participants: ParticipantType[]
 }
 
 interface TournamentSettingsProps {
@@ -50,11 +53,11 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 
 	const [tournamentData, setTournamentData] = useState<Tournament[] | null>([])
 	const [modalShow, setModalShow] = useState(false);
-	const [tournamentForm, setTournamentForm] = useState<TournamentSettingsType>({
+	const [tournamentForm, setTournamentForm] = useState({
 		name: '',
 		maxPlayerNumber: 4,
 		timer: 15,
-		pointsPerGame: 10,
+		pointsPerGame: 1,
 		difficultyLevel: "",
 		power_ups: true,
 		isStarted: false,
@@ -65,11 +68,6 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 
 
 	const handleJoin = async (tournament: Tournament, userId: number | undefined, linkToJoin: string) => {
-		if (tournament.isStarted) {
-			setErrorField({ ...errorField, joinError: 'Tournament has already started' })
-			setToastShow(true)
-			return
-		}
 		try {
 			await joinTournament(tournament.id, userId)
 			router.push(`/tournaments/${linkToJoin}`)
@@ -80,20 +78,13 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		}
 	}
 
-	const submitTournament = async () => {
-		if (tournamentForm.name.trim() === '') {
-			setErrorField({ ...errorField, nameMissing: 'Tournament Name is Required' })
-			return
-		}
-		if (tournamentForm.difficultyLevel === 0) {
-			setErrorField({ ...errorField, difficultyMissing: 'Select a difficulty' })
-			return
-		}
+	const submitTournament = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
 		const payload = {
 			'name': tournamentForm.name,
 			'maxPlayerNumber': tournamentForm.maxPlayerNumber,
 			'timer': tournamentForm.timer,
-			'difficultyLevel': tournamentForm.difficultyLevel,
+			'difficultyLevel': Number(tournamentForm.difficultyLevel),
 			'pointsPerGame': tournamentForm.pointsPerGame,
 			'power_ups': tournamentForm.power_ups,
 			'creator': session?.user?.id
@@ -119,6 +110,10 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 	useEffect(() => {
 		fetchData()
 	}, [])
+
+	useEffect(() => {
+		console.log(tournamentData)
+	}, [tournamentData])
 
 
 	return (
@@ -169,59 +164,60 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 					tournamentData && tournamentData.length === 0 && <h2 className="text-center mt-5 pt-5">No Tournaments Available</h2>
 				}
 				{
-					tournamentData && tournamentData.map((tournament: Tournament, index: number) => {
-						return (
-							<div
-								key={index}
-								onClick={() => handleJoin(tournament, session?.user?.id, tournament.linkToJoin)}
-								className={`${tournament.isStarted ? 'disabled' : ''} ${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5`}
-							>
-								<div className="border-end col-2 d-flex justify-content-center align-items-center text-truncate">
-									{tournament.name}
+					tournamentData && tournamentData.map((tournament: Tournament, index: number) => (
+						!tournament.isFinished &&
+						<div
+							key={index}
+							onClick={() => handleJoin(tournament, session?.user?.id, tournament.linkToJoin)}
+							className={`${tournament.isStarted && !tournament.participants.some((p) => Number(p.user.id) === session?.user?.id) ? 'disabled' : ''}
+											${tournament.isStarted && tournament.participants.some((p) => Number(p.user.id) === session?.user?.id) && 'text-light'}
+											${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'}
+											tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5 z-1 position-relative`}
+						>
+							{
+								tournament.isStarted && tournament.participants.some((participant) => Number(participant.user.id) === session?.user?.id) &&
+								<div className="video-container">
+									<video
+										className="background-video"
+										autoPlay
+										muted
+										loop
+										src="/videos/flame3.mp4"
+									>
+										Your browser does not support HTML5 video.
+									</video>
 								</div>
-								<div className="border-end col-3 d-flex justify-content-center align-items-center text-truncate">
-									<div className="d-flex flex-row align-items-center">
-										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{tournament.creator.username}</span>
-										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '45px', height: '45px', overflow: 'hidden' }}>
-											<img
-												style={{
-													objectFit: 'cover',
-													width: '100%',
-													height: '100%',
-													position: 'absolute',
-													top: '50%',
-													left: '50%',
-													transform: 'translate(-50%, -50%)'
-												}}
-												fetchPriority="high"
-												alt="profile picture"
-												src={`${BACKEND_URL}${tournament.creator.image}`}
-											/>
-										</div>
-									</div>
-								</div>
-								<div className="border-end col-1 d-flex justify-content-center align-items-center">
-									<span className="fw-bold">{tournament.numberOfPlayers} / {tournament.maxPlayerNumber}</span>
-								</div>
-								<div className="border-end col-1 d-flex justify-content-center align-items-center">
-									<span className="fw-bold">{tournament.pointsPerGame}</span>
-								</div>
-								<div className="border-end col-1 d-flex justify-content-center align-items-center">
-									{DifficultyLevel(tournament.difficultyLevel)}
-								</div>
-								<div className="border-end col-1 d-flex justify-content-center align-items-center">
-									<span>
-										{
-											tournament.power_ups ? (<Toggle2On size={20} color={'green'} />) : (<Toggle2Off size={20} color={'red'} />)
-										}
-									</span>
-								</div>
-								<div className="col-1 d-flex justify-content-center align-items-center">
-									<span className="ms-1">{tournament.timer}'</span>
+							}
+							<div className="border-end col-2 d-flex justify-content-center align-items-center text-truncate">
+								{tournament.name}
+							</div>
+							<div className="border-end col-3 d-flex justify-content-center align-items-center text-truncate">
+								<div className="d-flex flex-row align-items-center">
+									<Image src={tournament.creator.image} alt="profile picture" whRatio="45px" />
+									<span className="ms-2 text-truncate" style={{ maxWidth: 'calc(70%)' }}>{tournament.creator.username}</span>
 								</div>
 							</div>
-						)
-					})
+							<div className="border-end col-1 d-flex justify-content-center align-items-center">
+								<span className="fw-bold">{tournament.numberOfPlayers} / {tournament.maxPlayerNumber}</span>
+							</div>
+							<div className="border-end col-1 d-flex justify-content-center align-items-center">
+								<span className="fw-bold">{tournament.pointsPerGame}</span>
+							</div>
+							<div className="border-end col-1 d-flex justify-content-center align-items-center">
+								{DifficultyLevel(tournament.difficultyLevel)}
+							</div>
+							<div className="border-end col-1 d-flex justify-content-center align-items-center">
+								<span>
+									{
+										tournament.power_ups ? (<Toggle2On size={20} color={'green'} />) : (<Toggle2Off size={20} color={'red'} />)
+									}
+								</span>
+							</div>
+							<div className="col-1 d-flex justify-content-center align-items-center">
+								<span className="ms-1">{tournament.timer}'</span>
+							</div>
+						</div>
+					))
 				}
 
 
@@ -282,7 +278,7 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 								<input
 									type="range"
 									className="form-range"
-									min="3"
+									min="1"
 									max="30"
 									step="3"
 									id="pointsRange"
@@ -301,17 +297,19 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 									id="difficultyLevel"
 									value={tournamentForm.difficultyLevel}
 									onChange={(e) =>
-										setTournamentForm({ ...tournamentForm, difficultyLevel: parseInt(e.target.value) })
+										setTournamentForm({ ...tournamentForm, difficultyLevel: e.target.value })
 									}
 								>
-									<option disabled value={""}>Select Game Difficulty</option>
-									<option value={1}>Granny</option>
-									<option value={2}>Boring</option>
-									<option value={3}>Still Slow</option>
-									<option value={4}>Kinda OK</option>
-									<option value={5}>Now We are Talking</option>
-									<option value={6}>Madman</option>
-									<option value={7}>Legend</option>
+									<option value={""} disabled>
+										Select Game Difficulty
+									</option>
+									<option value={"1"}>Granny</option>
+									<option value={"2"}>Boring</option>
+									<option value={"3"}>Still Slow</option>
+									<option value={"4"}>Kinda OK</option>
+									<option value={"5"}>Now We are Talking</option>
+									<option value={"6"}>Madman</option>
+									<option value={"7"}>Legend</option>
 								</select>
 								<label className="text-danger form-label" htmlFor="difficultyLevel">{errorField.difficultyMissing}</label>
 							</div>

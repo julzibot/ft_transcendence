@@ -1,5 +1,5 @@
 export interface User {
-	id: string;
+	id: number;
 	username: string;
 	image: string;
 }
@@ -19,7 +19,7 @@ export interface TournamentSettingsType {
 
 export interface ParticipantType {
 	user: {
-		id: string;
+		id: number;
 		username: string;
 		image: string;
 	}
@@ -33,4 +33,14 @@ export interface TournamentType {
 	creator: User;
 	participants: ParticipantType[];
 	settings: TournamentSettingsType;
+	timer: number;
+	difficultyLevel: number;
+	pointsPerGame: number;
+	power_ups: boolean;
+	isStarted: boolean;
+}
+
+export interface Pair {
+	player1: User;
+	player2: User;
 }

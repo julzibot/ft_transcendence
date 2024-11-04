@@ -1,3 +1,7 @@
+import dotenv from 'dotenv'
+
+dotenv.config();
+
 export const BACKEND_URL: string = process.env.NEXT_PUBLIC_API_URL as string;
 export const FORTY_TWO_CLIENT_UID: string = process.env.NEXT_PUBLIC_FORTY_TWO_CLIENT_UID as string;
 export const DOMAIN_NAME: string = process.env.NEXT_PUBLIC_DOMAIN as string;

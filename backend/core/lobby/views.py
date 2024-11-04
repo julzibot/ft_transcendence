@@ -17,7 +17,7 @@ import uuid
 class LobbyView(APIView):
 	permission_classes = [AllowAny]
 
-	def get(self, reauest): # Get all lobbies
+	def get(self, request): # Get all lobbies
 		lobbies = LobbyData.objects.filter(Q(lobbyWinner__isnull=True) | Q(lobbyWinner = None))
 		serializer = LobbySerializer(lobbies, many=True)
 		return Response(serializer.data)
@@ -30,6 +30,7 @@ class LobbyView(APIView):
 			player1 = UserAccount.objects.get(id=data['player1'])
 		except ObjectDoesNotExist:
 			return Response({'message': 'Creator not found'}, status=status.HTTP_400_BAD_REQUEST)
+			
 		serializer = LobbySerializer(data=data)
 		if serializer.is_valid():
 			validated_data = serializer.validated_data
@@ -41,18 +42,24 @@ class LobbyView(APIView):
 				player1=player1,
 				creator=player1,
 			)
+			if('gameMode' in data and data['gameMode'] == 'TOURNAMENT'):
+				lobby.gameMode = data['gameMode']
+				lobby.tournamentLink = data['tournamentLink']
+				lobby.save()
 			return Response({
-				lobby.linkToJoin,
+				'lobbyId': lobby.linkToJoin,
 			}, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class JoinLobbyView(APIView):
 	def post(self, request):
-		lobby_id = request.data.get('lobby_id')
+		print(request.data)
+		lobbyId = request.data['lobbyId']
+		userId = request.data['userId']
 		try:
-			user = UserAccount.objects.get(id=request.data.get('user_id'))
-			lobby = LobbyData.objects.get(id=lobby_id)
+			user = UserAccount.objects.get(id=userId)
+			lobby = LobbyData.objects.get(linkToJoin=lobbyId)
 		except ObjectDoesNotExist:
 			return Response({'message': 'This Lobby does not exists'}, status=status.HTTP_404_NOT_FOUND)
 		if lobby.player1 is not None and lobby.player2 is not None:

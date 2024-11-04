@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Modal } from 'react-bootstrap'
-import { AddLobbyData, GetLobbyData, joinLobby } from '@/services/onlineGames'
+import { AddLobbyData, GetLobbyData, JoinLobby } from '@/services/onlineGames'
 import { useAuth } from '@/app/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import DOMPurify from 'dompurify';
 import { Alphabet, PersonFillUp, TrophyFill, Activity, LightningFill, Toggle2Off, Toggle2On } from 'react-bootstrap-icons';
 import { CustomTooltip } from '../Utils/Tooltip';
 import "./styles.css";
-import { BACKEND_URL } from '@/config';
 import DifficultyLevel from '../Utils/DifficultyLevel';
-import { CustomTooltip } from '../Utils/Tooltip';
+import Image from '../Utils/Image';
 
 interface LobbyProps {
 	setToastShow: Function,
@@ -40,6 +39,7 @@ interface Lobby {
 	isStarted: boolean,
 	linkToJoin: string,
 	creator: User,
+	gameMode: 'TOURNAMENT' | 'ONLINE'
 }
 
 export default function Lobby({ setToastShow, setErrorField, errorField }: LobbyProps) {
@@ -55,10 +55,10 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 		power_ups: false,
 	})
 
-	const handleJoin = async (lobby: any, linkToJoin: string) => {
+	const handleJoin = async (linkToJoin: string) => {
 		try {
-			await joinLobby(lobby.id, session?.user?.id)
-			router.push(`/game/online/lobby/${linkToJoin}`)
+			await JoinLobby(linkToJoin, session?.user?.id)
+			router.replace(`/game/online/lobby/${linkToJoin}`)
 		}
 		catch (error: any) {
 			setErrorField({ ...errorField, joinError: error.message })
@@ -69,19 +69,15 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 
 	const handleSubmitData = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		// if (lobbyForm.difficultyLevel === 0) {
-		// 	setErrorField({ ...errorField, difficultyMissing: 'Select a difficulty' })
-		// 	return
-		// }
 		const payload = {
 			'name': lobbyForm.name,
-			'difficultyLevel': lobbyForm.difficultyLevel,
+			'difficultyLevel': Number(lobbyForm.difficultyLevel),
 			'pointsPerGame': lobbyForm.pointsPerGame,
 			'power_ups': lobbyForm.power_ups,
 			'player1': session?.user?.id
 		}
 		const linkToJoin = await AddLobbyData(payload)
-		router.push(`/game/online/lobby/${linkToJoin}`)
+		router.replace(`/game/online/lobby/${linkToJoin}`)
 	}
 
 	const fetchLobbyData = async () => {
@@ -99,16 +95,19 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 		fetchLobbyData()
 	}, [])
 
-
 	return (
 		<>
 			<div className='d-flex flex-row align-items-center justify-content-between p-4'>
 				<h3 className='mb-0 me-4'> Game Lobbies</h3>
-				<Button className="btn btn-outline-light" type='button' onClick={() => setModalShow(true)}>Create</Button>
+				{
+					lobbyData && (lobbyData.length === 0 || lobbyData[0].gameMode === 'TOURNAMENT') ?
+						<Button className="btn btn-warning border-secondary border-3" type='button' onClick={() => setModalShow(true)}>Create</Button> :
+						<Button className="btn btn-outline-light" type='button' onClick={() => setModalShow(true)}>Create</Button>
+				}
 			</div>
 			<div className='d-flex flex-row align-items-center justify-content-evenly fw-bold border'>
 				<div className="border-end col d-flex justify-content-center align-items-center">
-					<CustomTooltip text="Tournament Name" position="top">
+					<CustomTooltip text="Game Name" position="top">
 						<Alphabet size={24} />
 					</CustomTooltip>
 				</div >
@@ -133,16 +132,16 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 					</CustomTooltip>
 				</div>
 			</div>
-			<div className="mt-2 border scrollbar overflow-y-auto" style={{ height: '520px' }}>
+			<div className="mt-2 border scrollbar overflow-y-auto position-relative" style={{ height: '500px' }}>
 				{
-					lobbyData && lobbyData.length === 0 && <h2 className="text-center mt-5 pt-5">No Games Available</h2>
+					lobbyData && (lobbyData.length === 0 || lobbyData[0].gameMode === 'TOURNAMENT') && <h2 className="text-center position-absolute translate-middle start-50 top-50">No Games Available</h2>
 				}
 				{
-					lobbyData && lobbyData.map((lobby: Lobby, index: number) => {
-						return (
-							<div
+					lobbyData && lobbyData.map((lobby: Lobby, index: number) => (lobby.gameMode === 'ONLINE' &&
+						<>
+							< div
 								key={index}
-								onClick={() => handleJoin(lobby, lobby.linkToJoin)}
+								onClick={() => handleJoin(lobby.linkToJoin)}
 								className={`${lobby.isFull ? 'disabled' : ''} ${lobbyData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} lobby-entry d-flex flex-row align-items-center justify-content-evenly fw-bold fs-5`}
 							>
 								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">
@@ -150,23 +149,8 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 								</div>
 								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">
 									<div className="d-flex flex-row align-items-center">
-										<span className="me-2 text-truncate" style={{ maxWidth: 'calc(60%)' }}>{lobby.creator.username}</span>
-										< div className="ms-2 position-relative border border-2 border-dark-subtle rounded-circle" style={{ width: '40px', height: '40px', overflow: 'hidden' }}>
-											<img
-												style={{
-													objectFit: 'cover',
-													width: '100%',
-													height: '100%',
-													position: 'absolute',
-													top: '50%',
-													left: '50%',
-													transform: 'translate(-50%, -50%)'
-												}}
-												fetchPriority="high"
-												alt="profile picture"
-												src={`${BACKEND_URL}${lobby.creator.image}`}
-											/>
-										</div>
+										<Image src={lobby.creator.image} alt="profile picture" whRatio="30px" />
+										<span className="ms-2 text-truncate" style={{ maxWidth: 'calc(100%)' }}>{lobby.creator.username}</span>
 									</div>
 								</div>
 								<div className="border-end col-1 d-flex justify-content-center align-items-center">
@@ -183,10 +167,10 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 									</span>
 								</div>
 							</div>
-						)
-					})
+						</>)
+					)
 				}
-			</div>
+			</div >
 
 			<Modal
 				show={modalShow}
@@ -234,19 +218,19 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 								id="difficultyLevel"
 								value={lobbyForm.difficultyLevel}
 								onChange={(e) =>
-									setLobbyForm({ ...lobbyForm, difficultyLevel: parseInt(e.target.value) })
+									setLobbyForm({ ...lobbyForm, difficultyLevel: e.target.value })
 								}
 							>
-								<option value="" disabled>
+								<option value={""} disabled>
 									Select Game Difficulty
 								</option>
-								<option value={1}>Granny</option>
-								<option value={2}>Boring</option>
-								<option value={3}>Still Slow</option>
-								<option value={4}>Kinda OK</option>
-								<option value={5}>Now We are Talking</option>
-								<option value={6}>Madman</option>
-								<option value={7}>Legend</option>
+								<option value={"1"}>Granny</option>
+								<option value={"2"}>Boring</option>
+								<option value={"3"}>Still Slow</option>
+								<option value={"4"}>Kinda OK</option>
+								<option value={"5"}>Now We are Talking</option>
+								<option value={"6"}>Madman</option>
+								<option value={"7"}>Legend</option>
 							</select>
 							<label className="text-danger form-label" htmlFor="difficultyLevel">{errorField.difficultyMissing}</label>
 						</div>

@@ -8,7 +8,20 @@ class LobbySerializer(serializers.ModelSerializer):
 	
 	class Meta:
 		model = LobbyData
-		fields = ['id', 'name', 'lobbyWinner', 'power_ups', 'difficultyLevel', 'pointsPerGame', 'linkToJoin', 'player1', 'player2', 'isFull', 'creator']
+		fields = [
+			'id', 
+			'name', 
+			'lobbyWinner', 
+			'power_ups', 
+			'difficultyLevel', 
+			'pointsPerGame', 
+			'linkToJoin', 
+			'player1', 
+			'player2', 
+			'isFull', 
+			'creator', 
+			'gameMode', 
+			'tournamentLink']
 	
 	def get_player1(self, obj):
 		if obj.player1:

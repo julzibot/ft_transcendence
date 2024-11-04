@@ -78,8 +78,8 @@ body {
 }
 
 .match_item_title {
-	min-height: 60px;
-	margin: 0 0 25px;
+	min-height: 50px;
+	margin: 30px 0 0px;
 
 	overflow: hidden;
 
@@ -151,19 +151,19 @@ body {
 }
 
 .Local .match_item_bg {
-	background-color: #f9b234;
+	background-color: #ffbe0a;
 }
 
 .AI .match_item_bg {
-	background-color: #02cde4;
+	background-color: #0a84ff;
 }
 
 .Online .match_item_bg {
-	background-color: #3ecd5e;
+	background-color: #32d74b;
 }
 
 .Tournament .match_item_bg {
-	background-color: #e44002;
+	background-color: #ff453a;
 }
 
 

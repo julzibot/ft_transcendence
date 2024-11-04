@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import React from 'react';
-import { Roboto } from "next/font/google";
+import { Inter } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css"
 import { AuthProvider } from "../lib/AuthContext";
 import '../global.css';
 
-const roboto = Roboto({
-  weight: ['400', '700'],
-  style: ['normal', 'italic'],
+const inter = Inter({
   subsets: ['latin'],
-  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -20,16 +17,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AuthLayout({ children }: {children: React.ReactNode}) {
-
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={roboto.className}>
-          <main>
-        <AuthProvider>
+    <html lang="en" className={inter.className}>
+      <body>
+        <main>
+          <AuthProvider>
             {children}
-        </AuthProvider>
-          </main>
+          </AuthProvider>
+        </main>
       </body>
     </html>
   );

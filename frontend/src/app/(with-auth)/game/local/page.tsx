@@ -9,20 +9,26 @@ import { useRouter } from 'next/navigation';
 
 
 export default function LocalGame() {
-	
+
 	const router = useRouter();
 
 	const [isTranslated, setIsTranslated] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
-	const [localData, setLocalData] = useState(null)
 
 	const [gameSettings, setGameSettings] = useState({
-		game_difficulty: 4,
-		points_to_win: 5,
+		game_difficulty: 3,
+		points_to_win: 11,
 		power_ups: true
 	});
 
 	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const settings = localStorage.getItem("gameSettings");
+			if (settings) {
+				const parsedSettings = JSON.parse(settings);
+				setGameSettings(parsedSettings.gameSettings);
+			}
+		}
 		const timer = setTimeout(() => {
 			setIsMounted(true);
 			setIsTranslated(true);
@@ -38,7 +44,7 @@ export default function LocalGame() {
 		if (typeof window !== 'undefined') {
 			localStorage.setItem("gameSettings", JSON.stringify(localProps));
 		}
-		router.push("/game/local/play");
+		router.replace("/game/local/play");
 	}
 
 	return (
@@ -48,7 +54,7 @@ export default function LocalGame() {
 					<h2 className="mt-3">Pong Game Settings</h2>
 				</div>
 			</div>
-				<Customization />
+			<Customization />
 			<div className={`card ${styles.gameSettingsCard} ${isTranslated ? styles.translated : ''} ${isMounted ? styles.mounted : ''}`}>
 				<div className="card-body">
 
@@ -109,11 +115,11 @@ export default function LocalGame() {
 						</div>
 					</div>
 					<div className="d-flex justify-content-center mb-3">
-				<button type="button" className="btn btn-secondary mx-3" onClick={() => handleClick('ai')}>Play Against AI</button >
-			</div >
-			<div className="d-flex justify-content-center mb-3">
-				<button type="button" className="btn btn-secondary mx-3" onClick={() => handleClick('local')}>Local Multiplayer</button>
-			</div>
+						<button type="button" className="btn btn-secondary mx-3" onClick={() => handleClick('ai')}>Play Against AI</button >
+					</div >
+					<div className="d-flex justify-content-center mb-3">
+						<button type="button" className="btn btn-secondary mx-3" onClick={() => handleClick('local')}>Local Multiplayer</button>
+					</div>
 				</div>
 			</div>
 		</div>
