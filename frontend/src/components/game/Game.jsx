@@ -695,7 +695,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						})
 					})
 				if (response.ok) {
-					if (isHost)
+					if (isHost && gameMode > 1)
 						socket.emit('finalScoreUpdate', { room_id: room_id });
 					return true
 				}
@@ -1287,5 +1287,5 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		}
 	}, []);
 
-	return <canvas className='fixed-top' ref={containerRef} />;
+	return <canvas className="position-fixed top-0 left-0" style={{ height: '100vh', height: '100vw' }} ref={containerRef} />
 };

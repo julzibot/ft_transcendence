@@ -1,3 +1,6 @@
+volumes:
+  certs:
+
 services:
   frontend:
     container_name: frontend
@@ -43,12 +46,13 @@ services:
     restart: always
     depends_on:
       - frontend
+      - nginx
     ports:
       - ${SOCKET_PORT}:${SOCKET_PORT}
     volumes:
       - ./ws-server/:/server
       - /server/node_modules
-      - ./proxy/certs:/etc/ssl/certs
+      - certs:/etc/ssl/certs
     environment:
       - SOCKET_PORT=${SOCKET_PORT}
       - DOMAIN_NAME=${DOMAIN_NAME}
@@ -100,7 +104,9 @@ services:
 
   nginx:
     container_name: proxy
-    image: nginx:1.27.1
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
       - django
@@ -113,10 +119,12 @@ services:
       - ./proxy/entrypoint.sh:/entrypoint.sh
       - ./backend/core/static/:/var/www/static/
       - ./backend/core/media/:/var/www/media/
-      - ./proxy/certs:/etc/ssl/certs
+      - certs:/etc/ssl/certs
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME}
       - BACKEND_PORT=${BACKEND_PORT}
       - FRONTEND_PORT=${FRONTEND_PORT}
       - SOCKET_PORT=${SOCKET_PORT}
     entrypoint: [ "/bin/sh", "/entrypoint.sh" ]
+    command: ["nginx", "daemon", "off"]
+
