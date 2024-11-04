@@ -135,7 +135,7 @@ export default function ProfilePage() {
 			}
 			else {
 				const res = await response.json()
-				setFormState({ message: res.error })
+				setFormState({ message: res.message })
 			}
 		}
 		setIsEditing(false);
@@ -223,6 +223,7 @@ export default function ProfilePage() {
 									{formState?.errors?.username && formState?.errors?.username.map((error, index) => (
 										<div className="form-label" key={index}>{error}</div>)
 									)}
+									{formState?.message && <p className="text-danger">{formState.message}</p>}
 								</>
 							) : (
 								<>
