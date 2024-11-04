@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import styles from './EndTournamentCard.module.css'
 import { useRouter } from 'next/navigation'
 
-export default function EndTournamentCard({ participants }: { participants: ParticipantType[], tournamentId }) {
+export default function EndTournamentCard({ participants }: { participants: ParticipantType[] }) {
   const [winnerShow, setWinnerShow] = useState(false)
   const [scoreShow, setScoreShow] = useState(false)
   const [winners, setWinners] = useState<ParticipantType[]>()

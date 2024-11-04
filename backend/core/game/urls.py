@@ -11,11 +11,3 @@ urlpatterns = [
 		path('history/user/<int:id>/game-modes',	UserGameModeHistory.as_view(), name='user-game-modes-history'),
 		path('history/user/<int:id1>/<int:id2>',	MutualGameHistory.as_view(), name='mutual-game-history'),
 ]
-
-# get history of all matches
-# get specific user's match history
-# get individual match
-# create match
-# update match
-
-# input: user1 and user2 => mutual matches ???
