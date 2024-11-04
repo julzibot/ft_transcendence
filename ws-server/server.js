@@ -135,16 +135,7 @@ lobby.on('connection', async (socket) => {
 				else if (lobby.player2 && lobby.player2.id === userId)
 					lobby.player2 = null;
 				console.log(`[lobby] [disconnect] Player disconnected. Lobby: ${JSON.stringify(lobby)}`);
-				if (!lobby.player1 && !lobby.player2) {
-					console.log(`[lobby] [disconnect] Both players are null. Deleting lobby: ${lobbyId}`);
-					await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
-						method: 'DELETE',
-						headers: { 'Content-Type': 'application/json' },
-						credentials: 'include',
-					});
-					gameLobbies.delete(lobbyId);
-				}
-				else {
+				if (lobby.player1 || lobby.player2) {
 					await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
 						method: 'PUT',
 						headers: { 'Content-Type': 'application/json' },
@@ -152,6 +143,15 @@ lobby.on('connection', async (socket) => {
 						body: JSON.stringify({ userId })
 					});
 					io.in(lobbyId).emit('updatedPlayers', lobby);
+				}
+				else {
+					console.log(`[lobby] [disconnect] Both players are null. Deleting lobby: ${lobbyId}`);
+					await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
+						method: 'DELETE',
+						headers: { 'Content-Type': 'application/json' },
+						credentials: 'include',
+					});
+					gameLobbies.delete(lobbyId);
 				}
 			}
 		})
