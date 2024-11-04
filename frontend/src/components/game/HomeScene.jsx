@@ -153,6 +153,6 @@ export default function HomeScene() {
         animate(vars);
 
     }, [])
-    return <canvas ref={containerRef} />
+    return <canvas className="d-flex" ref={containerRef} />
 }
 
