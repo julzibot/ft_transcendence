@@ -1,6 +1,9 @@
+"use client"
+
 import * as THREE from 'three';
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { shaders } from './backShaders.jsx';
+import { useRef, useEffect } from 'react';
 
 const setBallColor = (ball, speed) => {
     const speedDiff = speed;
@@ -87,71 +90,75 @@ function animate(vars)
     }, 5 );
 }
 
-const homeScene = () => {
+export default function HomeScene() {
     // let controls = new OrbitControls( camera, renderer.domElement);
+    const containerRef = useRef(null);
     const vars = {};
-
-    vars.scene = new THREE.Scene();
-    vars.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    vars.renderer = new THREE.WebGLRenderer();
-    vars.renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( vars.renderer.domElement );
-
-    vars.startTime = performance.now();
-    vars.ballTimer = performance.now();
-    vars.ballSpawnTick = 2000;
-    vars.spawnChanceCounter = 0;
-    const ambLight = new THREE.AmbientLight(0x444444);
-    const dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
-    vars.scene.add( ambLight );
-    vars.scene.add( dirLight );
     
-    dirLight.position.set(0, 0, 25);
-    vars.camera.position.set(0, 0, 20);
-    vars.camera.lookAt(0, 0, 0);
-
-    vars.uniformData = {
-        u_time:
-        { type: 'f', value: performance.now() - vars.startTime },
-        u_resolution:
-        { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-        u_ballSpeed:
-        { type: 'f', value: 0.},
-        u_impactTime:
-        { type: 'f', value: 0.},
-        projectionMatrix:
-        { value: vars.camera.projectionMatrix },
-        viewMatrix:
-        { value: vars.camera.matrixWorldInverse },
-        camPos:
-        { value: vars.camera.position.y },
-    };
+    useEffect(() => {
+        vars.scene = new THREE.Scene();
+        vars.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        vars.renderer = new THREE.WebGLRenderer({ canvas: containerRef.current });
+        vars.renderer.setSize(window.innerWidth, window.innerHeight );
+        document.body.appendChild( vars.renderer.domElement );
     
-    let orbgeo = new THREE.SphereGeometry(2.5, 100, 100);
-    let orbmat = new THREE.ShaderMaterial({
-        uniforms: vars.uniformData,
-        vertexShader: shaders.orbvs,
-        fragmentShader: shaders.orbfs,
-        transparent: true,
-    });
-    let orb = new THREE.Mesh(orbgeo, orbmat);
-    orb.rotation.set(Math.PI / 2, 0, 0);
+        vars.startTime = performance.now();
+        vars.ballTimer = performance.now();
+        vars.ballSpawnTick = 2000;
+        vars.spawnChanceCounter = 0;
+        const ambLight = new THREE.AmbientLight(0x444444);
+        const dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
+        vars.scene.add( ambLight );
+        vars.scene.add( dirLight );
+        
+        dirLight.position.set(0, 0, 25);
+        vars.camera.position.set(0, 0, 20);
+        vars.camera.lookAt(0, 0, 0);
     
-    vars.ballgeo = new THREE.SphereGeometry(0.5, 40, 40);
-    vars.ballmat = new THREE.MeshPhongMaterial( { color: 0x0000ff, emissive: 0x0000ff, emissiveIntensity: 0.25, transparent: true, opacity: 1. } );
-    vars.balls = [];
-
-    let backGeo = new THREE.BoxGeometry(200, 200, 1);
-    let backMat = new THREE.ShaderMaterial({
-        uniforms: vars.uniformData,
-        fragmentShader: shaders.backfs,
+        vars.uniformData = {
+            u_time:
+            { type: 'f', value: performance.now() - vars.startTime },
+            u_resolution:
+            { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+            u_ballSpeed:
+            { type: 'f', value: 0.},
+            u_impactTime:
+            { type: 'f', value: 0.},
+            projectionMatrix:
+            { value: vars.camera.projectionMatrix },
+            viewMatrix:
+            { value: vars.camera.matrixWorldInverse },
+            camPos:
+            { value: vars.camera.position.y },
+        };
+        
+        let orbgeo = new THREE.SphereGeometry(2.5, 100, 100);
+        let orbmat = new THREE.ShaderMaterial({
+            uniforms: vars.uniformData,
+            vertexShader: shaders.orbvs,
+            fragmentShader: shaders.orbfs,
+            transparent: true,
         });
-    let backboard = new THREE.Mesh(backGeo, backMat);
-
-    vars.scene.add(orb);
-    vars.scene.add(backboard);
-    backboard.position.set(0, 0, -50);
-    animate(vars);
+        let orb = new THREE.Mesh(orbgeo, orbmat);
+        orb.rotation.set(Math.PI / 2, 0, 0);
+        
+        vars.ballgeo = new THREE.SphereGeometry(0.5, 40, 40);
+        vars.ballmat = new THREE.MeshPhongMaterial( { color: 0x0000ff, emissive: 0x0000ff, emissiveIntensity: 0.25, transparent: true, opacity: 1. } );
+        vars.balls = [];
+    
+        let backGeo = new THREE.BoxGeometry(300, 300, 1);
+        let backMat = new THREE.ShaderMaterial({
+            uniforms: vars.uniformData,
+            fragmentShader: shaders.backfs,
+            });
+        let backboard = new THREE.Mesh(backGeo, backMat);
+    
+        vars.scene.add(orb);
+        vars.scene.add(backboard);
+        backboard.position.set(0, 0, -50);
+        animate(vars);
+        
+    }, [])
+    return <canvas ref={containerRef}/>
 }
 
-homeScene();

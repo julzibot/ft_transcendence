@@ -114,6 +114,8 @@ export default function tournamentEvents(io, socket) {
 				startTime: 0,
 				duration: 0,
 				timeoutStarted: false,
+				inLobby : [],
+				disconnected: [],
 				participants: [{ user: user, return_time: 0, opponents: new Map() }],
 			}
 			tournamentsArray.push(newTournament);

@@ -110,6 +110,6 @@ export default function GameModesChart({ setChartInstance, displayedDate, data }
 	}, [displayData]);
 
 	return (
-		<canvas ref={chartRef} />
+		<canvas className="dashboard-canvas" ref={chartRef} />
 	);
 }

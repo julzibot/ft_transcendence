@@ -129,7 +129,7 @@ export default function ActivityChart({ setChartInstance, displayedDate, activit
 
 	return (
 		<>
-			<canvas ref={chartRef} />
+			<canvas className="dashboard-canvas" ref={chartRef} />
 		</>
 	);
 };

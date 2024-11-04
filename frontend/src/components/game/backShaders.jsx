@@ -215,7 +215,7 @@ shaders.backfs = `
             uv.y *= abs(uv.x) * 1.5;
             gridVal = grid(uv, battery, 1);
         }
-        else if (uv.y < -0.5)
+        else if (uv.y < -0.435)
         {
             side = 2.;
             uv.y = 2.0 / (abs(uv.y + 0.2) + 0.05);
