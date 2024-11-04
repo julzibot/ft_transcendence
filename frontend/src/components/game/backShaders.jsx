@@ -188,7 +188,7 @@ shaders.backfs = `
         else
         {
             size = vec2(uv.x * uv.x * 0.2, abs(uv.x)) * 0.01;
-            uv += vec2((u_time + 2800.) / 3000. * (battery + 0.05), 0.0);
+            uv += vec2((u_time + 1700.) / 3000. * (battery + 0.05), 0.0);
         }
         uv = abs(fract(uv) - 0.5);
         vec2 lines = smoothstep(size, vec2(0.0), uv);
@@ -209,6 +209,13 @@ shaders.backfs = `
             side = -1.;
         else if (uv.x * (-u_resolution.y / u_resolution.x) < uv.y && uv.x > 0.9)
             side = 1.;
+        else if ((abs(uv.x * (-u_resolution.y / u_resolution.x) - uv.y) < 0.01 && uv.x > 0.9) \
+                || (abs(uv.x * (u_resolution.y / u_resolution.x) - uv.y) < 0.01 && uv.x < -0.9) \
+                || abs(uv.y + 0.435 ) < 0.005 || ((abs(uv.x + 0.9) < 0.01 || abs(uv.x - 0.9) < 0.01) && uv.y > -0.442))
+        {
+            color = vec3(1.0, 0.5, 1.0);
+            side = 3.;
+        }
         if (side == -1. || side == 1.)
         {
             uv.x = 4.5 / (abs(uv.x - side * 0.2) + 0.05);
@@ -218,7 +225,7 @@ shaders.backfs = `
         else if (uv.y < -0.435)
         {
             side = 2.;
-            uv.y = 2.0 / (abs(uv.y + 0.2) + 0.05);
+            uv.y = 1.54 / (abs(uv.y + 0.2) + 0.05);
             uv.x *= uv.y * 1.5;
             gridVal = grid(uv, battery, 0);
         }
