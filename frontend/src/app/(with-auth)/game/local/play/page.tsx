@@ -117,7 +117,7 @@ export default function Play() {
 	if (loading || !gameInfos || gameMode === null) {
 		return (
 			<div className="d-flex justify-content-center mt-5">
-				<div style={{ marginLeft: "-37px", marginTop: "250px" }}>
+				<div style={{  marginTop: "235px" }}>
 					<Spinner animation="border" style={{ width: '15rem', height: '15rem', borderWidth: "2px", borderRight: "none", borderLeft: "none", borderTopColor: 'white', borderBottom: "none", animationDuration: "0.7s" }} />
 				</div>
 			</div>

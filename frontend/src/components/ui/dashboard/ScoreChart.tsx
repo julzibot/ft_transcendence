@@ -122,7 +122,7 @@ export default function ScoreChart({ setChartInstance, displayedDate, winData, l
 
 	return (
 		<>
-			<canvas ref={chartRef} />
+			<canvas className="dashboard-canvas" ref={chartRef} />
 		</>
 	);
 };

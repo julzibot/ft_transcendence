@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css"
 import { AuthProvider } from "../lib/AuthContext";
 import '../global.css';
+import HomeScene from "@/components/game/HomeScene";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -21,7 +22,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={inter.className}>
       <body>
-        <main>
+        <HomeScene />
+        <main className="translate-middle top-50 start-50">
           <AuthProvider>
             {children}
           </AuthProvider>

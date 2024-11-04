@@ -89,11 +89,8 @@ export default function tournamentEvents(io, socket) {
 	socket.on('joinTournament', (data) => {
 		const { tournamentId, user } = data;
 
-		if (tournamentUsers.get(socket.id))
+		if (tournamentUsers.get(socket.id)) {
 			console.log('[tournament] [joinTournament] user already exists');
-		else if (tournamentUsers.has(user.id)) {
-			const user = tournament.has(user.id);
-			user.userId = user.id;
 		}
 		else {
 			tournamentUsers.set(socket.id, user.id);
@@ -103,6 +100,9 @@ export default function tournamentEvents(io, socket) {
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		let updatedParticipants = [];
 		if (tournament) {
+			const index = tournament.disconnected.findIndex((userId) => userId === user.id);
+			if (index != -1)
+				tournament.disconnected.splice(index, 1);
 			const participant = tournament.participants.find(participant => participant.user.id === user.id)
 			if (!participant)
 				tournament.participants.push({ user: user, return_time: 0, opponents: new Map() });
@@ -114,6 +114,8 @@ export default function tournamentEvents(io, socket) {
 				startTime: 0,
 				duration: 0,
 				timeoutStarted: false,
+				inLobby : [],
+				disconnected: [],
 				participants: [{ user: user, return_time: 0, opponents: new Map() }],
 			}
 			tournamentsArray.push(newTournament);
@@ -196,7 +198,6 @@ export default function tournamentEvents(io, socket) {
 				...p,
 				opponents: p.opponents
 			}));
-			tournament.disconnected = [];
 
 			const loopId = setInterval(() => {
 				console.log("checking...");

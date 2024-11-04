@@ -6,6 +6,7 @@ import Navbar from "@/components/ui/navbar/Navbar";
 import Sidenav from "@/components/ui/sidenav/Sidenav";
 import { AuthProvider } from "../lib/AuthContext";
 import '../global.css';
+import HomeScene from "@/components/game/HomeScene";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,10 +24,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={inter.className}>
       <body>
-        <main>
+        <HomeScene />
+        <main className="translate-middle top-50 start-50">
           <AuthProvider>
-            <Sidenav />
             <Navbar />
+            <Sidenav />
             {children}
           </AuthProvider>
         </main>
