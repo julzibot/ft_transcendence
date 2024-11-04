@@ -14,6 +14,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ft_transcendence",
   description: "An online pong game",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {

@@ -3,7 +3,7 @@ export interface LobbyPayload {
   difficultyLevel: number,
   pointsPerGame: number,
   power_ups: boolean,
-  player1: number,
+  player1: number | undefined,
   gameMode?: 'ONLINE' | 'TOURNAMENT',
   tournamentLink?: string
 }

@@ -11,16 +11,16 @@ import useSocketContext from '@/context/socket';
 import { Pair } from '@/types/TournamentSettings';
 import { AddLobbyData, JoinLobby } from '@/services/onlineGames';
 import { LobbyPayload } from '@/types/Lobby';
-import { startTournament } from '@/services/tournaments';
+import { endTournament, startTournament } from '@/services/tournaments';
 import "./styles.css"
 import Image from '@/components/Utils/Image';
+import EndTournamentCard from '@/components/cards/EndTournamentCard';
 
 
 export default function TournamentLobby() {
 	const { id } = useParams();
 	const { session } = useAuth();
 	const router = useRouter();
-	const videoRef = useRef()
 	const [participantsList, setParticipantsList] = useState<ParticipantType[]>([]);
 	const [pairs, setPairs] = useState<Pair[]>()
 	const [tournamentData, setTournamentData] = useState<TournamentType>();
@@ -32,6 +32,7 @@ export default function TournamentLobby() {
 	const [received, setReceived] = useState(false);
 	const [sent, setSent] = useState(false);
 	const [isStarting, setIsStarting] = useState(false);
+	const [endTournamentCardShow, setEndTournamentCardShow] = useState<boolean>(false)
 
 	const fetchTournamentData = async () => {
 		const response = await fetch(`${BACKEND_URL}/api/tournament/${id}/`, {
@@ -44,7 +45,7 @@ export default function TournamentLobby() {
 		})
 		if (response.ok) {
 			const data = await response.json()
-			if (data.participants.some((participant: ParticipantType) => participant.user.id === session?.user?.id)) {
+			if (data.participants.some((participant: ParticipantType) => Number(participant.user.id) === session?.user?.id)) {
 				setParticipantsList(data.participants)
 				setTournamentData(data.tournament)
 				console.log(data.tournament)
@@ -71,12 +72,6 @@ export default function TournamentLobby() {
 			setIsReady(true);
 		}
 	}, [isReady, tournamentData]);
-
-	useEffect(() => {
-		if (videoRef.current) {
-			videoRef.current.playbackRate = 1.2; //Speed of the video
-		}
-	}, []);
 
 
 	useEffect(() => {
@@ -110,10 +105,10 @@ export default function TournamentLobby() {
 	useEffect(() => {
 		if (socket && isReady) {
 
-			socket.on('announceTournamentEnd', () => {
-				//update isFinished in db
-				//display a card showing the ranking and leave button
-				console.log('C FINI!!!!')
+			socket.on('announceTournamentEnd', async () => {
+				//set IsFinished to backend
+				await endTournament(id)
+				setEndTournamentCardShow(true)
 			})
 
 			socket.on('tournamentStarted', () => {
@@ -122,7 +117,13 @@ export default function TournamentLobby() {
 			})
 
 			socket.on('updateParticipants', (data: ParticipantType[]) => {
-				setParticipantsList(data);
+				console.log(data)
+				setParticipantsList(data.sort((a, b) => {
+					if (a.wins > b.wins) return -1;
+					if (a.wins < b.wins) return 1;
+					return a.gamesPlayed - b.gamesPlayed;
+				}))
+
 			})
 			if (!sent && !received) {
 				socket.on('getMatchPair', async (data: Pair[]) => {
@@ -181,10 +182,9 @@ export default function TournamentLobby() {
 
 	useEffect(() => { // Handles players that got back from a game
 		if (tournamentData)
-			console.log(tournamentData)
-		if (socket && tournamentData && tournamentData.isStarted) {
-			socket.emit("returnToLobby", { tournamentId: id, userId: session?.user?.id })
-		}
+			if (socket && tournamentData && tournamentData.isStarted) {
+				socket.emit("returnToLobby", { tournamentId: id, userId: session?.user?.id })
+			}
 	}, [tournamentData, socket])
 
 	return (
@@ -239,7 +239,6 @@ export default function TournamentLobby() {
 								autoPlay
 								muted
 								loop
-								ref={videoRef}
 								src="/videos/flame.mp4"
 							>
 								Your browser does not support HTML5 video.
@@ -279,6 +278,9 @@ export default function TournamentLobby() {
 				<button className="btn btn-primary" onClick={handleStartTournament}>
 					Start Tournament
 				</button >
+			}
+			{
+				endTournamentCardShow && <EndTournamentCard participants={participantsList} tournamentId={id} />
 			}
 		</>
 	)

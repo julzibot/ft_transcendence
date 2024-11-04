@@ -14,19 +14,22 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ft_transcendence",
   description: "An online pong game",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
-export default function RootLayout({ children }: Readonly<{children: React.ReactNode;}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
   return (
     <html lang="en" className={inter.className}>
       <body>
-          <main>
-        <AuthProvider>
+        <main>
+          <AuthProvider>
             <Sidenav />
             <Navbar />
             {children}
-        </AuthProvider>
-          </main>
+          </AuthProvider>
+        </main>
       </body>
     </html>
   );

@@ -1,10 +1,10 @@
 'use client'
 
 import io, { Socket } from "socket.io-client"
-import { createContext, useContext, useEffect, useState, React } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { DOMAIN_NAME, SOCKET_PORT } from "@/config";
 
-const SocketContext = createContext<Socket | null>(null);
+const SocketContext = createContext<Socket | undefined>(undefined);
 
 export function SocketProvider({ children, nsp }: { children: React.ReactNode, nsp: string }) {
 	const [socket, setSocket] = useState<Socket>();

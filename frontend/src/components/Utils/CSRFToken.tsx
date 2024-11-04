@@ -3,7 +3,7 @@ import { BACKEND_URL } from "@/config";
 import Cookies from 'js-cookie'
 
 export default function CSRFToken() {
-  const [csrfToken, setCsrfToken] = useState<string>(Cookies.get('csrftoken'));
+  const [csrfToken, setCsrfToken] = useState<string | undefined>(Cookies.get('csrftoken'));
 
   useEffect(() => {
     const fetchCSRFToken = async () => {

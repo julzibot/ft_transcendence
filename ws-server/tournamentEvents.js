@@ -1,5 +1,6 @@
 import { tournamentsArray, tournamentUsers } from './server.js'
 
+const backendPort = process.env.BACKEND_PORT;
 // const tournament = {
 // 	tournamentId: 0,
 //	startTime: performance.now(),					else if (tournament.inLobby.length + tournament.disconnected.length === tournament
@@ -22,6 +23,7 @@ import { tournamentsArray, tournamentUsers } from './server.js'
 // 	wins,
 // 	gamesPlayed
 // }
+
 
 const computeMatches = (tournament) => {
 
@@ -124,6 +126,22 @@ export default function tournamentEvents(io, socket) {
 		const { userId, tournamentId } = data;
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		if (tournament) {
+			let updatedParticipants = []
+			const response = await fetch(`http://django:${backendPort}/api/tournament/${tournamentId}`, {
+				method: 'GET',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+			})
+			if (response.ok) {
+				const data = await response.json()
+				updatedParticipants = data.participants
+				console.log('Participants: ' + { updatedParticipants })
+			}
+			socket.in(tournamentId).emit('updateParticipants', updatedParticipants)
+
 			const p = tournament.participants.find(participant => participant.user.id === userId);
 			p.return_time = performance.now();
 
@@ -138,9 +156,10 @@ export default function tournamentEvents(io, socket) {
 	})
 
 
+
 	socket.on('sendLink', (data) => {
 		const { tournamentId, linkToJoin, receiver } = data;
-		console.log(`[tournament] [sendLink] data: ${JSON.stringify(data)}`);
+		console.log(`[tournament] [sendLink]  ${data}`);
 
 		let socketId;
 		tournamentUsers.forEach((userId, keyId) => {

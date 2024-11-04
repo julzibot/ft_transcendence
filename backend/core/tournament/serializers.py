@@ -6,7 +6,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = ParticipantModel
-		fields = ['user', 'wins', 'gamesPlayed']
+		fields = ['user', 'wins', 'gamesPlayed', 'tournament']
 	
 	def get_user(self, obj):
 		return {

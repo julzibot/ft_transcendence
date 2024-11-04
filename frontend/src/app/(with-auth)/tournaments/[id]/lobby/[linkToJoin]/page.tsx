@@ -30,15 +30,16 @@ interface Lobby {
 	linkToJoin: string;
 	player1: User;
 	player2: User | null;
-	gameMode: 'TOURNAMENT' | 'ONLINE';
+	gameMode: 'TOURNAMENT' | 'ONLINE' | 'LOCAL' | null;
+	tournamentLink: string | null;
 }
 
 export default function TournamentGameLobby() {
 	const { session } = useAuth();
 	const router = useRouter();
-	const { linkToJoin } = useParams();
+	const { linkToJoin, id } = useParams();
 
-	const [lobbyData, setLobbyData] = useState<Lobby | null>(null);
+	const [lobbyData, setLobbyData] = useState<Lobby>();
 	const [players, setPlayers] = useState<Players>()
 	const [gameInfos, setGameInfos] = useState<GameInfos>()
 	const [countdown, setCountdown] = useState<number>(3);
@@ -55,7 +56,8 @@ export default function TournamentGameLobby() {
 					credentials: 'include'
 				});
 				if (!response.ok) {
-					router.replace(`/error?code=${response.status}`)
+					console.log('Error fetching lobby data in tournament')
+					router.push(`/error?code=${response.status}`)
 				}
 				else {
 					const data = await response.json()
@@ -84,7 +86,8 @@ export default function TournamentGameLobby() {
 					username: session?.user?.username,
 					image: session?.user?.image
 				},
-				gameMode: 3
+				gameMode: 3,
+				tournamentLink: id
 			})
 
 			socket.on('initGame', (data: any) => {
@@ -150,7 +153,7 @@ export default function TournamentGameLobby() {
 								gamemode={gameInfos?.game_mode} handleGameEnded={handleGameEnded} />
 						)
 					)}
-					{gameEnded && <EndGameCard gameMode={lobbyData?.gameMode} tournamentLink={lobbyData?.tournamentLink ? lobbyData?.tournamentLink : null} />}
+					{lobbyData && gameEnded && <EndGameCard gameMode={lobbyData.gameMode} tournamentLink={lobbyData?.tournamentLink} />}
 				</SocketProvider>
 			}
 		</>

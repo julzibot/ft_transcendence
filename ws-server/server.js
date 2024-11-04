@@ -232,8 +232,7 @@ tournament.on('connection', (socket) => {
 			console.log('[tournament] [disconnect] ' + socket.id + ' -> ' + disconnectedUserId + " has disconnected");
 			tournamentsArray.forEach(t => {
 				const part = t.participants.find(p => p.user.id === disconnectedUserId);
-				if (part)
-				{
+				if (part) {
 					t.disconnected.push(disconnectedUserId);
 					if (t.inLobby) {
 						const playerIndex = t.inLobby.findIndex(p => p.user.id === disconnectedUserId);
@@ -250,5 +249,5 @@ tournament.on('connection', (socket) => {
 })
 
 server.listen(port, () => {
-	console.log(`Socket server is now listening on https://${domain}:` + port);
+	console.log(`Socket server is listening on https://${domain}:` + port);
 });

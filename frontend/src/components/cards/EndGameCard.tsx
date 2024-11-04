@@ -5,7 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import styles from './EndGameCard.module.css'
 import { useState, useEffect } from 'react'
 
-export default function EndGameCard({ gameMode, tournamentLink }: { gameMode: 'TOURNAMENT' | 'ONLINE' | 'LOCAL' | null, tournamentLink?: string }) {
+export default function EndGameCard({ gameMode, tournamentLink }: { gameMode: 'TOURNAMENT' | 'ONLINE' | 'LOCAL' | null, tournamentLink?: string | null }) {
 	const router = useRouter()
 	const [show, setShow] = useState<Boolean>(false)
 	const [url, setUrl] = useState<string>('')

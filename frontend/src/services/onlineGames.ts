@@ -43,7 +43,7 @@ export const AddLobbyData = async (payload: LobbyPayload | undefined) => {
 	}
 }
 
-export const JoinLobby = async (lobbyId: string, userId: number) => {
+export const JoinLobby = async (lobbyId: string, userId: number | undefined) => {
 	try {
 		const response = await fetch(BACKEND_URL + '/api/lobby/join/', {
 			method: 'POST',

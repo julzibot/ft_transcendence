@@ -2,10 +2,15 @@
 import { useEffect } from 'react'
 import useSocketContext from '@/context/socket';
 import Image from '../Utils/Image';
-import { NumberKeyframeTrack } from 'three';
 import { useAuth } from '@/app/lib/AuthContext';
 
-export default function GameCountdownModal({ lobby_id, game_id, game_mode, players, countdown, setCountdown }: { lobby_id: string | string[], game_id: number, game_mode: number, players: {}, countdown: number, setCountdown: Function }) {
+interface User {
+	id: number;
+	username: string;
+	image: string;
+}
+
+export default function GameCountdownModal({ lobby_id, game_id, game_mode, players, countdown, setCountdown }: { lobby_id: string | string[], game_id: number, game_mode: number, players: { player1: User, player2: User }, countdown: number, setCountdown: Function }) {
 
 	const socket = useSocketContext();
 	const { session } = useAuth();

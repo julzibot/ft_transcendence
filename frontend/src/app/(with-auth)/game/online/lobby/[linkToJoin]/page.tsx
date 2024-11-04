@@ -31,6 +31,7 @@ interface Lobby {
 	player1: User;
 	player2: User | null;
 	gameMode: 'TOURNAMENT' | 'ONLINE';
+	tournamentLink: string | null;
 }
 
 export default function Lobby() {
@@ -38,7 +39,7 @@ export default function Lobby() {
 	const router = useRouter();
 	const { linkToJoin } = useParams();
 
-	const [lobbyData, setLobbyData] = useState<Lobby | null>(null);
+	const [lobbyData, setLobbyData] = useState<Lobby>();
 	const [players, setPlayers] = useState<Players>()
 	const [gameInfos, setGameInfos] = useState<GameInfos>()
 	const [countdown, setCountdown] = useState<number>(3);
@@ -127,6 +128,9 @@ export default function Lobby() {
 		setGameEnded(true)
 	}
 
+	useEffect(() => {
+		console.log(lobbyData)
+	}, [lobbyData])
 	return (
 		<>
 			{socket && lobbyData &&
@@ -149,7 +153,7 @@ export default function Lobby() {
 								gamemode={gameInfos?.game_mode} handleGameEnded={handleGameEnded} />
 						)
 					)}
-					{gameEnded && <EndGameCard gameMode={lobbyData.gameMode} tournamentLink={lobbyData.tournamentLink ? lobbyData.tournamentLink : null} />}
+					{gameEnded && <EndGameCard gameMode={lobbyData.gameMode} tournamentLink={lobbyData.tournamentLink} />}
 				</SocketProvider>
 			}
 		</>

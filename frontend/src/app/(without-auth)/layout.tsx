@@ -12,12 +12,15 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ft_transcendence",
   description: "An online pong game",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
-export default function AuthLayout({ children }: {children: React.ReactNode}) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.className}>
-      <body >
+      <body>
         <main>
           <AuthProvider>
             {children}

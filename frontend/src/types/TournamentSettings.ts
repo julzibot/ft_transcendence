@@ -19,7 +19,7 @@ export interface TournamentSettingsType {
 
 export interface ParticipantType {
 	user: {
-		id: string;
+		id: number;
 		username: string;
 		image: string;
 	}

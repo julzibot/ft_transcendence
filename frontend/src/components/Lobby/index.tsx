@@ -95,8 +95,6 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 		fetchLobbyData()
 	}, [])
 
-
-
 	return (
 		<>
 			<div className='d-flex flex-row align-items-center justify-content-between p-4'>
@@ -143,7 +141,7 @@ export default function Lobby({ setToastShow, setErrorField, errorField }: Lobby
 						<>
 							< div
 								key={index}
-								onClick={() => handleJoin(lobby.linkToJoin, lobby.linkToJoin)}
+								onClick={() => handleJoin(lobby.linkToJoin)}
 								className={`${lobby.isFull ? 'disabled' : ''} ${lobbyData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'} lobby-entry d-flex flex-row align-items-center justify-content-evenly fw-bold fs-5`}
 							>
 								<div className="border-end col d-flex justify-content-center align-items-center text-truncate">

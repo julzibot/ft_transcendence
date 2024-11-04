@@ -1,7 +1,7 @@
 COMPOSE = docker-compose.yml
 
 all:
-	docker compose -f $(COMPOSE) up
+	docker-compose -f $(COMPOSE) up --build
 
 re: fclean all
 
@@ -11,11 +11,9 @@ down:
 prune:
 	docker system prune --force
 
-fclean: stop down
-	-docker rm -f $$(docker ps -a -q)
+fclean: down
 	-docker image rm $$(docker images -aq)
+	-docker volume rm $$(docker volume ls -q)
 
-stop:
-	-docker stop $$(docker ps -qa)
 
-.PHONY: all re prune down fclean stop
+.PHONY: all re prune down fclean
