@@ -104,7 +104,7 @@ export default function HomeScene() {
     
         vars.startTime = performance.now();
         vars.ballTimer = performance.now();
-        vars.ballSpawnTick = 2000;
+        vars.ballSpawnTick = 1200;
         vars.spawnChanceCounter = 0;
         const ambLight = new THREE.AmbientLight(0x444444);
         const dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
