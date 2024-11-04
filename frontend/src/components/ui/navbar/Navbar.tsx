@@ -5,7 +5,7 @@ import "./styles.css"
 
 export default function Navbar() {
   return (
-		<nav className="navbar navbar-expand-lg bg-dark">
+		<nav className="navbar navbar-expand-lg bg-dark" style={{marginTop: '-1px'}}>
 			<div className="container-fluid justify-content-between">
 
 				<div className="navbar-brand">

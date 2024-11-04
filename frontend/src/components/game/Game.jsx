@@ -158,23 +158,23 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						const textMaterial = new THREE.MeshStandardMaterial({ color: 0xeeeeee, emissive: 0xdddddd, emissiveIntensity: 0.4 });
 						textMesh.material = textMaterial;
 						if (id === 0)
-							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 9.5, CONST.GAMEHEIGHT / 2 - 10, 1);
+							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 9, CONST.GAMEHEIGHT / 2 - 10, 1);
 						else
-							textMesh.position.set(CONST.GAMEWIDTH / 2 + 5.5, CONST.GAMEHEIGHT / 2 - 10, 1);
+							textMesh.position.set(CONST.GAMEWIDTH / 2 + 5, CONST.GAMEHEIGHT / 2 - 10, 1);
 					}
 					else if (mode === 4.5) {
 						const textMaterial = new THREE.MeshStandardMaterial({ color: 0xcc0000, emissive: 0xee00ee, emissiveIntensity: 0.15 });
 						textMesh.material = textMaterial;
 						if (id === 0)
-							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 9.5, CONST.GAMEHEIGHT / 2 - 8.5, 1);
+							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 9, CONST.GAMEHEIGHT / 2 - 8.5, 1);
 						else
-							textMesh.position.set(CONST.GAMEWIDTH / 2 + 5.5, CONST.GAMEHEIGHT / 2 - 8.5, 1);
+							textMesh.position.set(CONST.GAMEWIDTH / 2 + 5, CONST.GAMEHEIGHT / 2 - 8.5, 1);
 					}
 					else if (mode == 5) {
 						// ENDGAME
 						const textMaterial = new THREE.MeshStandardMaterial({ color: 0x227700, emissive: 0x00cc00, emissiveIntensity: 0.25 });
 						textMesh.material = textMaterial;
-						textMesh.position.set(-11.5, -7, -1.5);
+						textMesh.position.set(-11.5, -7, 1.5);
 					}
 					else if (mode > 5) {
 						// PUs update
@@ -984,7 +984,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				else
 					local_update(gamemode, p, arr);
 				// p.tools.controls.update();
-				p.tools.stats.update();
 
 				p.uniformData.u_time.value = performance.now() - g.startTime;
 				p.tools.renderer.render(p.tools.scene, p.tools.camera);
@@ -1116,7 +1115,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			p.tools.scene = new THREE.Scene();
 			p.tools.renderer = new THREE.WebGLRenderer({ canvas: containerRef.current });
 			p.tools.renderer.setSize(window.innerWidth, window.innerHeight);
-			p.tools.controls = new OrbitControls(p.tools.camera, p.tools.renderer.domElement);
+			// p.tools.controls = new OrbitControls(p.tools.camera, p.tools.renderer.domElement);
 			p.tools.stats = Stats()
 
 			p.tools.scene.add(p.objs.ball);
@@ -1134,10 +1133,7 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			p.tools.scene.add(p.csts.dirLight2);
 			p.tools.scene.add(p.csts.ballLight);
 
-			let quaternion = new THREE.Quaternion();
 			p.tools.camera.position.set(p.custom.classicCamPos.x, p.custom.classicCamPos.y, p.custom.classicCamPos.z);
-			// quaternion.setFromAxisAngle(p.custom.classicCamPos.clone().normalize(), -Math.PI / 2);
-			// p.tools.camera.quaternion.multiplyQuaternions(quaternion, p.tools.camera.quaternion);
 			p.tools.camera.lookAt(0, 2.2, 0);
 
 			g.p1Name = gameInfos.p1Name;

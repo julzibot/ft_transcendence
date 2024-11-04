@@ -5,6 +5,11 @@ export interface MatchEntry {
 	y: number
 }
 
+export interface ConvertedMatchEntry {
+	x: number,
+	y: number
+}
+
 export interface Player {
 	id: number,
 	username: string,

@@ -4,13 +4,22 @@ import { Chart } from 'chart.js/auto';
 import 'chartjs-adapter-luxon';
 import './styles.css';
 
-import { MatchEntry } from "./DashboardInterfaces";
+import { MatchEntry, ConvertedMatchEntry } from "./DashboardInterfaces";
 
 interface ActivityChartProps {
 	setChartInstance: Function,
 	activityData: Array<MatchEntry>,
 	displayedDate: Date,
 	maxY: number
+}
+
+export const convertMatchData = (activityData: Array<MatchEntry>) => {
+	const convertedData: Array<ConvertedMatchEntry> = [];
+
+	activityData.forEach(match => {
+		convertedData.push({ x: (new Date(match.x)).getTime(), y: match.y });
+	})
+	return convertedData;
 }
 
 export default function ActivityChart({ setChartInstance, displayedDate, activityData, maxY }: ActivityChartProps) {
@@ -30,7 +39,7 @@ export default function ActivityChart({ setChartInstance, displayedDate, activit
 				datasets: [
 					{
 						label: 'Activity',
-						data: activityData,
+						data: convertMatchData(activityData),
 						fill: false,
 						borderWidth: 4,
 						borderColor: 'rgb(75, 192, 192)',
@@ -84,7 +93,7 @@ export default function ActivityChart({ setChartInstance, displayedDate, activit
 								time: {
 									unit: 'day',
 									round: 'day',
-									tooltipFormat: 'DDDD'
+									tooltipFormat: 'MM-dd-yyyy'
 								},
 								min: displayedDate.getTime(),
 								ticks: {
@@ -129,7 +138,7 @@ export default function ActivityChart({ setChartInstance, displayedDate, activit
 
 	return (
 		<>
-			<canvas ref={chartRef} />
+			<canvas className="dashboard-canvas" ref={chartRef} />
 		</>
 	);
 };

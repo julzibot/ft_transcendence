@@ -198,12 +198,12 @@ const UserDashboardCard = ({ user }: { user: User }) => {
 								)
 							}
 							{/* <!-- Modal --> */}
-							<div className="modal fade" id="history-modal" tabIndex={-1} aria-labelledby="history-modal-label" aria-hidden="true">
+							<div className="modal fade" data-bs-backdrop="false" id="history-modal" tabIndex={-1} aria-labelledby="history-modal-label" aria-hidden="true">
 								<div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
 									<div className="modal-content">
 										<div className="modal-header">
 											<h1 className="modal-title fs-5" id="history-modal-label">Game History</h1>
-											<button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+											<button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" />
 										</div>
 										<div className="modal-body">
 											{
@@ -234,6 +234,7 @@ const UserDashboardCard = ({ user }: { user: User }) => {
 														if (obj.game_mode === 2 || obj.game_mode === 3) {
 															player2 = obj.player1.id === user?.id ? obj.player2 : obj.player1;
 														}
+
 
 														return (
 															<div key={index} className={`match_item match_item_link ${cardColor}`}>
@@ -302,13 +303,21 @@ const UserDashboardCard = ({ user }: { user: User }) => {
 																							</th>
 																							:
 																							(
-																								<th className='match-table-row' scope='col'>
-																									<div className="d-flex flex-row align-items-center">
+																								obj.game_mode === 1 ? (
 
-																										<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>Guest</span>
-																										<Image className="ms-2" src="/static/images/default.jpg" alt="Guest" whRatio="50px" />
+																									<th className='match-table-row' scope='col'>
+																									<div className="d-flex flex-row align-items-center">
+																										<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>AI</span>
+																										<Image className="ms-2" src="/static/images/airobot.png" alt="AI" whRatio="50px" />
 																									</div>
-																								</th>
+																								</th>) : (
+																										<th className='match-table-row' scope='col'>
+																										<div className="d-flex flex-row align-items-center">
+																											<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>Guest</span>
+																											<Image className="ms-2" src="/static/images/default.jpg" alt="Guest" whRatio="50px" />
+																										</div>
+																										</th>
+																								)
 																							)
 																					}
 																				</tr>

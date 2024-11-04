@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/app/lib/AuthContext";
-import { useState, FormEvent, useEffect } from "react";
+import React, { useState, FormEvent, useEffect } from "react";
 import ImageUpload from "@/components/Utils/ImageUpload";
 import DOMPurify from 'dompurify'
 import UserDashboardCard from "@/components/ui/dashboard/UserDashboardCard"
@@ -10,6 +10,7 @@ import { useParams, useRouter } from "next/navigation";
 import { BACKEND_URL } from "@/config";
 import Cookies from "js-cookie";
 import Image from "@/components/Utils/Image";
+import { ChangeUsernameFormSchema, ChangeUsernameFormState } from "@/app/lib/definitions";
 
 interface User {
 	id: number;
@@ -30,12 +31,12 @@ export default function ProfilePage() {
 	const [showModal, setShowModal] = useState<boolean>(false)
 	const [loading, setLoading] = useState<boolean>(false)
 	const [isEditPw, setIsEditPw] = useState<boolean>(false)
+	const [formState, setFormState] = useState<ChangeUsernameFormState | undefined>(undefined)
 	const initialState = {
 		username: '',
 		oldPassword: '',
 		newPassword: '',
 		rePassword: '',
-		usernameError: '',
 		error: '',
 	}
 	const [data, setData] = useState({
@@ -43,7 +44,6 @@ export default function ProfilePage() {
 		oldPassword: '',
 		newPassword: '',
 		rePassword: '',
-		usernameError: '',
 		error: '',
 	})
 
@@ -106,32 +106,37 @@ export default function ProfilePage() {
 		setLoading(false)
 	}
 
-	async function updateUsername(event: FormEvent<HTMLFormElement>) {
+	async function updateUsername(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		if (data.username.length > 20) {
-			setData({ ...data, usernameError: 'Username is too long' })
-			return;
-		}
-
-		const response = await fetch(`${BACKEND_URL}/api/update/name/`, {
-			method: 'PUT',
-			credentials: 'include',
-			headers: {
-				'X-CSRFToken': Cookies.get('csrftoken') as string,
-				'Content-type': 'application/json'
-			},
-			body: JSON.stringify({
-				'username': session?.user?.username,
-				'name': data.username
-			})
+		const formData = new FormData(event.currentTarget)
+		const validatedFields = ChangeUsernameFormSchema.safeParse({
+			username: formData.get('username'),
 		})
-		if (response.ok) {
-			setIsEditing(false);
-			update()
+		if (!validatedFields.success) {
+			setFormState({ errors: validatedFields.error.flatten().fieldErrors })
 		}
 		else {
-			const res = await response.json()
-			setData({ ...data, usernameError: res.message })
+			const { username } = validatedFields.data
+			const response = await fetch(`${BACKEND_URL}/api/update/name/`, {
+				method: 'PUT',
+				credentials: 'include',
+				headers: {
+					'X-CSRFToken': Cookies.get('csrftoken') as string,
+					'Content-type': 'application/json'
+				},
+				body: JSON.stringify({
+					'username': session?.user?.username,
+					'name': username
+				})
+			})
+			if (response.ok) {
+				setIsEditing(false);
+				update()
+			}
+			else {
+				const res = await response.json()
+				setFormState({ message: res.message })
+			}
 		}
 		setIsEditing(false);
 	}
@@ -179,7 +184,16 @@ export default function ProfilePage() {
 										isEditing ? (
 											<>
 												<form onSubmit={updateUsername}>
-													<input type="text" className="form-control form-control-sm mb-2" placeholder="New Username" value={data.username} onChange={(e) => setData({ ...data, username: DOMPurify.sanitize(e.target.value) })} />
+													<input
+														type="text"
+														required
+														name="username"
+														id="username"
+														className="form-control form-control-sm mb-2"
+														placeholder="New Username"
+													// value={data.username}
+													// onChange={(e) => setData({ ...data, username: DOMPurify.sanitize(e.target.value) })} 
+													/>
 													<button type="submit" className="btn btn-primary btn-sm rounded-pill">Submit</button>
 													<button type="button" onClick={() => setIsEditing(false)} className="btn btn-secondary rounded-pill btn-sm">Cancel</button>
 												</form>
@@ -206,7 +220,10 @@ export default function ProfilePage() {
 											</>
 										)
 									}
-									<div className="text-danger">{data.usernameError}</div>
+									{formState?.errors?.username && formState?.errors?.username.map((error, index) => (
+										<div className="form-label" key={index}>{error}</div>)
+									)}
+									{formState?.message && <p className="text-danger">{formState.message}</p>}
 								</>
 							) : (
 								<>
@@ -237,10 +254,10 @@ export default function ProfilePage() {
 															<>
 																<form onSubmit={changePassword}>
 																	<input placeholder="Current Password" className="form-control form-control-sm" type="password" value={data.oldPassword} onChange={(e) => setData({ ...data, oldPassword: DOMPurify.sanitize(e.target.value) })} />
-																	<input placeholder="New Password" className="form-control form-control-sm" type="password" value={data.newPassword} onChange={(e) => setData({ ...data, newPassword: DOMPurify.sanitize(e.target.value) })} />
-																	<input placeholder="Confirm Password" className="form-control form-control-sm" type="password" value={data.rePassword} onChange={(e) => setData({ ...data, rePassword: DOMPurify.sanitize(e.target.value) })} />
-																	<button type="submit" disabled={loading} className="btn btn-primary btn-sm rounded-pill">Submit</button>
-																	<button type="button" disabled={loading} onClick={() => setIsEditPw(false)} className="btn btn-secondary rounded-pill btn-sm">Cancel</button>
+																	<input placeholder="New Password" className="mt-1 form-control form-control-sm" type="password" value={data.newPassword} onChange={(e) => setData({ ...data, newPassword: DOMPurify.sanitize(e.target.value) })} />
+																	<input placeholder="Confirm Password" className="mt-1 form-control form-control-sm" type="password" value={data.rePassword} onChange={(e) => setData({ ...data, rePassword: DOMPurify.sanitize(e.target.value) })} />
+																	<button type="submit" disabled={loading} className=" mt-3 me-2 btn btn-primary btn-sm rounded-pill">Submit</button>
+																	<button type="button" disabled={loading} onClick={() => setIsEditPw(false)} className="mt-3 btn btn-secondary rounded-pill btn-sm">Cancel</button>
 																	<div className="form-text text-danger">{data.error}</div>
 																</form>
 															</>
