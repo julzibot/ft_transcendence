@@ -124,6 +124,19 @@ export default function tournamentEvents(io, socket) {
 		socket.in(tournamentId).emit('updateParticipants', updatedParticipants);
 	});
 
+	socket.on('unregister', data => {
+		const { tournamentId, userId } = data
+		const updatedParticipants = []
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
+		if (tournament) {
+			const index = tournament.participants.findIndex(participant => participant.user.id === userId)
+			if (index !== -1) {
+				tournament.participants.splice(index, 1)
+				socket.in(tournamentId).emit('updateParticipants', tournament.participants)
+			}
+		}
+	})
+
 	socket.on('returnToLobby', async (data) => {
 		const { userId, tournamentId } = data;
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);

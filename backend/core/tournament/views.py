@@ -85,9 +85,7 @@ class TournamentView(APIView):
 		except ObjectDoesNotExist:
 			return Response({'message': 'Tournament not found'}, status=status.HTTP_404_NOT_FOUND)
 		tournamentSerializer = TournamentSerializer(tournament)
-		participants = ParticipantModel.objects.filter(tournament=tournament).all()
-		participantSerializer = ParticipantSerializer(participants, many=True)
-		return Response({'participants': participantSerializer.data, 'tournament': tournamentSerializer.data}, status=status.HTTP_200_OK)
+		return Response(tournamentSerializer.data, status=status.HTTP_200_OK)
 
 class StartTournamentView(APIView):
 	def put(self, request, id):

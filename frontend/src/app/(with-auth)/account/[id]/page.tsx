@@ -155,7 +155,10 @@ export default function ProfilePage() {
 			})
 		})
 		if (response.status === 204) {
-			router.replace('/auth/signin')
+			const session = Cookies.get('sessionid')
+			if (session)
+				Cookies.remove('sessionid')
+			router.push('/auth/signin')
 		}
 		else {
 			const res = await response.json()

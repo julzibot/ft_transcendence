@@ -38,6 +38,7 @@ export default function TournamentLobby() {
 
 	const handleLeaveTournament = async () => {
 		await leaveTournament(id, session.user.id)
+		socket.emit('unregister', { tournamentId: id, userId: session?.user?.id })
 		router.replace('/tournaments')
 	}
 
@@ -54,7 +55,7 @@ export default function TournamentLobby() {
 			const data = await response.json()
 			if (data.participants.some((participant: ParticipantType) => Number(participant.user.id) === session?.user?.id)) {
 				setParticipantsList(data.participants)
-				setTournamentData(data.tournament)
+				setTournamentData(data)
 				console.log(data.tournament)
 			} else
 				router.replace('/error?code=403')
@@ -109,7 +110,6 @@ export default function TournamentLobby() {
 	}, [session, socket, id]);
 
 	useEffect(() => {
-		console.log('pairs is set');
 		if (opponentLeft != -1 && pairs) {
 			const pair = pairs?.find((p: Pair) => p.player1.id === session?.user?.id || p.player2.id === session?.user?.id);
 			console.log(`[opponentLeft received] data.userId: ${JSON.stringify(opponentLeft)} pairs: ${JSON.stringify(pairs)}`);
@@ -188,7 +188,7 @@ export default function TournamentLobby() {
 								setReceived(true);
 								await JoinLobby(data.linkToJoin, session.user.id);
 								socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player2.id, oppId: pair?.player1.id })
-								setTimeout(() => {
+								timer = setTimeout(() => {
 									router.replace(`${id}/lobby/${data.linkToJoin}`);
 								}, 5000)
 							}
@@ -211,6 +211,11 @@ export default function TournamentLobby() {
 				socket.emit('returnToLobby', { tournamentId: id, userId: session?.user?.id })
 			}
 	}, [tournamentData, socket])
+
+	useEffect(() => {
+		if (tournamentData && tournamentData.IsFinished)
+			setEndTournamentCardShow(true)
+	}, [tournamentData])
 
 	return (
 		<>

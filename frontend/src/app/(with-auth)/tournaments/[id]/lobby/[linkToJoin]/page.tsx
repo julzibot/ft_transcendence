@@ -142,10 +142,6 @@ export default function TournamentGameLobby() {
 	const handleGameEnded = () => {
 		setGameEnded(true)
 	}
-	useEffect(() => {
-		console.log({ gameSettings })
-
-	}, [gameSettings])
 
 	return (
 		<>
@@ -156,13 +152,12 @@ export default function TournamentGameLobby() {
 							&& players.player1
 							&& players.player2
 							&& gameInfos
-							&& gameInfos.game_id
-							&& gameSettings.bgColor) ? (
+							&& gameInfos.game_id) ? (
 							<GameCountdownModal lobby_id={linkToJoin} game_id={gameInfos.game_id} game_mode={gameInfos.game_mode} players={players} countdown={countdown} setCountdown={setCountdown} />
 						) : (<WaitingLobbyModal players={players} />)
-					) : (start && session && gameSettings &&
+					) : (start && session && gameSettings && gameSettings.bgColor &&
 						(
-							<ThreeScene
+							< ThreeScene
 								gameInfos={gameInfos}
 								gameSettings={gameSettings}
 								room_id={gameInfos?.game_id} user_id={session?.user?.id}
