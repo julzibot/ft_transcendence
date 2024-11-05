@@ -170,12 +170,12 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 							key={index}
 							onClick={() => handleJoin(tournament, session?.user?.id, tournament.linkToJoin)}
 							className={`${tournament.isStarted && !tournament.participants.some((p) => Number(p.user.id) === session?.user?.id) ? 'disabled' : ''}
-											${tournament.isStarted && tournament.participants.some((p) => Number(p.user.id) === session?.user?.id) && 'text-light'}
+											${tournament.participants.some((p) => Number(p.user.id) === session?.user?.id) && 'text-light'}
 											${tournamentData.length - 1 === index ? 'border-bottom' : ''} ${index === 0 ? '' : 'border-top'}
 											tournament-entry d-flex flex-row align-items-center justify-content-around fw-bold fs-5 z-1 position-relative`}
 						>
 							{
-								tournament.isStarted && tournament.participants.some((participant) => Number(participant.user.id) === session?.user?.id) &&
+								tournament.participants.some((participant) => Number(participant.user.id) === session?.user?.id) &&
 								<div className="video-container">
 									<video
 										className="background-video"

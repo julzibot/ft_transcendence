@@ -168,6 +168,8 @@ export default function ProfilePage() {
 		setData(initialState)
 	}, [update])
 
+	if (!session)
+		return null
 	return (
 		<>
 			<div className="d-flex flex-row align-items-center justify-content-evenly">
@@ -277,7 +279,7 @@ export default function ProfilePage() {
 									<hr />
 									{
 										session?.user.id ? (
-											<button type="button" className="btn btn-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Delete Account</button>
+											<button type="button" className="btn btn-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">Delete Account</button>
 										) : (
 											<a className='btn btn-danger rounded-pill disabled placeholder' aria-disabled="true">Delete Account</a>
 										)
@@ -293,11 +295,11 @@ export default function ProfilePage() {
 			</div >
 
 
-			<div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex={-1} aria-labelledby="staticBackdropLabel" aria-hidden="true">
+			<div className="modal fade" id="deleteAccountModal" data-bs-backdrop="false" tabIndex={-1} aria-hidden="true">
 				<div className="modal-dialog modal-dialog-centered">
 					<div className="modal-content">
 						<div className="modal-header">
-							<h1 className="modal-title fs-5" id="staticBackdropLabel">We are sad to see you leaving 😔</h1>
+							<h1 className="modal-title fs-5" id="deleteAccountModal">We are sad to see you leaving 😔</h1>
 							<button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						<div className="modal-footer">
@@ -310,11 +312,11 @@ export default function ProfilePage() {
 
 			<div className={`modal fade ${showModal ? 'show' : ''}`}
 				id="pwConfirmation"
-				data-bs-backdrop="static"
+				data-bs-backdrop="false"
 				data-bs-keyboard="false"
 				tabIndex={-1}
 				aria-labelledby="pwConfirmation"
-				style={{ display: showModal ? 'block' : 'none' }}
+				style={{ display: showModal ? 'fade' : 'none' }}
 				aria-hidden="true">
 				<div className="modal-dialog">
 					<div className="modal-content">

@@ -59,6 +59,9 @@ class JoinTournamentView(APIView):
 			tournament = TournamentModel.objects.get(id=tournament_id)
 		except ObjectDoesNotExist:
 			return Response({'message': 'Tournament not found'}, status=status.HTTP_404_NOT_FOUND)
+		participant = ParticipantModel.objects.filter(user=user).exclude(tournament=tournament)
+		if participant:
+			return Response({'message': 'You are already registered in another tournament'}, status=status.HTTP_403_FORBIDDEN)
 		if tournament.numberOfPlayers + 1 > tournament.maxPlayerNumber:
 			return Response({'message': 'Tournament is full'}, status=status.HTTP_400_BAD_REQUEST)
 		ParticipantModel.objects.get_or_create(tournament=tournament, user=user)
@@ -124,5 +127,8 @@ class DeleteParticipantView(APIView):
 			participant = ParticipantModel.objects.get(user=user, tournament=tournament)
 		except ObjectDoesNotExist:
 			return Response({'message': 'Participant not found'}, status=status.HTTP_404_NOT_FOUND)
+		if (participant.user.id == tournament.creator.id):
+			tournament.delete()
+			return Response({'message': 'tournament deleted'}, status=status.HTTP_204_NO_CONTENT)
 		participant.delete()
 		return Response({'message': 'Participant deleted'}, status=status.HTTP_204_NO_CONTENT)

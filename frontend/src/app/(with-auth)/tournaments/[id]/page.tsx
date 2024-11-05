@@ -11,7 +11,7 @@ import useSocketContext from '@/context/socket';
 import { Pair } from '@/types/TournamentSettings';
 import { AddLobbyData, JoinLobby } from '@/services/onlineGames';
 import { LobbyPayload } from '@/types/Lobby';
-import { endTournament, startTournament } from '@/services/tournaments';
+import { endTournament, leaveTournament, startTournament } from '@/services/tournaments';
 import "./styles.css"
 import Image from '@/components/Utils/Image';
 import EndTournamentCard from '@/components/cards/EndTournamentCard';
@@ -33,6 +33,11 @@ export default function TournamentLobby() {
 	const [sent, setSent] = useState(false);
 	const [isStarting, setIsStarting] = useState(false);
 	const [endTournamentCardShow, setEndTournamentCardShow] = useState<boolean>(false)
+
+	const handleLeaveTournament = async () => {
+		await leaveTournament(id, session.user.id)
+		router.replace('/tournaments')
+	}
 
 	const fetchTournamentData = async () => {
 		const response = await fetch(`${BACKEND_URL}/api/tournament/${id}/`, {
@@ -228,6 +233,24 @@ export default function TournamentLobby() {
 								})
 							}
 						</div>
+						<div className="mt-4 d-flex justify-content-between">
+
+							{
+								tournamentData && !tournamentData.isStarted &&
+								<button className="btn btn-outline-danger btn-lg " onClick={handleLeaveTournament}>
+									Unregister
+								</button >
+							}
+							{
+								tournamentData && tournamentData.creator.id === session?.user?.id && !tournamentData.isStarted &&
+								<button className="btn btn-warning btn-lg" onClick={handleStartTournament}>
+									Start Tournament
+								</button >
+							}
+						</div>
+						{
+							endTournamentCardShow && <EndTournamentCard participants={participantsList} />
+						}
 					</div>
 				</div>
 				{
@@ -272,16 +295,7 @@ export default function TournamentLobby() {
 						</div>
 					</div>
 				}
-			</div >
-			{
-				tournamentData && tournamentData.creator.id === session?.user?.id && !tournamentData.isStarted &&
-				<button className="btn btn-primary" onClick={handleStartTournament}>
-					Start Tournament
-				</button >
-			}
-			{
-				endTournamentCardShow && <EndTournamentCard participants={participantsList} />
-			}
+			</div>
 		</>
 	)
 }
