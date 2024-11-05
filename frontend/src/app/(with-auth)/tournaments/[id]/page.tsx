@@ -136,7 +136,7 @@ export default function TournamentLobby() {
 				setIsStarting(true);
 			})
 
-			socket.on('opponentLeft', (data: {userId: number}) => {
+			socket.on('opponentLeft', (data: { userId: number }) => {
 				setOpponentLeft(data.userId)
 			})
 
@@ -256,8 +256,8 @@ export default function TournamentLobby() {
 						<div className="mt-4 d-flex justify-content-between">
 
 							{
-								tournamentData && !tournamentData.isStarted &&
-								<button className="btn btn-outline-danger btn-lg " onClick={handleLeaveTournament}>
+								tournamentData && !tournamentData.isStarted && !isStarting &&
+								< button className="btn btn-outline-danger btn-lg " onClick={handleLeaveTournament}>
 									Unregister
 								</button >
 							}
@@ -268,9 +268,6 @@ export default function TournamentLobby() {
 								</button >
 							}
 						</div>
-						{
-							endTournamentCardShow && <EndTournamentCard participants={participantsList} />
-						}
 					</div>
 				</div>
 				{
@@ -315,7 +312,10 @@ export default function TournamentLobby() {
 						</div>
 					</div>
 				}
-			</div>
+			</div >
+			{
+				endTournamentCardShow && <EndTournamentCard participants={participantsList} tournamentId={id} />
+			}
 		</>
 	)
 }

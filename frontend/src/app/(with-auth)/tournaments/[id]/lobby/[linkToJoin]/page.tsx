@@ -58,7 +58,7 @@ export default function TournamentGameLobby() {
 				// console.log('the other player is not here bool: ' + start);
 				router.push(`/tournaments/${id}`);
 			}
-		}, 2000);
+		}, 5000);
 	}
 
 	useEffect(() => {
@@ -142,6 +142,10 @@ export default function TournamentGameLobby() {
 	const handleGameEnded = () => {
 		setGameEnded(true)
 	}
+	useEffect(() => {
+		console.log({ gameSettings })
+
+	}, [gameSettings])
 
 	return (
 		<>
@@ -152,7 +156,8 @@ export default function TournamentGameLobby() {
 							&& players.player1
 							&& players.player2
 							&& gameInfos
-							&& gameInfos.game_id) ? (
+							&& gameInfos.game_id
+							&& gameSettings.bgColor) ? (
 							<GameCountdownModal lobby_id={linkToJoin} game_id={gameInfos.game_id} game_mode={gameInfos.game_mode} players={players} countdown={countdown} setCountdown={setCountdown} />
 						) : (<WaitingLobbyModal players={players} />)
 					) : (start && session && gameSettings &&

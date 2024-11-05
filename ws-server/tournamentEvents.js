@@ -114,7 +114,7 @@ export default function tournamentEvents(io, socket) {
 				startTime: 0,
 				duration: 0,
 				timeoutStarted: false,
-				inLobby : [],
+				inLobby: [],
 				disconnected: [],
 				participants: [{ user: user, return_time: 0, opponents: new Map() }],
 			}
@@ -200,7 +200,6 @@ export default function tournamentEvents(io, socket) {
 			}));
 
 			const loopId = setInterval(() => {
-				console.log("checking...");
 				const timestamp = performance.now();
 				const tournament_elapsed = (timestamp - tournament.startTime) / 1000;
 				if (tournament.inLobby.length > 1 && tournament_elapsed < tournament.duration) {
@@ -221,7 +220,7 @@ export default function tournamentEvents(io, socket) {
 					io.in(tournamentId).emit('announceTournamentEnd');
 					clearInterval(loopId);
 				}
-				console.log('tournament.disconnected.length, tournament.participants.length: ', tournament.disconnected.length, tournament.participants.length)
+				// console.log('tournament.disconnected.length, tournament.participants.length: ', tournament.disconnected.length, tournament.participants.length)
 			}, 5000);
 		}
 	})
