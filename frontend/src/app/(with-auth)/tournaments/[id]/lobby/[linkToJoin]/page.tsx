@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/app/lib/AuthContext";
 import useSocketContext, { SocketProvider } from "@/context/socket";
@@ -48,6 +48,19 @@ export default function TournamentGameLobby() {
 	const [start, setStart] = useState<boolean>(false);
 	const socket = useSocketContext();
 
+	const startRef = useRef(start);
+	startRef.current = start;
+
+	let timer: number;
+	if (countdown === 0) {
+		timer = setTimeout(() => {
+			if (!startRef.current) {
+				// console.log('the other player is not here bool: ' + start);
+				router.push(`/tournaments/${id}`);
+			}
+		}, 2000);
+	}
+
 	useEffect(() => {
 		const getLobbyData = async () => {
 			try {
@@ -89,7 +102,6 @@ export default function TournamentGameLobby() {
 				gameMode: 3,
 				tournamentLink: id
 			})
-
 			socket.on('initGame', (data: any) => {
 				setGameInfos(data)
 			})
@@ -153,7 +165,7 @@ export default function TournamentGameLobby() {
 								gamemode={gameInfos?.game_mode} handleGameEnded={handleGameEnded} />
 						)
 					)}
-					{lobbyData && gameEnded && <EndGameCard gameMode={lobbyData.gameMode} tournamentLink={lobbyData?.tournamentLink} />}
+					{lobbyData && gameEnded && <EndGameCard gameMode={lobbyData?.gameMode} tournamentLink={lobbyData?.tournamentLink} />}
 				</SocketProvider>
 			}
 		</>
