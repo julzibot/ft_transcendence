@@ -233,6 +233,8 @@ tournament.on('connection', (socket) => {
 			tournamentsArray.forEach(t => {
 				const part = t.participants.find(p => p.user.id === disconnectedUserId);
 				if (part) {
+					console.log(`[tournament] [disconnect] emitting opponentLeft event to ${t.tournamentId}`);
+					tournament.in(t.tournamentId).emit('opponentLeft', {userId: disconnectedUserId});
 					t.disconnected.push(disconnectedUserId);
 					if (t.inLobby) {
 						const playerIndex = t.inLobby.findIndex(p => p.user.id === disconnectedUserId);
