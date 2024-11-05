@@ -44,7 +44,7 @@ export default function LocalGame() {
 		if (typeof window !== 'undefined') {
 			localStorage.setItem("gameSettings", JSON.stringify(localProps));
 		}
-		router.replace("/game/local/play");
+		router.push("/game/local/play");
 	}
 
 	return (
