@@ -158,17 +158,17 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						const textMaterial = new THREE.MeshStandardMaterial({ color: 0xeeeeee, emissive: 0xdddddd, emissiveIntensity: 0.4 });
 						textMesh.material = textMaterial;
 						if (id === 0)
-							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 9, CONST.GAMEHEIGHT / 2 - 10, 1);
+							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 8, CONST.GAMEHEIGHT / 2 - 10, 1);
 						else
-							textMesh.position.set(CONST.GAMEWIDTH / 2 + 5, CONST.GAMEHEIGHT / 2 - 10, 1);
+							textMesh.position.set(CONST.GAMEWIDTH / 2 + 4, CONST.GAMEHEIGHT / 2 - 10, 1);
 					}
 					else if (mode === 4.5) {
 						const textMaterial = new THREE.MeshStandardMaterial({ color: 0xcc0000, emissive: 0xee00ee, emissiveIntensity: 0.15 });
 						textMesh.material = textMaterial;
 						if (id === 0)
-							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 9, CONST.GAMEHEIGHT / 2 - 8.5, 1);
+							textMesh.position.set(-CONST.GAMEWIDTH / 2 - 8, CONST.GAMEHEIGHT / 2 - 8.5, 1);
 						else
-							textMesh.position.set(CONST.GAMEWIDTH / 2 + 5, CONST.GAMEHEIGHT / 2 - 8.5, 1);
+							textMesh.position.set(CONST.GAMEWIDTH / 2 + 4, CONST.GAMEHEIGHT / 2 - 8.5, 1);
 					}
 					else if (mode == 5) {
 						// ENDGAME

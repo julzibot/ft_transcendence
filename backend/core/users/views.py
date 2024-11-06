@@ -173,9 +173,12 @@ class DeleteAccountView(APIView):
       user = UserAccount.objects.get(id=data['user_id'])
     except ObjectDoesNotExist:
       return Response({'message': 'user does not exists'}, status=status.HTTP_404_NOT_FOUND)
-    auth.logout(request)
-    user.delete_image()
-    user.delete()
+    try:
+      auth.logout(request)
+      user.delete_image()
+      user.delete()
+    except:
+      return Response(status=status.HTTP_400_BAD_REQUEST)
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 

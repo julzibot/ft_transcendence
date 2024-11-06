@@ -7,6 +7,7 @@ import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Modal from 'react-bootstrap/Modal';
 import { useState } from "react";
+import Link from 'next/link'
 
 export default function AuthButton() {
   const { session, logout, loading } = useAuth();
@@ -16,7 +17,9 @@ export default function AuthButton() {
     <>
       <Dropdown as={ButtonGroup} size="lg">
         <div className="d-flex align-items-center bg-light rounded-start-3 ps-2">
-          <Image src={session?.user?.image} alt="profile picture" whRatio="30px" loading={loading} />
+          <Link href={`/account/${session?.user?.id}`}>
+            <Image src={session?.user?.image} alt="profile picture" whRatio="30px" loading={loading} />
+          </Link>
           <span className="ms-2 pe-2 fw-bold">{session?.user?.username}</span>
         </div>
         <Dropdown.Toggle split variant="light" id="dropdown-basic">
@@ -27,7 +30,7 @@ export default function AuthButton() {
           <Dropdown.Divider />
           <Dropdown.Item as="button" onClick={() => setShow(true)}>Sign Out</Dropdown.Item>
         </Dropdown.Menu>
-      </Dropdown>
+      </Dropdown >
 
 
       <Modal

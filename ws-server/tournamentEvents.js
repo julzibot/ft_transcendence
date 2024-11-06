@@ -114,7 +114,7 @@ export default function tournamentEvents(io, socket) {
 				startTime: 0,
 				duration: 0,
 				timeoutStarted: false,
-				inLobby : [],
+				inLobby: [],
 				disconnected: [],
 				participants: [{ user: user, return_time: 0, opponents: new Map() }],
 			}
@@ -123,6 +123,19 @@ export default function tournamentEvents(io, socket) {
 		}
 		socket.in(tournamentId).emit('updateParticipants', updatedParticipants);
 	});
+
+	socket.on('unregister', data => {
+		const { tournamentId, userId } = data
+		const updatedParticipants = []
+		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
+		if (tournament) {
+			const index = tournament.participants.findIndex(participant => participant.user.id === userId)
+			if (index !== -1) {
+				tournament.participants.splice(index, 1)
+				socket.in(tournamentId).emit('updateParticipants', tournament.participants)
+			}
+		}
+	})
 
 	socket.on('returnToLobby', async (data) => {
 		const { userId, tournamentId } = data;
@@ -200,7 +213,6 @@ export default function tournamentEvents(io, socket) {
 			}));
 
 			const loopId = setInterval(() => {
-				console.log("checking...");
 				const timestamp = performance.now();
 				const tournament_elapsed = (timestamp - tournament.startTime) / 1000;
 				if (tournament.inLobby.length > 1 && tournament_elapsed < tournament.duration) {
@@ -221,7 +233,7 @@ export default function tournamentEvents(io, socket) {
 					io.in(tournamentId).emit('announceTournamentEnd');
 					clearInterval(loopId);
 				}
-				console.log('tournament.disconnected.length, tournament.participants.length: ', tournament.disconnected.length, tournament.participants.length)
+				// console.log('tournament.disconnected.length, tournament.participants.length: ', tournament.disconnected.length, tournament.participants.length)
 			}, 5000);
 		}
 	})

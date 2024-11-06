@@ -38,7 +38,6 @@ function animate(vars) {
         // console.log("HERE " + spawnChance);
 
         if (spawnChance > 0) {
-            console.log("BALLE EN ROUTE !");
             createBall(vars);
             vars.spawnChanceCounter = 1;
         }

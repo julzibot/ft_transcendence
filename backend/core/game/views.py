@@ -112,7 +112,6 @@ class UpdateLocalGame(APIView):
 				return Response({'message': f'[PUT] [{game.id}] Player 1: No Dashboard Data'}, status=status.HTTP_404_NOT_FOUND)
 
 			dashboard.save()
-
 			return Response({'message': f'[{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
 	
 		return Response({'message': '[PUT] Invalid Game Match Request'}, status=status.HTTP_400_BAD_REQUEST)
@@ -190,8 +189,6 @@ class UpdateOnlineGame(APIView):
 		except:
 			return Response({'message': f'[DELETE] [{id}] Problem Encountered'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 		return Response({'message': f'[DELETE] [{id}] Game Match Successfully Deleted'}, status=status.HTTP_200_OK)
-
-
 	
 class UserGameModeHistory(APIView):
 	def get(self, request, id):

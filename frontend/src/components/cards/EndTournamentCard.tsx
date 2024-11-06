@@ -6,12 +6,18 @@ import { Controller, TrophyFill } from 'react-bootstrap-icons'
 import { useState, useEffect } from 'react'
 import styles from './EndTournamentCard.module.css'
 import { useRouter } from 'next/navigation'
+import { deleteTournament } from "@/services/tournaments";
 
-export default function EndTournamentCard({ participants }: { participants: ParticipantType[] }) {
+export default function EndTournamentCard({ participants, tournamentId }: { participants: ParticipantType[], tournamentId: string }) {
   const [winnerShow, setWinnerShow] = useState(false)
   const [scoreShow, setScoreShow] = useState(false)
   const [winners, setWinners] = useState<ParticipantType[]>()
   const router = useRouter()
+
+  const leaveTournament = async () => {
+    await deleteTournament(tournamentId)
+    router.replace('/tournaments')
+  }
 
   function findWinner() {
     const winner: ParticipantType[] = []
@@ -69,7 +75,7 @@ export default function EndTournamentCard({ participants }: { participants: Part
             </div>
             <hr />
             <div className="d-flex align-items-center justify-content-center mb-4">
-              <button className="btn btn-primary" onClick={() => router.replace('/tournaments')}>Back to Lobbies</button >
+              <button className="btn btn-primary" onClick={leaveTournament}>Back to Lobbies</button >
             </div>
           </div>
         </div>

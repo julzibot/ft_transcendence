@@ -123,7 +123,7 @@ export default function Customization() {
 										className="form-select"
 										aria-label="Animated Background"
 										value={gameCustoms.background}
-										onChange={(e) => setGameCustoms((prevSettings) => ({ ...prevSettings, background: parseInt(e.target.value) }))}
+										onChange={(e) => setGameCustoms((prevSettings) => ({ ...prevSettings, background: e.target.value === "" ? 0 : parseInt(e.target.value) }))}
 									>
 										<option value="">Select Animated Background</option>
 										<option value={0}>Default</option>
@@ -228,7 +228,7 @@ export default function Customization() {
 									className="form-select"
 									aria-label="Static Background"
 									value={gameCustoms.background}
-									onChange={(e) => setGameCustoms((prevSettings) => ({ ...prevSettings, background: parseInt(e.target.value) }))}
+									onChange={(e) => setGameCustoms((prevSettings) => ({ ...prevSettings, background: e.target.value === "" ? 0 : parseInt(e.target.value) }))}
 								>
 									<option value="">Select Static Background</option>
 									<option value={4}>Snow</option>

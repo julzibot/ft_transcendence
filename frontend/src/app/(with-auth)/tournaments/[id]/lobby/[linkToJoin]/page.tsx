@@ -58,7 +58,7 @@ export default function TournamentGameLobby() {
 				// console.log('the other player is not here bool: ' + start);
 				router.push(`/tournaments/${id}`);
 			}
-		}, 2000);
+		}, 5000);
 	}
 
 	useEffect(() => {
@@ -155,9 +155,9 @@ export default function TournamentGameLobby() {
 							&& gameInfos.game_id) ? (
 							<GameCountdownModal lobby_id={linkToJoin} game_id={gameInfos.game_id} game_mode={gameInfos.game_mode} players={players} countdown={countdown} setCountdown={setCountdown} />
 						) : (<WaitingLobbyModal players={players} />)
-					) : (start && session && gameSettings &&
+					) : (start && session && gameSettings && gameSettings.bgColor &&
 						(
-							<ThreeScene
+							< ThreeScene
 								gameInfos={gameInfos}
 								gameSettings={gameSettings}
 								room_id={gameInfos?.game_id} user_id={session?.user?.id}

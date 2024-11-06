@@ -12,7 +12,7 @@ function ErrorContent() {
   function Error() {
     switch (code) {
       case '404':
-        return "Oops you are lost"
+        return "The content you are looking for is not available"
       case '403':
         return "You are not allowed to come here."
       case '400':

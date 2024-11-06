@@ -11,7 +11,7 @@ import useSocketContext from '@/context/socket';
 import { Pair } from '@/types/TournamentSettings';
 import { AddLobbyData, JoinLobby } from '@/services/onlineGames';
 import { LobbyPayload } from '@/types/Lobby';
-import { endTournament, startTournament } from '@/services/tournaments';
+import { endTournament, leaveTournament, startTournament } from '@/services/tournaments';
 import "./styles.css"
 import Image from '@/components/Utils/Image';
 import EndTournamentCard from '@/components/cards/EndTournamentCard';
@@ -36,6 +36,12 @@ export default function TournamentLobby() {
 	const [opponentLeft, setOpponentLeft] = useState<number>(-1);
 	let timer: number;
 
+	const handleLeaveTournament = async () => {
+		await leaveTournament(id, session.user.id)
+		socket.emit('unregister', { tournamentId: id, userId: session?.user?.id })
+		router.replace('/tournaments')
+	}
+
 	const fetchTournamentData = async () => {
 		const response = await fetch(`${BACKEND_URL}/api/tournament/${id}/`, {
 			method: 'GET',
@@ -49,7 +55,7 @@ export default function TournamentLobby() {
 			const data = await response.json()
 			if (data.participants.some((participant: ParticipantType) => Number(participant.user.id) === session?.user?.id)) {
 				setParticipantsList(data.participants)
-				setTournamentData(data.tournament)
+				setTournamentData(data)
 				console.log(data.tournament)
 			} else
 				router.replace('/error?code=403')
@@ -104,7 +110,6 @@ export default function TournamentLobby() {
 	}, [session, socket, id]);
 
 	useEffect(() => {
-		console.log('pairs is set');
 		if (opponentLeft != -1 && pairs) {
 			const pair = pairs?.find((p: Pair) => p.player1.id === session?.user?.id || p.player2.id === session?.user?.id);
 			console.log(`[opponentLeft received] data.userId: ${JSON.stringify(opponentLeft)} pairs: ${JSON.stringify(pairs)}`);
@@ -131,7 +136,7 @@ export default function TournamentLobby() {
 				setIsStarting(true);
 			})
 
-			socket.on('opponentLeft', (data: {userId: number}) => {
+			socket.on('opponentLeft', (data: { userId: number }) => {
 				setOpponentLeft(data.userId)
 			})
 
@@ -183,7 +188,7 @@ export default function TournamentLobby() {
 								setReceived(true);
 								await JoinLobby(data.linkToJoin, session.user.id);
 								socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player2.id, oppId: pair?.player1.id })
-								setTimeout(() => {
+								timer = setTimeout(() => {
 									router.replace(`${id}/lobby/${data.linkToJoin}`);
 								}, 5000)
 							}
@@ -206,6 +211,11 @@ export default function TournamentLobby() {
 				socket.emit('returnToLobby', { tournamentId: id, userId: session?.user?.id })
 			}
 	}, [tournamentData, socket])
+
+	useEffect(() => {
+		if (tournamentData && tournamentData.IsFinished)
+			setEndTournamentCardShow(true)
+	}, [tournamentData])
 
 	return (
 		<>
@@ -246,6 +256,21 @@ export default function TournamentLobby() {
 										</div>
 									)
 								})
+							}
+						</div>
+						<div className="mt-4 d-flex justify-content-between">
+
+							{
+								tournamentData && !tournamentData.isStarted && !isStarting &&
+								< button className="btn btn-outline-danger btn-lg " onClick={handleLeaveTournament}>
+									Unregister
+								</button >
+							}
+							{
+								tournamentData && tournamentData.creator.id === session?.user?.id && !tournamentData.isStarted &&
+								<button className="btn btn-warning btn-lg" onClick={handleStartTournament}>
+									Start Tournament
+								</button >
 							}
 						</div>
 					</div>
@@ -294,13 +319,7 @@ export default function TournamentLobby() {
 				}
 			</div >
 			{
-				tournamentData && tournamentData.creator.id === session?.user?.id && !tournamentData.isStarted &&
-				<button className="btn btn-primary" onClick={handleStartTournament}>
-					Start Tournament
-				</button >
-			}
-			{
-				endTournamentCardShow && <EndTournamentCard participants={participantsList} />
+				endTournamentCardShow && <EndTournamentCard participants={participantsList} tournamentId={id} />
 			}
 		</>
 	)
