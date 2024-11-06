@@ -56,7 +56,6 @@ export default function TournamentLobby() {
 			if (data.participants.some((participant: ParticipantType) => Number(participant.user.id) === session?.user?.id)) {
 				setParticipantsList(data.participants)
 				setTournamentData(data)
-				console.log(data.tournament)
 			} else
 				router.replace('/error?code=403')
 		}
@@ -128,7 +127,6 @@ export default function TournamentLobby() {
 			})
 
 			socket.on('tournamentStarted', () => {
-				console.log('tournament started setting isStarting to true')
 				setIsStarting(true);
 			})
 
@@ -137,7 +135,6 @@ export default function TournamentLobby() {
 			})
 
 			socket.on('updateParticipants', (data: ParticipantType[]) => {
-				console.log(data)
 				setParticipantsList(data.sort((a, b) => {
 					if (a.wins > b.wins) return -1;
 					if (a.wins < b.wins) return 1;
@@ -163,7 +160,6 @@ export default function TournamentLobby() {
 						//Create a lobby with payload
 						const linkToJoin = await AddLobbyData(payload);
 						//Send the link to the other player
-						console.log('sending link:', linkToJoin);
 						socket.emit('sendLink', {
 							tournamentId: id,
 							linkToJoin: linkToJoin,
@@ -180,7 +176,6 @@ export default function TournamentLobby() {
 						socket.on('receiveLink', async (data: { linkToJoin: string, receiverId: number }) => {
 							// do Not simply push to the lobby, but join using JoinLobbyView API in the backend ()
 							if (data.receiverId === session?.user?.id) {
-								console.log('received link:', data);
 								setReceived(true);
 								await JoinLobby(data.linkToJoin, session.user.id);
 								socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player2.id, oppId: pair?.player1.id })

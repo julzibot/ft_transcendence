@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q, F
 
 from users.models import UserAccount
 from tournament.models import TournamentModel, ParticipantModel
@@ -140,43 +140,43 @@ class UpdateOnlineGame(APIView):
 				user2 = UserAccount.objects.get(id=game.player2.id)
 				participant1 = ParticipantModel.objects.get(user=user1, tournament=tournament)
 				participant2 = ParticipantModel.objects.get(user=user2, tournament=tournament)
+				if score1 > score2: #player1 won
+					participant1.wins = F('wins') + 1
+				else: #player2 won
+					participant2.wins = F('wins') + 1
+				participant1.gamesPlayed=  F('gamesPlayed') + 1
+				participant2.gamesPlayed = F('gamesPlayed') + 1
+				participant1.save()
+				participant2.save()
+
 			except ObjectDoesNotExist:
 				return Response(status=status.HTTP_404_NOT_FOUND)
-			if score1 > score2: #player1 won
-				participant1.wins += 1
-			else: #player2 won
-				participant2.wins += 1
-			participant1.gamesPlayed += 1 
-			participant2.gamesPlayed += 1
-			participant1.save()
-			participant2.save()
 
-			try:
-				player1 = UserAccount.objects.get(id=game.player1.id)
-			except UserAccount.DoesNotExist:
-				return Response({'message': f'[PUT] [{game.id}] Unknown Player 1'}, status=status.HTTP_404_NOT_FOUND)
-			try:
-				player2 = UserAccount.objects.get(id=game.player2.id)
-			except UserAccount.DoesNotExist:
-				return Response({'message': f'[PUT] [{game.id}] Unknown Player 2'}, status=status.HTTP_404_NOT_FOUND)
-			try:
-				dashboard1 = DashboardData.objects.get(user=player1)
-				dashboard2 = DashboardData.objects.get(user=player2)
-			except DashboardData.DoesNotExist:
-				return Response({'message': f'[PUT] [{game.id}] Player(s): No Dashboard Data'}, status=status.HTTP_404_NOT_FOUND)
+		try:
+			player1 = UserAccount.objects.get(id=game.player1.id)
+		except UserAccount.DoesNotExist:
+			return Response({'message': f'[PUT] [{game.id}] Unknown Player 1'}, status=status.HTTP_404_NOT_FOUND)
+		try:
+			player2 = UserAccount.objects.get(id=game.player2.id)
+		except UserAccount.DoesNotExist:
+			return Response({'message': f'[PUT] [{game.id}] Unknown Player 2'}, status=status.HTTP_404_NOT_FOUND)
+		try:
+			dashboard1 = DashboardData.objects.get(user=player1)
+			dashboard2 = DashboardData.objects.get(user=player2)
+		except DashboardData.DoesNotExist:
+			return Response({'message': f'[PUT] [{game.id}] Player(s): No Dashboard Data'}, status=status.HTTP_404_NOT_FOUND)
 
-			if score1 > score2:
-				winner = dashboard1
-				loser = dashboard2
-			else:
-				loser = dashboard1
-				winner = dashboard2
+		if score1 > score2:
+			winner = dashboard1
+			loser = dashboard2
+		else:
+			loser = dashboard1
+			winner = dashboard2
 
 			winner.save()
 			loser.save()
 
-			return Response({'message': f'[PUT] [{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
-		return Response({'message': '[PUT] Invalid Game Match Request'}, status=status.HTTP_400_BAD_REQUEST)
+		return Response({'message': f'[PUT] [{id}]: Game Match Data Saved Successfully'}, status=status.HTTP_200_OK)
 	
 	def delete(self, request, id):
 		try:

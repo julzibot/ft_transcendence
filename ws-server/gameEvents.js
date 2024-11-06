@@ -14,59 +14,26 @@ export default function gameEvents(io, lobby, socket) {
 		console.log(`[gameEvents] [joinGame] ${socket.id} has joined -> ${gameId}`);
 		const room = gameRooms.get(gameId);
 		const gameLobby = gameLobbies.get(lobbyId);
-		// if ( not found )
-		// 	handle error
 		if (room) {
 			if (gameLobby.player1.id === userId) {
 				room.player1 = socket.id;
-				console.log(`[gameEvents] Assigning player1 [${userId}] room: ${JSON.stringify(room)}`);
 			}
 			else {
 				room.player2 = socket.id;
-				console.log(`[gameEvents] Assigning player2 [${userId}] room: ${JSON.stringify(room)}`);
 			}
 		}
 		else {
 			if (gameLobby.player1 && gameLobby.player1.id === userId) {
 				gameRooms.set(gameId, { player1: socket.id, player2: null });
-				console.log(`[gameEvents] Assigning player1 [${userId}] room: ${JSON.stringify(gameRooms.get(gameId))}`)
 			}
 			else {
 				gameRooms.set(gameId, { player1: null, player2: socket.id });
-				console.log(`[gameEvents] Assigning player2 [${userId}] room: ${JSON.stringify(gameRooms.get(gameId))}`);
 			}
 		}
 
 		if (room && room.player1 && room.player2) {
 			lobby.in(lobbyId).emit('startGame');
 		}
-		else {
-			// return to lobby
-		}
-
-		// lobby.sockets.forEach((socket) => {
-		// 	console.log(`[game] Before leaving: Socket ID: ${socket.id}, Rooms: ${Array.from(socket.rooms)}`);
-		// });
-		// lobby.socketsLeave(data.lobbyId);
-		// lobby.sockets.forEach((socket) => {
-		// 	console.log(`[game] After leaving: Socket ID: ${socket.id}, Rooms: ${Array.from(socket.rooms)}`);
-		// });
-
-		// if (io.sockets.adapter.rooms.get(data.gameId).size === 2) {
-		//     const user = gameUsers.get(socket.id);
-		//     if (user) {
-		//         gameLobbies.forEach(async (lobby, lobbyId) => {
-		//             if (lobby.player1.id === user.userId || lobby.player2.id === user.userId) {
-		//                 await fetch(`http://django:${backendPort}/api/lobby/${lobbyId}/`, {
-		//                     method: 'DELETE',
-		//                     headers: { 'Content-Type': 'application/json' },
-		//                     credentials: 'include',
-		//                 });
-		//                 gameLobbies.delete(lobbyId);
-		//             }
-		//         })
-		//     }
-		// }
 	})
 
 	socket.on('sendPlayerInfos', (data) => {

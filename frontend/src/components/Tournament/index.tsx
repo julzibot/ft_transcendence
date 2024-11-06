@@ -111,9 +111,6 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		fetchData()
 	}, [])
 
-	useEffect(() => {
-		console.log(tournamentData)
-	}, [tournamentData])
 
 
 	return (

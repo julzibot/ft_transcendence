@@ -196,8 +196,6 @@ export default function ProfilePage() {
 														id="username"
 														className="form-control form-control-sm mb-2"
 														placeholder="New Username"
-													// value={data.username}
-													// onChange={(e) => setData({ ...data, username: DOMPurify.sanitize(e.target.value) })} 
 													/>
 													<button type="submit" className="btn btn-primary btn-sm rounded-pill">Submit</button>
 													<button type="button" onClick={() => setIsEditing(false)} className="btn btn-secondary rounded-pill btn-sm">Cancel</button>

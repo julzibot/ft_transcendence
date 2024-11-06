@@ -11,12 +11,6 @@ import useSocketContext from '../../context/socket';
 import { BACKEND_URL } from '@/config';
 import Cookies from 'js-cookie';
 
-
-// // CUT
-// // 0 -> local multiplayer
-// // 1 -> AI
-// // 2 -> remote
-// // 3 -> Tournament (?)
 export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, isHost, gamemode, handleGameEnded }) {
 	if (gamemode >= 2)
 		gamemode = 2;
@@ -36,7 +30,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 	arr.particleEffects = [];
 	arr.trailSegments = [];
 	arr.power_ups = [];
-	// const modes_colormap = [0x00ff33, 0xff0022, 0x4c4cff, 0xcc00cc, 0xffffff, 0x888888]
 	arr.player_power_ups = [-1, -1];
 	arr.activated_powers = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
 	arr.power_timers = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
@@ -67,7 +60,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 		};
 	}
 	let socket = -1;
-	// if (gamemode === 2)
 	socket = useSocketContext();
 
 	initVars(p.objs, p.csts, p.vars, p.custom);
@@ -199,7 +191,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				p.csts.ballLight.color.set(color);
 			}
 
-			// CUT
 			const scoringLogic = (room_id, socket, isHost, gamemode, handleGameEnded, p, arr, g) => {
 				// RESTART FROM CENTER WITH RESET SPEED IF A PLAYER LOSES
 				if (isHost === true && (p.objs.ball.position.x > CONST.GAMEWIDTH / 2 + 4 || p.objs.ball.position.x < -(CONST.GAMEWIDTH / 2 + 4))) {
@@ -246,11 +237,10 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 						p.vars.endString = `GAME ENDED\n${g.p2Name} WINS`;
 
 					printGameInfo(p.vars.endMsgMesh, p.vars.endString, 5, -1, 3, p);
-					console.log(`[ThreeScene] [Scoring Logic] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`);
 					if (isHost || g.lastConnected === 1) {
 						const put_response = PutScores(gamemode, g.game_id, p);
 						if (put_response == false)
-							console.log("Ouch ! Scores not updated !")
+							console.error("Ouch ! Scores not updated !")
 					}
 					p.vars.stopGame = 2;
 					handleGameEnded();
@@ -305,7 +295,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				p.tools.scene.add(light);
 			}
 
-			// CUT
 			const collision_pu_handle = (room_id, socket, gamemode, p, arr) => {
 				if ((p.vars.isRebound === 1 && arr.activated_powers[0][1] === 1) || (p.vars.isRebound === 2 && arr.activated_powers[1][1] === 1)) {
 					p.vars.adjustedBallSpeed = Math.min(2. * p.vars.adjustedBallSpeed, 1.3 * CONST.BALLSPEED_MAX);
@@ -680,7 +669,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				let putPath = 'local';
 				if (gameMode >= 2)
 					putPath = 'online';
-				// console.log(`[ThreeScene] [PutScores] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`)
 				const response = await fetch(BACKEND_URL + `/api/game/${putPath}/update/${game_id}`,
 					{
 						method: 'PUT',
@@ -843,7 +831,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				const radius = Math.max(0.7, Math.random() * 1.4);
 				const spawnx = THREE.MathUtils.randFloatSpread(CONST.GAMEWIDTH * 0.7);
 				const spawny = THREE.MathUtils.randFloatSpread(CONST.GAMEHEIGHT * 0.9);
-				// powerType = 3; color.set(0.8, 0., 0.8);
 				if (gamemode === 2)
 					socket.emit('sendCreatePU', { pu_id: p.vars.puIdCount, type: powerType, radius: radius, x: spawnx, y: spawny, room_id: room_id });
 				createPUObject(powerType, radius, spawnx, spawny, p, arr, g);
@@ -933,7 +920,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				}
 			}
 
-			// CUT
 			const animate = (socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool) => {
 				if (stopAnim.current === true) {
 					return;
@@ -970,7 +956,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 				p.objs.ballWrap.position.y = y;
 				p.csts.ballLight.position.x = x;
 				p.csts.ballLight.position.y = y;
-				// COMMENT IN PROD
 				if (testbool.current === false && (x > 2 || x < -2))
 					testbool.current = true;
 
@@ -1083,7 +1068,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 					})
 				}
 				socket.on('playerDisconnected', () => {
-					console.log(`[ThreeScene] The other player has disconnected`);
 					if (isHost) {
 						p.vars.p1Score = p.custom.win_score;
 						p.vars.p2Score = 0;
@@ -1095,7 +1079,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 							g.lastConnected = 1;
 					}
 					p.vars.stopGame = 1;
-					console.log(`[ThreeScene] [playerDisconnected] p1: ${p.vars.p1Score} p2: ${p.vars.p2Score}`);
 				});
 			}
 
@@ -1233,7 +1216,6 @@ export default function ThreeScene({ gameInfos, gameSettings, room_id, user_id, 
 			if (gamemode >= 2)
 				init_socket(socket, isHost, p, arr, g);
 			if (gamemode < 2 || (gamemode === 2 && socket && user_id)) {
-				console.log(`Calling animate...`)
 				animate(socket, room_id, isHost, gamemode, handleGameEnded, animationFrameIdRef, stopAnim, p, arr, g, trail, testbool);
 			}
 

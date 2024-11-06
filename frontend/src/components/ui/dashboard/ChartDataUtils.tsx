@@ -25,10 +25,8 @@ export const incrementDateDay = (date: string) => {
 const parseActivity = (newActivityData: Array<MatchEntry>) => {
 
 	if (Array.isArray(newActivityData)) {
-		// console.log(`[parseActivity] newActivityData: ${JSON.stringify(newActivityData)}`)
 		let i = 0;
 		while (i < newActivityData.length - 1) {
-			// console.log(`[parseActivity] loop i: ${i} newActivityData[i].x: ${newActivityData[i].x}`);
 			const cmpDate = incrementDateDay(newActivityData[i].x);
 
 			if (cmpDate > newActivityData[newActivityData.length - 1].x)
@@ -42,7 +40,6 @@ const parseActivity = (newActivityData: Array<MatchEntry>) => {
 
 		// Sort by date after all splicing to maintain chronological order
 		newActivityData.sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
-		// console.log(`[parseActivity] sorted newActivityData: ${JSON.stringify(newActivityData)}`);
 	}
 }
 
@@ -66,10 +63,6 @@ export const createScoreData = (
 		let newMinDate = minDate;
 
 		data.map((item) => {
-			// console.log(`[createScoreData] [item] ${JSON.stringify(item)}`);
-			// const itemDate = new Date(item.date); // item.date -> YYYY-MM-DD
-			// const dateISO = itemDate.getTime();
-			// console.log(`data.map -> date -> ${dateISO}`);
 
 			if (item.date < newMinDate)
 				newMinDate = item.date;
@@ -106,24 +99,20 @@ export const createScoreData = (
 		});
 		const today = convertDate(new Date());
 
-		// console.log(`[ChartDataUtils] newActivityData: ${JSON.stringify(newActivityData)}`);
 		let lastDay = newActivityData[newActivityData.length - 1].x;
 
 		while (lastDay < today) {
-			// console.log('[ChartDataUtils] time loop()');
 			newActivityData.push({ x: lastDay, y: 0 });
 			newWinData.push({ x: lastDay, y: 0 });
 			newLossData.push({ x: lastDay, y: 0 });
 			lastDay = incrementDateDay(lastDay); // increment lastDayDate
 		}
-		console.log(`[ChartDataUtils] after time loop()`);
 
 		parseActivity(newActivityData);
 		setActivityData(newActivityData);
 		setMinDate(newMinDate);
 		setWinData(newWinData);
 		setLossData(newLossData);
-		// console.log(`[newGameModesData] ${JSON.stringify(newGameModesData)}`);
 		setGameModesData(newGameModesData);
 	}
 }

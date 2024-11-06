@@ -37,7 +37,6 @@ export function numbers(config) {
       data.push(null);
     }
   }
-  console.log(data);
   return data;
 }
 
