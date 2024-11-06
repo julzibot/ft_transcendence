@@ -1,0 +1,85 @@
+.pageTitle {
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: transform 0.8s ease;
+}
+
+.pageTitle.mounted {
+  opacity: 1;
+  transform: translateY(0);
+  transition: transform 1s ease, opacity 0.5s ease;
+}
+
+
+.pageTitle.top {
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: transform 1s ease, opacity 0.5s ease;
+}
+
+
+.localCard {
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: transform 0.8s ease, box-shadow 1.5s;
+}
+
+.localCard.mounted {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.5s ease, opacity 0.5s ease, box-shadow 0.5s;
+}
+
+.localCard.mounted:hover {
+  transform: scale(1.12);
+  box-shadow:
+    0px 0px 7px rgba(0, 0, 0, 0.5),
+    0px 7px 7px rgba(0, 0, 0, 0.5),
+    0 0 20px greenyellow;
+}
+
+.localCard.left {
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: transform 1s ease, opacity 0.5s ease;
+
+}
+
+.localCard:hover.left {
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: transform 1s ease, opacity 0.5s ease;
+}
+
+.onlineCard {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: transform 0.8s ease;
+}
+
+
+.onlineCard.mounted {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.5s ease, opacity 0.5s ease, box-shadow 0.5s;
+}
+
+.onlineCard.mounted:hover {
+  transform: scale(1.12);
+  box-shadow:
+    -7px 0px 7px rgba(0, 0, 0, 0.5),
+    0px 7px 7px rgba(0, 0, 0, 0.5),
+    0 0 20px rgb(43, 71, 129);
+}
+
+.onlineCard.right {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: transform 1s ease, opacity 0.5s ease;
+}
+
+.onlineCard:hover.right {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: transform 1s ease, opacity 0.5s ease;
+}

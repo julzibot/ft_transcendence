@@ -1,0 +1,21 @@
+.winner {
+  opacity: 0;
+  transform: scale(0.1);
+  transition: transform 1s ease, opacity 1s;
+}
+
+.winner.mounted {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.score {
+  opacity: 0;
+  transform: scale(0.1);
+  transition: transform 1s ease, opacity 1s;
+}
+
+.score.mounted {
+  opacity: 1;
+  transform: scale(1);
+}
