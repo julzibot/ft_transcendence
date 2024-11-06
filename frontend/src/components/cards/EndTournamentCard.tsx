@@ -22,11 +22,13 @@ export default function EndTournamentCard({ participants, tournamentId }: { part
   }
 
   function findWinner() {
-    const winner: ParticipantType[] = []
-    winner.push(sorted[0]) // at least one winner
-    for (let i = 1; sorted[i] && sorted[i].wins === sorted[i - 1].wins && sorted[i].gamesPlayed === sorted[i - 1].gamesPlayed; i++)
-      winner.push(sorted[i])
-    setWinners(winner)
+    if (sorted) {
+      const winner: ParticipantType[] = []
+      winner.push(sorted[0]) // at least one winner
+      for (let i = 1; sorted[i] && sorted[i].wins === sorted[i - 1].wins && sorted[i].gamesPlayed === sorted[i - 1].gamesPlayed; i++)
+        winner.push(sorted[i])
+      setWinners(winner)
+    }
   }
 
 

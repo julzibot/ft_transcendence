@@ -96,11 +96,14 @@ class LobbyDataView(APIView):
 			lobby = LobbyData.objects.get(linkToJoin=linkToJoin)
 		except ObjectDoesNotExist:
 			return Response({'message': 'Lobby or User Account not found'}, status=status.HTTP_404_NOT_FOUND)
-		if lobby.player1.id == user.id:
-			lobby.player1 = None
-		elif lobby.player2.id == user.id:
-			lobby.player2 = None
-		lobby.save()
+		try:
+			if lobby.player1.id == user.id:
+				lobby.player1 = None
+			elif lobby.player2.id == user.id:
+				lobby.player2 = None
+			lobby.save()
+		except:
+			return Response(status=status.HTTP_400_BAD_REQUEST)
 		return Response({'message': 'Lobby Saved Successfully'}, status=status.HTTP_200_OK)
 
 
