@@ -153,7 +153,6 @@ export default function tournamentEvents(io, socket) {
 			if (response.ok) {
 				const data = await response.json()
 				updatedParticipants = data.participants
-				console.log('Participants: ' + { updatedParticipants })
 			}
 			socket.in(tournamentId).emit('updateParticipants', updatedParticipants)
 
@@ -174,7 +173,6 @@ export default function tournamentEvents(io, socket) {
 
 	socket.on('sendLink', (data) => {
 		const { tournamentId, linkToJoin, receiver } = data;
-		console.log(`[tournament] [sendLink]  ${data}`);
 
 		let socketId;
 		tournamentUsers.forEach((userId, keyId) => {
@@ -184,14 +182,12 @@ export default function tournamentEvents(io, socket) {
 
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		if (tournament) {
-			console.log(`[tournament] [sendLink] receiveLink -> socketId: ${socketId}`);
 			io.to(socketId).emit('receiveLink', { linkToJoin: linkToJoin, receiverId: receiver.id });
 		}
 	})
 
 	socket.on('startTournament', (data) => {
 		const { tournamentId, tournamentDuration } = data;
-		console.log(`[tournament] [startTournament] data: ${JSON.stringify(data)}`);
 
 		io.in(tournamentId).emit('tournamentStarted');
 
@@ -233,14 +229,12 @@ export default function tournamentEvents(io, socket) {
 					io.in(tournamentId).emit('announceTournamentEnd');
 					clearInterval(loopId);
 				}
-				// console.log('tournament.disconnected.length, tournament.participants.length: ', tournament.disconnected.length, tournament.participants.length)
 			}, 5000);
 		}
 	})
 
 	socket.on('tournamentGameEntered', (data) => {
 		const { tournamentId, userId, oppId } = data;
-		console.log(`[tournament] [tournamentGameEntered] data: ${JSON.stringify(data)}`);
 		const tournament = tournamentsArray.find(tournament => tournament.tournamentId === tournamentId);
 		const i = tournament.inLobby.findIndex(participant => participant.user.id === userId);
 		const participant = tournament.participants.find(participant => participant.user.id === userId);

@@ -38,6 +38,7 @@ export interface TournamentType {
 	pointsPerGame: number;
 	power_ups: boolean;
 	isStarted: boolean;
+	isFinished: boolean;
 }
 
 export interface Pair {

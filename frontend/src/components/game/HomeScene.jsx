@@ -19,7 +19,7 @@ const createBall = (vars) => {
     const yspawn = (Math.random() - 0.5) * 40;
     const zspawn = (Math.random() - 0.5) * 80;
     ball.position.set(side * 30, yspawn, zspawn);
-    // console.log("CREATING BALL AT " + side * 30 + " " + yspawn + " " + zspawn);
+
     const xOffset = (Math.random() - 0.5) * 2
     const yOffset = (Math.random() - 0.5) * 2
     const zOffset = (Math.random() - 0.5) * 2
@@ -32,10 +32,8 @@ const createBall = (vars) => {
 }
 
 function animate(vars) {
-    // console.log("TIMER: " + vars.ballTimer + "    TICK: " + vars.ballSpawnTick);
     if (performance.now() - vars.ballTimer > vars.ballSpawnTick) {
         const spawnChance = Math.random() - (1 - (vars.spawnChanceCounter / 10));
-        // console.log("HERE " + spawnChance);
 
         if (spawnChance > 0) {
             createBall(vars);
@@ -57,7 +55,6 @@ function animate(vars) {
             vars.balls[i][0].position.x = x + vars.balls[i][1].x * vars.balls[i][2];
             vars.balls[i][0].position.y = y + vars.balls[i][1].y * vars.balls[i][2];
             vars.balls[i][0].position.z = z + vars.balls[i][1].z * vars.balls[i][2];
-            // console.log("POS: " + vars.balls[i][0].position.x + " " + vars.balls[i][0].position.y);
             dist = Math.sqrt(x * x + y * y + z * z);
             if (dist < 2.6) {
                 vars.balls[i][1].x = x + (x - vars.balls[i][1].x)

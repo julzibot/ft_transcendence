@@ -21,7 +21,7 @@ class TournamentSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = TournamentModel
-		fields = ['id', 'name', 'maxPlayerNumber', 'timer', 'power_ups', 'difficultyLevel', 'pointsPerGame', 'isStarted', 'creator', 'numberOfPlayers', 'linkToJoin', 'participants']
+		fields = ['id', 'name', 'maxPlayerNumber', 'timer', 'power_ups', 'difficultyLevel', 'pointsPerGame', 'isStarted', 'creator', 'numberOfPlayers', 'linkToJoin', 'participants', 'isFinished']
 		read_only_fields = ['participants']
 
 	def get_creator(self, obj):

@@ -34,11 +34,11 @@ export default function TournamentLobby() {
 	const [isStarting, setIsStarting] = useState(false);
 	const [endTournamentCardShow, setEndTournamentCardShow] = useState<boolean>(false);
 	const [opponentLeft, setOpponentLeft] = useState<number>(-1);
-	let timer: number;
+	let timer: any;
 
 	const handleLeaveTournament = async () => {
-		await leaveTournament(id, session.user.id)
-		socket.emit('unregister', { tournamentId: id, userId: session?.user?.id })
+		await leaveTournament(id as string, session?.user?.id)
+		socket?.emit('unregister', { tournamentId: id, userId: session?.user?.id })
 		router.replace('/tournaments')
 	}
 
@@ -56,7 +56,6 @@ export default function TournamentLobby() {
 			if (data.participants.some((participant: ParticipantType) => Number(participant.user.id) === session?.user?.id)) {
 				setParticipantsList(data.participants)
 				setTournamentData(data)
-				console.log(data.tournament)
 			} else
 				router.replace('/error?code=403')
 		}
@@ -96,7 +95,6 @@ export default function TournamentLobby() {
 
 	useEffect(() => {
 		if (session && socket && !joined) {
-			console.log("[joinTournament] emitting...");
 			socket.emit('joinTournament', {
 				tournamentId: id,
 				user: {
@@ -112,10 +110,8 @@ export default function TournamentLobby() {
 	useEffect(() => {
 		if (opponentLeft != -1 && pairs) {
 			const pair = pairs?.find((p: Pair) => p.player1.id === session?.user?.id || p.player2.id === session?.user?.id);
-			console.log(`[opponentLeft received] data.userId: ${JSON.stringify(opponentLeft)} pairs: ${JSON.stringify(pairs)}`);
 			if (pair?.player1?.id === opponentLeft || pair?.player2?.id === opponentLeft) {
-				console.log(`[opponentLeft] emitting to returnToLobby`);
-				socket.emit('returnToLobby', { tournamentId: id, userId: session?.user?.id });
+				socket?.emit('returnToLobby', { tournamentId: id, userId: session?.user?.id });
 				location.reload();
 			}
 		}
@@ -124,7 +120,6 @@ export default function TournamentLobby() {
 
 	useEffect(() => {
 		if (socket && isReady) {
-
 			socket.on('announceTournamentEnd', async () => {
 				//set IsFinished to backend
 				await endTournament(id as string)
@@ -132,7 +127,6 @@ export default function TournamentLobby() {
 			})
 
 			socket.on('tournamentStarted', () => {
-				console.log('tournament started setting isStarting to true')
 				setIsStarting(true);
 			})
 
@@ -141,7 +135,6 @@ export default function TournamentLobby() {
 			})
 
 			socket.on('updateParticipants', (data: ParticipantType[]) => {
-				console.log(data)
 				setParticipantsList(data.sort((a, b) => {
 					if (a.wins > b.wins) return -1;
 					if (a.wins < b.wins) return 1;
@@ -167,7 +160,6 @@ export default function TournamentLobby() {
 						//Create a lobby with payload
 						const linkToJoin = await AddLobbyData(payload);
 						//Send the link to the other player
-						console.log('sending link:', linkToJoin);
 						socket.emit('sendLink', {
 							tournamentId: id,
 							linkToJoin: linkToJoin,
@@ -184,7 +176,6 @@ export default function TournamentLobby() {
 						socket.on('receiveLink', async (data: { linkToJoin: string, receiverId: number }) => {
 							// do Not simply push to the lobby, but join using JoinLobbyView API in the backend ()
 							if (data.receiverId === session?.user?.id) {
-								console.log('received link:', data);
 								setReceived(true);
 								await JoinLobby(data.linkToJoin, session.user.id);
 								socket.emit('tournamentGameEntered', { tournamentId: id, userId: pair?.player2.id, oppId: pair?.player1.id })
@@ -213,7 +204,7 @@ export default function TournamentLobby() {
 	}, [tournamentData, socket])
 
 	useEffect(() => {
-		if (tournamentData && tournamentData.IsFinished)
+		if (tournamentData && tournamentData.isFinished)
 			setEndTournamentCardShow(true)
 	}, [tournamentData])
 
@@ -278,9 +269,10 @@ export default function TournamentLobby() {
 				{
 					(tournamentData?.isStarted || isStarting) &&
 					<div className="card position-relative mt-5 z-1 match-card border-2 rounded-5 col-4 position-absolute translate-middle-x start-50" style={{ height: '500px' }}>
-						<div className="video-container">
+						<div className="position-absolute" style={{ width: "100%", height: "100%" }}>
 							<video
-								className="background-video rounded-5"
+								className="rounded-5 position-absolute translate-middle-y object-fit-cover z-n1 top-50"
+								style={{ width: "100%", height: "100%" }}
 								autoPlay
 								muted
 								loop
@@ -319,7 +311,7 @@ export default function TournamentLobby() {
 				}
 			</div >
 			{
-				endTournamentCardShow && <EndTournamentCard participants={participantsList} tournamentId={id} />
+				endTournamentCardShow && <EndTournamentCard participants={participantsList} tournamentId={id as string} />
 			}
 		</>
 	)

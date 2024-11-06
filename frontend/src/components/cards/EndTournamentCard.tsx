@@ -13,6 +13,8 @@ export default function EndTournamentCard({ participants, tournamentId }: { part
   const [scoreShow, setScoreShow] = useState(false)
   const [winners, setWinners] = useState<ParticipantType[]>()
   const router = useRouter()
+  const [sorted, setSorted] = useState<ParticipantType[]>()
+
 
   const leaveTournament = async () => {
     await deleteTournament(tournamentId)
@@ -20,23 +22,35 @@ export default function EndTournamentCard({ participants, tournamentId }: { part
   }
 
   function findWinner() {
-    const winner: ParticipantType[] = []
-    winner.push(participants[0]) // at least one winner
-    for (let i = 1; participants[i] && participants[i].wins === participants[i - 1].wins && participants[i].gamesPlayed === participants[i - 1].gamesPlayed; i++)
-      winner.push(participants[i])
-    setWinners(winner)
+    if (sorted) {
+      const winner: ParticipantType[] = []
+      winner.push(sorted[0]) // at least one winner
+      for (let i = 1; sorted[i] && sorted[i].wins === sorted[i - 1].wins && sorted[i].gamesPlayed === sorted[i - 1].gamesPlayed; i++)
+        winner.push(sorted[i])
+      setWinners(winner)
+    }
   }
 
 
   useEffect(() => {
-    findWinner()
-    setTimeout(() => {
-      setWinnerShow(true)
-    }, 1500)
-    setTimeout(() => {
-      setScoreShow(true)
-    }, 3000)
+    setSorted(participants.sort((a, b) => {
+      if (a.wins > b.wins) return -1;
+      if (a.wins < b.wins) return 1;
+      return a.gamesPlayed - b.gamesPlayed;
+    }))
+
   }, [])
+  useEffect(() => {
+    if (sorted) {
+      findWinner()
+      setTimeout(() => {
+        setWinnerShow(true)
+      }, 1500)
+      setTimeout(() => {
+        setScoreShow(true)
+      }, 3000)
+    }
+  }, [sorted])
 
 
   return (

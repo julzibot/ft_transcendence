@@ -89,16 +89,18 @@ export const deleteTournament = async (tournamentId: string) => {
 	})
 }
 
-export const leaveTournament = async (tournamentId: string, userId: number) => {
-	await fetch(BACKEND_URL + `/api/tournament/${tournamentId}/delete-participant/`, {
-		method: 'DELETE',
-		credentials: 'include',
-		headers: {
-			"Content-Type": 'application/json',
-			"X-CSRFToken": Cookies.get('csrftoken') as string
-		},
-		body: JSON.stringify({ userId })
-	})
+export const leaveTournament = async (tournamentId: string, userId: number | undefined) => {
+	if (userId) {
+		await fetch(BACKEND_URL + `/api/tournament/${tournamentId}/delete-participant/`, {
+			method: 'DELETE',
+			credentials: 'include',
+			headers: {
+				"Content-Type": 'application/json',
+				"X-CSRFToken": Cookies.get('csrftoken') as string
+			},
+			body: JSON.stringify({ userId })
+		})
+	}
 }
 
 export const startTournament = async (tournamentId: string) => {

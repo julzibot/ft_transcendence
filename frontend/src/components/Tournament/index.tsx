@@ -111,9 +111,6 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 		fetchData()
 	}, [])
 
-	useEffect(() => {
-		console.log(tournamentData)
-	}, [tournamentData])
 
 
 	return (
@@ -176,10 +173,14 @@ export default function Tournament({ setToastShow, setErrorField, errorField }: 
 						>
 							{
 								tournament.participants.some((participant) => Number(participant.user.id) === session?.user?.id) &&
-								<div className="video-container">
+								<div
+									className="position-absolute overflow-hidden"
+									style={{ width: "100%", height: "100%" }}
+								>
 									<video
-										className="background-video"
+										className="object-fit-cover position-absolute z-n1"
 										autoPlay
+										style={{ width: "100%", height: "100%" }}
 										muted
 										loop
 										src="/videos/flame3.mp4"

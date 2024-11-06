@@ -32,7 +32,6 @@ interface User {
 }
 
 const UserDashboardCard = ({ user }: { user: User }) => {
-	console.log(`[UserDashboardCard] user: ${JSON.stringify(user)}`);
 
 	const [DashboardData, setDashboardData] = useState<DashboardItems | null>(null);
 	const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
@@ -49,9 +48,6 @@ const UserDashboardCard = ({ user }: { user: User }) => {
 					const data = await response.json();
 					setDashboardData(data);
 				}
-				else {
-					console.log('[fetchDashboardDetail] Response Status: ' + response.status);
-				}
 			};
 			fetchDashboardDetail();
 			const fetchUserHistory = async () => {
@@ -67,9 +63,6 @@ const UserDashboardCard = ({ user }: { user: User }) => {
 					const data = await response.json();
 					setUserHistory(data);
 					setUserHistoryFetched(true);
-				}
-				else {
-					console.log('No User Game History:', response.status);
 				}
 			};
 			fetchUserHistory();
@@ -98,17 +91,15 @@ const UserDashboardCard = ({ user }: { user: User }) => {
 	useEffect(() => {
 		if (userHistoryFetched && !dataCreated) {
 			if (!userHistory) {
-				console.log(`[Dashboard] No user history setting dataCreated to true`);
 				setDataCreated(true);
 				return;
 			}
-			// console.log(`[UserHistory] ${JSON.stringify(userHistory)}`);
+
 
 			setWinData([]);
 			setLossData([]);
 			setActivityData([]);
 
-			console.log(`[Dashboard post-createScoreData() setting dataCreated to true`);
 			if (user) {
 
 				createScoreData(
@@ -120,7 +111,6 @@ const UserDashboardCard = ({ user }: { user: User }) => {
 					maxY, setMaxY,
 					minDate, setMinDate);
 			}
-			console.log(`[Dashboard post-createScoreData() setting dataCreated to true`);
 			setDataCreated(true);
 		}
 	}, [user?.id, userHistoryFetched, dataCreated]);
@@ -180,10 +170,10 @@ const UserDashboardCard = ({ user }: { user: User }) => {
 										</div>
 
 										<div className="btn-group m-1" role="group">
-											<input type="radio" className="btn-check" name="btnradio" id="radioWithoutStats" defaultChecked autoComplete="off" onClick={() => setStatsToggle(!statsToggle)} />
+											<input type="radio" className="btn-check" name="btnradio" id="radioWithoutStats" defaultChecked autoComplete="off" onClick={() => setStatsToggle(true)} />
 											<label className="btn btn-outline-danger" htmlFor="radioWithoutStats" >Without Stats</label>
 
-											<input type="radio" className="btn-check" name="btnradio" id="radioWithStats" autoComplete="off" onClick={() => setStatsToggle(!statsToggle)} />
+											<input type="radio" className="btn-check" name="btnradio" id="radioWithStats" autoComplete="off" onClick={() => setStatsToggle(false)} />
 											<label className="btn btn-outline-danger" htmlFor="radioWithStats">With Stats</label>
 										</div>
 										<div className='d-flex flex-row m-3'>
@@ -306,17 +296,17 @@ const UserDashboardCard = ({ user }: { user: User }) => {
 																								obj.game_mode === 1 ? (
 
 																									<th className='match-table-row' scope='col'>
-																									<div className="d-flex flex-row align-items-center">
-																										<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>AI</span>
-																										<Image className="ms-2" src="/static/images/airobot.png" alt="AI" whRatio="50px" />
-																									</div>
-																								</th>) : (
-																										<th className='match-table-row' scope='col'>
+																										<div className="d-flex flex-row align-items-center">
+																											<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>AI</span>
+																											<Image className="ms-2" src="/static/images/airobot.png" alt="AI" whRatio="50px" />
+																										</div>
+																									</th>) : (
+																									<th className='match-table-row' scope='col'>
 																										<div className="d-flex flex-row align-items-center">
 																											<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>Guest</span>
-																											<Image className="ms-2" src="/static/images/default.jpg" alt="Guest" whRatio="50px" />
+																											<Image className="ms-2" src="/static/images/guest.png" alt="Guest" whRatio="50px" />
 																										</div>
-																										</th>
+																									</th>
 																								)
 																							)
 																					}

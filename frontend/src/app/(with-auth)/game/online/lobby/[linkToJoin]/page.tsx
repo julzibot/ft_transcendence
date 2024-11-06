@@ -128,9 +128,6 @@ export default function Lobby() {
 		setGameEnded(true)
 	}
 
-	useEffect(() => {
-		console.log(lobbyData)
-	}, [lobbyData])
 	return (
 		<>
 			{socket && lobbyData &&

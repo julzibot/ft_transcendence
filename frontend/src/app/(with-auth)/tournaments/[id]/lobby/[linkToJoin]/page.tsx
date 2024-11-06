@@ -51,11 +51,10 @@ export default function TournamentGameLobby() {
 	const startRef = useRef(start);
 	startRef.current = start;
 
-	let timer: number;
+	let timer: any;
 	if (countdown === 0) {
 		timer = setTimeout(() => {
 			if (!startRef.current) {
-				// console.log('the other player is not here bool: ' + start);
 				router.push(`/tournaments/${id}`);
 			}
 		}, 5000);
@@ -69,7 +68,6 @@ export default function TournamentGameLobby() {
 					credentials: 'include'
 				});
 				if (!response.ok) {
-					console.log('Error fetching lobby data in tournament')
 					router.push(`/error?code=${response.status}`)
 				}
 				else {
@@ -109,7 +107,6 @@ export default function TournamentGameLobby() {
 				setPlayers(data)
 			})
 			socket.on('startGame', () => {
-				console.log(`[TournamentGameLobby] startGame -> true`);
 				setStart(true);
 
 				socket.disconnect();
