@@ -144,7 +144,7 @@ class DeleteTournamentView(APIView):
 			return Response({'message': 'Invalid id'}, status=status.HTTP_400_BAD_REQUEST)
 		try:
 			tournament = TournamentModel.objects.get(linkToJoin=id)
-		except ObjectDoesNotExists:
+		except ObjectDoesNotExist:
 			return Response({'message': 'Tournament not found'}, status=status.HTTP_404_NOT_FOUND)
 		tournament.delete()
 		return Response({'message': 'tournament deleted'}, status=status.HTTP_204_NO_CONTENT)

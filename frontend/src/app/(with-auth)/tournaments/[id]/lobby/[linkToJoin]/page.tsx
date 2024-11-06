@@ -51,7 +51,7 @@ export default function TournamentGameLobby() {
 	const startRef = useRef(start);
 	startRef.current = start;
 
-	let timer: number;
+	let timer: any;
 	if (countdown === 0) {
 		timer = setTimeout(() => {
 			if (!startRef.current) {

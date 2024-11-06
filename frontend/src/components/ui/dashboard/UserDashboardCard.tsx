@@ -306,17 +306,17 @@ const UserDashboardCard = ({ user }: { user: User }) => {
 																								obj.game_mode === 1 ? (
 
 																									<th className='match-table-row' scope='col'>
-																									<div className="d-flex flex-row align-items-center">
-																										<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>AI</span>
-																										<Image className="ms-2" src="/static/images/airobot.png" alt="AI" whRatio="50px" />
-																									</div>
-																								</th>) : (
-																										<th className='match-table-row' scope='col'>
+																										<div className="d-flex flex-row align-items-center">
+																											<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>AI</span>
+																											<Image className="ms-2" src="/static/images/airobot.png" alt="AI" whRatio="50px" />
+																										</div>
+																									</th>) : (
+																									<th className='match-table-row' scope='col'>
 																										<div className="d-flex flex-row align-items-center">
 																											<span className="d-inline-block flex-column flex-grow-1 overflow-hidden ms-2 fs-4 fw-semibold text-truncate" style={{ maxWidth: '100px' }}>Guest</span>
-																											<Image className="ms-2" src="/static/images/default.jpg" alt="Guest" whRatio="50px" />
+																											<Image className="ms-2" src="/static/images/guest.png" alt="Guest" whRatio="50px" />
 																										</div>
-																										</th>
+																									</th>
 																								)
 																							)
 																					}
